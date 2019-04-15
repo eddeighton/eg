@@ -1,0 +1,13 @@
+build_*
+bin
+modules/llvm_*
+data/components/common/__pycache__
+scripts/test_output_log_file.txt
+dump_*
+.vs*
+*.o
+*.exe
+*.db
+*.pch
+*.gch
+
