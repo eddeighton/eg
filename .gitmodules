@@ -1,0 +1,18 @@
+[submodule "submodules/llvm"]
+	path = submodules/llvm
+	url = https://github.com/llvm/llvm-project.git
+[submodule "submodules/boost"]
+	path = submodules/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "submodules/cinder"]
+	path = submodules/cinder
+	url = https://github.com/cinder/Cinder.git
+[submodule "submodules/gtest"]
+	path = submodules/gtest
+	url = https://github.com/google/googletest.git
+[submodule "submodules/luncliff/coroutine"]
+	path = submodules/luncliff/coroutine
+	url = https://github.com/luncliff/coroutine.git
+[submodule "submodules/pybind11"]
+	path = submodules/pybind11
+	url = https://github.com/pybind/pybind11.git
