@@ -1,0 +1,7 @@
+
+
+The EG Bug Tracker.
+
+1. ItaniumMangle.cpp CXXNameMangler::mangleType - how to generate mangled name for eg result type unary transform type?
+2. ParseExpr.cpp 1827 When isPossibleEGInvocation is not restricted 64 tests fail in clang test suite - presumably where ActOnAmbiguousEGInvokeMemberAccessExpr is called and causes failure 
+

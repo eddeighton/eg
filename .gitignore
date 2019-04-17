@@ -10,4 +10,6 @@ dump_*
 *.db
 *.pch
 *.gch
+third_party
+
 
