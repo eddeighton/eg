@@ -2,8 +2,12 @@
 
 #include "database/database.hpp"
 
+#pragma warning( push )
+#include "common/clang_warnings.hpp"
+
 #include "clang/AST/Type.h"
 
+#pragma warning( pop ) 
 
 #include <sstream>
 
@@ -20,71 +24,71 @@ namespace
 
 namespace eg
 {
-    const EGChar* getTypePathString()
+    EGDB_EXPORT const EGChar* getTypePathString()
     {
         return "__eg_type_path";
     }
-    const EGChar* getInvocationString()
+    EGDB_EXPORT const EGChar* getInvocationString()
     {
         return "__eg_invocation";
     }
-    const EGChar* getVariantString()
+    EGDB_EXPORT const EGChar* getVariantString()
     {
         return "__eg_variant";
     }
-    const EGChar* getInvokeString()
+    EGDB_EXPORT const EGChar* getInvokeString()
     {
         return "invoke";
     }
-    const EGChar* getResultTypeTrait()
+    EGDB_EXPORT const EGChar* getResultTypeTrait()
     {
         return "__eg_result_type";
     }
     
     
-    void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema )
+    EGDB_EXPORT void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema )
     {
     }
-    void initialiseMode_Interface( const char* strDatabasePath )
+    EGDB_EXPORT void initialiseMode_Interface( const char* strDatabasePath )
     {
         currentMode = eInterface;
     }
-    void initialiseMode_Operations( const char* strDatabasePath, 
+    EGDB_EXPORT void initialiseMode_Operations( const char* strDatabasePath, 
         const char* strTranslationUnitDatabasePath, unsigned uiTranslationUnitID )
     {
         currentMode = eOperations;
     }
-    void initialiseMode_Implementation()
+    EGDB_EXPORT void initialiseMode_Implementation()
     {
         currentMode = eImplementation;
     }
-    void runFinalAnalysis()
+    EGDB_EXPORT void runFinalAnalysis()
     {
     }
 
-    bool isEGEnabled()
+    EGDB_EXPORT bool isEGEnabled()
     {
         return true;
     }
-    bool isEGType( const clang::QualType& type )
+    EGDB_EXPORT bool isEGType( const clang::QualType& type )
     {
         return false;
     }
-    bool isPossibleEGType( const clang::QualType& type )
+    EGDB_EXPORT bool isPossibleEGType( const clang::QualType& type )
     {
         return false;
     }
-    bool isPossibleEGTypeIdentifier( const clang::Token& token )
+    EGDB_EXPORT bool isPossibleEGTypeIdentifier( const clang::Token& token )
     {
         return false;
     }
 
-    void getInvocationOperationType( const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType )
+    EGDB_EXPORT void getInvocationOperationType( const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType )
     {
         
     }
     
-    void getInvocationResultType( const clang::QualType& baseType, clang::QualType& resultType )
+    EGDB_EXPORT void getInvocationResultType( const clang::QualType& baseType, clang::QualType& resultType )
     {
           //QualType resultType = BaseType;
           //if( !BaseType->isDependentType() )

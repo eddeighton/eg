@@ -1,30 +1,28 @@
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.14.2)
 
 #command to build boost...
 #b2 --prefix=workspace\eg\third_party\install\boost --build-type=complete --build-dir=workspace\eg\third_party\build\boost threading=multi runtime-link=shared variant=release install
 
+include( ${EG_THIRD_PARTY_DIR}/install/boost/lib/cmake/Boost-1.70.0/BoostConfig.cmake )
 
 ######################################
 #Sort out the boost dependencies
-find_path( BOOST_INCLUDEDIR NAMES boost PATHS ${EG_THIRD_PARTY_DIR}/install/boost/include )
-find_path( BOOST_LIBRARYDIR NAMES boost_system-mt-gd.lib PATHS ${EG_THIRD_PARTY_DIR}/install/boost/lib )
+find_path( BOOST_INCLUDEDIR NAMES boost PATHS ${EG_THIRD_PARTY_DIR}/install/boost/include/boost-1_70 )
+find_path( BOOST_LIBRARYDIR NAMES "cmake/Boost-1.70.0/BoostConfig.cmake" PATHS ${EG_THIRD_PARTY_DIR}/install/boost/lib )
 
-set(BOOST_REQUIRED_VERSION 1.7.0 )
+set(BOOST_REQUIRED_VERSION 1.70 )
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
-find_package( Boost ${BOOST_REQUIRED_VERSION} QUIET COMPONENTS
+find_package( Boost ${BOOST_REQUIRED_VERSION} QUIET COMPONENTS 
     program_options
     date_time
-    chrono
     random
-    graph
     filesystem
-    thread
     system
-    python
-    REQUIRED )
+    iostreams
+    serialization )
 
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} )
 LINK_DIRECTORIES( ${Boost_LIBRARY_DIRS} )

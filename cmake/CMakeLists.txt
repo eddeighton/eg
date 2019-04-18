@@ -1,7 +1,5 @@
 
-cmake_minimum_required(VERSION 2.8)
-
-
+cmake_minimum_required(VERSION 3.14.2)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -15,6 +13,8 @@ set(CMAKE_INSTALL_PREFIX ${EG_ROOT_DIR} CACHE TYPE INTERNAL FORCE)
 set( EG_API_DIR ${EG_ROOT_DIR}/api )
 set( EG_SRC_DIR ${EG_ROOT_DIR}/src )
 set( EG_THIRD_PARTY_DIR ${EG_ROOT_DIR}/third_party )
+
+add_compile_options(/std:c++17)
 
 ######################################
 #win32 specific settings
@@ -39,3 +39,4 @@ project( eg )
 
 
 add_subdirectory(database)
+add_subdirectory(tests)
