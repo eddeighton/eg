@@ -55,9 +55,9 @@ namespace eg
             VERIFY_RTE( iFind != m_fileMap.end() );
             IndexedFile* pFile = iFind->second;
             T* pNewObject = ObjectFactoryImpl::create< T >( 
-                IndexedObject::MASTER_FILE, pFile->m_objects.size(), args... );
+                IndexedObject::MASTER_FILE, pFile->getObjects().size(), args... );
             VERIFY_RTE( pNewObject );
-            pFile->m_objects.push_back( pNewObject );
+            pFile->getObjects().push_back( pNewObject );
             return pNewObject;
         }
     };

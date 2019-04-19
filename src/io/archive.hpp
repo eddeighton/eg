@@ -10,6 +10,9 @@
 
 #include <boost/filesystem/path.hpp>
 
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/map.hpp>
+
 namespace boost { namespace serialization {
 
 template<class Archive>

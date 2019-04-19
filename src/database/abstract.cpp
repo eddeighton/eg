@@ -185,14 +185,14 @@ namespace abstract
         }
         loader.loadObjectVector( m_actionTypes );
         loader.load( m_canonicalType );
-        loader.load( size );
+        loader.load( m_size );
     }
     void Dimension::store( Storer& storer ) const
     {
         Element::store( storer );
         storer.storeObjectVector( m_actionTypes );
         storer.store( m_canonicalType );
-        storer.store( size );
+        storer.store( m_size );
     }
     const std::string& Dimension::getType() const
     {
@@ -272,7 +272,7 @@ namespace abstract
             m_pAction = dynamic_cast< input::Action* >( m_pElement );
             VERIFY_RTE( m_pAction );
         }
-        loader.load( size );
+        loader.load( m_size );
         loader.loadObjectVector( m_baseActions );
         loader.load( m_strBaseType );
         loader.load( m_strDependency );
@@ -283,7 +283,7 @@ namespace abstract
     void Action::store( Storer& storer ) const
     {
         Element::store( storer );
-        storer.store( size );
+        storer.store( m_size );
         storer.storeObjectVector( m_baseActions );
         storer.store( m_strBaseType );
         storer.store( m_strDependency );
@@ -336,7 +336,7 @@ namespace abstract
         }
     }
         
-    void Action::getChildren( std::vector< Action* >& actions ) const
+    void Action::getChildActions( std::vector< Action* >& actions ) const
     {
         for( Element* pElement : m_children )
         {
@@ -388,7 +388,7 @@ namespace abstract
     
     bool Action::isSingular() const
     {
-        return ( size == 1U ) ? true : false;
+        return ( m_size == 1U ) ? true : false;
     }
     
     

@@ -64,8 +64,34 @@ namespace eg
             }
         }
         
-        template< class T1, class T2 >
-        inline void loadObjectMap( std::map< T1*, T2* >& objects )
+        template< class T >
+        inline void loadObjectVectorVector( std::vector< std::vector< T* > >& objects )
+        {
+            std::size_t szCount = 0U;
+            load( szCount );
+            for( std::size_t sz = 0U; sz < szCount; ++sz )
+            {
+                std::vector< T* > nested;
+                loadObjectVector( nested );
+                objects.push_back( nested );
+            }
+        }
+        
+        template< class T1, class T2, class TPred >
+        inline void loadObjectMap( std::map< T1*, T2*, TPred >& objects )
+        {
+            std::size_t szSize = 0;
+            load( szSize );
+            for( std::size_t sz = 0; sz != szSize; ++sz )
+            {
+                const T1* pObject1 = loadObjectRef< T1 >();
+                const T2* pObject2 = loadObjectRef< T2 >();
+                objects.insert( std::make_pair( pObject1, pObject2 ) );
+            }
+        }
+        
+        template< class T1, class T2, class TPred >
+        inline void loadObjectMap( std::multimap< T1*, T2*, TPred >& objects )
         {
             std::size_t szSize = 0;
             load( szSize );

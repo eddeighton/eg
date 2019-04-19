@@ -4,44 +4,53 @@
 #define INTERFACE_SESSION_18_04_2019
 
 #include "session.hpp"
+#include "abstract.hpp"
+#include "concrete.hpp"
+#include "derivation.hpp"
+
+#include <map>
 
 namespace eg
 {
 
     
-    class LinkAnalysisSession : public AppendingSession
+    class InterfaceSession : public AppendingSession
     {
     public:
-        LinkAnalysisSession( const boost::filesystem::path& treePath );
+        InterfaceSession( const boost::filesystem::path& treePath );
         
-        //Instance_Action* getInstanceRoot() const;
-        //DerivationAnalysis* getDerivationAnalysisObject();
-        //        
-        ////IInterfaceAnalysisSession
-        //virtual void store() const
-        //{
-        //    AppendingSession::store();
-        //}
-        //virtual void release()
-        //{
-        //    delete this;
-        //}
-        //virtual void reportLink( IAction* pAction, const EGTypeID targetID );
-        //virtual void reportObject( IAction* pAction, const StringView& objectCanonicalTypeString );
-        //virtual void reportDependency( IAction* pAction, const StringView& objectCanonicalTypeString );
-        //virtual void reportSize( IAction* pAction, std::size_t size );
-        //virtual void reportSize( IDimension* pDimension, std::size_t size );
-        //virtual void reportDimensionActions( IDimension* pDimension, const std::vector< EGTypeID >& actions );
-        //virtual void reportDimensionCanonicalType( IDimension* pDimension, const StringView& objectCanonicalTypeString );
-        //virtual StringView getInterfacePrefix() const;
-        //virtual StringView getBaseType( std::size_t szIndex ) const;
-        //virtual IRoot* getRoot() const;
+        void interfaceAnalysis();
         
         
+        void linkAnalysis();
         
-    protected:        
-        //DerivationAnalysis* m_pDerivationAnalysis;
-        //std::unique_ptr< boost::filesystem::ofstream > m_pLog;
+        concrete::Action* instanceAnalysis();
+        void dependencyAnalysis();
+        
+        
+    private:
+        template< typename T >
+        struct CompareNodeIdentity
+        {
+            bool operator()( const T* pLeft, const T* pRight ) const
+            {
+                return pLeft->getIdentifier() < pRight->getIdentifier();
+            }
+        };
+        using ActionOverrideMap = 
+            std::map< const abstract::Action*, concrete::Action*, CompareNodeIdentity< const abstract::Action > >;
+        using DimensionOverrideMap = 
+            std::map< const abstract::Dimension*, concrete::Dimension*, CompareNodeIdentity< const abstract::Dimension > >;
+            
+        void collateBases( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode );
+        void calculateInstanceActionName( concrete::Action* pAction );
+        void collateOverrides( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode,
+                ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances );
+        void constructInstance( concrete::Action* pInstance );
+        void constructAllocator( concrete::Action* pInstance );
+        void dependencyAnalysis_recurse( concrete::Action* pAction );
+    private:
+        DerivationAnalysis* m_pDerivationAnalysis;
     };
 
 }

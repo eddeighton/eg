@@ -41,12 +41,37 @@ namespace eg
             }
         }
         
-        template< class T1, class T2 >
-        inline void storeObjectMap( const std::map< T1*, T2* >& objects )
+        template< class T >
+        inline void storeObjectVectorVector( const std::vector< std::vector< T* > >& objects )
+        {
+            std::size_t szCount = objects.size();
+            store( szCount );
+            for( std::size_t sz = 0U; sz < szCount; ++sz )
+            {
+                storeObjectVector( objects[ sz ] );
+            }
+        }
+        
+        template< class T1, class T2, class TPred >
+        inline void storeObjectMap( const std::map< T1*, T2*, TPred >& objects )
         {
             std::size_t szSize = objects.size();
             store( szSize );
             for( std::map< T1*, T2* >::const_iterator 
+                i = objects.begin(), 
+                iEnd = objects.end(); i!=iEnd; ++i )
+            {
+                storeObjectRef( i->first );
+                storeObjectRef( i->second );
+            }
+        }
+        
+        template< class T1, class T2, class TPred >
+        inline void storeObjectMap( const std::multimap< T1*, T2*, TPred >& objects )
+        {
+            std::size_t szSize = objects.size();
+            store( szSize );
+            for( std::multimap< T1*, T2* >::const_iterator 
                 i = objects.begin(), 
                 iEnd = objects.end(); i!=iEnd; ++i )
             {

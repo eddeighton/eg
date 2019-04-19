@@ -1,276 +1,165 @@
 
-namespace
-{
-    
-//#ifdef ENABLE_EG_LANGUAGE
-//#else //ENABLE_EG_LANGUAGE
-//    
-////mock the interface to avoid needing to link clangEG library 
-//inline void initialise( ASTContext* pASTContext, Sema* pSema ){};
-//inline void initialiseMode_Interface( const char* strDatabasePath ){};
-//inline void initialiseMode_Operations( const char* strDatabasePath, 
-//    const char* strTranslationUnitDatabasePath, unsigned uiTranslationUnitID ){};
-//inline void initialiseMode_Implementation(){};
-//inline void runFinalAnalysis(){};
-//
-//inline const char* getTypePathString() { return "__eg_type_path"; }
-//inline const char* getInvocationString() { return "__eg_invocation"; }
-//inline const char* getVariantString() { return "__eg_variant"; }
-//inline const char* getInvokeString() { return "invoke"; }
-//inline const char* getResultTypeTrait() { return "__eg_result_type"; }
-//
-//inline bool isTypePathsEnabled() { return false; }
-//inline bool isEGType( const QualType& type ) { return false; }
-//inline bool isPossibleEGType( const QualType& type ) { return false; }
-//inline bool isPossibleEGTypeIdentifier( const IdentifierInfo& idInfo ) { return false; }
-//
-//void getInvocationResultType( const QualType& baseType, QualType& resultType ) {}
-//
-//#endif //ENABLE_EG_LANGUAGE
-    //class EGASTPrinter : public ASTConsumer,
-    //                 public RecursiveASTVisitor<EGASTPrinter> 
-    // {
-    //    typedef RecursiveASTVisitor<EGASTPrinter> base;
-    //
-    //public:        
-    //    EGASTPrinter(std::unique_ptr<raw_ostream> Out)
-    //        :   Out(Out ? *Out : llvm::outs()), 
-    //            OwnedOut(std::move(Out))
-    //            {}
-    //
-    //    void HandleTranslationUnit(ASTContext &Context) override 
-    //    {
-    //        TranslationUnitDecl *D = Context.getTranslationUnitDecl();
-    //
-    //        return print(D);
-    //    }
-    //
-    //    bool shouldWalkTypesOfTypeLocs() const { return false; }
-    //
-    //    bool TraverseDecl(Decl *D) 
-    //    {
-    //        return base::TraverseDecl(D);
-    //    }
-    //
-    //private:
-    //    
-    //    void print( Decl *D ) 
-    //    {
-    //        PrintingPolicy Policy( D->getASTContext().getLangOpts() );
-    //        D->print( Out, Policy, /*Indentation=*/0, /*PrintInstantiation=*/true );
-    //    }
-    //
-    //    raw_ostream &Out;
-    //    std::unique_ptr<raw_ostream> OwnedOut;
-    //};
-    
 
-    //eg::EGTypeID getEGTypeID( QualType type )
-    //{
-    //    assert( !type->isDependentType() );
-    //    QualType canonicalType = type.getCanonicalType();
-    //    if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
-    //    {
-    //        if( const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() ) )
-    //        {
-    //            if( pRecordDecl->hasAttr< EGTypeIDAttr >() )
-    //            {
-    //                if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
-    //                {
-    //                    return pAttr->getId();
-    //                }
-    //            }
-    //        }
-    //    }
-    //    return 0;
-    //}
-    
-    //void getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< eg::EGTypeID >& contextTypes )
-    //{
-    //    QualType canonicalType = contextType.getCanonicalType();
-    //    const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
-    //    assert( pBaseTypeID );
-    //    
-    //    if( pBaseTypeID == pASTContext->getEGVariantName() )
-    //    {
-    //        const Type* pType = canonicalType.getTypePtr();
-    //        
-    //        if( const TemplateSpecializationType* pTemplateType = 
-    //            canonicalType->getAs< TemplateSpecializationType >() )
-    //        {
-    //            assert( pTemplateType->getNumArgs() > 0U );
-    //            for( TemplateSpecializationType::iterator 
-    //                pIter = pTemplateType->begin(),
-    //                pIterEnd = pTemplateType->end(); pIter != pIterEnd; ++pIter )
-    //            {
-    //                getContextTypes( pASTContext, pIter->getAsType(), contextTypes );
-    //            }
-    //        }
-    //        else if( const DependentTemplateSpecializationType* pDependentTemplateType = 
-    //            dyn_cast< const DependentTemplateSpecializationType >( pType ) )
-    //        {
-    //            assert( false );
-    //        }
-    //        else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
-    //        {
-    //            const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() );
-    //            assert( pRecordDecl  );
-    //        
-    //            const auto* Spec = dyn_cast<ClassTemplateSpecializationDecl>( pRecordDecl );
-    //            assert( Spec );
-    //        
-    //            const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
-    //            for( unsigned i = 0; i < Args.size(); ++i )
-    //            {
-    //                const TemplateArgument& arg = Args[ i ];
-    //                if( arg.getKind() == TemplateArgument::Pack )
-    //                {
-    //                    for( TemplateArgument::pack_iterator 
-    //                         j = arg.pack_begin(),
-    //                         jEnd = arg.pack_end(); j!=jEnd; ++j )
-    //                    {
-    //                        const TemplateArgument& packArg = *j;
-    //                        getContextTypes( pASTContext, packArg.getAsType(), contextTypes );
-    //                    }
-    //                }
-    //                else if( arg.getKind() == TemplateArgument::Type )
-    //                {
-    //                    getContextTypes( pASTContext, arg.getAsType(), contextTypes );
-    //                }
-    //                else
-    //                {
-    //                    assert( false );
-    //                }
-    //            }
-    //        }
-    //        else
-    //        {
-    //            llvm::outs() << "Unknown type passed to getTypePathTypes: " << canonicalType.getAsString() << "\n";
-    //            assert( false );
-    //        }
-    //    }
-    //    else
-    //    {
-    //        contextTypes.push_back( getEGTypeID( canonicalType ) ); 
-    //    }
-    //}
-
-    //void getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::EGTypeID >& typePathTypes)
-    //{
-    //    QualType canonicalType = typePath.getCanonicalType();
-    //    const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
-    //    assert( pBaseTypeID );
-    //    if( pBaseTypeID == pASTContext->getEGTypePathName() )
-    //    {
-    //        const Type* pType = canonicalType.getTypePtr();
-    //        
-    //        if( const TemplateSpecializationType* pTemplateType = 
-    //            canonicalType->getAs< TemplateSpecializationType >() )
-    //        {
-    //            assert( pTemplateType->getNumArgs() > 0U );
-    //            for( TemplateSpecializationType::iterator 
-    //                pIter = pTemplateType->begin(),
-    //                pIterEnd = pTemplateType->end(); pIter != pIterEnd; ++pIter )
-    //            {
-    //                getTypePathTypes( pASTContext, pIter->getAsType(), typePathTypes );
-    //            }
-    //        }
-    //        else if( const DependentTemplateSpecializationType* pDependentTemplateType = 
-    //            dyn_cast< const DependentTemplateSpecializationType >( pType ) )
-    //        {
-    //            assert( false );
-    //        }
-    //        else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
-    //        {
-    //            const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() );
-    //            assert( pRecordDecl  );
-    //        
-    //            const auto* Spec = dyn_cast<ClassTemplateSpecializationDecl>( pRecordDecl );
-    //            assert( Spec );
-    //        
-    //            const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
-    //            for( unsigned i = 0; i < Args.size(); ++i )
-    //            {
-    //                const TemplateArgument& arg = Args[ i ];
-    //                if( arg.getKind() == TemplateArgument::Pack )
-    //                {
-    //                    for( TemplateArgument::pack_iterator 
-    //                         j = arg.pack_begin(),
-    //                         jEnd = arg.pack_end(); j!=jEnd; ++j )
-    //                    {
-    //                        const TemplateArgument& packArg = *j;
-    //                        getTypePathTypes( pASTContext, packArg.getAsType(), typePathTypes );
-    //                    }
-    //                }
-    //                else if( arg.getKind() == TemplateArgument::Type )
-    //                {
-    //                    getTypePathTypes( pASTContext, arg.getAsType(), typePathTypes );
-    //                }
-    //                else
-    //                {
-    //                    assert( false );
-    //                }
-    //            }
-    //        }
-    //        else
-    //        {
-    //            llvm::outs() << "Unknown type passed to getTypePathTypes: " << canonicalType.getAsString() << "\n";
-    //            assert( false );
-    //        }
-    //    }
-    //    else
-    //    {
-    //        typePathTypes.push_back( getEGTypeID( canonicalType ) );
-    //    }
-    //    
-    //}
-    
-    //class EGDatabaseImpl : public EGDatabase
-    //{
-        //ASTContext* m_pASTContext;
-        //Sema* m_pSema;
-        //eg::ITUAnalysisSession* m_pSession;
-        //eg::IInterfaceAnalysisSession* m_pLinkSession;
-    //public:
-        //EGDatabaseImpl( const std::string& strDatabasePath )
-        //    :   m_pASTContext( nullptr ),
-        //        m_pSema( nullptr ),
-        //        m_pSession( nullptr ),
-        //        m_pLinkSession( nullptr )
-        //{
-        //    m_pLinkSession = eg::IInterfaceAnalysisSession::LoadDatabase( strDatabasePath );
-        //}
-        //EGDatabaseImpl( const std::string& strDatabasePath, const std::string& strTUFile, std::size_t szTUFileID )
-        //    :   m_pASTContext( nullptr ),
-        //        m_pSema( nullptr ),
-        //        m_pSession( nullptr ),
-        //        m_pLinkSession( nullptr )
-        //{
-        //    m_pSession = eg::ITUAnalysisSession::LoadDatabase( strDatabasePath, strTUFile, szTUFileID );
-        //
-        //}
-        //~EGDatabaseImpl()
-        //{
-        //    if( m_pLinkSession )
-        //    {
-        //        m_pLinkSession->release();
-        //    }
-        //    if( m_pSession )
-        //    {
-        //        m_pSession->release();
-        //    }
-        //}
-
-        /*virtual void setASTContext( ASTContext* pASTContext ) 
-        { 
-            m_pASTContext = pASTContext; 
-            if( m_pSession )
+    eg::EGTypeID getEGTypeID( QualType type )
+    {
+        assert( !type->isDependentType() );
+        QualType canonicalType = type.getCanonicalType();
+        if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+        {
+            if( const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() ) )
             {
-                initialiseOperationsInfo();
+                if( pRecordDecl->hasAttr< EGTypeIDAttr >() )
+                {
+                    if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
+                    {
+                        return pAttr->getId();
+                    }
+                }
             }
         }
-        virtual void setSema( Sema* pSema ) { m_pSema = pSema; }
+        return 0;
+    }
+    
+    void getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< eg::EGTypeID >& contextTypes )
+    {
+        QualType canonicalType = contextType.getCanonicalType();
+        const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
+        assert( pBaseTypeID );
         
+        if( pBaseTypeID == pASTContext->getEGVariantName() )
+        {
+            const Type* pType = canonicalType.getTypePtr();
+            
+            if( const TemplateSpecializationType* pTemplateType = 
+                canonicalType->getAs< TemplateSpecializationType >() )
+            {
+                assert( pTemplateType->getNumArgs() > 0U );
+                for( TemplateSpecializationType::iterator 
+                    pIter = pTemplateType->begin(),
+                    pIterEnd = pTemplateType->end(); pIter != pIterEnd; ++pIter )
+                {
+                    getContextTypes( pASTContext, pIter->getAsType(), contextTypes );
+                }
+            }
+            else if( const DependentTemplateSpecializationType* pDependentTemplateType = 
+                dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            {
+                assert( false );
+            }
+            else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            {
+                const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() );
+                assert( pRecordDecl  );
+            
+                const auto* Spec = dyn_cast<ClassTemplateSpecializationDecl>( pRecordDecl );
+                assert( Spec );
+            
+                const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
+                for( unsigned i = 0; i < Args.size(); ++i )
+                {
+                    const TemplateArgument& arg = Args[ i ];
+                    if( arg.getKind() == TemplateArgument::Pack )
+                    {
+                        for( TemplateArgument::pack_iterator 
+                             j = arg.pack_begin(),
+                             jEnd = arg.pack_end(); j!=jEnd; ++j )
+                        {
+                            const TemplateArgument& packArg = *j;
+                            getContextTypes( pASTContext, packArg.getAsType(), contextTypes );
+                        }
+                    }
+                    else if( arg.getKind() == TemplateArgument::Type )
+                    {
+                        getContextTypes( pASTContext, arg.getAsType(), contextTypes );
+                    }
+                    else
+                    {
+                        assert( false );
+                    }
+                }
+            }
+            else
+            {
+                llvm::outs() << "Unknown type passed to getTypePathTypes: " << canonicalType.getAsString() << "\n";
+                assert( false );
+            }
+        }
+        else
+        {
+            contextTypes.push_back( getEGTypeID( canonicalType ) ); 
+        }
+    }
+
+    void getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::EGTypeID >& typePathTypes)
+    {
+        QualType canonicalType = typePath.getCanonicalType();
+        const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
+        assert( pBaseTypeID );
+        if( pBaseTypeID == pASTContext->getEGTypePathName() )
+        {
+            const Type* pType = canonicalType.getTypePtr();
+            
+            if( const TemplateSpecializationType* pTemplateType = 
+                canonicalType->getAs< TemplateSpecializationType >() )
+            {
+                assert( pTemplateType->getNumArgs() > 0U );
+                for( TemplateSpecializationType::iterator 
+                    pIter = pTemplateType->begin(),
+                    pIterEnd = pTemplateType->end(); pIter != pIterEnd; ++pIter )
+                {
+                    getTypePathTypes( pASTContext, pIter->getAsType(), typePathTypes );
+                }
+            }
+            else if( const DependentTemplateSpecializationType* pDependentTemplateType = 
+                dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            {
+                assert( false );
+            }
+            else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            {
+                const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() );
+                assert( pRecordDecl  );
+            
+                const auto* Spec = dyn_cast<ClassTemplateSpecializationDecl>( pRecordDecl );
+                assert( Spec );
+            
+                const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
+                for( unsigned i = 0; i < Args.size(); ++i )
+                {
+                    const TemplateArgument& arg = Args[ i ];
+                    if( arg.getKind() == TemplateArgument::Pack )
+                    {
+                        for( TemplateArgument::pack_iterator 
+                             j = arg.pack_begin(),
+                             jEnd = arg.pack_end(); j!=jEnd; ++j )
+                        {
+                            const TemplateArgument& packArg = *j;
+                            getTypePathTypes( pASTContext, packArg.getAsType(), typePathTypes );
+                        }
+                    }
+                    else if( arg.getKind() == TemplateArgument::Type )
+                    {
+                        getTypePathTypes( pASTContext, arg.getAsType(), typePathTypes );
+                    }
+                    else
+                    {
+                        assert( false );
+                    }
+                }
+            }
+            else
+            {
+                llvm::outs() << "Unknown type passed to getTypePathTypes: " << canonicalType.getAsString() << "\n";
+                assert( false );
+            }
+        }
+        else
+        {
+            typePathTypes.push_back( getEGTypeID( canonicalType ) );
+        }
+        
+    }
+    
         virtual bool isEGType( QualType type ) 
         {
             return 0 != getEGTypeID( type );
@@ -337,9 +226,9 @@ namespace
                 assert( op.pIdentifier );
                 m_operations.push_back( op );
             }
-        }*/
+        }
         
-        /*const IdentifierInfo* getOperationID( QualType ty, bool bHasParameters )
+        const IdentifierInfo* getOperationID( QualType ty, bool bHasParameters )
         {
             QualType canonicalType = ty.getCanonicalType();
             const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
@@ -414,9 +303,9 @@ namespace
             {
                 return getReadOperation();
             }
-        }*/
+        }
         
-        /*virtual QualType invokeOperationType( QualType traversal, bool bHasParameters )
+        virtual QualType invokeOperationType( QualType traversal, bool bHasParameters )
         {
             assert( m_pASTContext );
             
@@ -439,9 +328,9 @@ namespace
                 QualType operatorsQT = m_pASTContext->getTagDeclType( operatorClassDecl );
                 return operatorsQT;
             }
-        }*/
+        }
         
-        /*QualType getTypeAliasTrait( DeclContext* pDeclContext, SourceLocation loc, const std::string& str ) const
+        QualType getTypeAliasTrait( DeclContext* pDeclContext, SourceLocation loc, const std::string& str ) const
         {
             IdentifierInfo& identifierInfo = m_pASTContext->Idents.get( str );
             LookupResult lookupResult( *m_pSema, &identifierInfo, loc, Sema::LookupAnyName );
@@ -456,9 +345,9 @@ namespace
                 assert( false && "Failed to locate type" );
                 return QualType();
             }
-        }*/
+        }
         
-        /*QualType getType( eg::IType* pType ) const
+        QualType getType( eg::IType* pType ) const
         {
             QualType resultType;
             {
@@ -524,10 +413,10 @@ namespace
                 }
             }
             return resultType;
-        }*/
+        }
         
         
-        /*virtual QualType getInvocationResultType( QualType contextType, QualType typePath, QualType operationType )
+        virtual QualType getInvocationResultType( QualType contextType, QualType typePath, QualType operationType )
         {
             assert( m_pSession );
             
@@ -596,9 +485,9 @@ namespace
             {
                 return getType( pType.get() );
             }
-        }*/
+        }
         
-        /*struct DeclLocType
+        struct DeclLocType
         {
             DeclContext* pContext;
             SourceLocation loc;
@@ -785,44 +674,44 @@ namespace
                 linkAnalysis( strInterfacePrefix, pAction, result.loc, result.pContext );
             }
             
-        }     */      
+        }           
         
-        //void runLinkAnalysis()
-        //{
-        //    SourceLocation loc;
-        //    const eg::StringView interfacePrefix = m_pLinkSession->getInterfacePrefix();
-        //    
-        //    const eg::IRoot* pRoot = m_pLinkSession->getRoot();
-        //    DeclContext* pContext = m_pASTContext->getTranslationUnitDecl();
-        //    
-        //    std::vector< eg::IAction* > actions;
-        //    pRoot->getChildren( actions );
-        //    for( eg::IAction* pAction : actions )
-        //    {
-        //        linkAnalysis( interfacePrefix, pAction, loc, pContext );
-        //    }
-        //}
+        void runLinkAnalysis()
+        {
+            SourceLocation loc;
+            const eg::StringView interfacePrefix = m_pLinkSession->getInterfacePrefix();
+            
+            const eg::IRoot* pRoot = m_pLinkSession->getRoot();
+            DeclContext* pContext = m_pASTContext->getTranslationUnitDecl();
+            
+            std::vector< eg::IAction* > actions;
+            pRoot->getChildren( actions );
+            for( eg::IAction* pAction : actions )
+            {
+                linkAnalysis( interfacePrefix, pAction, loc, pContext );
+            }
+        }
         
-        //void runOperationsAnalysis()
-        //{
-        //}
+        void runOperationsAnalysis()
+        {
+        }
         
-        //virtual void runAnalysis()
-        //{
-        //    if( m_pLinkSession )
-        //    {
-        //        //run the link analysis
-        //        runLinkAnalysis();
-        //        m_pLinkSession->store();
-        //    }
-        //    
-        //    if( m_pSession )
-        //    {
-        //        //run the operation analysis
-        //        runOperationsAnalysis();
-        //        m_pSession->store();
-        //    }
-        //}
+        virtual void runAnalysis()
+        {
+            if( m_pLinkSession )
+            {
+                //run the link analysis
+                runLinkAnalysis();
+                m_pLinkSession->store();
+            }
+            
+            if( m_pSession )
+            {
+                //run the operation analysis
+                runOperationsAnalysis();
+                m_pSession->store();
+            }
+        }
         
     //};
     

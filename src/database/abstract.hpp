@@ -12,6 +12,7 @@
 namespace eg
 {
     class ParserSession;
+    class InterfaceSession;
 
 namespace abstract
 {
@@ -31,41 +32,41 @@ namespace abstract
         {
             template< typename Base, typename ArgType >
             std::enable_if_t<std::is_base_of< Base, ArgType >::value>
-            collectIfBase( ArgType* pArg, std::vector< Base* >& result )
+            collectIfBase( const ArgType* pArg, std::vector< const Base* >& result )
             {
                 result.push_back( pArg );
             }
-
+        
             template< typename Base, typename ArgType >
             std::enable_if_t<!std::is_base_of< Base, ArgType >::value>
-            collectIfBase( ArgType* pArg, std::vector< Base* >& result )
+            collectIfBase( const ArgType* pArg, std::vector< const Base* >& result )
             {
             }
         public:
-
+        
             template< class TArg >
-            void operator() ( TArg* pElement )
+            void operator() ( const TArg* pElement )
             {
                 collectIfBase< T, TArg >( pElement, m_result );
             }
-
-            const std::vector< T* >& operator()() { return m_result; }
+        
+            const std::vector< const T* >& operator()() { return m_result; }
         private:
-            std::vector< T* > m_result;
+            std::vector< const T* > m_result;
         };
 
         template< class T >
-        inline void visit( T& visitor )
+        inline void visit( T& visitor ) const
         {
             if( m_pElement )
             {
                 switch( m_pElement->getType() )
                 {
-                    case eInputOpaque    : visitor( dynamic_cast< input::Opaque* >(     m_pElement ) ); break;
-                    case eInputDimension : visitor( dynamic_cast< input::Dimension* >(  m_pElement ) ); break;
-                    case eInputInclude   : visitor( dynamic_cast< input::Include* >(    m_pElement ) ); break;
-                    case eInputRoot      : visitor( dynamic_cast< input::Root* >(       m_pElement ) ); break;
-                    case eInputAction    : visitor( dynamic_cast< input::Action* >(     m_pElement ) ); break;
+                    case eInputOpaque    : visitor( dynamic_cast< const input::Opaque* >(     m_pElement ) ); break;
+                    case eInputDimension : visitor( dynamic_cast< const input::Dimension* >(  m_pElement ) ); break;
+                    case eInputInclude   : visitor( dynamic_cast< const input::Include* >(    m_pElement ) ); break;
+                    case eInputRoot      : visitor( dynamic_cast< const input::Root* >(       m_pElement ) ); break;
+                    case eInputAction    : visitor( dynamic_cast< const input::Action* >(     m_pElement ) ); break;
                         break;
                     default:
                         THROW_RTE( "Unsupported type" );
@@ -79,24 +80,24 @@ namespace abstract
         }
 
         template< class T >
-        inline void pushpop( T& visitor )
+        inline void pushpop( T& visitor ) const
         {
             if( m_pElement )
             {
                 switch( m_pElement->getType() )
                 {
-                    case eInputOpaque    : visitor.push( dynamic_cast< input::Opaque* >(     m_pElement ), this ); break;
-                    case eInputDimension : visitor.push( dynamic_cast< input::Dimension* >(  m_pElement ), this ); break;
-                    case eInputInclude   : visitor.push( dynamic_cast< input::Include* >(    m_pElement ), this ); break;
-                    case eInputRoot      : visitor.push( dynamic_cast< input::Root* >(       m_pElement ), this ); break;
-                    case eInputAction    : visitor.push( dynamic_cast< input::Action* >(     m_pElement ), this ); break;
+                    case eInputOpaque    : visitor.push( dynamic_cast< const input::Opaque* >(     m_pElement ), this ); break;
+                    case eInputDimension : visitor.push( dynamic_cast< const input::Dimension* >(  m_pElement ), this ); break;
+                    case eInputInclude   : visitor.push( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
+                    case eInputRoot      : visitor.push( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
+                    case eInputAction    : visitor.push( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
                         break;
                     default:
                         THROW_RTE( "Unsupported type" );
                         break;
                 }
             }
-            for( Element* pChildNode : m_children )
+            for( const Element* pChildNode : m_children )
             {
                 pChildNode->pushpop( visitor );
             }
@@ -104,11 +105,11 @@ namespace abstract
             {
                 switch( m_pElement->getType() )
                 {
-                    case eInputOpaque    : visitor.pop( dynamic_cast< input::Opaque* >(     m_pElement ), this ); break;
-                    case eInputDimension : visitor.pop( dynamic_cast< input::Dimension* >(  m_pElement ), this ); break;
-                    case eInputInclude   : visitor.pop( dynamic_cast< input::Include* >(    m_pElement ), this ); break;
-                    case eInputRoot      : visitor.pop( dynamic_cast< input::Root* >(       m_pElement ), this ); break;
-                    case eInputAction    : visitor.pop( dynamic_cast< input::Action* >(     m_pElement ), this ); break;
+                    case eInputOpaque    : visitor.pop( dynamic_cast< const input::Opaque* >(     m_pElement ), this ); break;
+                    case eInputDimension : visitor.pop( dynamic_cast< const input::Dimension* >(  m_pElement ), this ); break;
+                    case eInputInclude   : visitor.pop( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
+                    case eInputRoot      : visitor.pop( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
+                    case eInputAction    : visitor.pop( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
                         break;
                     default:
                         THROW_RTE( "Unsupported type" );
@@ -123,6 +124,7 @@ namespace abstract
         
         void print( std::ostream& os, std::string& strIndent ) const;
         const std::string& getIdentifier() const;
+        const std::vector< Element* >& getChildren() const { return m_children; }
     protected:
         input::Element* m_pElement;
         Element* m_pParent;
@@ -164,13 +166,16 @@ namespace abstract
         virtual void store( Storer& storer ) const;
     public:
         const std::string& getType() const;
+        const std::string& getCanonicalType() const { return m_canonicalType; }
+        std::size_t getSize() const { return m_size; }
+        const std::vector< Action* >& getActionTypes() const { return m_actionTypes; }
         static bool isHomogenous( const std::vector< const Dimension* >& dimensions );
         
     private:
         input::Dimension* m_pDimension = nullptr;
         std::vector< Action* > m_actionTypes;
         std::string m_canonicalType;
-        std::size_t size;
+        std::size_t m_size;
     };
     
     class Include : public Element
@@ -192,6 +197,7 @@ namespace abstract
     class Action : public Element
     {
         friend class ObjectFactoryImpl;
+        friend class ::eg::InterfaceSession;
     public:
         static const ObjectType Type = eAbstractAction;
     protected:
@@ -204,15 +210,17 @@ namespace abstract
         std::string getFriendlyName() const;
         void getDimensions( std::vector< Dimension* >& dimensions ) const;
         std::size_t getBaseCount() const;
-        void getChildren( std::vector< Action* >& actions ) const;
+        const std::vector< Action* >& getBaseActions() const { return m_baseActions; }
+        const std::string& getBaseType() const { return m_strBaseType; }
+        void getChildActions( std::vector< Action* >& actions ) const;
         bool isAbstract() const;
         bool isLink() const;
         bool isIndirectlyAbstract() const;
         bool isSingular() const;
-        
+        std::size_t getSize() const { return m_size; }
     protected:
         input::Action* m_pAction = nullptr;
-        std::size_t size = 1U;
+        std::size_t m_size = 1U;
         mutable std::optional< bool > m_bIndirectlyAbstract;
         std::vector< Action* > m_baseActions;
         std::string m_strBaseType;
@@ -235,19 +243,6 @@ namespace abstract
         
         mutable std::string m_strTemp;
     public:
-        //static Root* get( const IndexedObject::Array& objects )
-        //{
-        //    for( IndexedObject* pObject : objects )
-        //    {
-        //        if( pObject->getType() == eNodeRoot )
-        //        {
-        //            Root* pNode = dynamic_cast< Root* >( pObject );
-        //            if( pNode->m_pParent == nullptr )
-        //                return pNode;
-        //        }
-        //    }
-        //    THROW_RTE( "Failed to locate root node of tree" );
-        //}
         
         std::optional< boost::filesystem::path > getPath() const;
         bool isMainFile() const;

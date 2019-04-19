@@ -75,6 +75,7 @@ namespace eg
             const std::string& getIdentifier() const { return m_strIdentifier; }
             const boost::filesystem::path& getIncludeFilePath() const { return m_path; }
             bool isEGInclude() const { return m_bIsEGInclude; }
+            bool isSystemInclude() const { return m_bIsSystemInclude; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
@@ -98,6 +99,7 @@ namespace eg
             Action( const IndexedObject& object );
         public:
             const std::vector< Element* >& getElements() const { return m_elements; }
+            const Opaque* getSize() const { return m_pSize; }
             const std::string& getIdentifier() const { return m_strIdentifier; }
             const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
             bool isLink() const { return m_bLink; }

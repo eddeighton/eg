@@ -99,6 +99,21 @@ namespace eg
     }
     
     template< typename T >
+    inline T* root( const IndexedObject::Array& objects )
+    {
+        for( IndexedObject* pObject : objects )
+        {
+            if( T* p = dynamic_cast< T* >( pObject ) )
+            {
+                if( p->getParent() == nullptr )
+                    return p;
+            }
+        }
+        THROW_RTE( "Failed to locate root" );
+    }
+        
+    
+    template< typename T >
     inline std::vector< const T* > many_cst( const IndexedObject::Array& objects )
     {
         std::vector< const T* > found;

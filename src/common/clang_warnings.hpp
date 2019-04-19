@@ -15,3 +15,4 @@
 //Note that value_type  is required to be non-const, even for constant iterators. 
 //You can define _SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING 
 //or _SILENCE_ALL_CXX17_DEPR ECATION_WARNINGS to acknowledge that you have received this warning. 
+#pragma warning( disable : 4291) //no matching operator delete found

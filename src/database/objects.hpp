@@ -26,14 +26,15 @@ namespace eg
         
         eInheritanceNode,
         
-        eInstanceAction,
-        eInstanceDimensionUser,
-        eInstanceDimensionGenerated,
+        eConcreteAction,
+        eConcreteDimensionUser,
+        eConcreteDimensionGenerated,
         
+        eIdentifiers,
         eDerivationAnalysis,
         eInvocationSolution,
         
-        eDimensionInstance,
+        eDataMember,
         eBuffer,
         eLayout,
 
