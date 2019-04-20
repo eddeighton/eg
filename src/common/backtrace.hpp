@@ -19,6 +19,7 @@ namespace Common
 
     void getBackTrace( std::ostream& os );
 
+    void debug_break();
 }
 
 namespace boost

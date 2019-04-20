@@ -15,8 +15,7 @@ include( ${EG_ROOT_DIR}/cmake/gtest_include.cmake )
 #include( ${MODULE_DIR}/test_utils/cmake/test_utils_include.cmake )
 
 #get eg
-add_definitions(-DEG_DATABASE_STATIC_LIB)
-include( ${EG_ROOT_DIR}/cmake/database/eg_sources_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 
 set( EG_UNITTEST_DIR ${EG_ROOT_DIR}/tests/unittests )
 
@@ -39,6 +38,7 @@ link_boost( eg_tests filesystem )
 link_boost( eg_tests iostreams )
 link_boost( eg_tests serialization )
 link_clang( eg_tests )
+link_eg( eg_tests )
 link_gtest( eg_tests )
 link_gtest_main( eg_tests )
 

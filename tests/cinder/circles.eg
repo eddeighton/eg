@@ -1,0 +1,85 @@
+
+
+action Circle[ 2048 ]
+{
+    dim vec2 position;
+    dim Color color;
+    dim float size;
+    
+    while( true )
+    {
+        gl::color( color() ); // red
+        gl::drawSolidCircle( position(), size() );
+        SLEEP;
+    }
+    
+    action ColorChanger
+    {
+        dim float f;
+        while( true )
+        {
+            f( fmodf( f() + clock::dt() * 0.3, 1.0f ) );
+            color( Color( CM_HSV, f(), 1, 1 ) );
+            SLEEP;
+        }
+    }
+}
+
+action Spiral
+{
+    while( true )
+    {
+        int numCircles = 0;
+        for( Circle c : Circle.Range() )
+        {
+            ++numCircles;
+        }
+        
+        int index = 0;
+        const vec2 center = getWindowCenter();
+        float radius = 1.0f;
+        for( Circle circle : Circle.Range() )
+        {
+            float rel = ( clock::ct() / 10 ) + ( index / (float)numCircles );
+            float angle = rel * M_PI * 10;
+            vec2 offset( cos( angle ), sin( angle ) );
+        
+            circle.position( center + offset * radius * 4.0f );
+            circle.size( 25.0f );
+            
+            radius = radius + 0.1f;
+        
+            ++index;
+        }
+        SLEEP;
+    }
+
+}
+
+    
+int numCircles = 2048;
+for( int index = 0; index < numCircles; ++index ) 
+{
+    Circle circle = Circle.Start();
+    Circle::ColorChanger cc = circle.ColorChanger.Start();
+}
+Spiral.Start();
+
+while( true )
+{
+    while( std::optional< cinder::app::KeyEvent > k = Input::getKeyEvent() )
+    {
+        if( k.value().getChar() == 's')
+        {
+            if( Spiral.Empty() )
+                Spiral.Start();
+        }
+        else if( k.value().getChar() == 'd')
+        {
+            if( !Spiral.Empty() )
+                Spiral.Stop();
+        }
+    }
+	gl::clear();
+    SLEEP;
+}

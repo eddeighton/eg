@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cinder_host>
+    <hostcmd>cinder_host.exe</hostcmd>
+    <hostflags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:WINDOWS</hostflags>
+    <libs>
+        <file>W:/workspace/third_party/boost/boost_1_69_0_install/lib/libboost_filesystem-vc141-mt-x32-1_69.lib</file>
+        <file>W:/workspace/third_party/boost/boost_1_69_0_install/lib/libboost_date_time-vc141-mt-x32-1_69.lib</file>
+        <file>W:/workspace/prototype/build_vs2017/modules/common/Release/commonlib.lib</file>
+        <file>W:/workspace/prototype/bin/eventloglib.lib</file>
+        <file>W:/workspace/prototype/third_party/examplelib/bin/examplelib.lib</file>
+        
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/libEGL.lib</file>
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/libGLESv2.lib</file>
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/libpng.lib</file>
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/Release/v141/cinder.lib</file>
+        
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/AdvAPI32.Lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/kernel32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/user32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/gdi32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/winspool.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/shell32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/ole32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/oleaut32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/uuid.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/comdlg32.lib</file>
+
+        <includedirectories>
+            <folder>W:/workspace/third_party/boost/boost_1_69_0_install/include/boost-1_69/</folder>
+            <folder>W:/workspace/prototype/modules/common/api/</folder>
+            <folder>W:/workspace/third_party/cinder/include/</folder>
+        </includedirectories>
+    </libs>
+    <dependencies>
+        <interface>__eg_input</interface>
+    </dependencies>
+    <source>
+        <generated>
+            <file>main.cpp</file>
+        </generated>
+    </source>
+    <include>
+        <user>
+            <file>eg.hpp</file>
+            <file>cinder_include.hpp</file>
+            <file>W:/workspace/prototype/src/eventlog/server.hpp</file>
+            <file>W:/workspace/prototype/src/eventlog/pid.hpp</file>
+            <file>W:/workspace/prototype/third_party/examplelib/src/example.hpp</file>
+            
+            <file>W:/workspace/third_party/cinder/include/cinder/app/App.h</file>
+            <file>W:/workspace/third_party/cinder/include/cinder/app/RendererGl.h</file>
+            <file>W:/workspace/third_party/cinder/include/cinder/gl/gl.h</file>
+        </user>
+        <system>
+            <file>&lt;chrono&gt;</file>
+            <file>&lt;limits&gt;</file>
+            <file>&lt;atomic&gt;</file>
+            <file>&lt;array&gt;</file>
+            <file>&lt;optional&gt;</file>
+            <file>&lt;iterator&gt;</file>
+        </system>
+    </include>
+</cinder_host>

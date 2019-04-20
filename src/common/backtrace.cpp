@@ -107,6 +107,20 @@ namespace Common
         free( symbol );
     }
 
+    void debug_break()
+    {
+        const int iResult = ::MessageBoxA( 0U, "Debug Break called", "Error", MB_ABORTRETRYIGNORE | MB_ICONERROR );
+        switch( iResult )
+        {
+            case IDABORT:
+                terminate();
+            case IDRETRY:
+                _CrtDbgBreak(); 
+            case IDIGNORE:
+            default:
+                return;
+        }
+    }
 }
 
 namespace boost
@@ -137,6 +151,11 @@ namespace Common
     
     void getBackTrace( std::ostream& os )
     {
+    }
+
+    void debug_break()
+    {
+        
     }
 
 }

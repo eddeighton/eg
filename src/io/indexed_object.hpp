@@ -150,6 +150,20 @@ namespace eg
         }
     }
     
+    template< typename T >
+    inline const T* root_cst( const IndexedObject::Array& objects )
+    {
+        for( const IndexedObject* pObject : objects )
+        {
+            if( const T* p = dynamic_cast< const T* >( pObject ) )
+            {
+                if( p->getParent() == nullptr )
+                    return p;
+            }
+        }
+        THROW_RTE( "Failed to locate root" );
+    }
+    
     struct CompareIndexedObjects
     {
         inline bool operator()( const IndexedObject* pLeft, const IndexedObject* pRight ) const

@@ -1,0 +1,11 @@
+
+include( <iostream> );
+
+action Test
+{
+    std::cout << "Hello World" << std::endl;
+}
+
+Test t = Test.Start();
+
+SLEEP_UNTIL( t );

@@ -1,0 +1,684 @@
+
+#include "clang_utils.hpp"
+
+#include "eg/eg.hpp"
+#include "eg/interface_session.hpp"
+#include "eg/codegen.hpp"
+
+#pragma warning( push )
+#include "common/clang_warnings.hpp"
+
+#include "llvm/ADT/APSInt.h"
+
+#include "clang/Lex/Token.h"
+#include "clang/AST/Decl.h"
+#include "clang/AST/DeclCXX.h"
+#include "clang/AST/Type.h"
+#include "clang/AST/ASTContext.h"
+#include "clang/AST/Expr.h"
+#include "clang/Sema/Ownership.h"
+#include "clang/Sema/ParsedTemplate.h"
+#include "clang/Sema/Sema.h"
+#include "clang/Sema/Lookup.h"
+
+#pragma warning( pop ) 
+
+namespace clang
+{
+
+    std::optional< eg::EGTypeID > getEGTypeID( ASTContext* pASTContext, QualType type )
+    {
+        std::optional< eg::EGTypeID > result;
+        
+        if( type.getTypePtrOrNull() && !type->isDependentType() )
+        {
+            QualType canonicalType = type.getCanonicalType();
+            
+            if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
+            {
+                if( pBaseTypeID == pASTContext->getEGTypePathName() )
+                {
+                    return eg::egTypePath;
+                }
+            }
+            
+            if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            {
+                if( const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() ) )
+                {
+                    if( pRecordDecl->hasAttr< EGTypeIDAttr >() )
+                    {
+                        if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
+                        {
+                            return pAttr->getId();
+                        }
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    const IdentifierInfo* getOperationIdentifier( ASTContext* pASTContext, const std::string& strName )
+    {
+        return &pASTContext->Idents.get( strName.c_str() );
+    }
+    const IdentifierInfo* getReadOperation( ASTContext* pASTContext )
+    {
+        return getOperationIdentifier( pASTContext, "Read" );
+    }
+    const IdentifierInfo* getWriteOperation( ASTContext* pASTContext )
+    {
+        return getOperationIdentifier( pASTContext, "Write" );
+    }
+    
+    const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters )
+    {
+        QualType canonicalType = ty.getCanonicalType();
+        const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
+        
+        if( !pBaseTypeID )
+            return nullptr;
+        
+        if( pBaseTypeID == pASTContext->getEGTypePathName() )
+        {
+            const Type* pType = canonicalType.getTypePtr();
+            
+            if( const TemplateSpecializationType* pTemplateType = 
+                canonicalType->getAs< TemplateSpecializationType >() )
+            {
+                if( pTemplateType->getNumArgs() == 0U )
+                    return nullptr;
+                        
+                const TemplateArgument& lastTemplateArg = 
+                    pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
+                QualType t = lastTemplateArg.getAsType();
+                return getOperationID( pASTContext, t, bHasParameters );
+            }
+            else if( const DependentTemplateSpecializationType* pDependentTemplateType = 
+                llvm::dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            {
+                if( pTemplateType->getNumArgs() == 0U )
+                    return nullptr;
+                const TemplateArgument& lastTemplateArg = 
+                    pTemplateType->getArg( pTemplateType->getNumArgs() - 1U );
+                QualType t = lastTemplateArg.getAsType();
+                return getOperationID( pASTContext, t, bHasParameters );
+            }
+            else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            {
+                const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
+                if( !pRecordDecl )
+                    return nullptr;
+
+                const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
+                if( !Spec )
+                    return nullptr;
+
+                const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
+                if( Args.size() == 0U )
+                    return nullptr;
+                
+                const TemplateArgument& lastTemplateArg = Args[ Args.size() -1U ];
+
+                if( lastTemplateArg.getKind() == TemplateArgument::Pack )
+                {
+                    const TemplateArgument& lastTemplatePackArg = lastTemplateArg.pack_elements().back();
+                    QualType t = lastTemplatePackArg.getAsType();
+                    return getOperationID( pASTContext, t, bHasParameters );
+                }
+                else if( lastTemplateArg.getKind() == TemplateArgument::Type )
+                {
+                    QualType t = lastTemplateArg.getAsType();
+                    return getOperationID( pASTContext, t, bHasParameters );
+                }
+                else
+                {
+                    return nullptr;
+                }
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
+        
+        if( ::eg::isOperationName( pBaseTypeID->getName() ) )
+        {
+            return getOperationIdentifier( pASTContext, pBaseTypeID->getName() );
+        }
+        else if( bHasParameters )
+        {
+            return getWriteOperation( pASTContext );
+        }
+        else
+        {
+            return getReadOperation( pASTContext );
+        }
+    }
+    
+    bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< eg::EGTypeID >& contextTypes )
+    {
+        QualType canonicalType = contextType.getCanonicalType();
+        if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
+        {
+            if( pBaseTypeID == pASTContext->getEGVariantName() )
+            {
+                const Type* pType = canonicalType.getTypePtr();
+                
+                if( const  TemplateSpecializationType* pTemplateType = 
+                    canonicalType->getAs<  TemplateSpecializationType >() )
+                {
+                    if( pTemplateType->getNumArgs() == 0U ) 
+                        return false;
+                    
+                    bool bSuccess = false;
+                    for( TemplateSpecializationType::iterator 
+                        pIter = pTemplateType->begin(),
+                        pIterEnd = pTemplateType->end(); pIter != pIterEnd; ++pIter )
+                    {
+                        if( !getContextTypes( pASTContext, pIter->getAsType(), contextTypes ) )
+                            return false;
+                        else
+                            bSuccess = true;
+                    }
+                    return bSuccess;
+                }
+                else if( const DependentTemplateSpecializationType* pDependentTemplateType = 
+                    llvm::dyn_cast< const  DependentTemplateSpecializationType >( pType ) )
+                {
+                    return false;
+                }
+                else if( const RecordType* pRecordType = canonicalType->getAs<  RecordType >() )
+                {
+                    const CXXRecordDecl* pRecordDecl = llvm::dyn_cast< CXXRecordDecl >( pRecordType->getDecl() );
+                    if( !pRecordDecl )
+                        return false;
+                
+                    const auto* Spec = llvm::dyn_cast< ClassTemplateSpecializationDecl >( pRecordDecl );
+                    if( !Spec )
+                        return false;
+                
+                    bool bSuccess = false;
+                    const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
+                    for( unsigned i = 0; i < Args.size(); ++i )
+                    {
+                        const TemplateArgument& arg = Args[ i ];
+                        if( arg.getKind() == TemplateArgument::Pack )
+                        {
+                            for( TemplateArgument::pack_iterator 
+                                 j = arg.pack_begin(),
+                                 jEnd = arg.pack_end(); j!=jEnd; ++j )
+                            {
+                                const TemplateArgument& packArg = *j;
+                                if( !getContextTypes( pASTContext, packArg.getAsType(), contextTypes ) )
+                                    return false;
+                                else
+                                    bSuccess = true;
+                            }
+                        }
+                        else if( arg.getKind() == TemplateArgument::Type )
+                        {
+                            if( !getContextTypes( pASTContext, arg.getAsType(), contextTypes ) )
+                                return false;
+                            else
+                                bSuccess = true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                    return bSuccess;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if( std::optional< eg::EGTypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
+                {
+                    contextTypes.push_back( egTypeID.value() ); 
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::EGTypeID >& typePathTypes)
+    {
+        QualType canonicalType = typePath.getCanonicalType();
+        const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
+        if( !pBaseTypeID )
+            return false;
+        
+        if( pBaseTypeID == pASTContext->getEGTypePathName() )
+        {
+            const Type* pType = canonicalType.getTypePtr();
+            
+            if( const TemplateSpecializationType* pTemplateType = 
+                canonicalType->getAs< TemplateSpecializationType >() )
+            {
+                if( pTemplateType->getNumArgs() == 0U )
+                    return false;
+                
+                bool bSuccess = false;
+                for( TemplateSpecializationType::iterator 
+                    pIter = pTemplateType->begin(),
+                    pIterEnd = pTemplateType->end(); pIter != pIterEnd; ++pIter )
+                {
+                    if( !getTypePathTypes( pASTContext, pIter->getAsType(), typePathTypes ) )
+                        return false;
+                    else
+                        bSuccess = true;
+                }
+                return bSuccess;
+            }
+            else if( const DependentTemplateSpecializationType* pDependentTemplateType = 
+                dyn_cast< const DependentTemplateSpecializationType >( pType ) )
+            {
+                return false;
+            }
+            else if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            {
+                const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() );
+                if( !pRecordDecl )
+                    return false;
+            
+                const auto* Spec = dyn_cast<ClassTemplateSpecializationDecl>( pRecordDecl );
+                if( !Spec )
+                    return false;
+            
+                bool bSuccess = false;
+                const TemplateArgumentList& Args = Spec->getTemplateInstantiationArgs();
+                for( unsigned i = 0; i < Args.size(); ++i )
+                {
+                    const TemplateArgument& arg = Args[ i ];
+                    if( arg.getKind() == TemplateArgument::Pack )
+                    {
+                        for( TemplateArgument::pack_iterator 
+                             j = arg.pack_begin(),
+                             jEnd = arg.pack_end(); j!=jEnd; ++j )
+                        {
+                            const TemplateArgument& packArg = *j;
+                            if( !getTypePathTypes( pASTContext, packArg.getAsType(), typePathTypes ) )
+                                return false;
+                            else
+                                bSuccess = true;
+                        }
+                    }
+                    else if( arg.getKind() == TemplateArgument::Type )
+                    {
+                        if( !getTypePathTypes( pASTContext, arg.getAsType(), typePathTypes ) )
+                            return false;
+                        else
+                            bSuccess = true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                return bSuccess;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if( std::optional< eg::EGTypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
+            {
+                typePathTypes.push_back( egTypeID.value() ); 
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        
+    }
+    
+    std::optional< int > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
+        const SourceLocation& loc, const std::string& strConstantName )
+    {
+        IdentifierInfo& identifierInfo = pASTContext->Idents.get( strConstantName );
+        LookupResult lookupResult( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
+        if( pSema->LookupQualifiedName( lookupResult, pDeclContext ) )
+        {
+            NamedDecl* pDecl = lookupResult.getFoundDecl();
+            if( VarDecl* pVarDecl = dyn_cast< VarDecl >( pDecl ) )
+            {
+                if( const clang::Expr* pInitialisationExpr = pVarDecl->getInit() )
+                {
+                    clang::Expr::EvalResult result;
+                    if ( pInitialisationExpr->EvaluateAsInt( result, *pASTContext ) ) 
+                    {
+                        return result.Val.getInt().getExtValue();
+                    }
+                }
+            }
+        }
+        return std::optional< int >();
+    }
+    
+    QualType getVoidType( ASTContext* pASTContext )
+    {
+        return pASTContext->VoidTy;
+    }
+    QualType getBooleanType( ASTContext* pASTContext )
+    {
+        return pASTContext->BoolTy;
+    }
+    QualType getIntType( ASTContext* pASTContext )
+    {
+        return pASTContext->IntTy;
+    }
+    
+    QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc, const std::string& strTypeName )
+    {
+        IdentifierInfo& identifierInfo = pASTContext->Idents.get( strTypeName );
+        LookupResult lookupResult( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
+        if( pSema->LookupQualifiedName( lookupResult, pDeclContext ) )
+        {
+            if( TypeAliasDecl* pTypeAliasDecl = llvm::dyn_cast<TypeAliasDecl>( lookupResult.getFoundDecl() ) )
+            {
+                return pASTContext->getTypeDeclType( pTypeAliasDecl );
+            }
+        }
+        pDeclContext = nullptr;
+        return QualType();
+    }
+    
+    QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, const std::string& strTypeParam, 
+        DeclContext*& pDeclContext, SourceLocation& loc, bool bLast )
+    {
+        IdentifierInfo& identifierInfo = pASTContext->Idents.get( strTypeName );
+        LookupResult Result( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
+        if( pSema->LookupQualifiedName( Result, pDeclContext ) )
+        {
+            if( ClassTemplateDecl* pDecl = llvm::dyn_cast< ClassTemplateDecl >( Result.getFoundDecl() ) )
+            {
+                loc = pDecl->getTemplatedDecl()->getBeginLoc();
+                TemplateArgumentListInfo TemplateArgs( loc, loc );
+                TemplateArgs.addArgument( 
+                    TemplateArgumentLoc( 
+                        TemplateArgument( pASTContext->VoidTy ),
+                        pASTContext->getTrivialTypeSourceInfo( pASTContext->VoidTy, loc ) ) );
+
+                TemplateName templateName( pDecl );
+                QualType templateSpecializationType = 
+                    pSema->CheckTemplateIdType( templateName, loc, TemplateArgs );
+                if( bLast )
+                {
+                    return templateSpecializationType;
+                }
+                else
+                {
+                    void* InsertPos = nullptr;
+                    SmallVector<TemplateArgument, 4> Converted;
+                    Converted.push_back( TemplateArgument( pASTContext->VoidTy ) );
+                    if( ClassTemplateSpecializationDecl* Decl = 
+                        pDecl->findSpecialization( Converted, InsertPos ) )
+                    {
+                        pDeclContext = Decl;
+                        return templateSpecializationType;
+                    }
+                }
+            }
+        }
+        pDeclContext = nullptr;
+        return QualType();
+    }
+    
+    
+    struct DeclLocType
+    {
+        DeclContext* pContext = nullptr;
+        SourceLocation loc;
+        QualType type;
+    };
+    DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, 
+        DeclContext* pDeclContext, SourceLocation loc, const std::string& str, bool bIsTemplate )
+    {
+        DeclLocType result;
+        
+        IdentifierInfo& identifierInfo = pASTContext->Idents.get( str );
+        LookupResult lookupResult( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
+        if( pSema->LookupQualifiedName( lookupResult, pDeclContext ) )
+        {
+            if( bIsTemplate )
+            {
+                ClassTemplateDecl* pDecl = dyn_cast<ClassTemplateDecl>( lookupResult.getFoundDecl() );
+                result.loc = pDecl->getTemplatedDecl()->getBeginLoc();
+                TemplateArgumentListInfo TemplateArgs( result.loc, result.loc );
+                TemplateArgs.addArgument( 
+                    TemplateArgumentLoc( 
+                        TemplateArgument( pASTContext->VoidTy ),
+                        pASTContext->getTrivialTypeSourceInfo( pASTContext->VoidTy, result.loc ) ) );
+                        
+                TemplateName templateName( pDecl );
+                result.type = pSema->CheckTemplateIdType( templateName, result.loc, TemplateArgs );
+                    
+                void* InsertPos = nullptr;
+                SmallVector<TemplateArgument, 4> Converted;
+                Converted.push_back( TemplateArgument( pASTContext->VoidTy ) );
+                if( ClassTemplateSpecializationDecl* pClassSpecialisationDeclaration = 
+                    pDecl->findSpecialization( Converted, InsertPos ) )
+                {
+                    result.pContext = pClassSpecialisationDeclaration;
+                }
+            }
+            else
+            {
+                if( CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( lookupResult.getFoundDecl() ) )
+                {
+                    result.pContext = pRecordDecl;
+                    result.loc = pRecordDecl->getBeginLoc();
+                    result.type = pASTContext->getTypeDeclType( pRecordDecl );
+                }
+            }
+        }
+        return result;
+    } 
+    
+    class AbstractMutator
+    {
+    public:
+        static void setSize( ::eg::abstract::Action& action, std::size_t szSize )
+        {
+            action.m_size = szSize;
+        }
+        static void setSize( ::eg::abstract::Dimension& dimension, std::size_t szSize )
+        {
+            dimension.m_size = szSize;
+        }
+        static void setCanonicalType( ::eg::abstract::Dimension& dimension, const std::string& strType )
+        {
+            dimension.m_canonicalType = strType;
+        }
+        static void appendActionTypes( ::eg::abstract::Dimension& dimension, ::eg::abstract::Action* pAction )
+        {
+            dimension.m_actionTypes.push_back( pAction );
+        }
+        static void setInherited( ::eg::abstract::Action& action, ::eg::abstract::Action* pLink )
+        {
+            std::vector< ::eg::abstract::Action* >::iterator iFind = 
+                std::find( action.m_baseActions.begin(), action.m_baseActions.end(), pLink );
+            if( iFind == action.m_baseActions.end() )
+            {
+                action.m_baseActions.push_back( pLink );
+            }
+        }
+        static void setInherited( ::eg::abstract::Action& action, const std::string& strType )
+        {
+            action.m_strBaseType = strType;
+        }
+        static void setDependency( ::eg::abstract::Action& action, const std::string& strType )
+        {
+            action.m_strDependency = strType;
+        }
+    };
+    
+    void interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session, 
+        eg::abstract::Action* pAction, SourceLocation loc, DeclContext* pContext )
+    {
+        ::eg::IndexedObject::Array& objects = session.getAppendingObjects();
+                            
+        DeclLocType result = getNestedDeclContext( pASTContext, pSema, 
+            pContext, loc, ::eg::getInterfaceType( pAction->getIdentifier() ), true );
+        if( result.pContext )
+        {
+            if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, result.pContext, result.loc, "SIZE" ) )
+            {
+                AbstractMutator::setSize( *pAction, static_cast< std::size_t >( sizeOpt.value() ) );
+            }
+            
+            //determine the dimension types
+            std::vector< ::eg::abstract::Dimension* > dimensions;
+            pAction->getDimensions( dimensions );
+            for( ::eg::abstract::Dimension* pDimension : dimensions )
+            {
+                DeclLocType dimensionResult = getNestedDeclContext( pASTContext, pSema,
+                    result.pContext, result.loc, ::eg::getInterfaceType( pDimension->getIdentifier() ), true );
+                if( dimensionResult.pContext )
+                {
+                    //determine the type
+                    {
+                        QualType typeType = getTypeTrait( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, "Type" );
+                        
+                        QualType typeTypeCanonical = typeType.getCanonicalType();
+                        
+                        std::vector< eg::EGTypeID > dimensionTypes;
+                        
+                        //only attempt this is it has a base type identifier
+                        if( typeTypeCanonical.getBaseTypeIdentifier() )
+                        {
+                            getContextTypes( pASTContext, typeTypeCanonical, dimensionTypes );
+                        }
+                
+                        if( dimensionTypes.empty() || 
+                            ( ( dimensionTypes.size() == 1U ) && ( dimensionTypes.front() == 0 ) ) )
+                        {
+                            AbstractMutator::setCanonicalType( *pDimension, typeTypeCanonical.getAsString() );
+                        }
+                        else if( !dimensionTypes.empty() )
+                        {
+                            for( eg::EGTypeID index : dimensionTypes )
+                            {
+                                if( index > 0 && index < static_cast< ::eg::EGTypeID >( objects.size() ) )
+                                {
+                                    ::eg::IndexedObject* pObject = objects[ index ];
+                                    if( ::eg::abstract::Action* pAction = dynamic_cast< ::eg::abstract::Action* >( pObject ) )
+                                    {
+                                        AbstractMutator::appendActionTypes( *pDimension, pAction );
+                                    }
+                                }
+                                else
+                                {
+                                    //diag
+                                }
+                            }
+                        }
+                    }
+                    //determine the size
+                    if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, "SIZE" ) )
+                    {
+                        AbstractMutator::setSize( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
+                    }
+                }
+            }
+            
+            const std::size_t szBaseCount = pAction->getBaseCount();
+            for( std::size_t sz = 0; sz != szBaseCount; ++sz )
+            {
+                const std::string strBaseType = ::eg::getBaseTraitType( sz );
+                
+                //determine the link types
+                DeclLocType linkResult = getNestedDeclContext( pASTContext, pSema,
+                    result.pContext, result.loc, strBaseType, true );
+                if( linkResult.pContext )
+                {
+                    //attempt to get the Type Alias
+                    QualType typeType = getTypeTrait( pASTContext, pSema, linkResult.pContext, linkResult.loc, "Type" );
+                    
+                    QualType typeTypeCanonical = typeType.getCanonicalType();
+                    
+                    if( std::optional< eg::EGTypeID > iLinkEGTypeIDOpt = getEGTypeID( pASTContext, typeTypeCanonical ) )
+                    {
+                        const eg::EGTypeID iLinkEGTypeID = iLinkEGTypeIDOpt.value();
+                        if( iLinkEGTypeID > 0 && iLinkEGTypeID < static_cast< ::eg::EGTypeID >( objects.size() ) )
+                        {
+                            ::eg::IndexedObject* pObject = objects[ iLinkEGTypeID ];
+                            if( ::eg::abstract::Action* pLinkedAction = dynamic_cast< ::eg::abstract::Action* >( pObject ) )
+                            {
+                                AbstractMutator::setInherited( *pAction, pLinkedAction );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //report object mapping type
+                        const std::string strCanonical = typeTypeCanonical.getAsString();
+                        if( !strCanonical.empty() )
+                        {
+                            AbstractMutator::setInherited( *pAction, strCanonical );
+                        
+                            //report the dependency
+                            {
+                                QualType typeType = getTypeTrait( pASTContext, pSema, linkResult.pContext, linkResult.loc, "Dependency" );
+                                QualType typeTypeCanonical = typeType.getCanonicalType();
+                                const std::string strCanonical = typeTypeCanonical.getAsString();
+                                AbstractMutator::setDependency( *pAction, strCanonical );
+                            }
+                        }
+                    }
+                }
+            }
+            //recurse
+            {
+                std::vector< eg::abstract::Action* > actions;
+                pAction->getChildActions( actions );
+                for( eg::abstract::Action* pChildAction : actions )
+                {
+                    interfaceAnalysis( pASTContext, pSema, session, pChildAction, result.loc, result.pContext );
+                }
+            }
+        }
+    }
+    
+    void interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session )
+    {
+        eg::abstract::Root* pRoot = session.getTreeRoot();
+        
+        std::vector< eg::abstract::Action* > actions;
+        pRoot->getChildActions( actions );
+        
+        
+        SourceLocation loc;
+        DeclContext* pContext = pASTContext->getTranslationUnitDecl();
+        
+        for( eg::abstract::Action* pAction : actions )
+        {
+            interfaceAnalysis( pASTContext, pSema, session, pAction, loc, pContext );
+        }
+    }
+    
+    void operationsAnalysis( ASTContext* pASTContext, Sema* pSema, eg::OperationsSession& session )
+    {
+        
+    }
+}

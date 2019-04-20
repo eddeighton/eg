@@ -1,0 +1,95 @@
+
+
+action Circle[ 1024 ]
+{
+    dim vec2 position;
+    dim Color color;
+    
+    const float max_size = 10.0f;
+    const float max_lifetime = 4.0f;
+    
+    float size = max_size;
+    
+    const float startTime = clock::ct();
+    float lifetime = startTime + max_lifetime;
+    while( clock::ct() < lifetime )
+    {
+        size = ( lifetime - clock::ct() ) * max_size;
+        
+        gl::color( color() ); // red
+        gl::drawSolidCircle( position(), size );
+        SLEEP;
+    }
+    
+    action Move
+    {
+        dim vec2 direction;
+        while( true )
+        {
+            position( position() + direction() * clock::dt() );
+            SLEEP;
+        }
+    }
+}
+
+action EventListener
+{
+    include( <sstream> );
+    
+    while( true )
+    {
+        while( EGEvent e = get_next_event() )
+        {
+            if( Circle c = e )
+            {
+                std::ostringstream os;
+                LOG( "Circle died at pos: " << c.position() << " and time: " << clock::ct() );
+            }
+        }
+        
+        SLEEP;
+    }
+}
+
+//EventListener.Start();
+
+bool bContinue = true;
+while( bContinue )
+{
+	gl::clear();
+    
+    while( std::optional< MouseEvent > mOpt = Input::getMouseEvent() )
+    {
+        const MouseEvent& m = mOpt.value();
+        if( m.isRightDown() || m.isLeftDown() )
+        {
+            //try to start a circle
+            if( Circle c = Circle.Start() )
+            {
+                c.position( vec2( m.getPos() ) );
+                c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                
+                //Circle::Move m = c.Move.Start();
+                //
+                //vec2 vDir( 
+                //    fmod( clock::ct(), 1.0f ) - 0.5f, 
+                //    fmod( clock::ct(), 1.0f ) - 0.5f );
+                //
+                //m.direction( vDir * 200.0f );
+                
+            }
+        }
+    }
+    
+    
+    while( std::optional< KeyEvent > mOpt = Input::getKeyEvent() )
+    {
+        const KeyEvent& k = kOpt.value();
+        if( k.getChar() == ' ' )
+        {
+            bContinue = false;
+        }
+    }
+    
+    SLEEP;
+}

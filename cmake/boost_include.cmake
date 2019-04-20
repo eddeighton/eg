@@ -11,11 +11,11 @@ include( ${EG_THIRD_PARTY_DIR}/install/boost/lib/cmake/Boost-1.70.0/BoostConfig.
 find_path( BOOST_INCLUDEDIR NAMES boost PATHS ${EG_THIRD_PARTY_DIR}/install/boost/include/boost-1_70 )
 find_path( BOOST_LIBRARYDIR NAMES "cmake/Boost-1.70.0/BoostConfig.cmake" PATHS ${EG_THIRD_PARTY_DIR}/install/boost/lib )
 
-set(BOOST_REQUIRED_VERSION 1.70 )
+set(BOOST_REQUIRED_VERSION 1.70.0 )
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
-find_package( Boost ${BOOST_REQUIRED_VERSION} QUIET COMPONENTS 
+find_package( Boost ${BOOST_REQUIRED_VERSION} REQUIRED QUIET COMPONENTS 
     program_options
     date_time
     random

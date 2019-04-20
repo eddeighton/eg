@@ -23,4 +23,4 @@ endfunction( link_gtest )
 
 function( link_gtest_main targetname )
 	target_link_libraries( ${targetname} debug ${GTEST_MAIN_LIBRARY_DEBUG} optimized ${GTEST_MAIN_LIBRARY} )
-endfunction( link_gtest )
+endfunction( link_gtest_main )

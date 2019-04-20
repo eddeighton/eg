@@ -1,0 +1,98 @@
+
+#include "layout.hpp"
+#include "concrete.hpp"
+
+namespace eg
+{
+
+void DataMember::load( Loader& loader )
+{
+    m_pDimension = loader.loadObjectRef< concrete::Dimension >();
+    loader.load( offset );
+    loader.load( name );
+    m_pBuffer = loader.loadObjectRef< Buffer >();
+    m_pDependency = loader.loadObjectRef< DataMember >();
+}
+
+void DataMember::store( Storer& storer ) const
+{
+    storer.storeObjectRef( m_pDimension );
+    storer.store( offset );
+    storer.store( name );
+    storer.storeObjectRef( m_pBuffer );
+    storer.storeObjectRef( m_pDependency );
+}
+
+void DataMember::print( std::ostream& os ) const
+{
+    m_pDimension->printType( os );
+}
+
+
+void DataMember::printVariableAccess( std::ostream& os, const std::string& strIndex ) const
+{
+    os << getBuffer()->getVariableName() << "[ " << strIndex << " ]." << getName();
+}
+
+void DataMember::printDependencyVar( std::ostream& os, const std::string& strIndex ) const
+{
+    if( m_pDependency )
+    {
+        const concrete::Dimension_Generated* pGen = 
+            dynamic_cast< const concrete::Dimension_Generated* >( m_pDimension );
+        
+        os << m_pDependency->getBuffer()->getVariableName() << 
+            "[ " << strIndex << " / " << pGen->getDependencyDomain() << " ]." << m_pDependency->getName();
+    }
+}
+
+void DataMember::printAllocation( std::ostream& os, const std::string& strIndex ) const
+{
+    return m_pDimension->printAllocation( os, *this, strIndex );
+}
+void DataMember::printDeallocation( std::ostream& os, const std::string& strIndex ) const
+{
+    return m_pDimension->printDeallocation( os, *this, strIndex );
+}
+void DataMember::printStart( std::ostream& os, const std::string& strIndex ) const
+{
+    return m_pDimension->printStart( os, *this, strIndex );
+}
+void DataMember::printStop( std::ostream& os, const std::string& strIndex ) const
+{
+    return m_pDimension->printStop( os, *this, strIndex );
+}
+
+void Buffer::load( Loader& loader )
+{
+    m_pAction = loader.loadObjectRef< concrete::Action >();
+    loader.loadObjectVector( m_dimensions );
+    loader.load( size );
+    loader.load( stride );
+    loader.load( name );
+    loader.load( variable );
+}
+
+void Buffer::store( Storer& storer ) const
+{
+    storer.storeObjectRef( m_pAction );
+    storer.storeObjectVector( m_dimensions );
+    storer.store( size );
+    storer.store( stride );
+    storer.store( name );
+    storer.store( variable );
+}
+    
+void Layout::load( Loader& loader )
+{
+    loader.loadObjectVector( m_buffers );
+    loader.loadObjectMap( m_dimensionMap );
+}
+
+void Layout::store( Storer& storer ) const
+{
+    storer.storeObjectVector( m_buffers );
+    storer.storeObjectMap( m_dimensionMap );
+}    
+
+} //namespace eg
