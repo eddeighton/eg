@@ -282,37 +282,24 @@ private:
  /*   
 struct __eg_input
 {
-    virtual std::optional< cinder::app::MouseEvent > getMouseEvent() = 0;
-    virtual std::optional< cinder::app::KeyEvent > getKeyEvent() = 0;
+    virtual std::optional< cinder::app::InputEvent > getEvent() = 0;
 };
 */
 class InputEvents : public __eg_input
 {
 public:
-    virtual std::optional< cinder::app::MouseEvent > getMouseEvent()
+    virtual std::optional< cinder::app::InputEvent > getEvent()
     {
-        std::optional< MouseEvent > event;
-        if( !mouseEvents.empty() )
+        std::optional< cinder::app::InputEvent > event;
+        if( !events.empty() )
         {
-            event = mouseEvents.back();
-            mouseEvents.pop_back();
+            event = events.front();
+            events.pop_front();
         }
         return event;
     }
     
-    virtual std::optional< cinder::app::KeyEvent > getKeyEvent()
-    {
-        std::optional< KeyEvent > event;
-        if( !keyEvents.empty() )
-        {
-            event = keyEvents.back();
-            keyEvents.pop_back();
-        }
-        return event;
-    }
-    
-    std::vector< cinder::app::MouseEvent > mouseEvents;
-    std::vector< cinder::app::KeyEvent > keyEvents;
+    std::deque< cinder::app::InputEvent > events;
 };
 
     
@@ -409,8 +396,8 @@ public:
     // event handlers
     void mouseDown( MouseEvent event ) override;
     void mouseUp( MouseEvent event ) override;
-    void mouseWheel( MouseEvent event ) override;
     void mouseMove( MouseEvent event ) override;
+    void mouseWheel( MouseEvent event ) override;
     void mouseDrag( MouseEvent event ) override;
     
     void keyDown( KeyEvent event ) override;
@@ -460,47 +447,44 @@ void BasicApp::update()
 
 void BasicApp::mouseDown( MouseEvent event )
 {
-    inputEvents.mouseEvents.push_back( event );
+    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseDown, event );
+    inputEvents.events.push_back( e );
 }
 void BasicApp::mouseUp( MouseEvent event )
 {
-    inputEvents.mouseEvents.push_back( event );
-}
-void BasicApp::mouseWheel( MouseEvent event )
-{
-    inputEvents.mouseEvents.push_back( event );
+    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseUp, event );
+    inputEvents.events.push_back( e );
 }
 void BasicApp::mouseMove( MouseEvent event )
 {
-    inputEvents.mouseEvents.push_back( event );
+    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseMove, event );
+    inputEvents.events.push_back( e );
+}
+void BasicApp::mouseWheel( MouseEvent event )
+{
+    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseWheel, event );
+    inputEvents.events.push_back( e );
 }
 void BasicApp::mouseDrag( MouseEvent event )
 {
-    inputEvents.mouseEvents.push_back( event );
+    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseDrag, event );
+    inputEvents.events.push_back( e );
 }
 
 void BasicApp::keyDown( KeyEvent event )
 {
-    inputEvents.keyEvents.push_back( event );
+    cinder::app::InputEvent e( cinder::app::InputEvent::eKeyDown, event );
+    inputEvents.events.push_back( e );
 }
 void BasicApp::keyUp( KeyEvent event )
 {
-    inputEvents.keyEvents.push_back( event );
+    cinder::app::InputEvent e( cinder::app::InputEvent::eKeyUp, event );
+    inputEvents.events.push_back( e );
 }
 
 void BasicApp::draw()
 {
-	// Clear the contents of the window. This call will clear
-	// both the color and depth buffers. 
-	//gl::clear( Color::gray( 0.1f ) );
-    //
-	//// Set the current draw color to orange by setting values for
-	//// red, green and blue directly. Values range from 0 to 1.
-	//// See also: gl::ScopedColor
-	//gl::color( 1.0f, 0.5f, 0.25f );
-    
     const CinderHostClock::Tick cycleStart = theClock.nextCycle();
-    
     if( g_root[ 0 ].g_root_timestamp_paused <= clock::subcycle() )
     {
         //run the subcycle

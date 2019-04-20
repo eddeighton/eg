@@ -1,6 +1,6 @@
 
 
-action Circle[ 1024 ]
+action Circle[ 4096 ]
 {
     dim vec2 position;
     dim Color color;
@@ -34,60 +34,88 @@ action Circle[ 1024 ]
 
 action EventListener
 {
-    include( <sstream> );
-    
     while( true )
     {
         while( EGEvent e = get_next_event() )
         {
             if( Circle c = e )
             {
-                std::ostringstream os;
                 LOG( "Circle died at pos: " << c.position() << " and time: " << clock::ct() );
             }
         }
-        
         SLEEP;
     }
 }
 
-//EventListener.Start();
+EventListener.Start();
 
 bool bContinue = true;
 while( bContinue )
 {
 	gl::clear();
     
-    while( std::optional< MouseEvent > mOpt = Input::getMouseEvent() )
-    {
-        const MouseEvent& m = mOpt.value();
-        if( m.isRightDown() || m.isLeftDown() )
-        {
-            //try to start a circle
-            if( Circle c = Circle.Start() )
-            {
-                c.position( vec2( m.getPos() ) );
-                c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
-                
-                //Circle::Move m = c.Move.Start();
-                //
-                //vec2 vDir( 
-                //    fmod( clock::ct(), 1.0f ) - 0.5f, 
-                //    fmod( clock::ct(), 1.0f ) - 0.5f );
-                //
-                //m.direction( vDir * 200.0f );
-                
-            }
-        }
-    }
+    dim std::optional< vec2 > lastPos;
     
-    
-    while( std::optional< KeyEvent > mOpt = Input::getKeyEvent() )
+    while( std::optional< InputEvent > eventOpt = Input::getEvent() )
     {
-        const KeyEvent& k = kOpt.value();
-        if( k.getChar() == ' ' )
+        const InputEvent& e = eventOpt.value();
+        switch( e.type )
         {
-            bContinue = false;
+            case InputEvent::eMouseDown:
+                {
+                    lastPos( std::optional< vec2 >( e.mouseEvent.getPos() ) );
+                    if( Circle c = Circle.Start() )
+                    {
+                        c.position( lastPos().value() );
+                        c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                    }
+                }
+                break;
+            case InputEvent::eMouseUp:
+                {
+                    lastPos( std::optional< vec2 >() );
+                }
+                break;
+            case InputEvent::eMouseMove:
+                break;
+            case InputEvent::eMouseDrag:
+                if( lastPos() )
+                {
+                    const vec2 mousePos( e.mouseEvent.getPos() );
+                    
+                    const vec2 dir = mousePos - lastPos().value();
+                    const float fSteps = glm::length( dir ) * 0.1f;
+                    for( float i = 0.0f; i < fSteps; ++i )
+                    {
+                        if( Circle c = Circle.Start() )
+                        {
+                            c.position( lastPos().value() + ( dir * ( i / fSteps ) ) );
+                            c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                        }
+                    }
+                    lastPos( std::optional< vec2 >( mousePos ) );
+                    
+                    //try to start a circle
+                    if( Circle c = Circle.Start() )
+                    {
+                        c.position( lastPos().value() );
+                        c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                    }
+                }
+                else
+                {
+                    LOG( "Mouse Drag: no lastpos"  );
+                }
+                break;
+            case InputEvent::eMouseWheel:
+                break;
+            case InputEvent::eKeyDown:
+            case InputEvent::eKeyUp:
+                if( e.keyEvent.getChar() == ' ' )
+                {
+                    bContinue = false;
+                }
+                break;
         }
     }
     

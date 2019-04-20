@@ -58,6 +58,7 @@
             <file>&lt;array&gt;</file>
             <file>&lt;optional&gt;</file>
             <file>&lt;iterator&gt;</file>
+            <file>&lt;deque&gt;</file>
         </system>
     </include>
 </cinder_host>
