@@ -11,5 +11,6 @@ dump_*
 *.pch
 *.gch
 third_party
-
-
+*.obj
+*_log/
+*_build/
