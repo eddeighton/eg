@@ -216,7 +216,17 @@ namespace eg
             os << strIndent << "EGEvent get_next_event() const;\n";
             
             //void* operator
-            os << strIndent << "operator const void*() const;\n";
+            os << strIndent << "operator const void*() const\n";
+            os << strIndent << "{\n";
+            os << strIndent << "      if( data.timestamp != EG_INVALID_TIMESTAMP )\n";
+            os << strIndent << "      {\n";
+            os << strIndent << "          return reinterpret_cast< const void* >( &data );\n";
+            os << strIndent << "      }\n";
+            os << strIndent << "      else\n";
+            os << strIndent << "      {\n";
+            os << strIndent << "          return nullptr;\n";
+            os << strIndent << "      }\n";
+            os << strIndent << "}\n";
             
             //equality operator
             os << strIndent << "template< typename TComp >\n";
@@ -243,19 +253,20 @@ namespace eg
             os << strIndent << "EGCoroutine operator()();\n";
             
             //iterator type
-            os << strIndent << "class Iterator : public std::iterator< std::forward_iterator_tag, " << strActionInterfaceType << " >\n";
-            os << strIndent << "{\n";
-            os << strIndent << "public:\n";
-            os << strIndent << "  EGInstance instance;\n";
-            os << strIndent << "  EGInstance sentinal;\n";
-            os << strIndent << "  Iterator( EGInstance instance, EGInstance sentinal ) : instance( instance ), sentinal( sentinal ) {}\n";
-            os << strIndent << "  Iterator( const Iterator& from ) : instance( from.instance ), sentinal( from.sentinal ) {}\n";
-            os << strIndent << "  Iterator& operator++();\n";
-            os << strIndent << "  Iterator operator++(int) {Iterator tmp(*this); operator++(); return tmp;}\n";
-            os << strIndent << "  bool operator==(const Iterator& rhs) const {return instance==rhs.instance;}\n";
-            os << strIndent << "  bool operator!=(const Iterator& rhs) const {return instance!=rhs.instance;}\n";
-            os << strIndent << "  " << strActionInterfaceType << "& operator*();\n";
-            os << strIndent << "};\n";
+            os << strIndent << "using Iterator = EGReferenceIterator< " << strActionInterfaceType << " >;\n";
+            //os << strIndent << "class Iterator : public std::iterator< std::forward_iterator_tag, " << strActionInterfaceType << " >\n";
+            //os << strIndent << "{\n";
+            //os << strIndent << "public:\n";
+            //os << strIndent << "  EGInstance instance;\n";
+            //os << strIndent << "  EGInstance sentinal;\n";
+            //os << strIndent << "  Iterator( EGInstance instance, EGInstance sentinal ) : instance( instance ), sentinal( sentinal ) {}\n";
+            //os << strIndent << "  Iterator( const Iterator& from ) : instance( from.instance ), sentinal( from.sentinal ) {}\n";
+            //os << strIndent << "  Iterator& operator++();\n";
+            //os << strIndent << "  Iterator operator++(int) {Iterator tmp(*this); operator++(); return tmp;}\n";
+            //os << strIndent << "  bool operator==(const Iterator& rhs) const {return instance==rhs.instance;}\n";
+            //os << strIndent << "  bool operator!=(const Iterator& rhs) const {return instance!=rhs.instance;}\n";
+            //os << strIndent << "  " << strActionInterfaceType << "& operator*();\n";
+            //os << strIndent << "};\n";
             
             //range type
             os << strIndent << "using EGRangeType = EGRange< Iterator >;\n";
@@ -695,11 +706,13 @@ namespace eg
             //generate the template argument lists
             bool bMultipleElements = false;
             std::ostringstream osTemplateArgLists;
+            std::ostringstream osTemplateArgListsSpecialised;
             {
                 int iCounter = 1;
                 for( const abstract::Element* pNodeIter : path )
                 {
                     osTemplateArgLists << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >\n";
+                    osTemplateArgListsSpecialised << strIndent << "template<>\n";
                     ++iCounter;
                 }
                 if( iCounter > 2 )
@@ -847,12 +860,7 @@ namespace eg
             os << "    __eg_event _event;\n";
             os << "    while( g_eg_event_log->GetEvent( " << pEventIterator->getBuffer()->getVariableName() << 
                                                             "[ data.instance ]." << pEventIterator->getName() << ", _event ) )\n";
-            os << "    {\n";
-            //os << "         if( 0 == strcmp( _event.type, \"start\" ) )\n";
-            //os << "         {\n";
-            //os << "             ev.data = *reinterpret_cast< const __eg_reference* >( _event.value );\n";
-            //os << "             break;\n";
-            //os << "         }\n";    
+            os << "    {\n";   
             os << "         if( 0 == strcmp( _event.type, \"stop\" ) )\n";
             os << "         {\n";
             os << "             ev.data = *reinterpret_cast< const __eg_reference* >( _event.value );\n";
@@ -862,45 +870,130 @@ namespace eg
             os << "    return ev;\n";
             os << "}\n";
             
+            ////os << osTemplateArgListsSpecialised.str();
+            ////os << "EGEvent " << osTypeVoid.str() << "::get_next_event() const\n";
+            ////os << "{\n";
+            ////os << "    EGEvent ev;\n";
+            ////os << "    __eg_event _event;\n";
+            ////os << "    while( g_eg_event_log->GetEvent( " << pEventIterator->getBuffer()->getVariableName() << 
+            ////                                                "[ data.instance ]." << pEventIterator->getName() << ", _event ) )\n";
+            ////os << "    {\n";   
+            ////os << "         if( 0 == strcmp( _event.type, \"stop\" ) )\n";
+            ////os << "         {\n";
+            ////os << "             ev.data = *reinterpret_cast< const __eg_reference* >( _event.value );\n";
+            ////os << "             break;\n";
+            ////os << "         }\n"; 
+            ////os << "    }\n";
+            ////os << "    return ev;\n";
+            ////os << "}\n";
+            
             
             //const void* operator
-            os << osTemplateArgLists.str();
-            os << osTypeName.str() << "::operator const void*() const\n";
-            os << "{\n";
-            os << "      if( data.timestamp != EG_INVALID_TIMESTAMP )\n";
-            os << "      {\n";
-            os << "          return reinterpret_cast< const void* >( &data );\n";
-            os << "      }\n";
-            os << "      else\n";
-            os << "      {\n";
-            os << "          return nullptr;\n";
-            os << "      }\n";
-            os << "}\n";
+            //os << osTemplateArgLists.str();
+            //os << osTypeName.str() << "::operator const void*() const\n";
+            //os << "{\n";
+            //os << "      if( data.timestamp != EG_INVALID_TIMESTAMP )\n";
+            //os << "      {\n";
+            //os << "          return reinterpret_cast< const void* >( &data );\n";
+            //os << "      }\n";
+            //os << "      else\n";
+            //os << "      {\n";
+            //os << "          return nullptr;\n";
+            //os << "      }\n";
+            //os << "}\n";
+            
+            //os << osTemplateArgListsSpecialised.str();
+            //os << osTypeVoid.str() << "::operator const void*() const\n";
+            //os << "{\n";
+            //os << "      if( data.timestamp != EG_INVALID_TIMESTAMP )\n";
+            //os << "      {\n";
+            //os << "          return reinterpret_cast< const void* >( &data );\n";
+            //os << "      }\n";
+            //os << "      else\n";
+            //os << "      {\n";
+            //os << "          return nullptr;\n";
+            //os << "      }\n";
+            //os << "}\n";
             
             const DataMember* pReference = layout.getDataMember( pInstanceAction->getReference() );
             const DataMember* pRunning = layout.getDataMember( pInstanceAction->getRunningTimestamp() );
             
             //iterator type
-            os << osTemplateArgLists.str();
-            if( !bMultipleElements ) os << "typename ";
-            os << osTypeNameAsType.str() << "::Iterator& " << osTypeName.str() << "::Iterator::operator++()\n";
+            os << "template<>\n";
+            os << "inline bool isInstanceRunning< " << osTypeVoid.str() << " >( EGInstance instance )\n";
             os << "{\n";
-            os << "    while( instance != sentinal )\n";
-            os << "    {\n";
-            os << "        ++instance;\n";
-            os << "        if( " << Printer( pRunning, "instance" ) << " < clock::subcycle() )\n";
-            os << "        {\n";
-            os << "            break;\n";
-            os << "        }\n";
-            os << "    }\n";
-            os << "    return *this;\n";
+            os << "    return " << Printer( pRunning, "instance" ) << ";\n";
             os << "}\n";
             os << "\n";
-            os << osTemplateArgLists.str();
-            os << osTypeNameAsType.str() << "& " << osTypeName.str() << "::Iterator::operator*()\n";
+            os << "template<>\n";
+            os << "inline const " << osTypeVoid.str() << "& getReference< " << osTypeVoid.str() << " >( EGInstance instance )\n";
             os << "{\n";
             os << "    return " << Printer( pReference, "instance" ) << ";\n";
             os << "}\n";
+            os << "\n";
+            
+            //iterator type
+            //os << "template<>\n";
+            //os << osTypeVoid.str() << "::Iterator& EGReferenceIterator< " << osTypeVoid.str() << " >::operator++()\n";
+            //os << "{\n";
+            //os << "    while( instance != sentinal )\n";
+            //os << "    {\n";
+            //os << "        ++instance;\n";
+            //os << "        if( " << Printer( pRunning, "instance" ) << " < clock::subcycle() )\n";
+            //os << "        {\n";
+            //os << "            break;\n";
+            //os << "        }\n";
+            //os << "    }\n";
+            //os << "    return *this;\n";
+            //os << "}\n";
+            //os << "\n";
+            //os << "template<>\n";
+            //os << osTypeVoid.str() << "& EGReferenceIterator< " << osTypeVoid.str() << " >::operator*()\n";
+            //os << "{\n";
+            //os << "    return " << Printer( pReference, "instance" ) << ";\n";
+            //os << "}\n";
+            
+            
+            //os << osTemplateArgLists.str();
+            //if( !bMultipleElements ) os << "typename ";
+            //os << osTypeNameAsType.str() << "::Iterator& " << osTypeName.str() << "::Iterator::operator++()\n";
+            //os << "{\n";
+            //os << "    while( instance != sentinal )\n";
+            //os << "    {\n";
+            //os << "        ++instance;\n";
+            //os << "        if( " << Printer( pRunning, "instance" ) << " < clock::subcycle() )\n";
+            //os << "        {\n";
+            //os << "            break;\n";
+            //os << "        }\n";
+            //os << "    }\n";
+            //os << "    return *this;\n";
+            //os << "}\n";
+            //os << "\n";
+            //os << osTemplateArgLists.str();
+            //os << osTypeNameAsType.str() << "& " << osTypeName.str() << "::Iterator::operator*()\n";
+            //os << "{\n";
+            //os << "    return " << Printer( pReference, "instance" ) << ";\n";
+            //os << "}\n";
+            
+            //os << osTemplateArgListsSpecialised.str();
+            //os << osTypeVoid.str() << "::Iterator& " << osTypeVoid.str() << "::Iterator::operator++()\n";
+            //os << "{\n";
+            //os << "    while( instance != sentinal )\n";
+            //os << "    {\n";
+            //os << "        ++instance;\n";
+            //os << "        if( " << Printer( pRunning, "instance" ) << " < clock::subcycle() )\n";
+            //os << "        {\n";
+            //os << "            break;\n";
+            //os << "        }\n";
+            //os << "    }\n";
+            //os << "    return *this;\n";
+            //os << "}\n";
+            //os << "\n";
+            //os << osTemplateArgListsSpecialised.str();
+            //os << osTypeVoid.str() << "& " << osTypeVoid.str() << "::Iterator::operator*()\n";
+            //os << "{\n";
+            //os << "    return " << Printer( pReference, "instance" ) << ";\n";
+            //os << "}\n";
             
         }
         void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
@@ -2262,6 +2355,11 @@ void events::put( const char* type, EGTimeStamp timestamp, const void* value, st
         os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType, typename... Args >\n";
         os << "inline ResultType __invoke_impl( ContextType context, Args... args );\n";
         os << "\n";
+        os << "template< typename ReferenceType >\n";
+        os << "inline bool isInstanceRunning( EGInstance instance );\n";
+        os << "template< typename ReferenceType >\n";
+        os << "inline const ReferenceType& getReference( EGInstance instance );\n";
+        os << "\n";
         
         std::vector< const InvocationSolution* > invocations;
         program.getInvocations( szTranslationUnitID, invocations );
@@ -2283,7 +2381,27 @@ void events::put( const char* type, EGTimeStamp timestamp, const void* value, st
         os << "    using CanonicalTypePathType = typename __eg_CanonicaliseTypePath< TypePath >::Type;\n";
         os << "    return __invoke_impl< typename result_type< __eg_variant< Ts... >, TypePath, Operation >::Type, __eg_variant< Ts... >, CanonicalTypePathType, Operation >( *this, args... );\n";
         os << "}\n";
+        os << "\n";
         
+        os << "template< class ReferenceType >\n";
+        os << "EGReferenceIterator< ReferenceType >& EGReferenceIterator< ReferenceType >::operator++()\n";
+        os << "{\n";
+        os << "    while( instance != sentinal )\n";
+        os << "    {\n";
+        os << "        ++instance;\n";
+        os << "        if( isInstanceRunning< ReferenceType >( instance ) )\n";
+        os << "        {\n";
+        os << "            break;\n";
+        os << "        }\n";
+        os << "    }\n";
+        os << "    return *this;\n";
+        os << "}\n";
+        os << "template< class ReferenceType >\n";
+        os << "const ReferenceType& EGReferenceIterator< ReferenceType >::operator*()\n";
+        os << "{\n";
+        os << "    return getReference< ReferenceType >( instance );\n";
+        os << "}\n";
+        os << "\n";
         
         std::vector< const concrete::Inheritance_Node* > iNodes = 
             many_cst< const concrete::Inheritance_Node >( objects );

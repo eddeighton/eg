@@ -4,21 +4,42 @@ action Circle[ 4096 ]
 {
     dim vec2 position;
     dim Color color;
+    dim float size;
+    dim float starttime;
+    dim float lifetime;
+    dim float max_size;
+    dim float max_lifetime;
     
-    const float max_size = 10.0f;
-    const float max_lifetime = 4.0f;
+    max_size( 20.0f );
+    max_lifetime( 4.0f );
     
-    float size = max_size;
+    size( max_size() );
+    starttime( clock::ct() );
+    lifetime( clock::ct() + max_lifetime() );
     
-    const float startTime = clock::ct();
-    float lifetime = startTime + max_lifetime;
-    while( clock::ct() < lifetime )
+    //draw the circle
+    while( clock::ct() < lifetime() )
     {
-        size = ( lifetime - clock::ct() ) * max_size;
-        
         gl::color( color() ); // red
-        gl::drawSolidCircle( position(), size );
+        gl::drawSolidCircle( position(), size() );
         SLEEP;
+    }
+    
+    action Shrink
+    {
+        while( true )
+        {
+            size( ( max_size() / 2.0f ) - ( lifetime() - clock::ct() ) * max_size() / 2.0f );
+            SLEEP;
+        }
+    }
+    action Grow
+    {
+        while( true )
+        {
+            size( ( max_size() / 2.0f ) + ( clock::ct() - starttime() ) * max_size() / 2.0f );
+            SLEEP;
+        }
     }
     
     action Move
@@ -110,11 +131,19 @@ while( bContinue )
             case InputEvent::eMouseWheel:
                 break;
             case InputEvent::eKeyDown:
-            case InputEvent::eKeyUp:
                 if( e.keyEvent.getChar() == ' ' )
                 {
                     bContinue = false;
                 }
+                else if( e.keyEvent.getChar() == 'g' )
+                {
+                    for( Circle c : Circle.Range() )
+                    {
+                        c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                    }
+                }
+                break;
+            case InputEvent::eKeyUp:
                 break;
         }
     }

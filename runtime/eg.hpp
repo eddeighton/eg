@@ -192,6 +192,21 @@ using EGTypeID      = std::int32_t;
 using EGTimeStamp   = std::uint32_t;
 static const EGTimeStamp EG_INVALID_TIMESTAMP = std::numeric_limits< EGTimeStamp >::max();
 
+template< class ReferenceType >
+class EGReferenceIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
+{
+public:
+    EGInstance instance;
+    EGInstance sentinal;
+    inline EGReferenceIterator( EGInstance instance, EGInstance sentinal ) : instance( instance ), sentinal( sentinal ) {}
+    inline EGReferenceIterator( const EGReferenceIterator& from ) : instance( from.instance ), sentinal( from.sentinal ) {}
+    EGReferenceIterator& operator++();
+    inline EGReferenceIterator operator++(int) {EGReferenceIterator tmp(*this); operator++(); return tmp;}
+    inline bool operator==(const EGReferenceIterator& rhs) const {return instance==rhs.instance;}
+    inline bool operator!=(const EGReferenceIterator& rhs) const {return instance!=rhs.instance;}
+    const ReferenceType& operator*();
+};
+
 template< typename Iterator >
 struct EGRange
 {
@@ -354,24 +369,24 @@ struct EGEvent
     }
     
     template< typename TComp >
-    bool operator==( const TComp& cmp ) const
+    inline bool operator==( const TComp& cmp ) const
     {
         return data == cmp.data;
     }
     
     template< typename TComp >
-    bool operator!=( const TComp& cmp ) const
+    inline bool operator!=( const TComp& cmp ) const
     {
         return !(data == cmp.data);
     }
     
     template< typename TComp >
-    bool operator<( const TComp& cmp ) const
+    inline bool operator<( const TComp& cmp ) const
     {
         return data < cmp.data;
     }
     
-    operator const void*() const
+    inline operator const void*() const
     {
         if( data.timestamp != EG_INVALID_TIMESTAMP )
         {
@@ -495,7 +510,6 @@ struct [[clang::eg_type( egVariant )]] __eg_variant
         return *this;
     }
     
-    
     template< typename TComp >
     inline bool operator==( const TComp& cmp ) const
     {
@@ -526,9 +540,10 @@ struct [[clang::eg_type( egVariant )]] __eg_variant
         }
     }
     
-    __eg_reference data;
     template< typename TypePath, typename Operation, typename... Args >
     typename result_type< __eg_variant< Ts... >, TypePath, Operation >::Type invoke( Args... args );
+    
+    __eg_reference data;
 }; 
  
  
