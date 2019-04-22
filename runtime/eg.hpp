@@ -5,6 +5,7 @@
 #include "frame.hpp"
 //#include <experimental/coroutine>
 //#include <coroutine>
+#include "eg_common.hpp"
 
 struct EGCoroutine
 {
@@ -187,11 +188,6 @@ struct EGDependencyProvider
     virtual void* getInterface( const char* pszName ) = 0;
 };
 
-using EGInstance    = std::uint32_t; //32bit only for now
-using EGTypeID      = std::int32_t;
-using EGTimeStamp   = std::uint32_t;
-static const EGTimeStamp EG_INVALID_TIMESTAMP = std::numeric_limits< EGTimeStamp >::max();
-
 template< class ReferenceType >
 class EGReferenceIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
 {
@@ -223,9 +219,6 @@ struct clock
     static float ct();
     static float dt();
 };
-
-
-using __eg_event_iterator = std::uint64_t;
 
 struct events
 {
@@ -276,26 +269,7 @@ struct ObjectTraits
         //do nothing
     }
     
-    
     //copy, restore, serialise, python bindings....
-};
-
-
-enum EGOperationType : EGTypeID
-{
-    egGet                      = std::numeric_limits< EGTypeID >::min(),
-    egUpdate                   ,
-    egRead                     ,
-    egOld                      ,
-    egWrite                    ,
-    egStart                    ,
-    egStop                     ,
-    egPause                    ,
-    egResume                   ,
-    egDefer                    ,
-    egEmpty                    ,
-    egRange                    ,
-    egHIGHEST_OPERATION_TYPE
 };
 
 struct [[clang::eg_type( egGet    )]] Get;          //egGet    
@@ -318,34 +292,6 @@ template< typename Context, typename TypePath, typename Operation >
 struct result_type
 {
     using Type = __eg_result_type( __eg_invocation< Context, TypePath, Operation > );
-};
-
-struct __eg_reference
-{
-    EGInstance  instance;
-    EGTypeID    type;
-    EGTimeStamp timestamp;
-    
-    inline bool operator==( const __eg_reference& cmp ) const
-    {
-        return  ( ( timestamp == EG_INVALID_TIMESTAMP ) && ( cmp.timestamp == EG_INVALID_TIMESTAMP ) ) ||
-                ( ( instance == cmp.instance ) &&
-                    ( type == cmp.type ) &&
-                    ( timestamp == cmp.timestamp ) );
-    }
-    
-    inline bool operator!=( const __eg_reference& cmp ) const
-    {
-        return !( *this == cmp );
-    }
-    
-    inline bool operator<( const __eg_reference& cmp ) const
-    {
-        return  ( instance != cmp.instance ) ?      ( instance < cmp.instance ) : 
-                ( type != cmp.type ) ?              ( type < cmp.type ) : 
-                ( timestamp != cmp.timestamp ) ?    ( timestamp < cmp.timestamp ) : 
-                false;
-    }
 };
 
 struct EGEvent
@@ -454,12 +400,6 @@ struct variant_runtime_type_check
     }
 };
 
-enum EGInvocableTypes
-{
-    egVariant = egHIGHEST_OPERATION_TYPE,
-    egTypePath
-};
-
 template< typename... Ts >
 struct [[clang::eg_type( egVariant )]] __eg_variant
 {
@@ -556,8 +496,6 @@ struct eg_is_convertible< var< varArgs... >, to >
 {
     static constexpr const bool value = eg_is_convertible_many< to, varArgs... >::value;
 };
-
-
 
 template< typename... Ts >
 struct [[clang::eg_type( egTypePath )]] __eg_type_path{};

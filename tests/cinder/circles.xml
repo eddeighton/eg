@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
     <folder>W:/workspace/eg/tests/cinder</folder>
-    <flags>-D_MT -D_DLL -D_CRT_SECURE_NO_WARNINGS -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -fcoroutines-ts -Wno-deprecated -Wno-inconsistent-missing-override</flags>
-    <hostflags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:WINDOWS</hostflags>
+    <flags>-D_MT -D_DLL -D_CRT_SECURE_NO_WARNINGS -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -fcoroutines-ts -Wno-deprecated -Wno-inconsistent-missing-override</flags>
+    <hostflags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:WINDOWS -Xlinker /INCREMENTAL</hostflags>
     <hostcmd>&quot;cinder_host.exe&quot;</hostcmd>
     <dependencies>
         <interface>__eg_input</interface>
@@ -59,6 +59,7 @@
             <file>&lt;array&gt;</file>
             <file>&lt;optional&gt;</file>
             <file>&lt;iterator&gt;</file>
+            <file>&lt;deque&gt;</file>
         </system>
     </include>
 </project>

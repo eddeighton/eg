@@ -12,11 +12,14 @@ include( ${EG_ROOT_DIR}/cmake/pybind11_include.cmake )
 include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 
 set( PYEG_SOURCE_DIR ${EG_ROOT_DIR}/src/pyeg )
-file( GLOB PYEG_SOURCE_HEADERS ${PYEG_SOURCE_DIR}/*.hpp )
-file( GLOB PYEG_SOURCE_SOURCES ${PYEG_SOURCE_DIR}/*.cpp )
-set( PYEG_SOURCES ${PYEG_SOURCE_HEADERS} ${PYEG_SOURCE_SOURCES} )
-source_group( src FILES ${PYEG_SOURCES} )
 
+set( PYEG_SOURCES
+    ${PYEG_SOURCE_DIR}/main.cpp
+    ${PYEG_SOURCE_DIR}/py_eg_reference.cpp
+    ${PYEG_SOURCE_DIR}/py_eg_reference.hpp)
+    
+source_group( src FILES ${PYEG_SOURCES} )
+    
 add_executable( pyeg
                     ${DATABASE_API}
                     ${EG_SOURCES}

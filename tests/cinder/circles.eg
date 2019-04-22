@@ -67,17 +67,22 @@ Spiral.Start();
 
 while( true )
 {
-    while( std::optional< cinder::app::KeyEvent > k = Input::getKeyEvent() )
+    while( std::optional< InputEvent > eOpt = Input::getEvent() )
     {
-        if( k.value().getChar() == 's')
+        const InputEvent& e = eOpt.value();
+        switch( e.type )
         {
-            if( Spiral.Empty() )
-                Spiral.Start();
-        }
-        else if( k.value().getChar() == 'd')
-        {
-            if( !Spiral.Empty() )
-                Spiral.Stop();
+            case InputEvent::eKeyDown:
+            if( e.keyEvent.getChar() == 's')
+            {
+                if( Spiral.Empty() )
+                    Spiral.Start();
+            }
+            else if( e.keyEvent.getChar() == 'd')
+            {
+                if( !Spiral.Empty() )
+                    Spiral.Stop();
+            }
         }
     }
 	gl::clear();
