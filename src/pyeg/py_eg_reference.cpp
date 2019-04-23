@@ -1,6 +1,8 @@
 
 #include "py_eg_reference.hpp"
 
+#include "runtime.hpp"
+
 #include <sstream>
 
 namespace eg
@@ -16,16 +18,24 @@ namespace eg
     PyObject* PythonEGReference::get( void* pClosure )
     {
         const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
-        //convert pszAttributeIdentity to EGTypeID
-        
-        PyObject* pResult = m_pythonType.create( m_reference );
+        const EGTypeID typeID = m_pythonType.getRuntime().getTypeID( pszAttributeIdentity );
+        if( typeID == 0 )
         {
-            PythonEGReference* pNewRef = PythonEGReferenceType::getReference( pResult );
-            pNewRef->m_type_path = m_type_path;
-            pNewRef->m_type_path.push_back( 0 );
+            THROW_RTE( "Invalid identity" << pszAttributeIdentity );
+            //Py_INCREF( Py_None );
+            //return Py_None;
         }
-        
-        return pResult;
+        else
+        {
+            PyObject* pResult = m_pythonType.create( m_reference );
+            {
+                PythonEGReference* pNewRef = PythonEGReferenceType::getReference( pResult );
+                pNewRef->m_type_path = m_type_path;
+                pNewRef->m_type_path.push_back( typeID );
+            }
+            
+            return pResult;
+        }
     }
     
     int PythonEGReference::set( void* pClosure, PyObject* pValue )
@@ -53,13 +63,7 @@ namespace eg
     
     PyObject* PythonEGReference::call( PyObject *args, PyObject *kwargs )
     {
-        
-        
-        
-        
-        
-        Py_INCREF( Py_None );
-        return Py_None;
+        return m_pythonType.getRuntime().invoke( m_reference, m_type_path, args, kwargs );
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -147,57 +151,24 @@ namespace eg
     static char* psz_b = "b";
     static char* psz_c = "c";
     
-    PythonEGReferenceType::PythonEGReferenceType()
+    PythonEGReferenceType::PythonEGReferenceType( EGRuntime& runtime )
+        :   m_runtime( runtime )
     {        
-        //generate python array for attributes
-        /*{
-            for( Attribute::Ptr pAttribute : m_attributes )
-            {
-                const std::string& strName = pAttribute->getName();
-                char* pszNonConstHack = const_cast< char* >( strName.c_str() );
-                PyGetSetDef data =
-                { 
-                    pszNonConstHack, 
-                    (getter)type_get, 
-                    (setter)type_set, 
-                    pszNonConstHack, 
-                    (void*)pszNonConstHack
-                };
-                m_pythonAttributesData.push_back( data );
-            }
-            m_pythonAttributesData.push_back( PyGetSetDef{ NULL } );
-        }*/
-        
-        
-        PyGetSetDef data1 =
-        { 
-            psz_a, 
-            (getter)type_get, 
-            (setter)type_set, 
-            psz_a, 
-            (void*)psz_a
-        };
-        PyGetSetDef data2 =
-        { 
-            psz_b, 
-            (getter)type_get, 
-            (setter)type_set, 
-            psz_b, 
-            (void*)psz_b
-        };
-        PyGetSetDef data3 =
-        { 
-            psz_c, 
-            (getter)type_get, 
-            (setter)type_set, 
-            psz_c, 
-            (void*)psz_c
-        };
-        m_pythonAttributesData.push_back( data1 );
-        m_pythonAttributesData.push_back( data2 );
-        m_pythonAttributesData.push_back( data3 );
+        m_runtime.getIdentities( m_identities );
+        for( const std::string& strIdentity : m_identities )
+        {
+            char* pszNonConst = const_cast< char* >( strIdentity.c_str() );
+            PyGetSetDef data =
+            { 
+                pszNonConst, 
+                (getter)type_get, 
+                (setter)type_set, 
+                pszNonConst, 
+                (void*)pszNonConst
+            };
+            m_pythonAttributesData.push_back( data );
+        }
         m_pythonAttributesData.push_back( PyGetSetDef{ NULL } );
-        
         
         //generate heap allocated python type...
         std::vector< PyType_Slot > slots;
@@ -214,7 +185,7 @@ namespace eg
         
         PyType_Spec spec = 
         { 
-            "eg.reference",
+            "pyeg.reference",
             sizeof( eg_reference_data ), 
             0, 
             Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, 

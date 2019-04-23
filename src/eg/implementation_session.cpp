@@ -20,6 +20,7 @@ namespace eg
     {
         return *one< DerivationAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
     }
+        
     const Layout& ImplementationSession::getLayout() const
     {
         return *one< Layout >( getObjects( IndexedObject::ANALYSIS_FILE ) );
@@ -266,6 +267,10 @@ namespace eg
     const DerivationAnalysis& ReadSession::getDerivationAnalysis() const
     {
         return *one< DerivationAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+    }
+    const Identifiers& ReadSession::getIdentifiers() const
+    {
+        return *one< Identifiers >( getObjects( IndexedObject::MASTER_FILE ) );
     }
     const Layout& ReadSession::getLayout() const
     {

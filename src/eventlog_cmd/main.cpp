@@ -3,6 +3,8 @@
 
 #include "eg/implementation_session.hpp"
 
+#include "eg_common.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 #include "common/tick.hpp"
@@ -103,16 +105,6 @@ struct CmdLine
     }
 };
 
-using EGInstance    = std::uint32_t;
-using EGTypeID      = std::int32_t;
-using EGTimeStamp   = std::uint32_t;
-
-struct __eg_reference
-{
-    EGInstance  instance;
-    EGTypeID    type;
-    EGTimeStamp timestamp;
-};
 
 void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDatabase, 
         const IPC::Event::Event& event, std::ostream& os )

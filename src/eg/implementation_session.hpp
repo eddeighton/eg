@@ -6,6 +6,7 @@
 #include "concrete.hpp"
 #include "derivation.hpp"
 #include "layout.hpp"
+#include "identifiers.hpp"
 
 namespace eg
 {
@@ -36,6 +37,7 @@ namespace eg
         const abstract::Root* getTreeRoot() const;
         const concrete::Action* getInstanceRoot() const;
         const DerivationAnalysis& getDerivationAnalysis() const;
+        const Identifiers& getIdentifiers() const;
         const Layout& getLayout() const;
         const abstract::Action* getAbstractAction( EGTypeID id ) const;
         

@@ -542,4 +542,72 @@ namespace eg
             buildSolutionGraph_recurse( analysis, resolution, pLast, resolution.nodes[ i ], m_pRoot );
         }
     }
+    
+    
+    __eg_reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context, const DerivationStep* pStep, int& iPriority ) const
+    {
+        __eg_reference next = context;
+        
+        switch( pStep->type )
+        {
+            case DerivationStep::eParent      :
+                {
+                    const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance );
+                    ASSERT( pAction );
+                    const abstract::Action* pAbstractAction = pAction->getAction();
+                    ASSERT( pAbstractAction );
+                    
+                    next = __eg_reference{  context.instance / pStep->domain, 
+                                            static_cast< EGTypeID >( pAbstractAction->getIndex() ), 
+                                            0 };
+                    iPriority = 1;
+                }
+                break;
+            case DerivationStep::eChild       :
+                {
+                    const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance );
+                    ASSERT( pAction );
+                    const abstract::Action* pAbstractAction = pAction->getAction();
+                    ASSERT( pAbstractAction );
+                    
+                    next = __eg_reference{  context.instance, 
+                                            static_cast< EGTypeID >( pAbstractAction->getIndex() ), 
+                                            0 };
+                    iPriority = 1;
+                }
+                break;
+            case DerivationStep::eLink        :
+            case DerivationStep::eDeReference :
+            case DerivationStep::eTarget      :
+            case DerivationStep::eRoot        :
+            case DerivationStep::eEnum        :
+            case DerivationStep::eFailed      :
+                break;
+        }
+        
+        for( const DerivationStep* pChildStep : pStep->next )
+        {
+            int priority = 0, best = 0;
+            __eg_reference candidate = evaluate( evaluator, next, pChildStep, priority );
+            if( priority == best )
+            {
+                //ambiguity
+            }
+            else if( priority > best )
+            {
+                next = candidate;
+                best = priority;
+            }
+        }
+        
+        return next;
+    }
+    
+    __eg_reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context ) const
+    {
+        int priority = 0;
+        return evaluate( evaluator, context, m_pRoot, priority );
+        
+    }
+    
 }

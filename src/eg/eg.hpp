@@ -7,6 +7,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <array>
 
 namespace eg
 {
@@ -41,13 +42,18 @@ namespace eg
     
     static const EGTypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< EGTypeID >::min();
     
+    using OperationTypeStringArray = std::array< std::string, TOTAL_OPERATION_TYPES >;
+    
     inline bool isOperationType( EGTypeID id )
     {
         return id < HIGHEST_OPERATION_TYPE;
     }
-    bool isOperationName( const std::string& strName );
+    
+    OperationType getOperationName( const std::string& strName );
     
     const std::string& getOperationString( OperationType op );
+    
+    const OperationTypeStringArray& getOperationStrings();
 }
 
 #endif //EG_18_04_2019

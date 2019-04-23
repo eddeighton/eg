@@ -9,6 +9,10 @@ find_package(pybind11 REQUIRED)
 
 include_directories( ${EG_THIRD_PARTY_DIR}/install/pybind11/include )
 
+IF( ${WIN32} )
+set( PYBIND11_CPP_STANDARD /std:c++17)
+ENDIF( ${WIN32} )
+
 function( link_pybind11 targetname )
     target_link_libraries( ${targetname} pybind11::embed) 
 endfunction( link_pybind11 )

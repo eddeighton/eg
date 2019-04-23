@@ -15,12 +15,13 @@ set( EG_SRC_DIR ${EG_ROOT_DIR}/src )
 set( EG_RUNTIME_DIR ${EG_ROOT_DIR}/runtime )
 set( EG_THIRD_PARTY_DIR ${EG_ROOT_DIR}/third_party )
 
-add_compile_options(/std:c++17)
 
 include_directories( ${EG_API_DIR} )
 include_directories( ${EG_SRC_DIR} )
 include_directories( ${EG_RUNTIME_DIR} )
 link_directories( ${PROJECT_DIR}/bin )
+
+set( CMAKE_CXX_STANDARD 17 )
 
 ######################################
 #win32 specific settings
@@ -29,6 +30,8 @@ IF( ${WIN32} )
 # /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP
 #set( CMAKE_CXX_FLAGS "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MP")
 
+add_compile_options(/std:c++17)
+#add_compile_options(/Zc:__cplusplus)
 add_compile_options(/DWIN32)
 add_compile_options(/D_WINDOWS)
 add_compile_options(/MP)
@@ -45,7 +48,6 @@ include (InstallRequiredSystemLibraries)
 
 ENDIF( ${WIN32} )
 
-
 project( eg )
 
 add_subdirectory(eventlog)
@@ -53,7 +55,7 @@ add_subdirectory(eventlog_cmd)
 add_subdirectory(eg)
 add_subdirectory(clang_plugin)
 add_subdirectory(pyeg)
-add_subdirectory(pyeg_dll)
+#add_subdirectory(pyeg_dll)
 add_subdirectory(driver)
 add_subdirectory(hosts)
 add_subdirectory(tests)

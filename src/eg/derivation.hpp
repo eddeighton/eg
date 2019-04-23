@@ -6,6 +6,8 @@
 #include "objects.hpp"
 #include "concrete.hpp"
 
+#include "eg_common.hpp"
+
 #include <map>
 #include <vector>
 
@@ -120,11 +122,18 @@ namespace eg
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
+    class RuntimeEvaluator
+    {
+    public:
+        virtual ~RuntimeEvaluator(){}
+        virtual __eg_reference eval( const __eg_reference& dimension ) = 0;
+    };
     
     class InvocationSolution : public IndexedObject
     {
         friend class ObjectFactoryImpl;
         friend class OperationsSession;
+        friend class EGRuntime;
     public:
         static const ObjectType Type = eInvocationSolution;
     protected:
@@ -141,8 +150,8 @@ namespace eg
         struct DerivationStep
         {
             std::size_t id;
-            const concrete::Element*   pInstance  = nullptr;
-            DerivationStep*   pParent    = nullptr;
+            const concrete::Element* pInstance  = nullptr;
+            DerivationStep* pParent = nullptr;
             enum Type
             {
                 eParent,
@@ -199,7 +208,11 @@ namespace eg
     public:
         void build( const DerivationAnalysis& analysis, const DerivationAnalysis::NameResolution& resolution );
         
+        __eg_reference evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context ) const;
             
+    private:
+    
+        __eg_reference evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context, const DerivationStep* pStep, int& iPriority ) const;
     public:
         EGTypeID getOperation() const { return m_operationType; }
         const Context& getContext() const { return m_context; }

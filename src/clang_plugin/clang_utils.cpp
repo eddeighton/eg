@@ -144,7 +144,7 @@ namespace clang
             }
         }
         
-        if( ::eg::isOperationName( pBaseTypeID->getName() ) )
+        if( ::eg::getOperationName( pBaseTypeID->getName() ) != ::eg::HIGHEST_OPERATION_TYPE )
         {
             return getOperationIdentifier( pASTContext, pBaseTypeID->getName() );
         }

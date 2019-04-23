@@ -4,7 +4,7 @@
 namespace eg
 {
 
-    static std::string g_pszOperationStrings[] =
+    static const OperationTypeStringArray g_pszOperationStrings = 
     {
         std::string( "Get"),        //0     eGet    
         std::string( "Update"),     //1     eUpdate 
@@ -24,9 +24,20 @@ namespace eg
         return g_pszOperationStrings[ op - std::numeric_limits< EGTypeID >::min() ];
     }
     
-    bool isOperationName( const std::string& strName )
+    OperationType getOperationName( const std::string& strName )
     {
-        return std::find( g_pszOperationStrings, g_pszOperationStrings + TOTAL_OPERATION_TYPES, strName ) 
-            != g_pszOperationStrings + TOTAL_OPERATION_TYPES;
+        OperationTypeStringArray::const_iterator iFind = 
+            std::find( g_pszOperationStrings.begin(), g_pszOperationStrings.end(), strName );
+        if( iFind == g_pszOperationStrings.end() )
+            return HIGHEST_OPERATION_TYPE;
+        else
+            return static_cast< OperationType >( 
+                std::numeric_limits< EGTypeID >::min() + 
+                std::distance( g_pszOperationStrings.begin(), iFind ) );
+    }
+    
+    const OperationTypeStringArray& getOperationStrings()
+    {
+        return g_pszOperationStrings;
     }
 }

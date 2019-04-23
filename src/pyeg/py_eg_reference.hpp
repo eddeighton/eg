@@ -6,11 +6,12 @@
 
 #include <pybind11/embed.h> // everything needed for embedding
 
-#include <memory>
 #include <vector>
 
 namespace eg
 {
+    
+class EGRuntime;
     
 class PythonEGReferenceType;
 
@@ -36,13 +37,16 @@ class PythonEGReferenceType
 public:
     static PythonEGReference* getReference( PyObject* pPyObject );
 
-    PythonEGReferenceType();
+    PythonEGReferenceType( EGRuntime& runtime );
     
     PyObject* create( __eg_reference szInstanceID );
     
+    EGRuntime& getRuntime() const { return m_runtime; }
 private:
+    EGRuntime& m_runtime;
     PyTypeObject* m_pTypeObject;
     std::vector< PyGetSetDef > m_pythonAttributesData;
+    std::vector< std::string > m_identities;
 };
 
 }

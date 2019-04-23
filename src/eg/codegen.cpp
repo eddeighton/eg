@@ -1480,6 +1480,7 @@ namespace eg
 
                             if( pDimension && pNext->next.size() > 1 )
                             {
+                                THROW_RTE( "What is this" );
                                 const DataMember* pDimensionInstance =
                                     layout.getDataMember( pDimension );
                                 const Buffer* pBuffer = pDimensionInstance->getBuffer();
@@ -1564,6 +1565,7 @@ namespace eg
                         
                         if( pNext->next.size() > 1 )
                         {
+                            THROW_RTE( "What is this" );
                             for( const InvocationSolution::DerivationStep* pIter : pNext->next )
                             {
                                 if( pIter == pNext->next.front() )

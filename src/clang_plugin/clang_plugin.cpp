@@ -170,7 +170,7 @@ namespace eg
         if( token.is( clang::tok::identifier ) )
         {
             const clang::IdentifierInfo* pIdentifierInfo = token.getIdentifierInfo();
-            if( isOperationName( pIdentifierInfo->getName() ) )
+            if( getOperationName( pIdentifierInfo->getName() ) != HIGHEST_OPERATION_TYPE )
             {
                 return true;
             }
@@ -217,7 +217,7 @@ namespace eg
         if( token.is( clang::tok::identifier ) )
         {
             const clang::IdentifierInfo* pIdentifierInfo = token.getIdentifierInfo();
-            if( isOperationName( pIdentifierInfo->getName() ) )
+            if( getOperationName( pIdentifierInfo->getName() ) != HIGHEST_OPERATION_TYPE )
             {
                 bResult = true;
             }
