@@ -126,7 +126,7 @@ namespace eg
     {
     public:
         virtual ~RuntimeEvaluator(){}
-        virtual __eg_reference eval( const __eg_reference& dimension ) = 0;
+        virtual __eg_reference getReference( const __eg_reference& dimension ) = 0;
     };
     
     class InvocationSolution : public IndexedObject

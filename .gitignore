@@ -15,4 +15,5 @@ third_party
 *_log/
 *_build/
 *.ilk
+*.pdb
 

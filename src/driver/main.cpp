@@ -522,6 +522,13 @@ int main( int argc, const char* argv[] )
                 
         pImplementationSession->fullProgramAnalysis();
         pImplementationSession->store( config.getAnalysisFileName() );
+        
+        {
+            LogEntry log( std::cout, "Compiling data structures", bBenchCommands );
+            std::unique_ptr< boost::filesystem::ofstream > pDataStructureFile =
+                    boost::filesystem::createNewFileStream( config.getDataStructureSource() );
+            eg::generateBufferStructures( *pDataStructureFile, *pImplementationSession );
+        }
             
         //generate the implementation files
         for( std::size_t szUnitIndex = 0U; szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
@@ -631,7 +638,7 @@ int main( int argc, const char* argv[] )
         
         osCmd << "-Xclang -include-pch ";
         osCmd << "-Xclang " << printPath( config.getInterfacePCH() ) << " ";
-        
+    
         for( const boost::filesystem::path& objFile : egObjectFiles )
         {
             osCmd << printPath( objFile ) << " ";

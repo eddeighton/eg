@@ -60,7 +60,11 @@ public:
     boost::filesystem::path getOperationsHeader( int iIndex ) const;
 
     boost::filesystem::path getOperationsPCH( int iIndex ) const;
-
+    
+    boost::filesystem::path getDataStructureSource() const;
+    
+    boost::filesystem::path getDataStructurePCH() const;
+    
     boost::filesystem::path getImplementationSource( int iIndex ) const;
                     
     boost::filesystem::path getTUName( int iIndex ) const;

@@ -347,6 +347,24 @@ boost::filesystem::path Configuration::getOperationsPCH( int iIndex ) const
                     getIntermediateFolder() / os.str() ) );
 }
 
+boost::filesystem::path Configuration::getDataStructureSource() const
+{
+    std::ostringstream os;
+    os << "structures.hpp";
+    return boost::filesystem::edsCannonicalise(
+        boost::filesystem::absolute( 
+            getIntermediateFolder() / os.str() ) );
+}
+
+boost::filesystem::path Configuration::getDataStructurePCH() const
+{
+    std::ostringstream os;
+    os << "structures.pch";
+    return boost::filesystem::edsCannonicalise(
+        boost::filesystem::absolute( 
+            getIntermediateFolder() / os.str() ) );
+}
+
 boost::filesystem::path Configuration::getImplementationSource( int iIndex ) const
 {
     std::ostringstream os;

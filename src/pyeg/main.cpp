@@ -45,47 +45,16 @@ namespace pybind11
         template <> struct type_caster< RootReferenceCPPType > 
         {
         public:
-            /**
-             * This macro establishes the name 'inty' in
-             * function signatures and declares a local variable
-             * 'value' of type inty
-             */
             PYBIND11_TYPE_CASTER( RootReferenceCPPType, _("pyeg.reference"));
 
-            /**
-             * Conversion part 1 (Python->C++): convert a PyObject into a inty
-             * instance or return false upon failure. The second argument
-             * indicates whether implicit conversions should be applied.
-             */
             bool load( handle src, bool ) 
             {
-                /* Extract PyObject from handle */
-                PyObject* pSource = src.ptr();
-                
                 const eg::PythonEGReference* pEGReference = 
-                    eg::PythonEGReferenceType::getReference( pSource );
-                
+                    eg::PythonEGReferenceType::getReference( src.ptr() );
                 value.instance = pEGReference->getEGReference();
-                return true;
-                
-                ///* Try converting into a Python integer value */
-                //PyObject *tmp = PyNumber_Long(source);
-                //if (!tmp)
-                //    return false;
-                ///* Now try to convert into a C++ int */
-                //value.long_value = PyLong_AsLong(tmp);
-                //Py_DECREF(tmp);
-                ///* Ensure return code was OK (to avoid out-of-range errors etc) */
-                //return !(value.long_value == -1 && !PyErr_Occurred());
+                return !PyErr_Occurred();
             }
-
-            /**
-             * Conversion part 2 (C++ -> Python): convert an inty instance into
-             * a Python object. The second and third arguments are used to
-             * indicate the return value policy and parent object (for
-             * ``return_value_policy::reference_internal``) and are generally
-             * ignored by implicit casters.
-             */
+            
             static handle cast( RootReferenceCPPType src, return_value_policy /* policy */, handle /* parent */) 
             {
                 return g_pModules->pEGRefType->create( src.instance );
@@ -123,9 +92,9 @@ float read_x( EGInstance instance )
 {
     return m_buffer[ instance ].x;
 }
-void write_x( EGInstance instance, float x )
+void write_x( EGInstance instance, pybind11::tuple args )
 {
-    m_buffer[ instance ].x = x;
+    m_buffer[ instance ].x = pybind11::cast< float >( args[ 0 ] );
 }
 
 glm::vec3 read_v3( EGInstance instance )
@@ -152,7 +121,7 @@ RootReferenceCPPType root()
     //return g_pModules->pEGRefType->create( egReference );
     
     RootReferenceCPPType root;
-    root.instance = __eg_reference{ 0, 33, 0 };
+    root.instance = __eg_reference{ 0, 4, 0 };
     return root;
 }
 
@@ -169,42 +138,11 @@ PYBIND11_EMBEDDED_MODULE( pyeg, module )
     
     module.def( "read_v3", read_v3 );
     module.def( "write_v3", write_v3 );
-    
-    
-    //pybind11::class_< Stuff >( module, "Stuff")
-    //    .def( pybind11::init<>() )
-    //    .def_readwrite("x",     &Stuff::x)
-    //    .def_readwrite("y",     &Stuff::y)
-    //    .def_readwrite("z",     &Stuff::z)
-    //    .def_readwrite("thing", &Stuff::thing);
-        
-    //pybind11::bind_array< StuffArray >( module, "StuffArray" );
-    
-   // module.attr( "buffer" ) = m_buffer;
-    
-    //StuffArray& buffer = m_buffer;
-    //module.def( "getBuffer", [ &buffer ]() { return buffer; } );
-    
-    //pybind11::class_< StuffArray >( m_buffer, "StuffArray", pybind11::buffer_protocol())
-    //   .def_buffer( []( StuffArray &buffer ) -> pybind11::buffer_info 
-    //   {
-    //        return pybind11::buffer_info
-    //        (
-    //            buffer.data(),                                  /* Pointer to buffer */
-    //            sizeof( Stuff ),                                /* Size of one scalar */
-    //            pybind11::format_descriptor< Stuff >::format(), /* Python struct-style format descriptor */
-    //            1,                                              /* Number of dimensions */
-    //            { 1024 },                                       /* Buffer dimensions */
-    //            { sizeof( Stuff ) }
-    //        );
-    //    });
-    
-        
 }
 
 struct HostFunctions : public eg::HostFunctionAccessor
 {
-    virtual pybind11::function getFunction( eg::EGTypeID type )
+    virtual pybind11::function getRead( EGTypeID type )
     {
         switch( type )
         {
@@ -215,56 +153,69 @@ struct HostFunctions : public eg::HostFunctionAccessor
         pybind11::object object = g_pModules->module_eg.attr( "read_x" );
         return object;
     }
+    virtual pybind11::function getWrite( EGTypeID type )
+    {
+        switch( type )
+        {
+            case 0:
+            default:
+                break;
+        }
+        pybind11::object object = g_pModules->module_eg.attr( "write_x" );
+        return object;
+    }
+    virtual pybind11::function getStart( EGTypeID type )
+    {
+        switch( type )
+        {
+            case 0:
+            default:
+                break;
+        }
+        pybind11::object object = g_pModules->module_eg.attr( "start_thing" );
+        return object;
+    }
+    virtual pybind11::function getStop( EGTypeID type )
+    {
+        switch( type )
+        {
+            case 0:
+            default:
+                break;
+        }
+        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
+        return object;
+    }
+    virtual pybind11::function getPause( EGTypeID type )
+    {
+        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
+        return object;
+    }
+    virtual pybind11::function getResume( EGTypeID type )
+    {
+        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
+        return object;
+    }
+    virtual pybind11::function getEmpty( EGTypeID type )
+    {
+        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
+        return object;
+    }
+    virtual __eg_reference getReference( const __eg_reference& dimension )
+    {
+        
+        
+        switch( dimension.type )
+        {
+            //can just evaluate this directly
+        }
+        
+        
+        
+        
+        return dimension;
+    }
 };
-
-
-/*
-static int numargs=0;
-
-// Return the number of arguments of the application command line 
-static PyObject* eg_root(PyObject *self, PyObject *pArgs)
-{
-    //if(!PyArg_ParseTuple(args, ":numargs"))
-    //    return NULL;
-
-
-    //g_pModules->module_eg
-    __eg_reference egReference = { 0,0,0 };
-    
-    return g_pModules->pEGRefType->create( egReference );
-    
-    //pybind11::module host = g_pModules->module_eg;
-    //
-    //pybind11::function theFunction = host.attr( "testHostFunction" );
-    //
-    //pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pArgs );
-    //
-    //pybind11::object result = theFunction( *args );
-    //
-    //return result.ptr();
-    
-    //return PyLong_FromLong(numargs);
-}
-
-static PyMethodDef EGMethods[] = 
-{
-    {"root", eg_root, METH_VARARGS, "Get the root action."},
-    {NULL, NULL, 0, NULL}
-};
-
-static PyModuleDef EGModule = 
-{
-    PyModuleDef_HEAD_INIT, "eg", NULL, -1, EGMethods,
-    NULL, NULL, NULL, NULL
-};
-
-static PyObject* PyInit_eg(void)
-{
-    return PyModule_Create( &EGModule );
-}*/
-
-
-
 
 int main( int argc, const char* argv[] )
 {

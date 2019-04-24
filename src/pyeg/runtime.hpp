@@ -20,7 +20,14 @@ namespace eg
     {
     public:
         virtual ~HostFunctionAccessor(){}
-        virtual pybind11::function getFunction( EGTypeID type ) = 0;
+        virtual pybind11::function getRead( EGTypeID type ) = 0;
+        virtual pybind11::function getWrite( EGTypeID type ) = 0;
+        virtual pybind11::function getStart( EGTypeID type ) = 0;
+        virtual pybind11::function getStop( EGTypeID type ) = 0;
+        virtual pybind11::function getPause( EGTypeID type ) = 0;
+        virtual pybind11::function getResume( EGTypeID type ) = 0;
+        virtual pybind11::function getEmpty( EGTypeID type ) = 0;
+        virtual __eg_reference getReference( const __eg_reference& dimension ) = 0;
     };
 
     class EGRuntime : public RuntimeEvaluator
@@ -34,7 +41,7 @@ namespace eg
         PyObject* invoke( const __eg_reference& context, const std::vector< EGTypeID >& typePath, PyObject *args, PyObject *kwargs );
         
         //RuntimeEvaluator
-        virtual __eg_reference eval( const __eg_reference& dimension );
+        virtual __eg_reference getReference( const __eg_reference& dimension );
     private:
         PyObject* evaluate( const __eg_reference& reference, const InvocationSolution* pInvocation, PyObject *args, PyObject *kwargs );
     

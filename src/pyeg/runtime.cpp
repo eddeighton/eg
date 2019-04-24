@@ -58,38 +58,80 @@ namespace eg
         return typeID;
     }
 
-    __eg_reference EGRuntime::eval( const __eg_reference& dimension )
+    __eg_reference EGRuntime::getReference( const __eg_reference& dimension )
     {
-        return dimension;
+        return m_hostFunctionAccessor.getReference( dimension );
     }
     
-    PyObject* EGRuntime::evaluate( const __eg_reference& reference, const InvocationSolution* pInvocation, PyObject *args, PyObject *kwargs )
+    PyObject* EGRuntime::evaluate( const __eg_reference& reference, const InvocationSolution* pInvocation, PyObject* pArgs, PyObject* pKwArgs )
     {
-        
         __eg_reference target = pInvocation->evaluate( *this, reference );
         
-        
+        pybind11::object result;
         
         switch( pInvocation->getOperation() )
         {
             case eGet    :
+                {
+                    result = m_hostFunctionAccessor.getRead( target.type )( target.instance );
+                }
+                break;
             case eUpdate :
+                break;
             case eRead   :
             case eOld    :
+                {
+                    result = m_hostFunctionAccessor.getRead( target.type )( target.instance );
+                }
+                break;
             case eWrite  :
+                {
+                    pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pArgs );
+                    result = m_hostFunctionAccessor.getWrite( target.type )( target.instance, args );
+                }
+                break;
             case eStart  :
+                {
+                    pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pArgs );
+                    result = m_hostFunctionAccessor.getStart( target.type )( target.instance, args );
+                }
+                break;
             case eStop   :
+                {
+                    result = m_hostFunctionAccessor.getStop( target.type )( target.instance );
+                }
+                break;
             case ePause  :
+                {
+                    result = m_hostFunctionAccessor.getPause( target.type )( target.instance );
+                }
+                break;
             case eResume :
+                {
+                    result = m_hostFunctionAccessor.getResume( target.type )( target.instance );
+                }
+                break;
             case eDefer  :
             case eEmpty  :
+                {
+                    result = m_hostFunctionAccessor.getEmpty( target.type )( target.instance );
+                }
+                break;
             case eRange  :
                 break;  
         }
-        
-        
-        Py_INCREF( Py_None );
-        return Py_None;
+
+        if( result )
+        {
+            pybind11::handle h = result;
+            h.inc_ref();
+            return h.ptr();
+        }
+        else
+        {
+            Py_INCREF( Py_None );
+            return Py_None;
+        }
     }
     
     PyObject* EGRuntime::invoke( const __eg_reference& reference, const std::vector< EGTypeID >& implicitTypePath, PyObject *args, PyObject *kwargs )

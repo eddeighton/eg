@@ -6,6 +6,7 @@
 //#include <experimental/coroutine>
 //#include <coroutine>
 #include "eg_common.hpp"
+#include "eg_include.hpp"
 
 struct EGCoroutine
 {
@@ -211,19 +212,7 @@ struct EGRange
     Iterator begin() const { return _begin; }
     Iterator end() const { return _end; }
 }; 
-            
-struct clock
-{
-    static EGTimeStamp cycle();
-    static EGTimeStamp subcycle();
-    static float ct();
-    static float dt();
-};
-
-struct events
-{
-    static void put( const char* type, EGTimeStamp timestamp, const void* value, std::size_t size );
-};
+           
 
 //default dimension traits 
 template< typename T >

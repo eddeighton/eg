@@ -78,7 +78,7 @@ namespace eg
                 boost::posix_time::second_clock::universal_time() ), DELIM );
     }
 
-    void generateIncludeGuard( std::ostream& os, const abstract::Root* pRoot )
+    void generateIncludeGuard( std::ostream& os )
     {
         const std::string strGUIID = getUUIDString();
         const std::string strDate = getDateAsNiceString();
@@ -508,7 +508,7 @@ namespace eg
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser )
     {
-        generateIncludeGuard( os, pRoot );
+        generateIncludeGuard( os );
         
         generateInterfaceIncludes( os, pRoot, hostIncludesSystem, hostIncludesUser );
         
@@ -518,7 +518,7 @@ namespace eg
     
     void generateInterface( std::ostream& os, const abstract::Root* pRoot, const Identifiers* pIdentifiers )
     {
-        generateIncludeGuard( os, pRoot );
+        generateIncludeGuard( os );
         
         generateForwardDeclarations( os, pIdentifiers );
         
@@ -643,6 +643,7 @@ namespace eg
     
     void generateOperationSource( std::ostream& os, const abstract::Root* pRoot )
     {
+        generateIncludeGuard( os );
         
         //generate operations
         {
@@ -650,6 +651,38 @@ namespace eg
             pRoot->pushpop( visitor );
         }
         
+        os << "\n" << pszLine << pszLine;
+        os << "#endif\n";
+    }
+    
+    
+    void generateBufferStructures( std::ostream& os, const ImplementationSession& program )
+    {
+        const Layout& layout = program.getLayout();
+        
+        generateIncludeGuard( os );
+        
+        os << "//data structures\n";
+        for( const Buffer* pBuffer : layout.getBuffers() )
+        {
+            os << "\n//Buffer: " << pBuffer->getTypeName() << /*" stride: " << pBuffer->getStride() <<*/ " size: " << pBuffer->getSize() << "\n";
+            os << "struct " << pBuffer->getTypeName() << "\n{\n";
+            std::size_t szBufferSize = 0U;
+            for( const DataMember* pDimension : pBuffer->getDimensions() )
+            {
+                os << "    ";
+                pDimension->print( os );
+                os << " " << pDimension->getName() << ";\n";
+                szBufferSize += pDimension->getInstanceDimension()->getDataSize();
+            }
+            
+            os << "};\n";
+            //os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
+            //os << "static_assert( sizeof( " << pBuffer->getTypeName() << " ) == " << szBufferSize << ", \"Incorrect buffer size\" );\n";
+        }
+        
+        os << "\n" << pszLine << pszLine;
+        os << "#endif\n";
     }
     
     struct SpecialMemberFunctionVisitor
@@ -1953,7 +1986,7 @@ namespace eg
     {
         pAction->printType( os ); os << " " << pAction->getName() << "_starter( EGInstance _gid );\n";
         os << "void " << pAction->getName() << "_stopper( EGInstance _gid );\n";
-        os << "bool " << pAction->getName() << "_executor();\n";
+        //os << "bool " << pAction->getName() << "_executor();\n";
     }
     
     void generateActionInstanceFunctions( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
@@ -2196,38 +2229,6 @@ namespace eg
         
         os << "}\n";
         os << "\n";
-        
-        
-        ////executor
-        os << "bool " << pAction->getName() << "_executor()\n";
-        os << "{\n";
-        
-        
-        const DataMember* pRunningTimestamp = layout.getDataMember( pAction->getRunningTimestamp() );
-        const DataMember* pPauseTimestamp   = layout.getDataMember( pAction->getPauseTimestamp()   );
-        const DataMember* pCoroutine        = layout.getDataMember( pAction->getCoroutine()        );
-        
-        os << "    const EGTimeStamp subcycle = clock::subcycle();\n";
-        os << "    for( EGInstance i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
-        os << "    {\n";
-        os << "        if( " << Printer( pRunningTimestamp, "i" ) << " <= subcycle )\n";
-        os << "        {\n";
-        os << "             if( " << Printer( pPauseTimestamp, "i" ) << " <= subcycle )\n";
-        os << "             {\n";
-        os << "                 if( " << Printer( pCoroutine, "i" ) << ".done() )\n";
-        os << "                 {\n";
-        os << "                     " << pAction->getName() << "_stopper( i );\n";
-        os << "                 }\n";
-        os << "                 else\n";
-        os << "                 {\n";
-        os << "                     " << Printer( pCoroutine, "i" ) << ".resume();\n";
-        os << "                 }\n";
-        os << "             }\n";
-        os << "        }\n";
-        os << "    }\n";
-        os << "    return false;\n";
-        os << "}\n";
-        os << "\n";
         }
         
     }
@@ -2243,22 +2244,12 @@ namespace eg
         
         const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
         
+        os << "#include \"structures.hpp\"\n\n";
+        
         os << "//eg implementation source code\n";
         os << "\n//buffers\n";
         for( const Buffer* pBuffer : layout.getBuffers() )
         {
-            os << "\n//Buffer: " << pBuffer->getTypeName() << /*" stride: " << pBuffer->getStride() <<*/ " size: " << pBuffer->getSize() << "\n";
-            os << "struct " << pBuffer->getTypeName() << "\n{\n";
-            std::size_t szBufferSize = 0U;
-            for( const DataMember* pDimension : pBuffer->getDimensions() )
-            {
-                os << "    ";
-                pDimension->print( os );
-                os << " " << pDimension->getName() << ";\n";
-                szBufferSize += pDimension->getInstanceDimension()->getDataSize();
-            }
-            
-            os << "};\n";
             os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
             //os << "static_assert( sizeof( " << pBuffer->getTypeName() << " ) == " << szBufferSize << ", \"Incorrect buffer size\" );\n";
         }
@@ -2279,15 +2270,7 @@ namespace eg
         
      
    const char* pszDefaultInterfaces = R"(
-     
 //global dependencies
-struct __eg_clock
-{
-    virtual EGTimeStamp cycle()     const = 0;
-    virtual EGTimeStamp subcycle()  const = 0;
-    virtual float ct()              const = 0;
-    virtual float dt()              const = 0;
-};
 static __eg_clock* g_eg_clock;
 
 //clock impl\n";
@@ -2296,20 +2279,6 @@ EGTimeStamp clock::subcycle()   { return g_eg_clock->subcycle(); }
 float clock::ct()               { return g_eg_clock->ct(); }
 float clock::dt()               { return g_eg_clock->dt(); }
 
-struct __eg_event
-{
-    const char* type;
-    EGTimeStamp timestamp;
-    const void* value;
-    std::size_t size;
-};
-
-struct __eg_event_log
-{
-    virtual __eg_event_iterator GetEventIterator() = 0;
-    virtual bool GetEvent( __eg_event_iterator& iterator, __eg_event& event ) = 0;
-    virtual void PutEvent( const __eg_event& event ) = 0;
-};
 static __eg_event_log* g_eg_event_log;
 
 void events::put( const char* type, EGTimeStamp timestamp, const void* value, std::size_t size )
@@ -2317,7 +2286,6 @@ void events::put( const char* type, EGTimeStamp timestamp, const void* value, st
     __eg_event ev = { type, timestamp, value, size };
     g_eg_event_log->PutEvent( ev );
 }
-    
 )";
         os << pszDefaultInterfaces;
         

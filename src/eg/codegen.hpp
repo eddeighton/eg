@@ -26,6 +26,8 @@ namespace eg
     void generateInterface( std::ostream& os, const abstract::Root* pRoot, const Identifiers* pIdentifiers );
 
     void generateOperationSource( std::ostream& os, const abstract::Root* pRoot );
+    
+    void generateBufferStructures( std::ostream& os, const ImplementationSession& program );
 
     void generateImplementationSource( std::ostream& os, const ImplementationSession& program, 
         std::size_t szTranslationUnitID, const std::vector< std::string >& dependencies );

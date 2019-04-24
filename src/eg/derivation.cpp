@@ -565,15 +565,31 @@ namespace eg
                 break;
             case DerivationStep::eChild       :
                 {
-                    const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance );
-                    ASSERT( pAction );
-                    const abstract::Action* pAbstractAction = pAction->getAction();
-                    ASSERT( pAbstractAction );
+                    if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance ) )
+                    {
+                        const abstract::Action* pAbstractAction = pAction->getAction();
+                        ASSERT( pAbstractAction );
                     
-                    next = __eg_reference{  context.instance, 
-                                            static_cast< EGTypeID >( pAbstractAction->getIndex() ), 
-                                            0 };
-                    iPriority = 1;
+                        next = __eg_reference{  context.instance, 
+                                                static_cast< EGTypeID >( pAbstractAction->getIndex() ), 
+                                                0 };
+                        iPriority = 1;
+                    }
+                    else if( const concrete::Dimension_User* pDimension =
+                                dynamic_cast< const concrete::Dimension_User* >( pStep->pInstance ) )
+                    {
+                        const abstract::Dimension* pAbstractDimension = pDimension->getDimension();
+                        ASSERT( pAbstractDimension );
+                        
+                        next = __eg_reference{  context.instance, 
+                                                static_cast< EGTypeID >( pAbstractDimension->getIndex() ), 
+                                                0 };
+                        iPriority = 1;
+                    }
+                    else
+                    {
+                        ASSERT( false );
+                    }
                 }
                 break;
             case DerivationStep::eLink        :
@@ -587,7 +603,7 @@ namespace eg
         
         for( const DerivationStep* pChildStep : pStep->next )
         {
-            int priority = 0, best = 0;
+            int priority = 0, best = -1;
             __eg_reference candidate = evaluate( evaluator, next, pChildStep, priority );
             if( priority == best )
             {

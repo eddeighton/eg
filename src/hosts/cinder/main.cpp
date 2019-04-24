@@ -85,20 +85,13 @@ int main( int argc, const char* argv[] )
     const eg::Layout& layout = session.getLayout();
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
     
+    os << "#include \"structures.hpp\"\n";
+    os << "#include \"host_clock.hpp\"\n";
+    os << "#include \"host_event_log.hpp\"\n";
     
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        os << "\n//Buffer: " << pBuffer->getTypeName() << " stride: " << pBuffer->getStride() << " size: " << pBuffer->getSize() << "\n";
-        os << "struct " << pBuffer->getTypeName() << "\n{\n";
-        for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
-        {
-            os << "    ";
-            pDimension->print( os );
-            os << " " << pDimension->getName() << ";\n";
-        }
-        
-        os << "};\n";
         os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << ";\n";
         //os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
     }
@@ -140,151 +133,9 @@ int main( int argc, const char* argv[] )
     
     os << "\n";
     
-    
-    
-    
-    const char* pszEventLogImpl = R"(
-    
-//Event log impl
-struct __eg_event
-{
-    const char* type;
-    std::size_t timestamp;
-    const void* value;
-    std::size_t size;
-};
-
-struct __eg_event_log
-{
-    virtual __eg_event_iterator GetEventIterator() = 0;
-    virtual bool GetEvent( __eg_event_iterator& iterator, __eg_event& event ) = 0;
-    virtual void PutEvent( const __eg_event& event ) = 0;
-};
-    
-struct CinderHostEventLog : public __eg_event_log
-{
-    CinderHostEventLog( const IPC::PID& hostPID, const boost::filesystem::path& filePath )
-        :   m_eventLog( hostPID, filePath )
-    {
-    }
-    
-    
-    virtual __eg_event_iterator GetEventIterator()
-    {
-        return m_eventLog.head();
-    }
-    
-    virtual bool GetEvent( __eg_event_iterator& iterator, __eg_event& event )
-    {
-        IPC::Event::Event readEvent;
-        if( m_eventLog.read( iterator, readEvent ) )
-        {
-            event.timestamp     = readEvent.getTimeStamp();
-            event.type          = readEvent.getType_c_str();
-            event.value         = readEvent.getValue();
-            event.size          = readEvent.getValueSize();
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    
-    virtual void PutEvent( const __eg_event& event )
-    {
-        m_eventLog.write( IPC::Event::Event( event.type, 
-            strlen( event.type ), event.timestamp, event.value, event.size ) );
-    }
-    
-    bool updateAndWasEvent()
-    {
-        return m_eventLog.updateHead();
-    }
-    
-    IPC::Event::Server m_eventLog;
-};
-    )";
-    os << pszEventLogImpl << "\n";
-    
-    
-    os << "//clock implementation\n";
-    const char* pszClockImpl = R"(
-    
-struct __eg_clock
-{
-    virtual EGTimeStamp cycle()    const = 0;
-    virtual EGTimeStamp subcycle() const = 0;
-    virtual float ct()     const = 0;
-    virtual float dt()     const = 0;
-};
-
-//Basic Host clock implementation using std::chrono
-struct CinderHostClock : public __eg_clock
-{
-public:
-    typedef std::chrono::steady_clock ClockType;
-    typedef ClockType::time_point Tick;
-    typedef ClockType::duration TickDuration;
-    typedef std::chrono::duration< float, std::ratio< 1 > > FloatTickDuration;
-    
-    CinderHostClock()
-    {
-        m_lastTick = m_startTick = ClockType::now();
-        m_cycle = m_subcycle = m_cycleSubCycle = 0;
-        m_ct = m_dt = 0.0f;
-    }
-    
-    inline Tick nextCycle()
-    {
-        const Tick nowTick = ClockType::now();
-        m_dt = FloatTickDuration( nowTick - m_lastTick  ).count();
-        m_ct = FloatTickDuration( nowTick - m_startTick ).count();
-        
-        m_lastTick = nowTick;
-        
-        nextSubCycle();
-        m_cycleSubCycle = m_subcycle;
-        
-        ++m_cycle;
-        
-        return nowTick;
-    }
-    
-    inline void nextSubCycle()
-    {
-        ++m_subcycle;
-    }
-    
-    inline std::size_t cycleSubCycles() const { return m_cycleSubCycle; }
-    
-    Tick actual() const { return ClockType::now(); }
-    
-    //interface
-    virtual EGTimeStamp cycle()    const { return m_cycle; }
-    virtual EGTimeStamp subcycle() const { return m_subcycle; }
-    virtual float ct()     const { return m_ct; }
-    virtual float dt()     const { return m_dt; }
-    
-private:
-    Tick m_lastTick, m_startTick;
-    EGTimeStamp m_cycle, m_subcycle, m_cycleSubCycle;
-    float m_ct, m_dt;
-};
-    )";
-    os << pszClockImpl;
-    
-    os << "\n";
-    
-    
     os << "//clock implementation\n";
     const char* pszInputEventsImpl = R"(
- /*   
-struct __eg_input
-{
-    virtual std::optional< cinder::app::InputEvent > getEvent() = 0;
-};
-*/
+
 class InputEvents : public __eg_input
 {
 public:
@@ -321,9 +172,52 @@ public:
         {
     os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( EGInstance _gid );\n";
     os << "extern void " << pAction->getName() << "_stopper( EGInstance _gid );\n";
-    os << "extern bool " << pAction->getName() << "_executor();\n";
+    //os << "extern bool " << pAction->getName() << "_executor();\n";
+    
+    ////executor
+    os << "bool " << pAction->getName() << "_executor()\n";
+    os << "{\n";
+    
+    const eg::DataMember* pRunningTimestamp = layout.getDataMember( pAction->getRunningTimestamp() );
+    const eg::DataMember* pPauseTimestamp   = layout.getDataMember( pAction->getPauseTimestamp()   );
+    const eg::DataMember* pCoroutine        = layout.getDataMember( pAction->getCoroutine()        );
+    
+    os << "    const EGTimeStamp subcycle = clock::subcycle();\n";
+    os << "    for( EGInstance i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
+    os << "    {\n";
+    os << "        if( " << eg::Printer( pRunningTimestamp, "i" ) << " <= subcycle )\n";
+    os << "        {\n";
+    os << "             if( " << eg::Printer( pPauseTimestamp, "i" ) << " <= subcycle )\n";
+    os << "             {\n";
+    os << "                 if( " << eg::Printer( pCoroutine, "i" ) << ".done() )\n";
+    os << "                 {\n";
+    os << "                     " << pAction->getName() << "_stopper( i );\n";
+    os << "                 }\n";
+    os << "                 else\n";
+    os << "                 {\n";
+    os << "                     " << eg::Printer( pCoroutine, "i" ) << ".resume();\n";
+    os << "                 }\n";
+    os << "             }\n";
+    os << "        }\n";
+    os << "    }\n";
+    os << "    return false;\n";
+    os << "}\n";
+    os << "\n";
         }
     }
+    
+    os << "\n\n";
+    
+    os << "bool executeSchedule()\n";
+    os << "{\n";
+    os << "    bool bWaited = false;\n";
+    for( const eg::concrete::Action* pAction : actions )
+    {
+        if( pAction->getParent() )
+    os << "    bWaited = " << pAction->getName() << "_executor() || bWaited;\n";
+    }
+    os << "    return bWaited;\n";
+    os << "}\n";
     
     os << "\n";
     
@@ -358,19 +252,6 @@ public:
     os << "        return nullptr;\n";
     os << "    }\n";
     os << "};\n";
-    
-    os << "\n\n";
-    
-    os << "bool executeSchedule()\n";
-    os << "{\n";
-    os << "    bool bWaited = false;\n";
-    for( const eg::concrete::Action* pAction : actions )
-    {
-        if( pAction->getParent() )
-    os << "    bWaited = " << pAction->getName() << "_executor() || bWaited;\n";
-    }
-    os << "    return bWaited;\n";
-    os << "}\n";
     
     
     //const std::string strProgramNameIsh = 
@@ -407,10 +288,10 @@ public:
 	void draw() override;
 
 private:
-    CinderHostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
+    HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
     IPC::PID thePID;
-    CinderHostClock theClock;
-    CinderHostEventLog theEventLog;
+    HostClock theClock;
+    HostEventLog theEventLog;
     InputEvents inputEvents;
     CinderHost_EGDependencyProvider dependencies;
 };
@@ -484,7 +365,7 @@ void BasicApp::keyUp( KeyEvent event )
 
 void BasicApp::draw()
 {
-    const CinderHostClock::Tick cycleStart = theClock.nextCycle();
+    const HostClock::Tick cycleStart = theClock.nextCycle();
     if( g_root[ 0 ].g_root_timestamp_paused <= clock::subcycle() )
     {
         //run the subcycle
