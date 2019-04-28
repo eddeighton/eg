@@ -28,7 +28,7 @@ namespace eg
         id_Pause                    ,
         id_Resume                   ,
         id_Defer                    ,
-        id_Empty                    ,
+        id_Size                     ,
         id_Range                    ,
         HIGHEST_OPERATION_TYPE
     };

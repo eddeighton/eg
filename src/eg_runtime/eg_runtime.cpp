@@ -247,8 +247,8 @@ namespace eg
                     break;
                 case id_Defer  :
                     break;
-                case id_Empty  :
-                    m_hostAccessor.doEmpty( target );
+                case id_Size  :
+                    m_hostAccessor.doSize( target );
                     break;
                 case id_Range  :
                     break;  

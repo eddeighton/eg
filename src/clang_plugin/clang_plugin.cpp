@@ -498,9 +498,9 @@ namespace eg
                                                 {
                                                 }
                                                 break;
-                                            case id_Empty      : 
+                                            case id_Size      : 
                                                 {
-                                                    resultType = clang::getBooleanType( g_pASTContext );
+                                                    resultType = clang::getIntType( g_pASTContext );
                                                 }
                                                 break;
                                             case id_Range      : 

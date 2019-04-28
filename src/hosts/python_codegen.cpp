@@ -265,8 +265,9 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "    virtual void doResume(  const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
     os << "    {\n";
     os << "    }\n";
-    os << "    virtual void doEmpty(   const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "    virtual void doSize(   const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
     os << "    {\n";
+    
     os << "    }\n";
     os << "    virtual eg::reference getReference( const " << eg::EG_REFERENCE_TYPE << "& dimension )\n";
     os << "    {\n";

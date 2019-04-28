@@ -56,7 +56,7 @@ struct CmdLine
             ;
 
             po::positional_options_description p;
-            p.add( "log", -1 );
+            p.add( "filters", -1 );
 
             po::store( po::command_line_parser( argc, argv).
                         options( m_options ).

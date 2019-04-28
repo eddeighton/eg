@@ -372,7 +372,7 @@ namespace eg
     {
         switch( id )
         {
-            case id_Empty:
+            case id_Size:
             case id_Range:
                 return true;
             default:
@@ -469,32 +469,44 @@ namespace eg
         {
             if( pLast )
             {
+                const concrete::Element* pFrom = pLast->getInstance();
+                const concrete::Element* pTo   = name.getInstance();
+                VERIFY_RTE( pTo && pFrom );
+                
+                bool bIsStarter = false;
+                {
+                    if( ( m_operationType == id_Imp_NoParams ) || 
+                        ( m_operationType == id_Imp_Params ) )
+                    {
+                        if( dynamic_cast< const concrete::Action* >( pTo ) )
+                            bIsStarter = true;
+                        
+                    }
+                }
+                
                 //if start operation then we actually want to derive the parent
-                //if( m_operationType == id_Start )
-                //{
-                //    const concrete::Element* pFrom = pLast->getInstance();
-                //    
-                //    VERIFY_RTE( name.pInheritanceNode->getAction() );
-                //    const concrete::Element* pTo = name.pInheritanceNode->getAction();
-                //    const concrete::Element* pParent = pTo->getParent();
-                //    VERIFY_RTE( pParent );
-                //    
-                //    if( pStep = buildDerivation( analysis, pFrom, pParent, pStep, true ) )
-                //    {
-                //        ASSERT( name.pInheritanceNode->getAction() );
-                //        pStep = addStep( pTo, pStep, DerivationStep::eStart, 1 );
-                //        m_targetTypes.push_back( pTo->getAbstractElement() );
-                //    }
-                //    else
-                //    {
-                //        //derivation failed...
-                //    }
-                //}
-                //else
+                if( bIsStarter )
                 {
                     const concrete::Element* pFrom = pLast->getInstance();
-                    const concrete::Element* pTo   = name.getInstance();
-                    VERIFY_RTE( pTo && pFrom );
+                    
+                    VERIFY_RTE( name.pInheritanceNode->getAction() );
+                    const concrete::Element* pTo = name.pInheritanceNode->getAction();
+                    const concrete::Element* pParent = pTo->getParent();
+                    VERIFY_RTE( pParent );
+                    
+                    if( pStep = buildDerivation( analysis, pFrom, pParent, pStep, true ) )
+                    {
+                        ASSERT( name.pInheritanceNode->getAction() );
+                        pStep = addStep( pTo, pStep, DerivationStep::eTarget, 1 );
+                        m_targetTypes.push_back( pTo->getAbstractElement() );
+                    }
+                    else
+                    {
+                        //derivation failed...
+                    }
+                }
+                else
+                {
                     //solve derivation from pLast to name
                     if( pStep = buildDerivation( analysis, pFrom, pTo, pStep, true ) )
                     {

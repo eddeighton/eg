@@ -11,7 +11,7 @@ struct [[clang::eg_type( eg::id_Stop            )]] Stop;               //id_Sto
 struct [[clang::eg_type( eg::id_Pause           )]] Pause;              //id_Pause        
 struct [[clang::eg_type( eg::id_Resume          )]] Resume;             //id_Resume       
 struct [[clang::eg_type( eg::id_Defer           )]] Defer;              //id_Defer        
-struct [[clang::eg_type( eg::id_Empty           )]] Empty;              //id_Empty        
+struct [[clang::eg_type( eg::id_Size            )]] Size;               //id_Size        
 struct [[clang::eg_type( eg::id_Range           )]] Range;              //id_Range        
 
 #endif //EG_OPERATION_TYPES

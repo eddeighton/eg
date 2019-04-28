@@ -1135,8 +1135,8 @@ namespace eg
                     break;
                 case id_Defer      : 
                     break;
-                case id_Empty      : 
-                    os << "bool";
+                case id_Size      : 
+                    os << "int";
                     break;
                 case id_Range      : 
                     printType( os, objects, invocation.getTargetTypes().front() );
@@ -1185,7 +1185,7 @@ namespace eg
                 case id_Resume     : 
                     break;
                 case id_Defer      : 
-                case id_Empty      : 
+                case id_Size      : 
                 case id_Range      : 
                     break;
                 default:
@@ -1231,7 +1231,7 @@ namespace eg
                 case id_Resume     : 
                     break;
                 case id_Defer      : 
-                case id_Empty      : 
+                case id_Size      : 
                 case id_Range      : 
                     break;
                 default:
@@ -1591,7 +1591,7 @@ namespace eg
             case id_Pause                :  
             case id_Resume               :  os << "\n";   break;
             case id_Defer                :  break;
-            case id_Empty                :  os << "\n";   break;
+            case id_Size                 :  os << "\n";   break;
             case id_Range                :  os << "\n";   break;
             case TOTAL_OPERATION_TYPES : 
             default:
@@ -1626,7 +1626,7 @@ namespace eg
             case id_Pause                :  
             case id_Resume               :  os << " )\n";   break;
             case id_Defer                :  break;
-            case id_Empty                :  os << " )\n";   break;
+            case id_Size                 :  os << " )\n";   break;
             case id_Range                :  os << " )\n";   break;
             case TOTAL_OPERATION_TYPES : 
             default:
@@ -1770,7 +1770,7 @@ namespace eg
             case id_Resume               :
             case id_Defer                :
                 break;
-            case id_Empty                :
+            case id_Size                 :
                 {
                     generator.generateStep
                     (   nullptr, invocation.getRoot(),
@@ -1794,7 +1794,12 @@ namespace eg
                                 generator.os << generator.strIndent << 
                                     EG_ITERATOR_TYPE << " iter = " << EG_ITERATOR_TYPE << "( " << 
                                         Printer( pIteratorData, strVar.c_str() ) << ".load() );\n";
-                                generator.os << generator.strIndent << "return !iter.full && ( iter.tail == iter.head );\n";
+                                        
+                                generator.os << generator.strIndent << "return iter.full ? " << pAction->getLocalDomainSize() << 
+                                    " : ( iter.head >= iter.tail ) ? ( iter.head - iter.tail ) : ( " << 
+                                        pAction->getLocalDomainSize() << " - iter.tail ) + iter.head;\n";
+                                
+                                //generator.os << generator.strIndent << "return !iter.full && ( iter.tail == iter.head );\n";
                             }
                             else
                             {

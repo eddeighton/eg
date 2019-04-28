@@ -215,7 +215,7 @@ public:
     virtual void doResume(  const eg::reference& reference )
     {
     }
-    virtual void doEmpty(   const eg::reference& reference )
+    virtual void doSize(   const eg::reference& reference )
     {
     }
     

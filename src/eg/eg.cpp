@@ -14,7 +14,7 @@ namespace eg
         std::string( "Pause"),              //6    id_Pause        
         std::string( "Resume"),             //7    id_Resume       
         std::string( "Defer"),              //8    id_Defer        
-        std::string( "Empty"),              //9    id_Empty        
+        std::string( "Size"),               //9    id_Size       
         std::string( "Range"),              //10   id_Range        
     };
     const std::string& getOperationString( OperationID op )
