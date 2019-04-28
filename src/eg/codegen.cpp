@@ -183,16 +183,14 @@ namespace eg
             os << strIndent << strActionInterfaceType << "()\n";
             os << strIndent << "{\n";
             os << strIndent << "  data.instance = 0;\n";
-            os << strIndent << "  data.type = " << strActionInterfaceType << "::ID;\n";
+            os << strIndent << "  data.type = 0;\n";
             os << strIndent << "  data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             os << strIndent << "}\n";
             
             //impl constructor
-            os << strIndent << strActionInterfaceType << "( " << EG_INSTANCE << " instance, " << EG_TIME_STAMP << " timestamp )\n";
+            os << strIndent << strActionInterfaceType << "( const " << EG_REFERENCE_TYPE << "& reference )\n";
             os << strIndent << "{\n";
-            os << strIndent << "  data.instance = instance;\n";
-            os << strIndent << "  data.type = " << strActionInterfaceType << "::ID;\n";
-            os << strIndent << "  data.timestamp = timestamp;\n";
+            os << strIndent << "  data = reference;\n";
             os << strIndent << "}\n";
             
             //conversion constructor
@@ -292,7 +290,6 @@ namespace eg
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
             addActionInterface( os, strName, dynamic_cast< const abstract::Action* >( pNode )->isIndirectlyAbstract() );
-            os << strIndent << "static const " << EG_TYPE_ID << " ID = " << pNode->getIndex() << ";\n";
             addActionTraits( os, pElement );
         }    
         void push ( const input::Action* pElement, const abstract::Element* pNode )
@@ -309,7 +306,6 @@ namespace eg
             {
                 os << strIndent << "static const " << EG_INSTANCE << " SIZE = " << pElement->getSize()->getStr() << ";\n";
             }
-            os << strIndent << "static const " << EG_TYPE_ID << " ID = " << pNode->getIndex() << ";\n";
             addActionTraits( os, pElement );
         }
         void pop ( const input::Opaque* pElement, const abstract::Element* pNode )
@@ -785,14 +781,13 @@ namespace eg
                     break;
                 }
             }
-            VERIFY_RTE( pInstanceAction );
             
             std::set< const abstract::Action*, CompareIndexedObjects > compatibleTypes;
             
             std::vector< const concrete::Inheritance_Node* > derived;
             for( const concrete::Inheritance_Node* pINode : iNodes )
             {
-                if( pINode != pInstanceAction->getInheritance() )
+                if( !pInstanceAction || ( pINode != pInstanceAction->getInheritance() ) )
                 {
                     if( pINode->getAbstractAction() == pNodeAction )
                     {
@@ -804,7 +799,14 @@ namespace eg
                 }
             }
             
-            pInstanceAction->getInheritance()->getDerived( compatibleTypes );
+            if( pInstanceAction )
+            {
+                pInstanceAction->getInheritance()->getDerived( compatibleTypes );
+            }
+            else
+            {
+                
+            }
             
             //conversion traits
             for( const abstract::Action* pCompatible : compatibleTypes )
@@ -868,6 +870,8 @@ namespace eg
             os << "}\n";
             
             //event access
+            if( pInstanceAction )
+            {
             const DataMember* pEventIterator = layout.getDataMember( pInstanceAction->getEventIterator() );
                 
             os << osTemplateArgLists.str();
@@ -903,6 +907,7 @@ namespace eg
             os << "    return " << Printer( pReference, "instance" ) << ";\n";
             os << "}\n";
             os << "\n";
+            }
             
         }
         void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
@@ -1090,7 +1095,16 @@ namespace eg
             else if( dimensions.empty() )
             {
                 if( actions.size() > 1U )
-                    bHomogeneousTypes = false;
+                {
+                    for( const abstract::Action* pIter : actions )
+                    {
+                        if( pIter != actions.front() )
+                        {
+                            bHomogeneousTypes = false;
+                            break;
+                        }
+                    }
+                }
             }
             else
             {
@@ -1110,7 +1124,24 @@ namespace eg
                 case id_Imp_Params  :
                     if( invocation.isImplicitStarter() )
                     {
-                        printType( os, objects, invocation.getTargetTypes().front() );
+                        const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
+                        if( targets.size() > 1 )
+                        {
+                            os << EG_VARIANT_TYPE << "< ";
+                            for( const abstract::Element* pTarget : targets )
+                            {
+                                if( pTarget != targets.front() )
+                                {
+                                    os << ", ";
+                                }
+                                printType( os, objects, pTarget );
+                            }
+                            os << " >";
+                        }
+                        else
+                        {
+                            printType( os, objects, targets.front() );
+                        }
                     }
                     else if( invocation.getOperation() == id_Imp_NoParams )
                     {
@@ -1396,7 +1427,31 @@ namespace eg
                         }
                         else
                         {
-                            THROW_RTE( "Unsupported" );
+                            for( const InvocationSolution::DerivationStep* pIter : pNext->next )
+                            {
+                                if( pIter == pNext->next.front() )
+                                    os << strIndent << "if( " << getVariableName( pNext, variables ) << 
+                                        ".data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                else if( pIter == pNext->next.back() )
+                                    os << strIndent << "else //if( " << getVariableName( pNext, variables ) << 
+                                        ".data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                else 
+                                    os << strIndent << "else if( " << getVariableName( pNext, variables ) << 
+                                        ".data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                os << strIndent << "{\n";
+                                strIndent.push_back( ' ' );
+                                strIndent.push_back( ' ' );
+                                strIndent.push_back( ' ' );
+                                strIndent.push_back( ' ' );
+                                
+                                generateStep( pNext, pIter, handler );
+                                
+                                strIndent.pop_back();
+                                strIndent.pop_back();
+                                strIndent.pop_back();
+                                strIndent.pop_back();
+                                os << strIndent << "}\n";
+                            }
                         }
                     }
                     break;
@@ -1505,15 +1560,15 @@ namespace eg
                         
                         if( pNext->next.size() > 1 )
                         {
-                            THROW_RTE( "What is this" );
+                            //this occurs when we have a polymorphic branch 
                             for( const InvocationSolution::DerivationStep* pIter : pNext->next )
                             {
                                 if( pIter == pNext->next.front() )
-                                    os << strIndent << "if( context.data.type == 0 )\n";
+                                    os << strIndent << "if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
                                 else if( pIter == pNext->next.back() )
-                                    os << strIndent << "else //if( context.data.type == 0 )\n";
+                                    os << strIndent << "else //if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
                                 else 
-                                    os << strIndent << "else if( context.data.type == 0 )\n";
+                                    os << strIndent << "else if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
                                 os << strIndent << "{\n";
                                 strIndent.push_back( ' ' );
                                 strIndent.push_back( ' ' );
@@ -1531,7 +1586,6 @@ namespace eg
                         }
                         else
                         {
-                        
                             for( const InvocationSolution::DerivationStep* pIter : pNext->next )
                             {
                                 generateStep( pNext, pIter, handler );
@@ -1542,6 +1596,11 @@ namespace eg
                 case InvocationSolution::DerivationStep::eEnum:
                     {
                         handler( *this, pStep, pNext );
+                    }
+                    break;
+                case InvocationSolution::DerivationStep::eFailed:
+                    {
+                        //do nothing
                     }
                     break;
                 default:

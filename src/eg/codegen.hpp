@@ -24,6 +24,7 @@ namespace eg
     static const char* EG_OBJECT_TRAITS = "eg::ObjectTraits";
     static const char* EG_DIMENSION_TRAITS = "eg::DimensionTraits";
     static const char* EG_TYPE_PATH = "__eg_type_path";
+    static const char* EG_VARIANT_TYPE = "__eg_variant";
     static const char* EG_RESULT_TYPE = "eg::result_type";
     static const char* EG_COROUTINE_TYPE = "eg::Coroutine";
     static const char* EG_RANGE_TYPE = "eg::Range";

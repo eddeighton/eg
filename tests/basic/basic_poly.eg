@@ -1,0 +1,42 @@
+
+
+abstract Base[ 2 ]
+{
+    action TestA
+    {
+        TEST( theStr() == std::string( "A" ) );
+    }
+    
+    action TestB
+    {
+        TEST( theStr() == std::string( "B" ) );
+    }
+    
+    //while( TestA.Size() || TestB.Size() )
+    //{
+    //    SLEEP;
+    //}
+}
+
+action A[ 2 ] : Base
+{
+    dim std::string theStr;
+    //theStr( std::string( "A" ) );
+}
+
+action B[ 2 ] : Base
+{
+    dim std::string theStr;
+    //theStr( std::string( "B" ) );
+}
+
+Base baseA = A();
+Base baseB = B();
+
+baseA.TestA();
+baseB.TestB();
+
+//while( A.Size() || B.Size() )
+//{
+//    SLEEP;
+//}

@@ -32,6 +32,9 @@ namespace clang
     std::optional< int > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
         const SourceLocation& loc, const std::string& strConstantName );
     
+    QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
+        const std::vector< QualType >& typeParameters );
+    
     QualType getVoidType( ASTContext* pASTContext );
     QualType getBooleanType( ASTContext* pASTContext );
     QualType getIntType( ASTContext* pASTContext );

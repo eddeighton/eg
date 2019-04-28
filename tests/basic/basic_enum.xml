@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+    <folder>W:/workspace/eg/tests/basic</folder>
+    <flags>-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -fcoroutines-ts -Wno-deprecated -Wno-inconsistent-missing-override</flags>
+    <hostflags>-nostdlib -lmsvcrt</hostflags>
+    <hostcmd>&quot;basic_host.exe&quot;</hostcmd>
+    <source>
+        <eg>
+            <file>basic_enum.eg</file>
+        </eg>
+        <cpp>
+            <file>basic_enum_build/main.cpp</file>
+            <file>../../runtime/py_eg_reference.cpp</file>
+            <file>../../src/common/backtrace.cpp</file>
+            <file>../../src/common/file.cpp</file>
+        </cpp>
+    </source>
+    <libs>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_filesystem-vc141-mt-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_date_time-vc141-mt-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_program_options-vc141-mt-x32-1_70.lib</file>
+        <file>C:/Anaconda3/libs/python35.lib</file>
+        <file>W:/workspace/eg/bin/eventloglib.lib</file>
+        <file>W:/workspace/eg/bin/eg_runtime.lib</file>
+    </libs>
+    <includedirectories>
+        <folder>W:/workspace/eg/third_party/install/boost/include/boost-1_70/</folder>
+        <folder>W:/workspace/eg/third_party/install/pybind11/include/</folder>
+        <folder>C:/Anaconda3/include/</folder>
+        <folder>W:/workspace/eg/src</folder>
+        <folder>W:/workspace/eg</folder>
+        <folder>W:/workspace/eg/api</folder>
+    </includedirectories>
+    <include>
+        <user>
+            <file>eg.hpp</file>
+            <file>W:/workspace/eg/src/eventlog/server.hpp</file>
+            <file>W:/workspace/eg/src/eventlog/pid.hpp</file>
+            <file>W:/workspace/eg/src/common/assert_verify.hpp</file>
+            <file>W:/workspace/eg/src/common/backtrace.hpp</file>
+            <file>W:/workspace/eg/src/common/file.hpp</file>
+        </user>
+        <system>
+            <file>&lt;chrono&gt;</file>
+            <file>&lt;limits&gt;</file>
+            <file>&lt;iostream&gt;</file>
+            <file>&lt;atomic&gt;</file>
+            <file>&lt;thread&gt;</file>
+            <file>&lt;array&gt;</file>
+            <file>&lt;iterator&gt;</file>
+            <file>&lt;cstdio&gt;</file>
+            <file>&lt;exception&gt;</file>
+            <file>&lt;mutex&gt;</file>
+        </system>
+    </include>
+</project>

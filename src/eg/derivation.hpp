@@ -207,6 +207,7 @@ namespace eg
             const DerivationAnalysis::NameResolution::Name& name,
             DerivationStep* pStep );
             
+            
     public:
         void build( const DerivationAnalysis& analysis, const DerivationAnalysis::NameResolution& resolution );
         
@@ -215,6 +216,7 @@ namespace eg
         reference evaluate( RuntimeEvaluator& evaluator, const reference& context ) const;
             
     private:
+        void propagate_failed( DerivationStep* pStep );
     
         reference evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const;
     public:

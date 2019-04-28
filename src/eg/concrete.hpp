@@ -4,6 +4,8 @@
 
 #include "abstract.hpp"
 
+#include "runtime/eg_common.hpp"
+
 namespace eg
 {
     class InterfaceSession;
@@ -83,6 +85,7 @@ namespace concrete
         const ::eg::abstract::Element* getAbstractElement() const { return m_pElement; }
         const std::vector< Element* >& getChildren() const { return m_children; }
     
+        virtual const std::string& getIdentifier() const = 0;
         virtual void print( std::ostream& os, std::string& strIndent ) const = 0;
         virtual int getLocalDomainSize() const = 0;
         virtual int getTotalDomainSize() const = 0;
@@ -93,6 +96,9 @@ namespace concrete
         const ::eg::abstract::Element* m_pElement = nullptr;
         std::vector< Element* > m_children;
     };
+    
+    std::vector< Element* > getPath( Element* pNode, Element* pFrom = nullptr );
+    std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom = nullptr );
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -149,6 +155,7 @@ namespace concrete
         virtual void store( Storer& storer ) const;
         
     public:
+        const std::string& getIdentifier() const { return getDimension()->getIdentifier(); }
         virtual void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
         
@@ -172,6 +179,7 @@ namespace concrete
         
         const ::eg::abstract::Dimension* getDimension() const { return dynamic_cast< const ::eg::abstract::Dimension* >( m_pElement ); }
         
+        ::eg::TypeID getAbstractTypeID() const { return static_cast< ::eg::TypeID >( getDimension()->getIndex() ); }
     private:
         Dimension_Generated* m_pTimestamp = nullptr;
     };
@@ -209,6 +217,7 @@ namespace concrete
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
+        const std::string& getIdentifier() const;
         virtual void print( std::ostream& os, std::string& strIndent ) const{}
         virtual void printType( std::ostream& os ) const;
         
@@ -257,6 +266,7 @@ namespace concrete
         const ::eg::abstract::Action* getAction() const { return dynamic_cast< const ::eg::abstract::Action* >( m_pElement ); }
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
         const std::string& getName() const { return m_strName; }
+        ::eg::TypeID getAbstractTypeID() const { return static_cast< ::eg::TypeID >( getAction()->getIndex() ); }
         
         const Dimension_Generated* getRunningTimestamp () const { return m_pRunningTimestamp ; }
         const Dimension_Generated* getPauseTimestamp   () const { return m_pPauseTimestamp   ; }
@@ -278,6 +288,7 @@ namespace concrete
         virtual int getLocalDomainSize() const;
         virtual int getTotalDomainSize() const;
         
+        const std::string& getIdentifier() const { return getAction()->getIdentifier(); }
         void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
         

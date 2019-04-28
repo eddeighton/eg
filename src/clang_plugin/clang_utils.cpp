@@ -375,6 +375,35 @@ namespace clang
         return std::optional< int >();
     }
     
+    QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
+        const std::vector< QualType >& typeParameters )
+    {
+        IdentifierInfo& identifierInfo = pASTContext->Idents.get( eg::EG_VARIANT_TYPE );
+        LookupResult result( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
+        if( pSema->LookupQualifiedName( result, pDeclContext ) )
+        {
+            if( ClassTemplateDecl* pDecl = llvm::dyn_cast< ClassTemplateDecl >( result.getFoundDecl() ) )
+            {
+                loc = pDecl->getTemplatedDecl()->getBeginLoc();
+                TemplateArgumentListInfo TemplateArgs( loc, loc );
+                
+                for( QualType qt : typeParameters )
+                {
+                    TemplateArgs.addArgument( 
+                        TemplateArgumentLoc( 
+                            TemplateArgument( qt ),
+                            pASTContext->getTrivialTypeSourceInfo( qt, loc ) ) );
+                }
+                
+                
+                TemplateName templateName( pDecl );
+                return pSema->CheckTemplateIdType( templateName, loc, TemplateArgs );
+            }
+        }
+        pDeclContext = nullptr;
+        return QualType();
+    }
+    
     QualType getVoidType( ASTContext* pASTContext )
     {
         return pASTContext->VoidTy;

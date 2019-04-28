@@ -6,6 +6,33 @@ namespace eg
 {
 namespace concrete
 {
+    std::vector< Element* > getPath( Element* pNode, Element* pFrom /*= nullptr*/ )
+    {
+        std::vector< Element* > path;
+        Element* pNodeIter = pNode; 
+        do
+        {   VERIFY_RTE( pNodeIter );
+            path.push_back( pNodeIter );
+            pNodeIter = pNodeIter->getParent();
+        }while( pNodeIter != pFrom );
+        
+        std::reverse( path.begin(), path.end() );
+        return path;
+    }
+    
+    std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom /*= nullptr*/ )
+    {
+        std::vector< const Element* > path;
+        const Element* pNodeIter = pNode; 
+        do
+        {   VERIFY_RTE( pNodeIter );
+            path.push_back( pNodeIter );
+            pNodeIter = pNodeIter->getParent();
+        }while( pNodeIter != pFrom );
+        
+        std::reverse( path.begin(), path.end() );
+        return path;
+    }
 
     void Inheritance_Node::load( Loader& loader )
     {
@@ -210,6 +237,34 @@ namespace concrete
         storer.storeObjectRef( m_pDependency );
     }
     
+    const std::string& Dimension_Generated::getIdentifier() const
+    {
+        /*switch( m_type )
+        {
+            case eDimensionTimestamp :
+                break;
+            case eActionRunning      :
+                break;
+            case eActionPaused       :
+                break;
+            case eActionCoroutine    :
+                break;
+            case eActionEventIter    :
+                break;
+            case eActionObject       :
+                break;
+            case eActionReference    :
+                break;
+            case eActionAllocatorData:
+                break;
+            case eActionAllocatorHead:
+                break;
+            case eActionStopTimestamp:
+                break;
+        }*/
+        THROW_RTE( "Unknown generated dimension type" );
+    }
+    
     void Dimension_Generated::printType( std::ostream& os ) const
     {
         switch( m_type )
@@ -350,7 +405,7 @@ namespace concrete
                     printer.printVariableAccess( os, strIndex );
                     os << " = ";
                     printActionType( os, pAction );
-                    os << "{ i, 0 };\n";
+                    os << "( " << EG_REFERENCE_TYPE << " { i, " << m_pAction->getIndex() << ", 0 } );\n";
                 }
                 break;
             case eActionAllocatorData   : os << strIndent; printer.printVariableAccess( os, strIndex ); os << " = i;\n";   break;

@@ -196,51 +196,51 @@ namespace eg
     {
         if( !pNode->children.empty() )
         {
-            //if( pNode->isTarget )
-            //{
-            //    pNode->score = std::numeric_limits< int >::max();
-            //    for( int index : pNode->children )
-            //    {
-            //        Name* pChild = &( nodes[ index ] );
-            //        pruneBranches( pChild );
-            //        if( pNode->score > pChild->score )
-            //            pNode->score = pChild->score;
-            //    }
-            //}
-            //else
-            //{
-            //    //only keep highest scoring subset
-            //    std::vector< int > best;
-            //    pNode->score = std::numeric_limits< int >::max();
-            //    bool bRemovedChild = false;
-            //    for( int index : pNode->children )
-            //    {
-            //        Name* pChild = &( nodes[ index ] );
-            //        pruneBranches( pChild );
-            //        if( pNode->score > pChild->score )
-            //        {
-            //            if( !best.empty() )
-            //            {
-            //                bRemovedChild = true;
-            //                best.clear();
-            //            }
-            //            best.push_back( index );
-            //            pNode->score = pChild->score;
-            //        }
-            //        else if( pNode->score == pChild->score )
-            //        {
-            //            best.push_back( index );
-            //        }
-            //        else
-            //        {
-            //            bRemovedChild = true;
-            //        }
-            //    } 
-            //    if( bRemovedChild )
-            //    {
-            //        pNode->children = best;
-            //    }
-            //}
+            if( pNode->isTarget )
+            {
+                pNode->score = std::numeric_limits< int >::max();
+                for( int index : pNode->children )
+                {
+                    Name* pChild = &( nodes[ index ] );
+                    pruneBranches( pChild );
+                    if( pNode->score > pChild->score )
+                        pNode->score = pChild->score;
+                }
+            }
+            else
+            {
+                //only keep highest scoring subset
+                std::vector< int > best;
+                pNode->score = std::numeric_limits< int >::max();
+                bool bRemovedChild = false;
+                for( int index : pNode->children )
+                {
+                    Name* pChild = &( nodes[ index ] );
+                    pruneBranches( pChild );
+                    if( pNode->score > pChild->score )
+                    {
+                        if( !best.empty() )
+                        {
+                            bRemovedChild = true;
+                            best.clear();
+                        }
+                        best.push_back( index );
+                        pNode->score = pChild->score;
+                    }
+                    else if( pNode->score == pChild->score )
+                    {
+                        best.push_back( index );
+                    }
+                    else
+                    {
+                        bRemovedChild = true;
+                    }
+                } 
+                if( bRemovedChild )
+                {
+                    pNode->children = best;
+                }
+            }
         }
     }
     
@@ -438,22 +438,23 @@ namespace eg
                 const concrete::Element* pTo   = name.getInstance();
                 VERIFY_RTE( pTo && pFrom );
                 
-                pStep = buildDerivation( analysis, pFrom, pTo, pStep, false );
-                //explicitly add the dereference steps
-                for( int i : name.children )
+                if( pStep = buildDerivation( analysis, pFrom, pTo, pStep, false ) )
                 {
-                    const DerivationAnalysis::NameResolution::Name& ref = resolution.nodes[ i ];
-                    ASSERT( ref.pInheritanceNode );
-
-                    DerivationStep* pNextStep = 
-                        addStep( ref.pInheritanceNode->getAction(), pStep, DerivationStep::eDeReference, 1 );
-
-                    for( int j : ref.children )
+                    //explicitly add the dereference steps
+                    for( int i : name.children )
                     {
-                        buildSolutionGraph_recurse( analysis, resolution, &ref, resolution.nodes[ j ], pNextStep );
+                        const DerivationAnalysis::NameResolution::Name& ref = resolution.nodes[ i ];
+                        ASSERT( ref.pInheritanceNode );
+
+                        DerivationStep* pNextStep = 
+                            addStep( ref.pInheritanceNode->getAction(), pStep, DerivationStep::eDeReference, 1 );
+
+                        for( int j : ref.children )
+                        {
+                            buildSolutionGraph_recurse( analysis, resolution, &ref, resolution.nodes[ j ], pNextStep );
+                        }
                     }
                 }
-
             }
             else if( pStep )
             {
@@ -541,6 +542,30 @@ namespace eg
         }
     }
     
+    void InvocationSolution::propagate_failed( DerivationStep* pStep )
+    {
+        for( DerivationStep* pChildStep : pStep->next)
+        {
+            propagate_failed( pChildStep );
+        }
+        
+        {
+            std::vector< DerivationStep* > successful;
+            for( DerivationStep* pChildStep : pStep->next)
+            {
+                if( pChildStep->type != DerivationStep::eFailed )
+                {
+                    successful.push_back( pChildStep );
+                }
+            }
+            pStep->next = successful;
+        }
+        if( pStep->next.empty() && ( pStep->type != DerivationStep::eTarget ) )
+        {
+            pStep->type = DerivationStep::eFailed;
+        }
+    }
+    
     void InvocationSolution::build( const DerivationAnalysis& analysis, const DerivationAnalysis::NameResolution& resolution )
     {
         VERIFY_RTE( !resolution.nodes.empty() );
@@ -553,11 +578,27 @@ namespace eg
         {
             buildSolutionGraph_recurse( analysis, resolution, pLast, resolution.nodes[ i ], m_pRoot );
         }
+        
+        propagate_failed( m_pRoot );
+        
+        //uniquify the targets
+        {
+            std::sort( m_targetTypes.begin(), m_targetTypes.end() );
+            auto last = std::unique( m_targetTypes.begin(), m_targetTypes.end() );
+            m_targetTypes.erase( last, m_targetTypes.end() );
+        }
     }
     
     bool InvocationSolution::isImplicitStarter() const
     {
-        return ( m_targetTypes.size() == 1U ) && dynamic_cast< const abstract::Action* >( m_targetTypes.front() );
+        for( const abstract::Element* pTarget : m_targetTypes )
+        {
+            if( !dynamic_cast< const abstract::Action* >( pTarget ) )
+            {
+                return false;
+            }
+        }
+        return true;
     }
     
     reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const
@@ -570,12 +611,7 @@ namespace eg
                 {
                     const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance );
                     ASSERT( pAction );
-                    const abstract::Action* pAbstractAction = pAction->getAction();
-                    ASSERT( pAbstractAction );
-                    
-                    next = reference{  context.instance / pStep->domain, 
-                                            static_cast< TypeID >( pAbstractAction->getIndex() ), 
-                                            0 };
+                    next = reference{  context.instance / pStep->domain, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
                     iPriority = 1;
                 }
                 break;
@@ -584,23 +620,13 @@ namespace eg
                 {
                     if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance ) )
                     {
-                        const abstract::Action* pAbstractAction = pAction->getAction();
-                        ASSERT( pAbstractAction );
-                    
-                        next = reference{  context.instance, 
-                                                static_cast< TypeID >( pAbstractAction->getIndex() ), 
-                                                0 };
+                        next = reference{  context.instance, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
                         iPriority = 1;
                     }
                     else if( const concrete::Dimension_User* pDimension =
                                 dynamic_cast< const concrete::Dimension_User* >( pStep->pInstance ) )
                     {
-                        const abstract::Dimension* pAbstractDimension = pDimension->getDimension();
-                        ASSERT( pAbstractDimension );
-                        
-                        next = reference{  context.instance, 
-                                                static_cast< TypeID >( pAbstractDimension->getIndex() ), 
-                                                0 };
+                        next = reference{  context.instance, static_cast< eg::TypeID >( pDimension->getIndex() ), 0 };
                         iPriority = 1;
                     }
                     else

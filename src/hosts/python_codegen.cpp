@@ -7,6 +7,7 @@
 void generate_python( std::ostream& os, eg::ReadSession& session )
 {
     const eg::abstract::Root* pRoot = session.getTreeRoot();
+    const eg::concrete::Action* pInstanceRoot = session.getInstanceRoot();
     const eg::DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
     const eg::Layout& layout = session.getLayout();
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
@@ -84,7 +85,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "__interface_root< void > get_root()\n";
     os << "{\n";
     os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
-    os << "    return  __interface_root< void >( 0, 0 );\n";
+    os << "    return  __interface_root< void >( " << eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", 0 } );\n";
     os << "}\n";
     os << "\n";
     
@@ -179,7 +180,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "                case " << pDimension->getDimension()->getIndex() << ":\n";
+    os << "                case " << pDimension->getIndex() << ":\n";
     os << "                    pStack->m_result = m_module_eg.attr( \"read_" << pBuffer->getVariableName() << '_' << pDataMember->getName()  << "\" )( reference.instance );\n";
     os << "                    break;\n";
             }
@@ -206,7 +207,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "                case " << pDimension->getDimension()->getIndex() << ":\n";
+    os << "                case " << pDimension->getIndex() << ":\n";
     os << "                     pStack->m_result = m_module_eg.attr( \"write_" << pBuffer->getVariableName() << '_' << pDataMember->getName()  << "\" )( reference.instance, args );\n";
     os << "                     break;\n";
             }
@@ -228,7 +229,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     {
         if( pAction->getParent() )
         {
-    os << "                case " << pAction->getAction()->getIndex() << ":\n";
+    os << "                case " << pAction->getIndex() << ":\n";
     os << "                    pStack->m_result = m_module_eg.attr( \"" << pAction->getName() << "_starter\" )( reference.instance );\n";
     os << "                    break;\n";
         }
@@ -249,7 +250,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     {
         if( pAction->getParent() )
         {
-    os << "                case " << pAction->getAction()->getIndex() << ":\n";
+    os << "                case " << pAction->getIndex() << ":\n";
     os << "                    pStack->m_result = m_module_eg.attr( \"" << pAction->getName() << "_stopper\" )( reference.instance );\n";
     os << "                    break;\n";
         }

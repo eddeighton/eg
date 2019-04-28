@@ -31,11 +31,11 @@ namespace eg
         invocations = many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
     }
         
-    std::string generateName( char prefix, const std::vector< const abstract::Element* >& path )
+    std::string generateName( char prefix, const std::vector< const concrete::Element* >& path )
     {
         std::ostringstream os;
         os << prefix;
-        for( const abstract::Element* pIter : path )
+        for( const concrete::Element* pIter : path )
         {
             if( pIter->getParent() )
                 os << "_" << pIter->getIdentifier();
@@ -43,12 +43,12 @@ namespace eg
         return os.str();
     }
 
-    std::string generateName( char prefix, const abstract::Element* pElement, const abstract::Element* pFrom )
+    std::string generateName( char prefix, const concrete::Element* pElement, const concrete::Element* pFrom )
     {
         std::ostringstream os;
         os << prefix;
-        std::vector< const abstract::Element* > path = getPath( pElement, pFrom );
-        for( const abstract::Element* pIter : path )
+        std::vector< const concrete::Element* > path = concrete::getPath( pElement, pFrom );
+        for( const concrete::Element* pIter : path )
         {
             os << "_" << pIter->getIdentifier();
         }
@@ -76,8 +76,7 @@ namespace eg
             buffers.push_back( pBuffer );
             pBuffer->m_pAction = pAction;
             
-            std::vector< const abstract::Element* > path = 
-                getPath( pAction->getAction() );
+            std::vector< const concrete::Element* > path = concrete::getPath( pAction );
             
             pBuffer->name       = generateName( 'b', path );
             pBuffer->variable   = generateName( 'g', path );
@@ -94,24 +93,25 @@ namespace eg
                         dynamic_cast< const concrete::Dimension_User* >( pDimension ) )
                     {
                         pDimensionInstance = construct< DataMember >();
-                        pDimensionInstance->name = generateName( 'm', pUserDim->getDimension(), pAction->getAction() );
+                        pDimensionInstance->name = generateName( 'm', pUserDim, pAction );
                     }
                     else if( const concrete::Dimension_Generated* pGenDim =
                         dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) )
                     {
                         switch( pGenDim->getDimensionType() )
                         {
+                            //no need for this at the moment while no multi threading...
                             case concrete::Dimension_Generated::eDimensionTimestamp:
-                                {
-                                    pDimensionInstance = construct< DataMember >();
-                                    
-                                    const concrete::Dimension_User* pUserDim = pGenDim->getUserDimension();
-                                    VERIFY_RTE( pUserDim );
-                                    
-                                    pDimensionInstance->name = 
-                                        generateName( 'g', pUserDim->getDimension(), pAction->getAction() ) + "_timestamp";
-                                    
-                                }
+                            //    {
+                            //        pDimensionInstance = construct< DataMember >();
+                            //        
+                            //        const concrete::Dimension_User* pUserDim = pGenDim->getUserDimension();
+                            //        VERIFY_RTE( pUserDim );
+                            //        
+                            //        pDimensionInstance->name = 
+                            //            generateName( 'g', pUserDim, pAction ) + "_timestamp";
+                            //        
+                            //    }
                                 break;
                                 
                             case concrete::Dimension_Generated::eActionRunning   :
