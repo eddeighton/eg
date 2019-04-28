@@ -7,6 +7,7 @@
 namespace eg
 {
     class InterfaceSession;
+    class ObjectFactoryImpl;
     
 namespace concrete
 {
@@ -17,7 +18,7 @@ namespace concrete
     class Inheritance_Node : public IndexedObject
     {
         friend class ::eg::InterfaceSession;
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     public:
         static const ObjectType Type = eInheritanceNode;
     protected:
@@ -67,7 +68,7 @@ namespace concrete
     class Element : public IndexedObject
     {
         friend class ::eg::InterfaceSession;
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     protected:
         Element( const IndexedObject& indexedObject )
             :   IndexedObject( indexedObject )
@@ -106,7 +107,7 @@ namespace concrete
     class Dimension : public Element
     {
         friend class ::eg::InterfaceSession;
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     protected:
         Dimension( const IndexedObject& indexedObject )
             :   Element( indexedObject )
@@ -135,7 +136,7 @@ namespace concrete
     class Dimension_User : public Dimension
     {
         friend class ::eg::InterfaceSession;
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     public:
         static const ObjectType Type = eConcreteDimensionUser;
     protected:
@@ -147,9 +148,11 @@ namespace concrete
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
+    public:
         virtual void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
         
+    protected:
         virtual int getDataSize() const;
         
         virtual void printAllocation( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
@@ -179,7 +182,7 @@ namespace concrete
     class Dimension_Generated : public Dimension
     {
         friend class ::eg::InterfaceSession;
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     public:
         static const ObjectType Type = eConcreteDimensionGenerated;
         
@@ -236,7 +239,7 @@ namespace concrete
     {
         friend class ::eg::InterfaceSession;
         friend class Inheritance_Node;
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     public:
         static const ObjectType Type = eConcreteAction;
     protected:

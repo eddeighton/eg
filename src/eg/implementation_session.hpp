@@ -39,7 +39,7 @@ namespace eg
         const DerivationAnalysis& getDerivationAnalysis() const;
         const Identifiers& getIdentifiers() const;
         const Layout& getLayout() const;
-        const abstract::Action* getAbstractAction( EGTypeID id ) const;
+        const abstract::Action* getAbstractAction( TypeID id ) const;
         
         using Invocations = std::vector< const InvocationSolution* >;
         void getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const;

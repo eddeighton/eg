@@ -20,7 +20,7 @@ namespace eg
         CreatingSession::store( m_tuPath );
     }
     
-    std::vector< const abstract::Element* > OperationsSession::fromEGTypeID( EGTypeID typeID, bool bForceDecl )
+    std::vector< const abstract::Element* > OperationsSession::fromEGTypeID( TypeID typeID, bool bForceDecl )
     {
         std::vector< const abstract::Element* > result;
         
@@ -64,7 +64,7 @@ namespace eg
     const InvocationSolution* OperationsSession::getInvocation( 
             const InvocationSolution::Context& context, 
             const InvocationSolution::TypePath& typePath, 
-            EGTypeID operationType, const std::vector< eg::EGTypeID >& implicitTypePath )
+            TypeID operationType, const std::vector< eg::TypeID >& implicitTypePath )
     {
         const InvocationID invocationID( context, typePath, operationType );
         InvocationMap::const_iterator iFind = m_invocations.find( invocationID );

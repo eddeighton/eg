@@ -11,25 +11,33 @@
 namespace eg
 {
     
-class EGRuntime;
+class HostEvaluator
+{
+public:
+    virtual ~HostEvaluator();
+    
+    virtual void getIdentities( std::vector< const char* >& identities ) = 0;
+    virtual TypeID getTypeID( const char* pszIdentity ) = 0;
+    virtual PyObject* invoke( const reference& reference, const std::vector< TypeID >& typePath, PyObject *args, PyObject *kwargs ) = 0;
+};
     
 class PythonEGReferenceType;
 
 class PythonEGReference
 {
 public:
-    PythonEGReference( PythonEGReferenceType& pythonType, const __eg_reference& ref );
+    PythonEGReference( PythonEGReferenceType& pythonType, const reference& ref );
     
     PyObject* get( void* pClosure );
     int set( void* pClosure, PyObject* pValue );
     PyObject* str() const;
     PyObject* call( PyObject *args, PyObject *kwargs );
     
-    const __eg_reference getEGReference() const { return m_reference; }
+    const reference getEGReference() const { return m_reference; }
 private:
     PythonEGReferenceType& m_pythonType;
-    __eg_reference m_reference;
-    std::vector< EGTypeID > m_type_path;
+    reference m_reference;
+    std::vector< TypeID > m_type_path;
 };
 
 class PythonEGReferenceType
@@ -37,16 +45,16 @@ class PythonEGReferenceType
 public:
     static PythonEGReference* getReference( PyObject* pPyObject );
 
-    PythonEGReferenceType( EGRuntime& runtime );
+    PythonEGReferenceType( HostEvaluator& evaluator );
     
-    PyObject* create( __eg_reference szInstanceID );
+    PyObject* create( reference szInstanceID );
     
-    EGRuntime& getRuntime() const { return m_runtime; }
+    HostEvaluator& getEvaluator() const { return m_evaluator; }
 private:
-    EGRuntime& m_runtime;
+    HostEvaluator& m_evaluator;
     PyTypeObject* m_pTypeObject;
     std::vector< PyGetSetDef > m_pythonAttributesData;
-    std::vector< std::string > m_identities;
+    std::vector< const char* > m_identities;
 };
 
 }

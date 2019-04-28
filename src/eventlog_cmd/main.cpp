@@ -3,7 +3,7 @@
 
 #include "eg/implementation_session.hpp"
 
-#include "eg_common.hpp"
+#include "runtime/eg_common.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -118,8 +118,8 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
         {
             SetConsoleTextAttribute( hConsole, FOREGROUND_GREEN );
             
-            VERIFY_RTE( sizeof( __eg_reference ) == event.getValueSize() );
-            const __eg_reference* pRef = reinterpret_cast< const __eg_reference* >( event.getValue() );
+            VERIFY_RTE( sizeof( eg::reference ) == event.getValueSize() );
+            const eg::reference* pRef = reinterpret_cast< const eg::reference* >( event.getValue() );
             
             if( pDatabase )
             {
@@ -138,8 +138,8 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
         {
             SetConsoleTextAttribute( hConsole, FOREGROUND_BLUE );
             
-            VERIFY_RTE( sizeof( __eg_reference ) == event.getValueSize() );
-            const __eg_reference* pRef = reinterpret_cast< const __eg_reference* >( event.getValue() );
+            VERIFY_RTE( sizeof( eg::reference ) == event.getValueSize() );
+            const eg::reference* pRef = reinterpret_cast< const eg::reference* >( event.getValue() );
             
             if( pDatabase )
             {

@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
-    <flags>-D_MT -D_DLL -D_CRT_SECURE_NO_WARNINGS -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -fcoroutines-ts -Wno-deprecated -Wno-inconsistent-missing-override</flags>
+    <flags>-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -fcoroutines-ts -Wno-deprecated -Wno-inconsistent-missing-override</flags>
 </project>

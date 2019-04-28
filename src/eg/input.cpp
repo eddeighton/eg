@@ -104,7 +104,7 @@ namespace input
         else
         {
             m_path = strIncludeFile;
-            if( boost::filesystem::extension( m_path ) == EG_FILE_EXTENSION )
+            if( boost::filesystem::extension( m_path ) == FILE_EXTENSION )
             {
                 m_path = boost::filesystem::edsCannonicalise(
                     boost::filesystem::absolute( m_path ) );

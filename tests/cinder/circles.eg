@@ -1,10 +1,24 @@
 
+include( <iostream> );
+
+action MsgTest
+{
+    while( true )
+    {
+        std::cout << "cout is working" << std::endl;
+        SLEEP_S( 1 );
+    }
+}
 
 action Circle[ 2048 ]
 {
     dim vec2 position;
     dim Color color;
     dim float size;
+    
+    color( Color( CM_HSV, 0.5f, 1, 1 ) );
+    position( getWindowCenter() );
+    size( 25.0f );
     
     while( true )
     {
@@ -27,6 +41,9 @@ action Circle[ 2048 ]
 
 action Spiral
 {
+    dim float speed;
+    dim float curve;
+    
     while( true )
     {
         int numCircles = 0;
@@ -44,10 +61,10 @@ action Spiral
             float angle = rel * M_PI * 10;
             vec2 offset( cos( angle ), sin( angle ) );
         
-            circle.position( center + offset * radius * 4.0f );
+            circle.position( center + offset * radius * speed() );
             circle.size( 25.0f );
             
-            radius = radius + 0.1f;
+            radius = radius + curve();
         
             ++index;
         }
@@ -56,16 +73,8 @@ action Spiral
 
 }
 
-    
-int numCircles = 2048;
-for( int index = 0; index < numCircles; ++index ) 
-{
-    Circle circle = Circle.Start();
-    Circle::ColorChanger cc = circle.ColorChanger.Start();
-}
-Spiral.Start();
-
-while( true )
+bool bContinue = true;
+while( bContinue )
 {
     while( std::optional< InputEvent > eOpt = Input::getEvent() )
     {
@@ -73,16 +82,13 @@ while( true )
         switch( e.type )
         {
             case InputEvent::eKeyDown:
-            if( e.keyEvent.getChar() == 's')
-            {
-                if( Spiral.Empty() )
-                    Spiral.Start();
-            }
-            else if( e.keyEvent.getChar() == 'd')
-            {
-                if( !Spiral.Empty() )
-                    Spiral.Stop();
-            }
+                if( e.keyEvent.getChar() == 's')
+                {
+                    bContinue = false;
+                }
+                break;
+            default:
+                break;
         }
     }
 	gl::clear();

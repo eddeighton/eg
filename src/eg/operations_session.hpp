@@ -19,14 +19,14 @@ namespace eg
         
         void store() const;
         
-        std::vector< const abstract::Element* > fromEGTypeID( EGTypeID typeID, bool bForceDecl );
+        std::vector< const abstract::Element* > fromEGTypeID( TypeID typeID, bool bForceDecl );
         const InvocationSolution* getInvocation( const InvocationSolution::Context& context,
-            const InvocationSolution::TypePath& typePath, EGTypeID operationType, const std::vector< eg::EGTypeID >& implicitTypePath );
+            const InvocationSolution::TypePath& typePath, TypeID operationType, const std::vector< eg::TypeID >& implicitTypePath );
         
     private:
         const boost::filesystem::path m_tuPath;
         
-        using InvocationID = std::tuple< InvocationSolution::Context, InvocationSolution::TypePath, EGTypeID >;
+        using InvocationID = std::tuple< InvocationSolution::Context, InvocationSolution::TypePath, TypeID >;
         using InvocationMap = std::map< InvocationID, InvocationSolution* >;
         InvocationMap m_invocations;
         

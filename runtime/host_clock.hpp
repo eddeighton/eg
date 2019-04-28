@@ -2,7 +2,7 @@
 #ifndef EG_CLOCK_IMPL_24_04_2019
 #define EG_CLOCK_IMPL_24_04_2019
 
-struct HostClock : public __eg_clock
+struct HostClock : public eg::_clock
 {
 public:
     typedef std::chrono::steady_clock ClockType;
@@ -43,14 +43,14 @@ public:
     Tick actual() const { return ClockType::now(); }
     
     //interface
-    virtual EGTimeStamp cycle()    const { return m_cycle; }
-    virtual EGTimeStamp subcycle() const { return m_subcycle; }
+    virtual eg::TimeStamp cycle()    const { return m_cycle; }
+    virtual eg::TimeStamp subcycle() const { return m_subcycle; }
     virtual float ct()     const { return m_ct; }
     virtual float dt()     const { return m_dt; }
     
 private:
     Tick m_lastTick, m_startTick;
-    EGTimeStamp m_cycle, m_subcycle, m_cycleSubCycle;
+    eg::TimeStamp m_cycle, m_subcycle, m_cycleSubCycle;
     float m_ct, m_dt;
 };
 

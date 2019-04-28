@@ -6,7 +6,7 @@
 #include "objects.hpp"
 #include "concrete.hpp"
 
-#include "eg_common.hpp"
+#include "runtime/eg_common.hpp"
 
 #include <map>
 #include <vector>
@@ -126,14 +126,16 @@ namespace eg
     {
     public:
         virtual ~RuntimeEvaluator(){}
-        virtual __eg_reference getReference( const __eg_reference& dimension ) = 0;
+        virtual reference getReference( const reference& dimension ) = 0;
     };
+    
+    class EGRuntimeImpl;
     
     class InvocationSolution : public IndexedObject
     {
         friend class ObjectFactoryImpl;
         friend class OperationsSession;
-        friend class EGRuntime;
+        friend class EGRuntimeImpl;
     public:
         static const ObjectType Type = eInvocationSolution;
     protected:
@@ -208,26 +210,28 @@ namespace eg
     public:
         void build( const DerivationAnalysis& analysis, const DerivationAnalysis::NameResolution& resolution );
         
-        __eg_reference evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context ) const;
+        bool isImplicitStarter() const;
+        
+        reference evaluate( RuntimeEvaluator& evaluator, const reference& context ) const;
             
     private:
     
-        __eg_reference evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context, const DerivationStep* pStep, int& iPriority ) const;
+        reference evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const;
     public:
-        EGTypeID getOperation() const { return m_operationType; }
+        TypeID getOperation() const { return m_operationType; }
         const Context& getContext() const { return m_context; }
         const TargetTypes& getTargetTypes() const { return m_targetTypes; }
-        const EGTypeIDVector& getImplicitTypePath() const { return m_implicitTypePath; }
+        const TypeIDVector& getImplicitTypePath() const { return m_implicitTypePath; }
         const DerivationStep* getRoot() const { return m_pRoot; }
     protected:
      
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
      
-        EGTypeID m_operationType;
+        TypeID m_operationType;
         Context m_context;
         TargetTypes m_targetTypes;
-        EGTypeIDVector m_implicitTypePath;
+        TypeIDVector m_implicitTypePath;
     };
 }
 

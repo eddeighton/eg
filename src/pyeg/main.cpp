@@ -1,10 +1,9 @@
 
 #include "eg/implementation_session.hpp"
 
-#include "py_eg_reference.hpp"
-#include "py_glm.hpp"
-#include "runtime.hpp"
-
+#include "runtime/py_eg_reference.hpp"
+#include "runtime/py_glm.hpp"
+#include "eg_runtime/eg_runtime.hpp"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -13,7 +12,7 @@
 
 #include "cinder/include/glm/glm.hpp"
 
-#include <pybind11/embed.h> // everything needed for embedding
+#include <pybind11/embed.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 #include <pybind11/stl_bind.h>
@@ -21,6 +20,9 @@
 #include <iostream>
 #include <memory>
 #include <array>
+#include <thread>
+#include <chrono>
+#include <functional>
 
 //export PYTHONHOME=/c/Anaconda3/
 //ipython console --existing kernel-6600.json
@@ -28,6 +30,7 @@
 struct Modules
 {
     pybind11::module module_eg;
+    std::shared_ptr< eg::EGRuntime > pRuntime;
     std::shared_ptr< eg::PythonEGReferenceType > pEGRefType;
 };
 std::unique_ptr< Modules > g_pModules;
@@ -35,7 +38,7 @@ std::unique_ptr< Modules > g_pModules;
 
 struct RootReferenceCPPType
 {
-    __eg_reference instance;
+    eg::reference instance;
 };
 
 namespace pybind11 
@@ -88,20 +91,20 @@ using StuffArray = std::array< Stuff, 16 >;
 StuffArray m_buffer;
 
 
-float read_x( EGInstance instance )
+float read_x( eg::Instance instance )
 {
     return m_buffer[ instance ].x;
 }
-void write_x( EGInstance instance, pybind11::tuple args )
+void write_x( eg::Instance instance, pybind11::tuple args )
 {
     m_buffer[ instance ].x = pybind11::cast< float >( args[ 0 ] );
 }
 
-glm::vec3 read_v3( EGInstance instance )
+glm::vec3 read_v3( eg::Instance instance )
 {
     return m_buffer[ instance ].v3;
 }
-void write_v3( EGInstance instance, glm::vec3 v3 )
+void write_v3( eg::Instance instance, glm::vec3 v3 )
 {
     m_buffer[ instance ].v3 = v3;
 }
@@ -117,11 +120,11 @@ std::string testHostFunction( RootReferenceCPPType instance )
 RootReferenceCPPType root()
 {
     //g_pModules->module_eg
-    //__eg_reference egReference = { 0,0,0 };
+    //eg::reference egReference = { 0,0,0 };
     //return g_pModules->pEGRefType->create( egReference );
     
     RootReferenceCPPType root;
-    root.instance = __eg_reference{ 0, 4, 0 };
+    root.instance = eg::reference{ 0, 4, 0 };
     return root;
 }
 
@@ -140,82 +143,157 @@ PYBIND11_EMBEDDED_MODULE( pyeg, module )
     module.def( "write_v3", write_v3 );
 }
 
-struct HostFunctions : public eg::HostFunctionAccessor
+struct HostFunctions : public eg::HostFunctionAccessor, public eg::HostEvaluator
 {
-    virtual pybind11::function getRead( EGTypeID type )
+private:
+    
+    struct Stack
     {
-        switch( type )
-        {
-            case 0:
-            default:
-                break;
-        }
-        pybind11::object object = g_pModules->module_eg.attr( "read_x" );
-        return object;
-    }
-    virtual pybind11::function getWrite( EGTypeID type )
-    {
-        switch( type )
-        {
-            case 0:
-            default:
-                break;
-        }
-        pybind11::object object = g_pModules->module_eg.attr( "write_x" );
-        return object;
-    }
-    virtual pybind11::function getStart( EGTypeID type )
-    {
-        switch( type )
-        {
-            case 0:
-            default:
-                break;
-        }
-        pybind11::object object = g_pModules->module_eg.attr( "start_thing" );
-        return object;
-    }
-    virtual pybind11::function getStop( EGTypeID type )
-    {
-        switch( type )
-        {
-            case 0:
-            default:
-                break;
-        }
-        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
-        return object;
-    }
-    virtual pybind11::function getPause( EGTypeID type )
-    {
-        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
-        return object;
-    }
-    virtual pybind11::function getResume( EGTypeID type )
-    {
-        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
-        return object;
-    }
-    virtual pybind11::function getEmpty( EGTypeID type )
-    {
-        pybind11::object object = g_pModules->module_eg.attr( "stop_thing" );
-        return object;
-    }
-    virtual __eg_reference getReference( const __eg_reference& dimension )
-    {
+        PyObject *args;
+        PyObject *kwargs;
+        pybind11::object m_result;
         
-        
-        switch( dimension.type )
+        Stack( PyObject *args, PyObject *kwargs )
+            :   args( args ), kwargs( kwargs )
         {
-            //can just evaluate this directly
+        }
+        using WeakPtr = std::weak_ptr< Stack >;
+        using SharedPtr = std::shared_ptr< Stack >;
+    };
+public:
+    HostFunctions( const std::string& strDatabaseFile, pybind11::module module_eg )
+        :   m_pRuntime( std::shared_ptr< eg::EGRuntime >( 
+                eg::constructRuntime( *this, strDatabaseFile.c_str() ) ) ),
+            m_module_eg( module_eg )
+    {
+    }
+        
+    //HostFunctionAccessor
+    virtual void doRead(    const eg::reference& reference )
+    {
+        if( Stack::SharedPtr pStack = m_pStack.lock() )
+        {
+            switch( reference.type )
+            {
+                case 5:
+                    {
+                        pStack->m_result = m_module_eg.attr( "read_x" )( reference.instance );
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
         
-        
-        
-        
+    }   
+    virtual void doWrite(   const eg::reference& reference )
+    {
+        if( Stack::SharedPtr pStack = m_pStack.lock() )
+        {
+            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
+            switch( reference.type )
+            {
+                case 5:
+                    {
+                        pStack->m_result = m_module_eg.attr( "write_x" )( reference.instance, args );
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    virtual void doStart(   const eg::reference& reference )
+    {
+    }
+    virtual void doStop(    const eg::reference& reference )
+    {
+    }
+    virtual void doPause(   const eg::reference& reference )
+    {
+    }
+    virtual void doResume(  const eg::reference& reference )
+    {
+    }
+    virtual void doEmpty(   const eg::reference& reference )
+    {
+    }
+    
+    virtual eg::reference getReference( const eg::reference& dimension )
+    {
         return dimension;
     }
+    
+    //HostEvaluator
+    virtual void getIdentities( std::vector< const char* >& identities )
+    {
+        m_pRuntime->getIdentities( identities );
+    }
+    
+    virtual eg::TypeID getTypeID( const char* pszIdentity )
+    {
+        return m_pRuntime->getTypeID( pszIdentity );
+    }
+    
+    virtual PyObject* invoke( const eg::reference& reference, const std::vector< eg::TypeID >& typePath, PyObject *args, PyObject *kwargs )
+    {
+        Stack::SharedPtr pStack = std::make_shared< Stack >( args, kwargs );
+        m_pStack = pStack;
+        
+        pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );
+        
+        m_pRuntime->invoke( reference, typePath, pyArgs.size() != 0 );
+        
+        if( pStack->m_result )
+        {
+            pybind11::handle h = pStack->m_result;
+            h.inc_ref();
+            return h.ptr();
+        }
+        else
+        {
+            Py_INCREF( Py_None );
+            return Py_None;
+        }
+    }
+    
+private:
+    pybind11::module m_module_eg;
+    Stack::WeakPtr m_pStack;
+    
+    std::shared_ptr< eg::EGRuntime > m_pRuntime;
+    
 };
+
+void runPython( const std::string& strDatabaseFile, const std::string& strScript )
+{
+    pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
+
+    try
+    {
+        g_pModules = std::make_unique< Modules >();
+        
+        g_pModules->module_eg = pybind11::module::import( "pyeg" );
+        
+        //g_pModules->module_eg = pybind11::module::import( "IPython" );
+        //pybind11::print("Starting IPython Kernel"); 
+        
+        HostFunctions hostFunctions( strDatabaseFile, g_pModules->module_eg );
+        
+        g_pModules->pEGRefType
+            = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
+        
+        pybind11::exec( strScript );
+        
+        g_pModules.reset();
+        
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+        g_pModules.reset();
+    }
+}
 
 int main( int argc, const char* argv[] )
 {
@@ -279,18 +357,6 @@ int main( int argc, const char* argv[] )
         return 0;
     }
     
-    std::shared_ptr< eg::ReadSession > pDatabase;
-    {
-        const boost::filesystem::path databaseFilePath = 
-            boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( strDatabaseFile ) );
-        if( !boost::filesystem::exists( databaseFilePath ) )
-        {
-            std::cout << "Cannot locate file: " << databaseFilePath.string() << std::endl;
-            return 0;
-        } 
-        pDatabase = std::make_shared< eg::ReadSession >( databaseFilePath );
-    }
     
     std::string strScript;
     {
@@ -305,39 +371,13 @@ int main( int argc, const char* argv[] )
         boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
     }
 
+    std::thread pythonThread( std::bind( &runPython, strDatabaseFile, strScript ) );
     
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for( 10s );
     
     //PyImport_AppendInittab( "eg", &PyInit_eg );
     
-    {
-        pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
     
-    
-        try
-        {
-            g_pModules = std::make_unique< Modules >();
-            
-            g_pModules->module_eg = pybind11::module::import( "pyeg" );
-            
-            HostFunctions hostFunctions;
-            
-            eg::EGRuntime runtime( hostFunctions, pDatabase );
-        
-            g_pModules->pEGRefType
-                = std::make_shared< eg::PythonEGReferenceType >( runtime );
-            
-            //pybind11::print("Starting IPython Kernel"); 
-            
-            pybind11::exec( strScript );
-            
-            g_pModules.reset();
-            
-        }
-        catch( std::exception& e )
-        {
-            std::cout << e.what() << std::endl;
-            g_pModules.reset();
-        }
-    }
 }
 

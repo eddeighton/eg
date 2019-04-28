@@ -1,14 +1,24 @@
 
 #include "py_eg_reference.hpp"
 
-#include "runtime.hpp"
+#include "eg_runtime/eg_runtime.hpp"
+
+#include "common/assert_verify.hpp"
 
 #include <sstream>
 
 namespace eg
 {
+    
+    HostEvaluator::~HostEvaluator()
+    {
+        
+    }
+    
 
-    PythonEGReference::PythonEGReference( PythonEGReferenceType& pythonType, const __eg_reference& ref ) 
+    /////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////
+    PythonEGReference::PythonEGReference( PythonEGReferenceType& pythonType, const reference& ref ) 
         :   m_pythonType( pythonType ),
             m_reference( ref ) 
     {
@@ -18,7 +28,7 @@ namespace eg
     PyObject* PythonEGReference::get( void* pClosure )
     {
         const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
-        const EGTypeID typeID = m_pythonType.getRuntime().getTypeID( pszAttributeIdentity );
+        const TypeID typeID = m_pythonType.getEvaluator().getTypeID( pszAttributeIdentity );
         if( typeID == 0 )
         {
             THROW_RTE( "Invalid identity" << pszAttributeIdentity );
@@ -49,7 +59,7 @@ namespace eg
     {
         std::ostringstream os;
         os << "instance: " << m_reference.instance << " type: " << m_reference.type << " timestamp: " << m_reference.timestamp;
-        for( std::vector< EGTypeID >::const_iterator 
+        for( std::vector< TypeID >::const_iterator 
             i = m_type_path.begin(), iEnd = m_type_path.end(); i!=iEnd; ++i )
         {
             if( i == m_type_path.begin() )
@@ -63,7 +73,7 @@ namespace eg
     
     PyObject* PythonEGReference::call( PyObject *args, PyObject *kwargs )
     {
-        return m_pythonType.getRuntime().invoke( m_reference, m_type_path, args, kwargs );
+        return m_pythonType.getEvaluator().invoke( m_reference, m_type_path, args, kwargs );
     }
 
     /////////////////////////////////////////////////////////////////////////////////////
@@ -147,17 +157,13 @@ namespace eg
         {NULL}  /* Sentinel */
     };
     
-    static char* psz_a = "a";
-    static char* psz_b = "b";
-    static char* psz_c = "c";
-    
-    PythonEGReferenceType::PythonEGReferenceType( EGRuntime& runtime )
-        :   m_runtime( runtime )
+    PythonEGReferenceType::PythonEGReferenceType( HostEvaluator& evaluator )
+        :   m_evaluator( evaluator )
     {        
-        m_runtime.getIdentities( m_identities );
-        for( const std::string& strIdentity : m_identities )
+        m_evaluator.getIdentities( m_identities );
+        for( const char* pszIdentity : m_identities )
         {
-            char* pszNonConst = const_cast< char* >( strIdentity.c_str() );
+            char* pszNonConst = const_cast< char* >( pszIdentity );
             PyGetSetDef data =
             { 
                 pszNonConst, 
@@ -173,11 +179,11 @@ namespace eg
         //generate heap allocated python type...
         std::vector< PyType_Slot > slots;
         {
-            slots.push_back( PyType_Slot{ Py_tp_str,        type_str } );
-            slots.push_back( PyType_Slot{ Py_tp_repr,       type_str } );
-            slots.push_back( PyType_Slot{ Py_tp_dealloc,    type_dealloc } );
-            slots.push_back( PyType_Slot{ Py_tp_call,       type_call } );
-            slots.push_back( PyType_Slot{ Py_tp_methods,    type_methods } );
+            slots.push_back( PyType_Slot{ Py_tp_str,        reinterpret_cast< void*>( &type_str ) } );
+            slots.push_back( PyType_Slot{ Py_tp_repr,       reinterpret_cast< void*>( &type_str ) } );
+            slots.push_back( PyType_Slot{ Py_tp_dealloc,    reinterpret_cast< void*>( &type_dealloc ) } );
+            slots.push_back( PyType_Slot{ Py_tp_call,       reinterpret_cast< void*>( &type_call ) } );
+            slots.push_back( PyType_Slot{ Py_tp_methods,    reinterpret_cast< void*>( &type_methods ) } );
             slots.push_back( PyType_Slot{ Py_tp_getset,     m_pythonAttributesData.data() } );
         }
         
@@ -206,7 +212,7 @@ namespace eg
         }
     }
     
-    PyObject* PythonEGReferenceType::create( __eg_reference egReference )
+    PyObject* PythonEGReferenceType::create( reference egReference )
     {
         eg_reference_data* pRootObject = PyObject_New( eg_reference_data, m_pTypeObject );
         PyObject* pPythonObject = PyObject_Init( (PyObject*)pRootObject, m_pTypeObject );

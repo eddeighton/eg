@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <cinder_host>
     <hostcmd>cinder_host.exe</hostcmd>
-    <hostflags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:WINDOWS</hostflags>
+    <hostflags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:CONSOLE</hostflags>
+    <!--<hostflags>-nostdlib -lmsvcrtd -lopengl32 -Xlinker /SUBSYSTEM:CONSOLE</hostflags>-->
     <libs>
-        <file>W:/workspace/third_party/boost/boost_1_69_0_install/lib/libboost_filesystem-vc141-mt-x32-1_69.lib</file>
-        <file>W:/workspace/third_party/boost/boost_1_69_0_install/lib/libboost_date_time-vc141-mt-x32-1_69.lib</file>
-        <file>W:/workspace/prototype/build_vs2017/modules/common/Release/commonlib.lib</file>
-        <file>W:/workspace/prototype/bin/eventloglib.lib</file>
-        <file>W:/workspace/prototype/third_party/examplelib/bin/examplelib.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_filesystem-vc141-mt-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_date_time-vc141-mt-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_program_options-vc141-mt-x32-1_70.lib</file>
+        <file>C:/Anaconda3/libs/python35.lib</file>
+        <file>W:/workspace/eg/bin/eventloglib.lib</file>
+        <file>W:/workspace/eg/bin/eg_runtime.lib</file>
         
         <file>W:/workspace/third_party/cinder/lib/msw/x86/libEGL.lib</file>
         <file>W:/workspace/third_party/cinder/lib/msw/x86/libGLESv2.lib</file>
@@ -24,13 +26,16 @@
         <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/oleaut32.lib</file>
         <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/uuid.lib</file>
         <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/comdlg32.lib</file>
-
-        <includedirectories>
-            <folder>W:/workspace/third_party/boost/boost_1_69_0_install/include/boost-1_69/</folder>
-            <folder>W:/workspace/prototype/modules/common/api/</folder>
-            <folder>W:/workspace/third_party/cinder/include/</folder>
-        </includedirectories>
     </libs>
+    <includedirectories>
+        <folder>W:/workspace/eg/third_party/install/boost/include/boost-1_70/</folder>
+        <folder>W:/workspace/eg/third_party/install/pybind11/include/</folder>
+        <folder>C:/Anaconda3/include/</folder>
+        <folder>W:/workspace/eg/src</folder>
+        <folder>W:/workspace/eg</folder>
+        <folder>W:/workspace/eg/api</folder>
+        <folder>W:/workspace/third_party/cinder/include/</folder>
+    </includedirectories>
     <dependencies>
         <interface>__eg_input</interface>
     </dependencies>
@@ -38,6 +43,12 @@
         <generated>
             <file>main.cpp</file>
         </generated>
+        <cpp>
+            <file>W:/workspace/eg/runtime/py_eg_reference.cpp</file>
+            <file>W:/workspace/eg/runtime/win_console.cpp</file>
+            <file>W:/workspace/eg/src/common/backtrace.cpp</file>
+            <file>W:/workspace/eg/src/common/file.cpp</file>
+        </cpp>
     </source>
     <include>
         <user>
@@ -45,7 +56,9 @@
             <file>cinder_include.hpp</file>
             <file>W:/workspace/prototype/src/eventlog/server.hpp</file>
             <file>W:/workspace/prototype/src/eventlog/pid.hpp</file>
-            <file>W:/workspace/prototype/third_party/examplelib/src/example.hpp</file>
+            <file>W:/workspace/eg/src/common/assert_verify.hpp</file>
+            <file>W:/workspace/eg/src/common/backtrace.hpp</file>
+            <file>W:/workspace/eg/src/common/file.hpp</file>
             
             <file>W:/workspace/third_party/cinder/include/cinder/app/App.h</file>
             <file>W:/workspace/third_party/cinder/include/cinder/app/RendererGl.h</file>
@@ -59,6 +72,8 @@
             <file>&lt;optional&gt;</file>
             <file>&lt;iterator&gt;</file>
             <file>&lt;deque&gt;</file>
+            <file>&lt;thread&gt;</file>
+            <file>&lt;mutex&gt;</file>
         </system>
     </include>
 </cinder_host>

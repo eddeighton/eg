@@ -21,13 +21,13 @@ namespace eg
 
 namespace clang
 {
-    std::optional< eg::EGTypeID > getEGTypeID( ASTContext* pASTContext, QualType type );
+    std::optional< eg::TypeID > getEGTypeID( ASTContext* pASTContext, QualType type );
 
     const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );
     
-    bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< eg::EGTypeID >& contextTypes );
+    bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< eg::TypeID >& contextTypes );
     
-    bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::EGTypeID >& typePathTypes );
+    bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::TypeID >& typePathTypes );
     
     std::optional< int > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
         const SourceLocation& loc, const std::string& strConstantName );

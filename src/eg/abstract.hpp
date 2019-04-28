@@ -12,6 +12,7 @@
 namespace clang
 {
     class AbstractMutator;
+    class ObjectFactoryImpl;
 }
 
 namespace eg
@@ -24,7 +25,7 @@ namespace abstract
 
     class Element : public IndexedObject
     {
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
         friend class ::eg::ParserSession;
     protected:
         Element( const IndexedObject& object, Element* pParent, input::Element* pElement );
@@ -123,7 +124,6 @@ namespace abstract
             }
         }
 
-        //EGTypeID getElementIndex() const { return m_pElement ? m_pElement->getIndex() : getIndex(); }
         input::Element* getInputElement() const { return m_pElement; }
         Element* getParent() const { return m_pParent; }
         
@@ -143,7 +143,7 @@ namespace abstract
     
     class Opaque : public Element
     {
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     public:
         static const ObjectType Type = eAbstractOpaque;
     protected:
@@ -161,7 +161,7 @@ namespace abstract
     
     class Dimension : public Element
     {
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
         friend class ::clang::AbstractMutator;
     public:
         static const ObjectType Type = eAbstractDimension;
@@ -186,7 +186,7 @@ namespace abstract
     
     class Include : public Element
     {
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     public:
         static const ObjectType Type = eAbstractInclude;
     protected:
@@ -240,7 +240,7 @@ namespace abstract
         
     class Root : public Action
     {
-        friend class ObjectFactoryImpl;
+        friend class ::eg::ObjectFactoryImpl;
     public:
         static const ObjectType Type = eAbstractRoot;
     protected:

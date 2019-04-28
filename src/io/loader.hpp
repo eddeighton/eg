@@ -48,7 +48,7 @@ namespace eg
                 
                 IndexedObject* pObject = pFile->m_objects[ szIndex ];
                 p = dynamic_cast< T* >( pObject );
-                VERIFY_RTE( p );
+                VERIFY_RTE_MSG( p, "Failed to load indexed object" );
             }
             return p;
         }

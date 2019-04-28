@@ -26,9 +26,9 @@
 namespace clang
 {
 
-    std::optional< eg::EGTypeID > getEGTypeID( ASTContext* pASTContext, QualType type )
+    std::optional< eg::TypeID > getEGTypeID( ASTContext* pASTContext, QualType type )
     {
-        std::optional< eg::EGTypeID > result;
+        std::optional< eg::TypeID > result;
         
         if( type.getTypePtrOrNull() && !type->isDependentType() )
         {
@@ -38,7 +38,7 @@ namespace clang
             {
                 if( pBaseTypeID == pASTContext->getEGTypePathName() )
                 {
-                    return eg::egTypePath;
+                    return eg::id_TypePath;
                 }
             }
             
@@ -64,13 +64,13 @@ namespace clang
     {
         return &pASTContext->Idents.get( strName.c_str() );
     }
-    const IdentifierInfo* getReadOperation( ASTContext* pASTContext )
+    const IdentifierInfo* getImplicitNoParamsOperation( ASTContext* pASTContext )
     {
-        return getOperationIdentifier( pASTContext, "Read" );
+        return getOperationIdentifier( pASTContext, eg::getOperationString( eg::id_Imp_NoParams ) );
     }
-    const IdentifierInfo* getWriteOperation( ASTContext* pASTContext )
+    const IdentifierInfo* getImplicitParamsOperation( ASTContext* pASTContext )
     {
-        return getOperationIdentifier( pASTContext, "Write" );
+        return getOperationIdentifier( pASTContext, eg::getOperationString( eg::id_Imp_Params ) );
     }
     
     const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters )
@@ -150,15 +150,15 @@ namespace clang
         }
         else if( bHasParameters )
         {
-            return getWriteOperation( pASTContext );
+            return getImplicitParamsOperation( pASTContext );
         }
         else
         {
-            return getReadOperation( pASTContext );
+            return getImplicitNoParamsOperation( pASTContext );
         }
     }
     
-    bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< eg::EGTypeID >& contextTypes )
+    bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< eg::TypeID >& contextTypes )
     {
         QualType canonicalType = contextType.getCanonicalType();
         if( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
@@ -239,7 +239,7 @@ namespace clang
             }
             else
             {
-                if( std::optional< eg::EGTypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
+                if( std::optional< eg::TypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
                 {
                     contextTypes.push_back( egTypeID.value() ); 
                     return true;
@@ -256,7 +256,7 @@ namespace clang
         }
     }
     
-    bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::EGTypeID >& typePathTypes)
+    bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::TypeID >& typePathTypes)
     {
         QualType canonicalType = typePath.getCanonicalType();
         const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier();
@@ -339,7 +339,7 @@ namespace clang
         }
         else
         {
-            if( std::optional< eg::EGTypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
+            if( std::optional< eg::TypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
             {
                 typePathTypes.push_back( egTypeID.value() ); 
                 return true;
@@ -562,7 +562,7 @@ namespace clang
                         
                         QualType typeTypeCanonical = typeType.getCanonicalType();
                         
-                        std::vector< eg::EGTypeID > dimensionTypes;
+                        std::vector< eg::TypeID > dimensionTypes;
                         
                         //only attempt this is it has a base type identifier
                         if( typeTypeCanonical.getBaseTypeIdentifier() )
@@ -577,9 +577,9 @@ namespace clang
                         }
                         else if( !dimensionTypes.empty() )
                         {
-                            for( eg::EGTypeID index : dimensionTypes )
+                            for( eg::TypeID index : dimensionTypes )
                             {
-                                if( index > 0 && index < static_cast< ::eg::EGTypeID >( objects.size() ) )
+                                if( index > 0 && index < static_cast< ::eg::TypeID >( objects.size() ) )
                                 {
                                     ::eg::IndexedObject* pObject = objects[ index ];
                                     if( ::eg::abstract::Action* pAction = dynamic_cast< ::eg::abstract::Action* >( pObject ) )
@@ -617,10 +617,10 @@ namespace clang
                     
                     QualType typeTypeCanonical = typeType.getCanonicalType();
                     
-                    if( std::optional< eg::EGTypeID > iLinkEGTypeIDOpt = getEGTypeID( pASTContext, typeTypeCanonical ) )
+                    if( std::optional< eg::TypeID > iLinkEGTypeIDOpt = getEGTypeID( pASTContext, typeTypeCanonical ) )
                     {
-                        const eg::EGTypeID iLinkEGTypeID = iLinkEGTypeIDOpt.value();
-                        if( iLinkEGTypeID > 0 && iLinkEGTypeID < static_cast< ::eg::EGTypeID >( objects.size() ) )
+                        const eg::TypeID iLinkEGTypeID = iLinkEGTypeIDOpt.value();
+                        if( iLinkEGTypeID > 0 && iLinkEGTypeID < static_cast< ::eg::TypeID >( objects.size() ) )
                         {
                             ::eg::IndexedObject* pObject = objects[ iLinkEGTypeID ];
                             if( ::eg::abstract::Action* pLinkedAction = dynamic_cast< ::eg::abstract::Action* >( pObject ) )

@@ -159,7 +159,7 @@ void Configuration::load( const boost::filesystem::path& filePath, const std::st
         }
     }
     if( boost::optional< boost::property_tree::ptree& > sources =
-            config_tree.get_child_optional( strPrefix + ".libs.includedirectories" ) )
+            config_tree.get_child_optional( strPrefix + ".includedirectories" ) )
     {
         for( const boost::property_tree::ptree::value_type& v : sources.get() ) 
         {
@@ -240,7 +240,7 @@ void Configuration::save( const boost::filesystem::path& filePath )
     }
     for( const boost::filesystem::path& cppIncludeFolder : cppIncludeDirectories )
     {
-        config_tree.add( "project.libs.includedirectories.folder", cppIncludeFolder.generic_string() );
+        config_tree.add( "project.includedirectories.folder", cppIncludeFolder.generic_string() );
     }
     for( const boost::filesystem::path& cppIncludeFilePath : hostIncludeUser )
     {
@@ -433,7 +433,7 @@ void Configuration::filterFiles()
             //uniquify the file paths here retaining their specification order
             const boost::filesystem::path sourceFileExtension = 
                 boost::filesystem::extension( sourceFilePath );
-            if( sourceFileExtension == eg::EG_FILE_EXTENSION )
+            if( sourceFileExtension == eg::FILE_EXTENSION )
             {
                 appendIfUnique( egSourceCode, sourceFilePath );
             }

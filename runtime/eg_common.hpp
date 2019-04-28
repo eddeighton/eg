@@ -5,62 +5,67 @@
 #include <cstdint>
 #include <limits>
 
-using EGInstance    = std::uint32_t; //32bit only for now
-using EGTypeID      = std::int32_t;
-using EGTimeStamp   = std::uint32_t;
-static const EGTimeStamp EG_INVALID_TIMESTAMP = std::numeric_limits< EGTimeStamp >::max();
-
-using __eg_event_iterator = std::uint64_t;
-
-enum EGOperationType : EGTypeID
-{
-    egGet                      = std::numeric_limits< EGTypeID >::min(),
-    egUpdate                   ,
-    egRead                     ,
-    egOld                      ,
-    egWrite                    ,
-    egStart                    ,
-    egStop                     ,
-    egPause                    ,
-    egResume                   ,
-    egDefer                    ,
-    egEmpty                    ,
-    egRange                    ,
-    egHIGHEST_OPERATION_TYPE
-};
-
-enum EGInvocableTypes
-{
-    egVariant = egHIGHEST_OPERATION_TYPE,
-    egTypePath
-};
-
-struct __eg_reference
-{
-    EGInstance  instance;
-    EGTypeID    type;
-    EGTimeStamp timestamp;
+#define DO_STUFF_AND_REQUIRE_SEMI_COLON( stuff ) do{ stuff } while( (void)0,0 )
     
-    inline bool operator==( const __eg_reference& cmp ) const
-    {
-        return  ( ( timestamp == EG_INVALID_TIMESTAMP ) && ( cmp.timestamp == EG_INVALID_TIMESTAMP ) ) ||
-                ( ( instance == cmp.instance ) &&
-                    ( type == cmp.type ) &&
-                    ( timestamp == cmp.timestamp ) );
-    }
+namespace eg
+{
+    using Instance    = std::uint32_t; //32bit only for now
+    using TypeID      = std::int32_t;
+    using TimeStamp   = std::uint32_t;
     
-    inline bool operator!=( const __eg_reference& cmp ) const
+    static const TimeStamp INVALID_TIMESTAMP = std::numeric_limits< TimeStamp >::max();
+
+    using event_iterator = std::uint64_t;
+
+    enum OperationID : TypeID
     {
-        return !( *this == cmp );
-    }
-    
-    inline bool operator<( const __eg_reference& cmp ) const
+        id_Imp_NoParams             = std::numeric_limits< TypeID >::min(),
+        id_Imp_Params               ,
+        id_Get                      ,
+        id_Update                   ,
+        id_Old                      ,
+        id_Stop                     ,
+        id_Pause                    ,
+        id_Resume                   ,
+        id_Defer                    ,
+        id_Empty                    ,
+        id_Range                    ,
+        HIGHEST_OPERATION_TYPE
+    };
+
+    enum InvocableID : TypeID
     {
-        return  ( instance != cmp.instance ) ?      ( instance < cmp.instance ) : 
-                ( type != cmp.type ) ?              ( type < cmp.type ) : 
-                ( timestamp != cmp.timestamp ) ?    ( timestamp < cmp.timestamp ) : 
-                false;
-    }
-};
+        id_Variant = HIGHEST_OPERATION_TYPE,
+        id_TypePath
+    };
+
+    struct reference
+    {
+        Instance  instance;
+        TypeID    type;
+        TimeStamp timestamp;
+        
+        inline bool operator==( const reference& cmp ) const
+        {
+            return  ( ( timestamp == INVALID_TIMESTAMP ) && ( cmp.timestamp == INVALID_TIMESTAMP ) ) ||
+                    ( ( instance == cmp.instance ) &&
+                        ( type == cmp.type ) &&
+                        ( timestamp == cmp.timestamp ) );
+        }
+        
+        inline bool operator!=( const reference& cmp ) const
+        {
+            return !( *this == cmp );
+        }
+        
+        inline bool operator<( const reference& cmp ) const
+        {
+            return  ( instance != cmp.instance ) ?      ( instance < cmp.instance ) : 
+                    ( type != cmp.type ) ?              ( type < cmp.type ) : 
+                    ( timestamp != cmp.timestamp ) ?    ( timestamp < cmp.timestamp ) : 
+                    false;
+        }
+    };
+}
 
 #endif //EG_COMMON_22_04_2019

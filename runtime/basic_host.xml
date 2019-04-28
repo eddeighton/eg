@@ -3,27 +3,39 @@
     <hostcmd>basic_host.exe</hostcmd>
     <hostflags>-nostdlib -lmsvcrt</hostflags>
     <libs>
-        <file>W:/workspace/third_party/boost/boost_1_69_0_install/lib/libboost_filesystem-vc141-mt-x32-1_69.lib</file>
-        <file>W:/workspace/third_party/boost/boost_1_69_0_install/lib/libboost_date_time-vc141-mt-x32-1_69.lib</file>
-        <file>W:/workspace/prototype/build_vs2017/modules/common/Release/commonlib.lib</file>
-        <file>W:/workspace/prototype/bin/eventloglib.lib</file>
-        <file>W:/workspace/prototype/third_party/examplelib/bin/examplelib.lib</file>
-        <includedirectories>
-            <folder>W:/workspace/third_party/boost/boost_1_69_0_install/include/boost-1_69/</folder>
-            <folder>W:/workspace/prototype/modules/common/api/</folder>
-        </includedirectories>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_filesystem-vc141-mt-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_date_time-vc141-mt-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_program_options-vc141-mt-x32-1_70.lib</file>
+        <file>C:/Anaconda3/libs/python35.lib</file>
+        <file>W:/workspace/eg/bin/eventloglib.lib</file>
+        <file>W:/workspace/eg/bin/eg_runtime.lib</file>
     </libs>
+    <includedirectories>
+        <folder>W:/workspace/eg/third_party/install/boost/include/boost-1_70/</folder>
+        <folder>W:/workspace/eg/third_party/install/pybind11/include/</folder>
+        <folder>C:/Anaconda3/include/</folder>
+        <folder>W:/workspace/eg/src</folder>
+        <folder>W:/workspace/eg</folder>
+        <folder>W:/workspace/eg/api</folder>
+    </includedirectories>
     <source>
         <generated>
             <file>main.cpp</file>
         </generated>
+        <cpp>
+            <file>W:/workspace/eg/runtime/py_eg_reference.cpp</file>
+            <file>W:/workspace/eg/src/common/backtrace.cpp</file>
+            <file>W:/workspace/eg/src/common/file.cpp</file>
+        </cpp>
     </source>
     <include>
         <user>
             <file>eg.hpp</file>
-            <file>W:/workspace/prototype/src/eventlog/server.hpp</file>
-            <file>W:/workspace/prototype/src/eventlog/pid.hpp</file>
-            <file>W:/workspace/prototype/third_party/examplelib/src/example.hpp</file>
+            <file>W:/workspace/eg/src/eventlog/server.hpp</file>
+            <file>W:/workspace/eg/src/eventlog/pid.hpp</file>
+            <file>W:/workspace/eg/src/common/assert_verify.hpp</file>
+            <file>W:/workspace/eg/src/common/backtrace.hpp</file>
+            <file>W:/workspace/eg/src/common/file.hpp</file>
         </user>
         <system>
             <file>&lt;chrono&gt;</file>
@@ -33,6 +45,9 @@
             <file>&lt;thread&gt;</file>
             <file>&lt;array&gt;</file>
             <file>&lt;iterator&gt;</file>
+            <file>&lt;cstdio&gt;</file>
+            <file>&lt;exception&gt;</file>
+            <file>&lt;mutex&gt;</file>
         </system>
     </include>
 </basic_host>

@@ -11,18 +11,17 @@ include( ${EG_ROOT_DIR}/cmake/pybind11_include.cmake )
 #get eg
 include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 
+#get eg runtime
+include( ${EG_ROOT_DIR}/cmake/eg_runtime/eg_runtime_include.cmake )
 
 include_directories( ${EG_ROOT_DIR}/submodules )
-
 
 set( PYEG_SOURCE_DIR ${EG_ROOT_DIR}/src/pyeg )
 
 set( PYEG_SOURCES
     ${PYEG_SOURCE_DIR}/main.cpp
-    ${PYEG_SOURCE_DIR}/py_eg_reference.cpp
-    ${PYEG_SOURCE_DIR}/py_eg_reference.hpp
-    ${PYEG_SOURCE_DIR}/runtime.hpp
-    ${PYEG_SOURCE_DIR}/runtime.cpp)
+    ${EG_ROOT_DIR}/runtime/py_eg_reference.cpp
+    ${EG_ROOT_DIR}/runtime/py_eg_reference.hpp)
     
 source_group( src FILES ${PYEG_SOURCES} )
     
@@ -40,5 +39,6 @@ link_boost( pyeg iostreams )
 link_boost( pyeg serialization )
 link_pybind11( pyeg )
 link_eg( pyeg )
+link_eg_runtime( pyeg )
 
 install( TARGETS pyeg DESTINATION bin)

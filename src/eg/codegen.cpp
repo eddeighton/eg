@@ -21,10 +21,7 @@
 
 namespace eg
 {
-    static const char* EG_BASE_PREFIX = "Base_";
-    static const char* EG_INTERFACE_PREFIX = "__interface_";
-    static const char* EG_INTERFACE_PARAMETER_TYPE = "__EGInterface";
-
+    
     std::string getInterfaceType( const std::string& strType )
     {
         return EG_INTERFACE_PREFIX + strType;
@@ -187,11 +184,11 @@ namespace eg
             os << strIndent << "{\n";
             os << strIndent << "  data.instance = 0;\n";
             os << strIndent << "  data.type = " << strActionInterfaceType << "::ID;\n";
-            os << strIndent << "  data.timestamp = EG_INVALID_TIMESTAMP;\n";
+            os << strIndent << "  data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             os << strIndent << "}\n";
             
             //impl constructor
-            os << strIndent << strActionInterfaceType << "( EGInstance instance, EGTimeStamp timestamp )\n";
+            os << strIndent << strActionInterfaceType << "( " << EG_INSTANCE << " instance, " << EG_TIME_STAMP << " timestamp )\n";
             os << strIndent << "{\n";
             os << strIndent << "  data.instance = instance;\n";
             os << strIndent << "  data.type = " << strActionInterfaceType << "::ID;\n";
@@ -208,17 +205,17 @@ namespace eg
             
             //invocation
             os << strIndent << "template< typename TypePath, typename Operation, typename... Args >\n";
-            os << strIndent << "typename result_type< " << 
+            os << strIndent << "typename " << EG_RESULT_TYPE << "< " << 
                 getInterfaceInstantiationType( strName, depth ) <<
                 ", TypePath, Operation >::Type invoke( Args... args );\n";
             
             //event access
-            os << strIndent << "EGEvent get_next_event() const;\n";
+            os << strIndent << EG_EVENT_TYPE << " get_next_event() const;\n";
             
             //void* operator
             os << strIndent << "operator const void*() const\n";
             os << strIndent << "{\n";
-            os << strIndent << "      if( data.timestamp != EG_INVALID_TIMESTAMP )\n";
+            os << strIndent << "      if( data.timestamp != " << EG_INVALID_TIMESTAMP << " )\n";
             os << strIndent << "      {\n";
             os << strIndent << "          return reinterpret_cast< const void* >( &data );\n";
             os << strIndent << "      }\n";
@@ -250,29 +247,16 @@ namespace eg
             os << strIndent << "}\n";
             
             //operation
-            os << strIndent << "EGCoroutine operator()();\n";
+            os << strIndent << EG_COROUTINE_TYPE << " operator()();\n";
             
             //iterator type
-            os << strIndent << "using Iterator = EGReferenceIterator< " << strActionInterfaceType << " >;\n";
-            //os << strIndent << "class Iterator : public std::iterator< std::forward_iterator_tag, " << strActionInterfaceType << " >\n";
-            //os << strIndent << "{\n";
-            //os << strIndent << "public:\n";
-            //os << strIndent << "  EGInstance instance;\n";
-            //os << strIndent << "  EGInstance sentinal;\n";
-            //os << strIndent << "  Iterator( EGInstance instance, EGInstance sentinal ) : instance( instance ), sentinal( sentinal ) {}\n";
-            //os << strIndent << "  Iterator( const Iterator& from ) : instance( from.instance ), sentinal( from.sentinal ) {}\n";
-            //os << strIndent << "  Iterator& operator++();\n";
-            //os << strIndent << "  Iterator operator++(int) {Iterator tmp(*this); operator++(); return tmp;}\n";
-            //os << strIndent << "  bool operator==(const Iterator& rhs) const {return instance==rhs.instance;}\n";
-            //os << strIndent << "  bool operator!=(const Iterator& rhs) const {return instance!=rhs.instance;}\n";
-            //os << strIndent << "  " << strActionInterfaceType << "& operator*();\n";
-            //os << strIndent << "};\n";
+            os << strIndent << "using Iterator = " << EG_REFERENCE_ITERATOR_TYPE << "< " << strActionInterfaceType << " >;\n";
             
             //range type
-            os << strIndent << "using EGRangeType = EGRange< Iterator >;\n";
+            os << strIndent << "using EGRangeType = " << EG_RANGE_TYPE << "< Iterator >;\n";
             
             //member variables
-            os << strIndent << "__eg_reference data;\n";
+            os << strIndent << EG_REFERENCE_TYPE << " data;\n";
         }
         void addActionTraits( std::ostream& os, const input::Action* pAction )
         {
@@ -308,7 +292,7 @@ namespace eg
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
             addActionInterface( os, strName, dynamic_cast< const abstract::Action* >( pNode )->isIndirectlyAbstract() );
-            os << strIndent << "static const EGInstance ID = " << pNode->getIndex() << ";\n";
+            os << strIndent << "static const " << EG_TYPE_ID << " ID = " << pNode->getIndex() << ";\n";
             addActionTraits( os, pElement );
         }    
         void push ( const input::Action* pElement, const abstract::Element* pNode )
@@ -323,9 +307,9 @@ namespace eg
             
             if( pElement->getSize() )
             {
-                os << strIndent << "static const EGInstance SIZE = " << pElement->getSize()->getStr() << ";\n";
+                os << strIndent << "static const " << EG_INSTANCE << " SIZE = " << pElement->getSize()->getStr() << ";\n";
             }
-            os << strIndent << "static const EGInstance ID = " << pNode->getIndex() << ";\n";
+            os << strIndent << "static const " << EG_TYPE_ID << " ID = " << pNode->getIndex() << ";\n";
             addActionTraits( os, pElement );
         }
         void pop ( const input::Opaque* pElement, const abstract::Element* pNode )
@@ -447,9 +431,9 @@ namespace eg
             }
             os << "\n{\n";
             os << "  using Type  = " << pElement->getType()->getStr() << ";\n";
-            os << "  using Read  = DimensionTraits< " << pElement->getType()->getStr() << " >::Read;\n";
-            os << "  using Write = DimensionTraits< " << pElement->getType()->getStr() << " >::Write;\n";
-            os << "  static const EGInstance Size = DimensionTraits< " << pElement->getType()->getStr() << " >::Size;\n";
+            os << "  using Read  = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Read;\n";
+            os << "  using Write = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Write;\n";
+            os << "  static const " << EG_INSTANCE << " Size = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Size;\n";
             os << "};\n";
         }    
         void push ( const input::Include*   pElement, const abstract::Element* pNode )
@@ -482,8 +466,8 @@ namespace eg
                 
                 os << "\n{\n";
                 os << "  using Type  = " << pOpaque->getStr() << ";\n";
-                os << "  using Dependency = ObjectTraits< " << pOpaque->getStr() << " >::Dependency;\n";
-                os << "  static const EGInstance Size = ObjectTraits< " << pOpaque->getStr() << " >::Size;\n";
+                os << "  using Dependency = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::Dependency;\n";
+                os << "  static const " << EG_INSTANCE << " Size = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::Size;\n";
                 os << "};\n";
             }
         }
@@ -596,7 +580,7 @@ namespace eg
             }
             
             //just generate an explicit template specialisation
-            os << strIndent << "EGCoroutine ";
+            os << strIndent << EG_COROUTINE_TYPE << " ";
             {
                 for( const abstract::Element* pNodeIter : path )
                 {
@@ -836,7 +820,7 @@ namespace eg
                     }
                 }
             os << "template<>\n";
-            os << "struct eg_is_convertible< " << osCompatibleTypeName.str() << ", " << osTypeVoid.str() << " >\n";
+            os << "struct " << EG_IS_CONVERTIBLE_TYPE << "< " << osCompatibleTypeName.str() << ", " << osTypeVoid.str() << " >\n";
             os << "{\n";
             os << "    static constexpr const bool value = true;\n";
             os << "};\n";
@@ -847,7 +831,7 @@ namespace eg
             os << "template< typename TFrom >\n";
             os << osTypeName.str() << "::" << strActionInterfaceType << "( const TFrom& from )\n";
             os << "{\n";
-            os << "  static_assert( eg_is_convertible< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
+            os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
             os << "  switch( from.data.type )\n";
             os << "  {\n";
             for( const abstract::Action* pCompatible : compatibleTypes )
@@ -857,7 +841,7 @@ namespace eg
             os << "         data = from.data;\n";
             os << "         break;\n";
             os << "     default:\n";
-            os << "         data.timestamp = EG_INVALID_TIMESTAMP;\n";
+            os << "         data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             os << "         break;\n";
             os << "  }\n";
             os << "}\n";
@@ -867,7 +851,7 @@ namespace eg
             os << "template< typename TFrom >\n";
             os << osTypeNameAsType.str() << "& " << osTypeName.str() << "::operator=( const TFrom& from )\n";
             os << "{\n";
-            os << "  static_assert( eg_is_convertible< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
+            os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
             os << "  switch( from.data.type )\n";
             os << "  {\n";
             for( const abstract::Action* pCompatible : compatibleTypes )
@@ -877,7 +861,7 @@ namespace eg
             os << "         data = from.data;\n";
             os << "         break;\n";
             os << "     default:\n";
-            os << "         data.timestamp = EG_INVALID_TIMESTAMP;\n";
+            os << "         data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             os << "         break;\n";
             os << "  }\n";
             os << "  return *this;\n";
@@ -887,146 +871,38 @@ namespace eg
             const DataMember* pEventIterator = layout.getDataMember( pInstanceAction->getEventIterator() );
                 
             os << osTemplateArgLists.str();
-            os << "EGEvent " << osTypeName.str() << "::get_next_event() const\n";
+            os << EG_EVENT_TYPE << " " << osTypeName.str() << "::get_next_event() const\n";
             os << "{\n";
-            os << "    EGEvent ev;\n";
-            os << "    __eg_event _event;\n";
+            os << "    " << EG_EVENT_TYPE << " ev;\n";
+            os << "    " << EG_EVENT_LOG_EVENT_TYPE << " _event;\n";
             os << "    while( g_eg_event_log->GetEvent( " << pEventIterator->getBuffer()->getVariableName() << 
                                                             "[ data.instance ]." << pEventIterator->getName() << ", _event ) )\n";
             os << "    {\n";   
             os << "         if( 0 == strcmp( _event.type, \"stop\" ) )\n";
             os << "         {\n";
-            os << "             ev.data = *reinterpret_cast< const __eg_reference* >( _event.value );\n";
+            os << "             ev.data = *reinterpret_cast< const " << EG_REFERENCE_TYPE << "* >( _event.value );\n";
             os << "             break;\n";
             os << "         }\n"; 
             os << "    }\n";
             os << "    return ev;\n";
             os << "}\n";
             
-            ////os << osTemplateArgListsSpecialised.str();
-            ////os << "EGEvent " << osTypeVoid.str() << "::get_next_event() const\n";
-            ////os << "{\n";
-            ////os << "    EGEvent ev;\n";
-            ////os << "    __eg_event _event;\n";
-            ////os << "    while( g_eg_event_log->GetEvent( " << pEventIterator->getBuffer()->getVariableName() << 
-            ////                                                "[ data.instance ]." << pEventIterator->getName() << ", _event ) )\n";
-            ////os << "    {\n";   
-            ////os << "         if( 0 == strcmp( _event.type, \"stop\" ) )\n";
-            ////os << "         {\n";
-            ////os << "             ev.data = *reinterpret_cast< const __eg_reference* >( _event.value );\n";
-            ////os << "             break;\n";
-            ////os << "         }\n"; 
-            ////os << "    }\n";
-            ////os << "    return ev;\n";
-            ////os << "}\n";
-            
-            
-            //const void* operator
-            //os << osTemplateArgLists.str();
-            //os << osTypeName.str() << "::operator const void*() const\n";
-            //os << "{\n";
-            //os << "      if( data.timestamp != EG_INVALID_TIMESTAMP )\n";
-            //os << "      {\n";
-            //os << "          return reinterpret_cast< const void* >( &data );\n";
-            //os << "      }\n";
-            //os << "      else\n";
-            //os << "      {\n";
-            //os << "          return nullptr;\n";
-            //os << "      }\n";
-            //os << "}\n";
-            
-            //os << osTemplateArgListsSpecialised.str();
-            //os << osTypeVoid.str() << "::operator const void*() const\n";
-            //os << "{\n";
-            //os << "      if( data.timestamp != EG_INVALID_TIMESTAMP )\n";
-            //os << "      {\n";
-            //os << "          return reinterpret_cast< const void* >( &data );\n";
-            //os << "      }\n";
-            //os << "      else\n";
-            //os << "      {\n";
-            //os << "          return nullptr;\n";
-            //os << "      }\n";
-            //os << "}\n";
-            
             const DataMember* pReference = layout.getDataMember( pInstanceAction->getReference() );
             const DataMember* pRunning = layout.getDataMember( pInstanceAction->getRunningTimestamp() );
             
             //iterator type
             os << "template<>\n";
-            os << "inline bool isInstanceRunning< " << osTypeVoid.str() << " >( EGInstance instance )\n";
+            os << "inline bool isInstanceRunning< " << osTypeVoid.str() << " >( " << EG_INSTANCE << " instance )\n";
             os << "{\n";
             os << "    return " << Printer( pRunning, "instance" ) << ";\n";
             os << "}\n";
             os << "\n";
             os << "template<>\n";
-            os << "inline const " << osTypeVoid.str() << "& getReference< " << osTypeVoid.str() << " >( EGInstance instance )\n";
+            os << "inline const " << osTypeVoid.str() << "& getReference< " << osTypeVoid.str() << " >( " << EG_INSTANCE << " instance )\n";
             os << "{\n";
             os << "    return " << Printer( pReference, "instance" ) << ";\n";
             os << "}\n";
             os << "\n";
-            
-            //iterator type
-            //os << "template<>\n";
-            //os << osTypeVoid.str() << "::Iterator& EGReferenceIterator< " << osTypeVoid.str() << " >::operator++()\n";
-            //os << "{\n";
-            //os << "    while( instance != sentinal )\n";
-            //os << "    {\n";
-            //os << "        ++instance;\n";
-            //os << "        if( " << Printer( pRunning, "instance" ) << " < clock::subcycle() )\n";
-            //os << "        {\n";
-            //os << "            break;\n";
-            //os << "        }\n";
-            //os << "    }\n";
-            //os << "    return *this;\n";
-            //os << "}\n";
-            //os << "\n";
-            //os << "template<>\n";
-            //os << osTypeVoid.str() << "& EGReferenceIterator< " << osTypeVoid.str() << " >::operator*()\n";
-            //os << "{\n";
-            //os << "    return " << Printer( pReference, "instance" ) << ";\n";
-            //os << "}\n";
-            
-            
-            //os << osTemplateArgLists.str();
-            //if( !bMultipleElements ) os << "typename ";
-            //os << osTypeNameAsType.str() << "::Iterator& " << osTypeName.str() << "::Iterator::operator++()\n";
-            //os << "{\n";
-            //os << "    while( instance != sentinal )\n";
-            //os << "    {\n";
-            //os << "        ++instance;\n";
-            //os << "        if( " << Printer( pRunning, "instance" ) << " < clock::subcycle() )\n";
-            //os << "        {\n";
-            //os << "            break;\n";
-            //os << "        }\n";
-            //os << "    }\n";
-            //os << "    return *this;\n";
-            //os << "}\n";
-            //os << "\n";
-            //os << osTemplateArgLists.str();
-            //os << osTypeNameAsType.str() << "& " << osTypeName.str() << "::Iterator::operator*()\n";
-            //os << "{\n";
-            //os << "    return " << Printer( pReference, "instance" ) << ";\n";
-            //os << "}\n";
-            
-            //os << osTemplateArgListsSpecialised.str();
-            //os << osTypeVoid.str() << "::Iterator& " << osTypeVoid.str() << "::Iterator::operator++()\n";
-            //os << "{\n";
-            //os << "    while( instance != sentinal )\n";
-            //os << "    {\n";
-            //os << "        ++instance;\n";
-            //os << "        if( " << Printer( pRunning, "instance" ) << " < clock::subcycle() )\n";
-            //os << "        {\n";
-            //os << "            break;\n";
-            //os << "        }\n";
-            //os << "    }\n";
-            //os << "    return *this;\n";
-            //os << "}\n";
-            //os << "\n";
-            //os << osTemplateArgListsSpecialised.str();
-            //os << osTypeVoid.str() << "& " << osTypeVoid.str() << "::Iterator::operator*()\n";
-            //os << "{\n";
-            //os << "    return " << Printer( pReference, "instance" ) << ";\n";
-            //os << "}\n";
             
         }
         void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
@@ -1114,7 +990,7 @@ namespace eg
             if( path.size() > 1U )
             {
                 //if multiple elements then need typename and use of template keyword
-                os << "typename result_type< typename ";
+                os << "typename " << EG_RESULT_TYPE << "< typename ";
                 int iCounter = 1;
                 for( const abstract::Element* pNodeIter : path )
                 {
@@ -1128,7 +1004,7 @@ namespace eg
             }
             else
             {
-                os << "typename result_type< " << osTypeName.str() << ", TypePath, Operation >::Type\n";
+                os << "typename " << EG_RESULT_TYPE << "< " << osTypeName.str() << ", TypePath, Operation >::Type\n";
             }
             
             //generate the invoke member function name
@@ -1138,8 +1014,8 @@ namespace eg
             strIndent.push_back( ' ' );
             
             //generate the implementation
-            os << "    using CanonicalTypePathType = typename __eg_CanonicaliseTypePath< TypePath >::Type;\n";
-            os << "    return __invoke_impl< typename result_type< " << 
+            os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
+            os << "    return __invoke_impl< typename " << EG_RESULT_TYPE << "< " << 
                 osTypeName.str() << ", TypePath, Operation >::Type, " << 
                 osTypeName.str() << ", CanonicalTypePathType, Operation >( *this, args... );\n";
             
@@ -1176,7 +1052,7 @@ namespace eg
         }
     }
     
-    void printType( std::ostream& os, const IndexedObject::Array& objects, EGTypeID id )
+    void printType( std::ostream& os, const IndexedObject::Array& objects, TypeID id )
     {
         const abstract::Element* pElement = dynamic_cast< const abstract::Element* >( objects[ id ] );
         ASSERT( pElement );
@@ -1230,30 +1106,39 @@ namespace eg
         {
             switch( invocation.getOperation() )
             {
-                case eGet        :
-                case eUpdate     :
-                case eRead       : 
-                case eOld        : 
+                case id_Imp_NoParams   :
+                case id_Imp_Params  :
+                    if( invocation.isImplicitStarter() )
+                    {
+                        printType( os, objects, invocation.getTargetTypes().front() );
+                    }
+                    else if( invocation.getOperation() == id_Imp_NoParams )
+                    {
+                        printType( os, objects, invocation.getTargetTypes().front() );
+                        os << "::Read";
+                    }
+                    else if( invocation.getOperation() == id_Imp_Params )
+                    {
+                        os << "void";
+                    }
+                    break;
+                case id_Get        :
+                case id_Update     :
+                case id_Old        : 
                     printType( os, objects, invocation.getTargetTypes().front() );
                     os << "::Read";
                     break;
-                case eWrite      : 
+                case id_Stop       : 
+                case id_Pause      : 
+                case id_Resume     : 
                     os << "void";
                     break;
-                case eStart      : 
-                    printType( os, objects, invocation.getTargetTypes().front() );
+                case id_Defer      : 
                     break;
-                case eStop       : 
-                case ePause      : 
-                case eResume     : 
-                    os << "void";
-                    break;
-                case eDefer      : 
-                    break;
-                case eEmpty      : 
+                case id_Empty      : 
                     os << "bool";
                     break;
-                case eRange      : 
+                case id_Range      : 
                     printType( os, objects, invocation.getTargetTypes().front() );
                     os << "::EGRangeType";
                     break;
@@ -1274,23 +1159,34 @@ namespace eg
         {
             switch( invocation.getOperation() )
             {
-                case eGet        :
-                case eUpdate     :
-                case eWrite      : 
+                case id_Imp_NoParams   :
+                case id_Imp_Params  :
+                    if( invocation.isImplicitStarter() )
+                    {
+                    }
+                    else if( invocation.getOperation() == id_Imp_NoParams )
+                    {
+                    }
+                    else if( invocation.getOperation() == id_Imp_Params )
+                    {
+                        printType( os, objects, invocation.getTargetTypes().front() );
+                        os << "::Write";
+                    }
+                    break;
+                case id_Get        :
+                case id_Update     :
                     printType( os, objects, invocation.getTargetTypes().front() );
                     os << "::Write";
                     break;
-                case eRead       : 
-                case eOld        : 
+                case id_Old        : 
                     break;
-                case eStart      : 
-                case eStop       : 
-                case ePause      : 
-                case eResume     : 
+                case id_Stop       : 
+                case id_Pause      : 
+                case id_Resume     : 
                     break;
-                case eDefer      : 
-                case eEmpty      : 
-                case eRange      : 
+                case id_Defer      : 
+                case id_Empty      : 
+                case id_Range      : 
                     break;
                 default:
                     THROW_RTE( "Unknown operation type" );
@@ -1309,23 +1205,34 @@ namespace eg
         {
             switch( invocation.getOperation() )
             {
-                case eGet        :
-                case eUpdate     :
-                case eWrite      : 
+                case id_Imp_NoParams   :
+                case id_Imp_Params  :
+                    if( invocation.isImplicitStarter() )
+                    {
+                    }
+                    else if( invocation.getOperation() == id_Imp_NoParams )
+                    {
+                    }
+                    else if( invocation.getOperation() == id_Imp_Params )
+                    {
+                        printType( os, objects, invocation.getTargetTypes().front() );
+                        os << "::Write value";
+                    }
+                    break;
+                case id_Get        :
+                case id_Update     :
                     printType( os, objects, invocation.getTargetTypes().front() );
                     os << "::Write value";
                     break;
-                case eRead       : 
-                case eOld        : 
+                case id_Old        : 
                     break;
-                case eStart      : 
-                case eStop       : 
-                case ePause      : 
-                case eResume     : 
+                case id_Stop       : 
+                case id_Pause      : 
+                case id_Resume     : 
                     break;
-                case eDefer      : 
-                case eEmpty      : 
-                case eRange      : 
+                case id_Defer      : 
+                case id_Empty      : 
+                case id_Range      : 
                     break;
                 default:
                     THROW_RTE( "Unknown operation type" );
@@ -1361,11 +1268,11 @@ namespace eg
     
     void printTypePathType( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
-        os << "__eg_type_path< ";
+        os << EG_TYPE_PATH << "< ";
             
         bool bFirst = true;
-        const std::vector< EGTypeID >& typePath = invocation.getImplicitTypePath();
-        for( EGTypeID id : typePath )
+        const std::vector< TypeID >& typePath = invocation.getImplicitTypePath();
+        for( TypeID id : typePath )
         {
             if( bFirst)
                 bFirst = false;
@@ -1373,7 +1280,7 @@ namespace eg
                 os << ",";
             if( isOperationType( id ) )
             {
-                os << getOperationString( static_cast< OperationType >( id ) );
+                os << getOperationString( static_cast< OperationID >( id ) );
             }
             else if( id < 0 )
             {
@@ -1501,7 +1408,7 @@ namespace eg
                                 dynamic_cast<const concrete::Dimension*>( pNext->pInstance );
                             if( pDimension )
                             {
-                                os << strIndent  << "EGInstance " <<
+                                os << strIndent  << EG_INSTANCE << " " <<
                                     getVariableName( pNext, variables ) << " = " <<
                                     getVariableName( pStep, variables ) << ";\n";
                             }
@@ -1657,23 +1564,35 @@ namespace eg
         os << "    "; printReturnType( os, objects, invocation ); os << ",\n";
         os << "    "; printContextType( os, objects, invocation ); os << ",\n";
         os << "    "; printTypePathType( os, objects, invocation ); os << ",\n";
-        os << "    " << getOperationString( static_cast< OperationType >( invocation.getOperation() ) );
+        os << "    " << getOperationString( static_cast< OperationID >( invocation.getOperation() ) );
         
         //invocation arguments types
         switch( invocation.getOperation() )
         {
-            case eGet                  :
-            case eUpdate               :  break;
-            case eRead                 :  os << "\n";   break;
-            case eOld                  :  os << "\n";   break;
-            case eWrite                :  os << ",\n"; printParameterTypes( os, objects, invocation ); os << "\n"; break;
-            case eStart                :  
-            case eStop                 :  
-            case ePause                :  
-            case eResume               :  os << "\n";   break;
-            case eDefer                :  break;
-            case eEmpty                :  os << "\n";   break;
-            case eRange                :  os << "\n";   break;
+            case id_Imp_NoParams   :
+            case id_Imp_Params  :
+                if( invocation.isImplicitStarter() )
+                {
+                    os << "\n";   break;
+                }
+                else if( invocation.getOperation() == id_Imp_NoParams )
+                {
+                    os << "\n";   break;
+                }
+                else if( invocation.getOperation() == id_Imp_Params )
+                {
+                    os << ",\n"; printParameterTypes( os, objects, invocation ); os << "\n";
+                }
+                break;
+            case id_Get                  :
+            case id_Update               :  break;
+            case id_Old                  :  os << "\n";   break;
+            case id_Stop                 :  
+            case id_Pause                :  
+            case id_Resume               :  os << "\n";   break;
+            case id_Defer                :  break;
+            case id_Empty                :  os << "\n";   break;
+            case id_Range                :  os << "\n";   break;
             case TOTAL_OPERATION_TYPES : 
             default:
                 THROW_RTE( "Unknown operation type" );
@@ -1685,18 +1604,30 @@ namespace eg
         //invocation parameters
         switch( invocation.getOperation() )
         {
-            case eGet                  :
-            case eUpdate               :  break;
-            case eRead                 :  os << " )\n";   break;
-            case eOld                  :  os << " )\n";   break;
-            case eWrite                :  os << ","; printParameters( os, objects, invocation ); os << " )\n"; break;
-            case eStart                :  
-            case eStop                 :  
-            case ePause                :  
-            case eResume               :  os << " )\n";   break;
-            case eDefer                :  break;
-            case eEmpty                :  os << " )\n";   break;
-            case eRange                :  os << " )\n";   break;
+            case id_Imp_NoParams   :
+            case id_Imp_Params  :
+                if( invocation.isImplicitStarter() )
+                {
+                    os << " )\n";
+                }
+                else if( invocation.getOperation() == id_Imp_NoParams )
+                {
+                    os << " )\n";
+                }
+                else if( invocation.getOperation() == id_Imp_Params )
+                {
+                    os << ","; printParameters( os, objects, invocation ); os << " )\n";
+                }
+                break;
+            case id_Get                  :
+            case id_Update               :  break;
+            case id_Old                  :  os << " )\n";   break;
+            case id_Stop                 :  
+            case id_Pause                :  
+            case id_Resume               :  os << " )\n";   break;
+            case id_Defer                :  break;
+            case id_Empty                :  os << " )\n";   break;
+            case id_Range                :  os << " )\n";   break;
             case TOTAL_OPERATION_TYPES : 
             default:
                 THROW_RTE( "Unknown operation type" );
@@ -1709,11 +1640,34 @@ namespace eg
         
         switch( invocation.getOperation() )
         {
-            case eGet                  :  
-            case eUpdate               : 
-                THROW_RTE( "NOT IMPLEMENTED YET" ); 
-                break;
-            case eRead                 :  
+            case id_Imp_NoParams   :
+            case id_Imp_Params  :
+                if( invocation.isImplicitStarter() )
+                {
+                    generator.generateStep
+                    (   nullptr, invocation.getRoot(),
+                        []
+                        ( 
+                            InvocationGenerator& generator,
+                            const InvocationSolution::DerivationStep* pStep, 
+                            const InvocationSolution::DerivationStep* pNext
+                        )
+                        {
+                            if( const concrete::Action* pAction = 
+                                dynamic_cast< const concrete::Action* >( pNext->pInstance ) )
+                            {
+                                generator.os << generator.strIndent << "return " <<
+                                    pAction->getName() << "_starter( " << 
+                                        getVariableName( pStep, generator.variables ) << " );\n";
+                            }
+                            else
+                            {
+                                THROW_RTE( "not implemented" );
+                            }
+                        } 
+                    );
+                }
+                else if( invocation.getOperation() == id_Imp_NoParams )
                 {
                     generator.generateStep
                     (   nullptr, invocation.getRoot(),
@@ -1744,14 +1698,7 @@ namespace eg
                         } 
                     );
                 }
-                break;
-            case eOld                  :  
-                {
-                    os << "    "; printReturnType( os, objects, invocation ); os << " r;\n";
-                    os << "    return r;\n";
-                }
-                break;
-            case eWrite                :  
+                else if( invocation.getOperation() == id_Imp_Params )
                 {
                     generator.generateStep
                     (   nullptr, invocation.getRoot(),
@@ -1782,56 +1729,18 @@ namespace eg
                     );
                 }
                 break;
-            case eStart                :
+                
+            case id_Get                  :  
+            case id_Update               : 
+                THROW_RTE( "NOT IMPLEMENTED YET" ); 
+                break;
+            case id_Old                  :  
                 {
-                    generator.generateStep
-                    (   nullptr, invocation.getRoot(),
-                        []
-                        ( 
-                            InvocationGenerator& generator,
-                            const InvocationSolution::DerivationStep* pStep, 
-                            const InvocationSolution::DerivationStep* pNext
-                        )
-                        {
-
-                            if( const concrete::Action* pAction = 
-                                dynamic_cast< const concrete::Action* >( pNext->pInstance ) )
-                            {
-                                
-                                //pAction will be the parent of the action to start
-                                const InvocationSolution::TargetTypes& invocationTargets =
-                                    generator.invocation.getTargetTypes();
-                                VERIFY_RTE( invocationTargets.size() == 1U );
-                                const abstract::Element* pTarget = invocationTargets.front();
-                                
-                                const concrete::Action* pChildAction = nullptr;
-                                for( const concrete::Element* pChild : pAction->getChildren() )
-                                {
-                                    if( const concrete::Action* pChildActionInstance = 
-                                        dynamic_cast< const concrete::Action* >( pChild ) )
-                                    {
-                                        if( pChildActionInstance->getAction() == pTarget )
-                                        {
-                                            pChildAction = pChildActionInstance;
-                                            break;
-                                        } 
-                                    }
-                                }
-                                VERIFY_RTE( pChildAction );
-                                
-                                generator.os << generator.strIndent << "return " <<
-                                    pChildAction->getName() << "_starter( " << 
-                                        getVariableName( pStep, generator.variables ) << " );\n";
-                            }
-                            else
-                            {
-                                THROW_RTE( "not implemented" );
-                            }
-                        } 
-                    );
+                    os << "    "; printReturnType( os, objects, invocation ); os << " r;\n";
+                    os << "    return r;\n";
                 }
                 break;
-            case eStop                 :
+            case id_Stop                 :
                 {
                     generator.generateStep
                     (   nullptr, invocation.getRoot(),
@@ -1857,11 +1766,11 @@ namespace eg
                     );
                 }
                 break;
-            case ePause                :
-            case eResume               :
-            case eDefer                :
+            case id_Pause                :
+            case id_Resume               :
+            case id_Defer                :
                 break;
-            case eEmpty                :
+            case id_Empty                :
                 {
                     generator.generateStep
                     (   nullptr, invocation.getRoot(),
@@ -1883,7 +1792,7 @@ namespace eg
                                     generator.layout.getDataMember( pParentAction->getIterator( pAction ) );
                                 const std::string strVar = getVariableName( pStep, generator.variables );
                                 generator.os << generator.strIndent << 
-                                    "EGIterator iter = EGIterator( " << 
+                                    EG_ITERATOR_TYPE << " iter = " << EG_ITERATOR_TYPE << "( " << 
                                         Printer( pIteratorData, strVar.c_str() ) << ".load() );\n";
                                 generator.os << generator.strIndent << "return !iter.full && ( iter.tail == iter.head );\n";
                             }
@@ -1895,7 +1804,7 @@ namespace eg
                     );
                 }
                 break;
-            case eRange                :
+            case id_Range                :
                 {
                     generator.generateStep
                     (   nullptr, invocation.getRoot(),
@@ -1941,9 +1850,9 @@ namespace eg
                             }
                             const concrete::Action* pAction = enumActions.back();
                             
-                            generator.os << generator.strIndent << "const EGInstance iBegin = " <<
+                            generator.os << generator.strIndent << "const " << EG_INSTANCE << " iBegin = " <<
                                 getVariableName( pStep, generator.variables ) << " * " << szMultiplier << ";\n";
-                            generator.os << generator.strIndent << "const EGInstance iEnd = ( " <<
+                            generator.os << generator.strIndent << "const " << EG_INSTANCE << " iEnd = ( " <<
                                 getVariableName( pStep, generator.variables ) << " + 1 ) * " << szMultiplier << ";\n";
                             
                             generator.os << generator.strIndent;
@@ -1984,8 +1893,8 @@ namespace eg
     
     void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
     {
-        pAction->printType( os ); os << " " << pAction->getName() << "_starter( EGInstance _gid );\n";
-        os << "void " << pAction->getName() << "_stopper( EGInstance _gid );\n";
+        pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
+        os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
         //os << "bool " << pAction->getName() << "_executor();\n";
     }
     
@@ -1997,7 +1906,7 @@ namespace eg
             {
         
         /////starter
-        pAction->printType( os ); os << " " << pAction->getName() << "_starter( EGInstance _gid )\n";
+        pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid )\n";
         os << "{\n";
         os << "    //claim next free index\n";
         
@@ -2016,16 +1925,16 @@ namespace eg
                     layout.getDataMember( pAction->getMappedObject() ) : nullptr;
                 
                 
-        os << "    EGIterator iter, expected;\n";
+        os << "    " << EG_ITERATOR_TYPE << " iter, expected;\n";
         os << "    while( true )\n";
         os << "    {\n";
-        os << "         iter = EGIterator( " << Printer( pIteratorData, "_gid" ) << ".load() );\n";
+        os << "         iter = " << EG_ITERATOR_TYPE << "( " << Printer( pIteratorData, "_gid" ) << ".load() );\n";
         os << "         if( iter.protection )\n";
         os << "             continue;\n";
         os << "         else if( iter.full )\n";
         os << "             break;\n";
         os << "         expected = iter;\n";
-        os << "         EGInstance nextCellIndex = static_cast< EGInstance >( iter.head );\n";
+        os << "         " << EG_INSTANCE << " nextCellIndex = static_cast< " << EG_INSTANCE << " >( iter.head );\n";
         os << "         //claim the next free index\n";
         os << "         if( nextCellIndex == " << pAction->getLocalDomainSize() - 1U << " )\n";
         os << "         {\n";
@@ -2035,7 +1944,7 @@ namespace eg
         os << "         {\n";
         os << "             ++iter.head;\n";
         os << "         }\n";
-        os << "         if( static_cast< EGInstance >( iter.head ) == static_cast< EGInstance >( iter.tail ) )\n";
+        os << "         if( static_cast< " << EG_INSTANCE << " >( iter.head ) == static_cast< " << EG_INSTANCE << " >( iter.tail ) )\n";
         os << "         {\n";
         os << "             iter.full = 1U;\n";
         os << "         }\n";
@@ -2043,20 +1952,20 @@ namespace eg
         //need to calculate the index based on local domain size
         std::ostringstream osNextIndex;
         osNextIndex << "_gid * " << pAction->getLocalDomainSize() << " + nextCellIndex";
-        os << "         EGInstance nextInstance = " << Printer( pAllocatorData, osNextIndex.str().c_str() ) << ";\n";
+        os << "         " << EG_INSTANCE << " nextInstance = " << Printer( pAllocatorData, osNextIndex.str().c_str() ) << ";\n";
         os << "         if( " << Printer( pStoppedTimestamp, "nextInstance" ) << " <= clock::subcycle() )\n";
         os << "         {\n";
         os << "             //attempt to set the atomic\n";
         os << "             if( " << Printer( pIteratorData, "_gid" ) << ".compare_exchange_weak( expected.data, iter.data ) )\n";
         os << "             {\n";
         os << "                 //successfully claimed index so get the actual instance from the ring buffer\n";
-        os << "                 const EGInstance startSubCycle = clock::subcycle() + 1;\n";
+        os << "                 const " << EG_INSTANCE << " startSubCycle = clock::subcycle() + 1;\n";
         os << "                 "; pAction->printType( os ); os << "& reference = " << 
                                 Printer( pReferenceData, "nextInstance" ) << ";\n";
         os << "                 reference.data.timestamp = startSubCycle;\n";
         os << "                 " << Printer( pRunningData, "nextInstance" ) << " = startSubCycle;\n";
         os << "                 " << Printer( pPausedData, "nextInstance" ) << " = startSubCycle;\n";
-        os << "                 __eg_event ev = { \"start\", startSubCycle, &reference.data, sizeof( __eg_reference ) };\n";
+        os << "                 " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startSubCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "                 g_eg_event_log->PutEvent( ev );\n";
         os << "                 " << Printer( pEventIterator, "nextInstance" ) << " = g_eg_event_log->GetEventIterator();\n";
                 //if there is an object mapping then start it
@@ -2089,14 +1998,14 @@ namespace eg
                 const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
                 const DataMember* pEventIterator = layout.getDataMember( pAction->getEventIterator() );
                         
-        pAction->printType( os ); os << " " << pAction->getName() << "_starter( EGInstance _gid )\n";
+        pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid )\n";
         os << "{\n";
-        os << "    const EGInstance startSubCycle = clock::subcycle();\n";
+        os << "    const " << EG_INSTANCE << " startSubCycle = clock::subcycle();\n";
         os << "    "; pAction->printType( os ); os << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
         os << "    reference.data.timestamp = startSubCycle;\n";
         os << "    " << Printer( pRunningData, "0" ) << " = startSubCycle;\n";
         os << "    " << Printer( pPausedData, "0" ) << " = startSubCycle;\n";
-        os << "    __eg_event ev = { \"start\", startSubCycle, &reference.data, sizeof( __eg_reference ) };\n";
+        os << "    " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startSubCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "    g_eg_event_log->PutEvent( ev );\n";
         os << "    " << Printer( pEventIterator, "0" ) << " = g_eg_event_log->GetEventIterator();\n";
         os << "    " << Printer( pCoroutineData, "0" ) << " = reference();\n";
@@ -2107,9 +2016,9 @@ namespace eg
             }
         
         ////stopper
-        os << "void " << pAction->getName() << "_stopper( EGInstance _gid )\n";
+        os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
         os << "{\n";
-        os << "     EGInstance _parent_id = _gid / " << pAction->getLocalDomainSize() << ";\n";
+        os << "     " << EG_INSTANCE << " _parent_id = _gid / " << pAction->getLocalDomainSize() << ";\n";
         
             if( pAction->getParent() && pAction->getParent()->getParent() )
             {
@@ -2128,17 +2037,17 @@ namespace eg
                     layout.getDataMember( pAction->getMappedObject() ) : nullptr;
                 
         os << "     if( " << pRunningData->getBuffer()->getVariableName() << "[ _gid ]." << 
-            pRunningData->getName() << " != EG_INVALID_TIMESTAMP )\n";
+            pRunningData->getName() << " != " << EG_INVALID_TIMESTAMP << " )\n";
         os << "     {\n";
                 
-        os << "         EGIterator iter, expected;\n";
+        os << "         " << EG_ITERATOR_TYPE << " iter, expected;\n";
         os << "         while( true )\n";
         os << "         {\n";
-        os << "              iter = EGIterator( " << Printer( pIteratorData, "_parent_id" ) << ".load() );\n";
+        os << "              iter = " << EG_ITERATOR_TYPE << "( " << Printer( pIteratorData, "_parent_id" ) << ".load() );\n";
         os << "              if( iter.protection )\n";
         os << "                  break;\n";
         os << "              expected = iter;\n";
-        os << "              EGInstance freeCellIndex = static_cast< EGInstance >( iter.tail );\n";
+        os << "              " << EG_INSTANCE << " freeCellIndex = static_cast< " << EG_INSTANCE << " >( iter.tail );\n";
         os << "              //if buffer is full then set the protection bit while freeing\n";
         os << "              if( iter.full )\n";
         os << "              {\n";
@@ -2146,7 +2055,7 @@ namespace eg
         os << "                  iter.full = 0U;\n";
         os << "              }\n";
         os << "              //claim the index to store free instance\n";
-        os << "              if( static_cast< EGInstance >( iter.tail ) == " << pAction->getLocalDomainSize() << " - 1U )\n";
+        os << "              if( static_cast< " << EG_INSTANCE << " >( iter.tail ) == " << pAction->getLocalDomainSize() << " - 1U )\n";
         os << "              {\n";
         os << "                  iter.tail = 0U;\n";
         os << "              }\n";
@@ -2176,7 +2085,7 @@ namespace eg
                 {
                     if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
                     {
-        os << "         for( EGInstance childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
+        os << "         for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
                                 "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
         os << "         {\n";
         os << "             " << pChildAction->getName() << "_stopper( childIndex );\n";
@@ -2184,11 +2093,11 @@ namespace eg
                     }
                 }
         
-        os << "         " << Printer( pRunningData, "_gid" ) << " = EG_INVALID_TIMESTAMP;\n";
-        os << "         " << Printer( pPausedData, "_gid" ) << " = EG_INVALID_TIMESTAMP;\n";
+        os << "         " << Printer( pRunningData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
+        os << "         " << Printer( pPausedData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
         os << "         " << Printer( pStoppedTimestamp, "_gid" ) << " = clock::subcycle() + 2U;\n";
         os << "         " << Printer( pCoroutineData, "_gid" ) << ".destroy();\n";
-        os << "         __eg_event ev = { \"stop\", clock::subcycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( __eg_reference ) };\n";
+        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::subcycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "         g_eg_event_log->PutEvent( ev );\n";
                 //if there is an object mapping then start it
                 if( pObject )
@@ -2205,24 +2114,24 @@ namespace eg
                 const DataMember* pCoroutineData = layout.getDataMember( pAction->getCoroutine() );
                 const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
                 
-        os << "     if( " << Printer( pRunningData, "_gid" ) << " != EG_INVALID_TIMESTAMP )\n";
+        os << "     if( " << Printer( pRunningData, "_gid" ) << " != " << EG_INVALID_TIMESTAMP << " )\n";
         os << "     {\n";
                         //stop the subtree
                 for( const concrete::Element* pChild : pAction->getChildren() )
                 {
                     if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
                     {
-        os << "         for( EGInstance childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
+        os << "         for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
                                 "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
         os << "         {\n";
         os << "             " << pChildAction->getName() << "_stopper( childIndex );\n";
         os << "         }\n";
                     }
                 }
-        os << "         " << Printer( pRunningData, "_gid" ) << " = EG_INVALID_TIMESTAMP;\n";
-        os << "         " << Printer( pPausedData, "_gid" ) << " = EG_INVALID_TIMESTAMP;\n";
+        os << "         " << Printer( pRunningData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
+        os << "         " << Printer( pPausedData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
         os << "         " << Printer( pCoroutineData, "_gid" ) << ".destroy();\n";
-        os << "         __eg_event ev = { \"stop\", clock::subcycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( __eg_reference ) };\n";
+        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::subcycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "         g_eg_event_log->PutEvent( ev );\n";
         os << "     }\n";
             }
@@ -2271,26 +2180,26 @@ namespace eg
      
    const char* pszDefaultInterfaces = R"(
 //global dependencies
-static __eg_clock* g_eg_clock;
+static eg::_clock* g_eg_clock;
 
 //clock impl\n";
-EGTimeStamp clock::cycle()      { return g_eg_clock->cycle(); }
-EGTimeStamp clock::subcycle()   { return g_eg_clock->subcycle(); }
+eg::TimeStamp clock::cycle()    { return g_eg_clock->cycle(); }
+eg::TimeStamp clock::subcycle() { return g_eg_clock->subcycle(); }
 float clock::ct()               { return g_eg_clock->ct(); }
 float clock::dt()               { return g_eg_clock->dt(); }
 
-static __eg_event_log* g_eg_event_log;
+static eg::_event_log* g_eg_event_log;
 
-void events::put( const char* type, EGTimeStamp timestamp, const void* value, std::size_t size )
+void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
 {
-    __eg_event ev = { type, timestamp, value, size };
+    eg::_event ev = { type, timestamp, value, size };
     g_eg_event_log->PutEvent( ev );
 }
 )";
         os << pszDefaultInterfaces;
         
         //initialiser
-        os << "void initialise( EGDependencyProvider* pDependencyProvider )\n";
+        os << "void initialise( " << EG_DEPENDENCY_PROVIDER_TYPE << "* pDependencyProvider )\n";
         os << "{    \n";
         os << "    //buffers\n";
         for( const Buffer* pBuffer : layout.getBuffers() )
@@ -2299,8 +2208,8 @@ void events::put( const char* type, EGTimeStamp timestamp, const void* value, st
             "* >( pDependencyProvider->getBuffer( \"" << pBuffer->getVariableName() << "\" ) );\n";
         }
         os << "    //global dependencies\n";
-        os << "    g_eg_clock = reinterpret_cast< __eg_clock* >( pDependencyProvider->getInterface( \"__eg_clock\" ) );\n";
-        os << "    g_eg_event_log = reinterpret_cast< __eg_event_log* >( pDependencyProvider->getInterface( \"__eg_event_log\" ) );\n";
+        os << "    g_eg_clock = reinterpret_cast< eg::_clock* >( pDependencyProvider->getInterface( \"_clock\" ) );\n";
+        os << "    g_eg_event_log = reinterpret_cast< eg::_event_log* >( pDependencyProvider->getInterface( \"_event_log\" ) );\n";
         for( const std::string& strDependency : dependencies )
         {
             std::string strVariable = strDependency;
@@ -2326,9 +2235,9 @@ void events::put( const char* type, EGTimeStamp timestamp, const void* value, st
         os << "inline ResultType __invoke_impl( ContextType context, Args... args );\n";
         os << "\n";
         os << "template< typename ReferenceType >\n";
-        os << "inline bool isInstanceRunning( EGInstance instance );\n";
+        os << "inline bool isInstanceRunning( " << EG_INSTANCE << " instance );\n";
         os << "template< typename ReferenceType >\n";
-        os << "inline const ReferenceType& getReference( EGInstance instance );\n";
+        os << "inline const ReferenceType& getReference( " << EG_INSTANCE << " instance );\n";
         os << "\n";
         
         std::vector< const InvocationSolution* > invocations;
@@ -2345,16 +2254,16 @@ void events::put( const char* type, EGTimeStamp timestamp, const void* value, st
         os << "\n//generic variant invocation adaptor\n";
         os << "template< typename... Ts >\n";
         os << "template< typename TypePath, typename Operation, typename... Args >\n";
-        os << "typename result_type< __eg_variant< Ts... >, TypePath, Operation >::Type\n";
+        os << "typename " << EG_RESULT_TYPE << "< __eg_variant< Ts... >, TypePath, Operation >::Type\n";
         os << "__eg_variant< Ts... >::invoke( Args... args )\n";
         os << "{\n";
-        os << "    using CanonicalTypePathType = typename __eg_CanonicaliseTypePath< TypePath >::Type;\n";
-        os << "    return __invoke_impl< typename result_type< __eg_variant< Ts... >, TypePath, Operation >::Type, __eg_variant< Ts... >, CanonicalTypePathType, Operation >( *this, args... );\n";
+        os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
+        os << "    return __invoke_impl< typename " << EG_RESULT_TYPE << "< __eg_variant< Ts... >, TypePath, Operation >::Type, __eg_variant< Ts... >, CanonicalTypePathType, Operation >( *this, args... );\n";
         os << "}\n";
         os << "\n";
         
         os << "template< class ReferenceType >\n";
-        os << "EGReferenceIterator< ReferenceType >& EGReferenceIterator< ReferenceType >::operator++()\n";
+        os << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >& " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator++()\n";
         os << "{\n";
         os << "    while( instance != sentinal )\n";
         os << "    {\n";
@@ -2367,7 +2276,7 @@ void events::put( const char* type, EGTimeStamp timestamp, const void* value, st
         os << "    return *this;\n";
         os << "}\n";
         os << "template< class ReferenceType >\n";
-        os << "const ReferenceType& EGReferenceIterator< ReferenceType >::operator*()\n";
+        os << "const ReferenceType& " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator*()\n";
         os << "{\n";
         os << "    return getReference< ReferenceType >( instance );\n";
         os << "}\n";

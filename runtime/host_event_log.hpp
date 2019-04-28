@@ -2,7 +2,7 @@
 #ifndef EG_EVENT_LOG_IMPL_24_04_2019
 #define EG_EVENT_LOG_IMPL_24_04_2019
 
-struct HostEventLog : public __eg_event_log
+struct HostEventLog : public eg::_event_log
 {
     HostEventLog( const IPC::PID& hostPID, const boost::filesystem::path& filePath )
         :   m_eventLog( hostPID, filePath )
@@ -10,12 +10,12 @@ struct HostEventLog : public __eg_event_log
     }
     
     
-    virtual __eg_event_iterator GetEventIterator()
+    virtual eg::event_iterator GetEventIterator()
     {
         return m_eventLog.head();
     }
     
-    virtual bool GetEvent( __eg_event_iterator& iterator, __eg_event& event )
+    virtual bool GetEvent( eg::event_iterator& iterator, eg::_event& event )
     {
         IPC::Event::Event readEvent;
         if( m_eventLog.read( iterator, readEvent ) )
@@ -32,7 +32,7 @@ struct HostEventLog : public __eg_event_log
         }
     }
     
-    virtual void PutEvent( const __eg_event& event )
+    virtual void PutEvent( const eg::_event& event )
     {
         m_eventLog.write( IPC::Event::Event( event.type, 
             strlen( event.type ), event.timestamp, event.value, event.size ) );

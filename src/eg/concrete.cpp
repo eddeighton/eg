@@ -215,17 +215,17 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp :
-                os << "EGTimeStamp";
+                os << EG_TIME_STAMP;
                 break;
             case eActionRunning      :
             case eActionPaused       :
-                os << "EGTimeStamp";
+                os << EG_TIME_STAMP;
                 break;
             case eActionCoroutine    :
-                os << "EGCoroutine";
+                os << EG_COROUTINE_TYPE;
                 break;
             case eActionEventIter    :
-                os << "__eg_event_iterator";
+                os << EG_EVENT_ITERATOR;
                 break;
             case eActionObject       :
                 //use the type traits in the interface
@@ -233,7 +233,7 @@ namespace concrete
                     VERIFY_RTE( m_pAction );
                     const abstract::Action* pAction = m_pAction->getAction();
                     
-                    os << "ObjectTraits< ";
+                    os << EG_OBJECT_TRAITS << "< ";
                     
                     os << pAction->getBaseType();
                     
@@ -253,13 +253,13 @@ namespace concrete
                 }
                 break;
             case eActionAllocatorData:
-                os << "EGInstance";
+                os << EG_INSTANCE;
                 break;
             case eActionAllocatorHead:
                 os << "std::atomic< std::uint64_t >";
                 break;
             case eActionStopTimestamp:
-                os << "EGTimeStamp";
+                os << EG_TIME_STAMP;
                 break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
@@ -314,7 +314,7 @@ namespace concrete
                 {
                     os << strIndent; 
                     printer.printVariableAccess( os, strIndex ); 
-                    os << " = EG_INVALID_TIMESTAMP;\n";
+                    os << " = " << EG_INVALID_TIMESTAMP << ";\n";
                 }
                 break;
             case eActionCoroutine       : 
@@ -328,7 +328,7 @@ namespace concrete
                     const abstract::Action* pAction = m_pAction->getAction();
                     os << strIndent;
                     printer.printVariableAccess( os, strIndex );
-                    os << " = ObjectTraits< ";
+                    os << " = " << EG_OBJECT_TRAITS << "< ";
                     os << pAction->getBaseType();
                     if( m_pDependency )
                     {
@@ -379,7 +379,7 @@ namespace concrete
                 {
                     VERIFY_RTE( m_pAction );
                     const abstract::Action* pAction = m_pAction->getAction();
-                    os << strIndent << "ObjectTraits< ";
+                    os << strIndent << EG_OBJECT_TRAITS << "< ";
                     os << pAction->getBaseType();
                     if( m_pDependency )
                     {
@@ -420,7 +420,7 @@ namespace concrete
                 {
                     VERIFY_RTE( m_pAction );
                     const abstract::Action* pAction = m_pAction->getAction();
-                    os << strIndent << "ObjectTraits< ";
+                    os << strIndent << EG_OBJECT_TRAITS << "< ";
                     os << pAction->getBaseType();
                     if( m_pDependency )
                     {
@@ -462,7 +462,7 @@ namespace concrete
                 {
                     VERIFY_RTE( m_pAction );
                     const abstract::Action* pAction = m_pAction->getAction();
-                    os << strIndent << "ObjectTraits< ";
+                    os << strIndent << EG_OBJECT_TRAITS << "< ";
                     os << pAction->getBaseType();
                     if( m_pDependency )
                     {

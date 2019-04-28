@@ -16,12 +16,13 @@
 namespace eg
 {
     class Parser;
+    class ObjectFactoryImpl;
     
     namespace input
     {
         class Element : public IndexedObject
         {
-            friend class ObjectFactoryImpl;
+            friend class ::eg::ObjectFactoryImpl;
         protected:
             Element( const IndexedObject& object );
         };
@@ -45,7 +46,7 @@ namespace eg
 
         class Dimension : public Element
         {
-            friend class ObjectFactoryImpl;
+            friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
         public:
             static const ObjectType Type = eInputDimension;
@@ -65,7 +66,7 @@ namespace eg
 
         class Include : public Element
         {
-            friend class ObjectFactoryImpl;
+            friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
         public:
             static const ObjectType Type = eInputInclude;
@@ -91,7 +92,7 @@ namespace eg
 
         class Action : public Element
         {
-            friend class ObjectFactoryImpl;
+            friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
         public:
             static const ObjectType Type = eInputAction;
@@ -124,7 +125,7 @@ namespace eg
 
         class Root : public Action
         {
-            friend class ObjectFactoryImpl;
+            friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
         public:
             static const ObjectType Type = eInputRoot;

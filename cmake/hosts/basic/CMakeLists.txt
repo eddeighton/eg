@@ -8,9 +8,10 @@ include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 
 #get the sources
 set( BASIC_HOST_SOURCE_DIR ${EG_ROOT_DIR}/src/hosts/basic )
-file( GLOB BASIC_HOST_SOURCE_HEADERS ${BASIC_HOST_SOURCE_DIR}/*.hpp )
-file( GLOB BASIC_HOST_SOURCE_SOURCES ${BASIC_HOST_SOURCE_DIR}/*.cpp )
-set( BASIC_HOST_SOURCES ${BASIC_HOST_SOURCE_HEADERS} ${BASIC_HOST_SOURCE_SOURCES} )
+
+set( BASIC_HOST_SOURCES ${EG_ROOT_DIR}/src/hosts/python_codegen.cpp
+                        ${BASIC_HOST_SOURCE_DIR}/main.cpp )
+
 source_group( src FILES ${BASIC_HOST_SOURCES} )
 
 add_executable( basic_host 

@@ -368,12 +368,12 @@ namespace eg
         return pCommonRoot;
     }
     
-    inline bool isOperationEnumeration( EGTypeID id )
+    inline bool isOperationEnumeration( TypeID id )
     {
         switch( id )
         {
-            case eEmpty:
-            case eRange:
+            case id_Empty:
+            case id_Range:
                 return true;
             default:
                 return false;
@@ -470,27 +470,27 @@ namespace eg
             if( pLast )
             {
                 //if start operation then we actually want to derive the parent
-                if( m_operationType == eStart )
-                {
-                    const concrete::Element* pFrom = pLast->getInstance();
-                    
-                    VERIFY_RTE( name.pInheritanceNode->getAction() );
-                    const concrete::Element* pTo = name.pInheritanceNode->getAction();
-                    const concrete::Element* pParent = pTo->getParent();
-                    VERIFY_RTE( pParent );
-                    
-                    if( pStep = buildDerivation( analysis, pFrom, pParent, pStep, true ) )
-                    {
-                        ASSERT( name.pInheritanceNode->getAction() );
-                        pStep = addStep( pParent, pStep, DerivationStep::eTarget, 1 );
-                        m_targetTypes.push_back( pTo->getAbstractElement() );
-                    }
-                    else
-                    {
-                        //derivation failed...
-                    }
-                }
-                else
+                //if( m_operationType == id_Start )
+                //{
+                //    const concrete::Element* pFrom = pLast->getInstance();
+                //    
+                //    VERIFY_RTE( name.pInheritanceNode->getAction() );
+                //    const concrete::Element* pTo = name.pInheritanceNode->getAction();
+                //    const concrete::Element* pParent = pTo->getParent();
+                //    VERIFY_RTE( pParent );
+                //    
+                //    if( pStep = buildDerivation( analysis, pFrom, pParent, pStep, true ) )
+                //    {
+                //        ASSERT( name.pInheritanceNode->getAction() );
+                //        pStep = addStep( pTo, pStep, DerivationStep::eStart, 1 );
+                //        m_targetTypes.push_back( pTo->getAbstractElement() );
+                //    }
+                //    else
+                //    {
+                //        //derivation failed...
+                //    }
+                //}
+                //else
                 {
                     const concrete::Element* pFrom = pLast->getInstance();
                     const concrete::Element* pTo   = name.getInstance();
@@ -543,10 +543,14 @@ namespace eg
         }
     }
     
-    
-    __eg_reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context, const DerivationStep* pStep, int& iPriority ) const
+    bool InvocationSolution::isImplicitStarter() const
     {
-        __eg_reference next = context;
+        return ( m_targetTypes.size() == 1U ) && dynamic_cast< const abstract::Action* >( m_targetTypes.front() );
+    }
+    
+    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const
+    {
+        reference next = context;
         
         switch( pStep->type )
         {
@@ -557,12 +561,13 @@ namespace eg
                     const abstract::Action* pAbstractAction = pAction->getAction();
                     ASSERT( pAbstractAction );
                     
-                    next = __eg_reference{  context.instance / pStep->domain, 
-                                            static_cast< EGTypeID >( pAbstractAction->getIndex() ), 
+                    next = reference{  context.instance / pStep->domain, 
+                                            static_cast< TypeID >( pAbstractAction->getIndex() ), 
                                             0 };
                     iPriority = 1;
                 }
                 break;
+            case DerivationStep::eTarget      :
             case DerivationStep::eChild       :
                 {
                     if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance ) )
@@ -570,8 +575,8 @@ namespace eg
                         const abstract::Action* pAbstractAction = pAction->getAction();
                         ASSERT( pAbstractAction );
                     
-                        next = __eg_reference{  context.instance, 
-                                                static_cast< EGTypeID >( pAbstractAction->getIndex() ), 
+                        next = reference{  context.instance, 
+                                                static_cast< TypeID >( pAbstractAction->getIndex() ), 
                                                 0 };
                         iPriority = 1;
                     }
@@ -581,8 +586,8 @@ namespace eg
                         const abstract::Dimension* pAbstractDimension = pDimension->getDimension();
                         ASSERT( pAbstractDimension );
                         
-                        next = __eg_reference{  context.instance, 
-                                                static_cast< EGTypeID >( pAbstractDimension->getIndex() ), 
+                        next = reference{  context.instance, 
+                                                static_cast< TypeID >( pAbstractDimension->getIndex() ), 
                                                 0 };
                         iPriority = 1;
                     }
@@ -594,8 +599,9 @@ namespace eg
                 break;
             case DerivationStep::eLink        :
             case DerivationStep::eDeReference :
-            case DerivationStep::eTarget      :
+                break;
             case DerivationStep::eRoot        :
+                break;
             case DerivationStep::eEnum        :
             case DerivationStep::eFailed      :
                 break;
@@ -604,7 +610,7 @@ namespace eg
         for( const DerivationStep* pChildStep : pStep->next )
         {
             int priority = 0, best = -1;
-            __eg_reference candidate = evaluate( evaluator, next, pChildStep, priority );
+            reference candidate = evaluate( evaluator, next, pChildStep, priority );
             if( priority == best )
             {
                 //ambiguity
@@ -619,7 +625,7 @@ namespace eg
         return next;
     }
     
-    __eg_reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const __eg_reference& context ) const
+    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context ) const
     {
         int priority = 0;
         return evaluate( evaluator, context, m_pRoot, priority );

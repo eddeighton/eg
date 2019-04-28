@@ -1,5 +1,7 @@
 
 #include "eg/implementation_session.hpp"
+#include "eg/abstract.hpp"
+#include "eg/codegen.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -8,6 +10,7 @@
 
 #include <iostream>
 
+extern void generate_python( std::ostream& os, eg::ReadSession& session );
 
 int main( int argc, const char* argv[] )
 {
@@ -89,6 +92,14 @@ int main( int argc, const char* argv[] )
     os << "#include \"structures.hpp\"\n";
     os << "#include \"host_clock.hpp\"\n";
     os << "#include \"host_event_log.hpp\"\n";
+    os << "#include \"pybind11/embed.h\"\n";
+    os << "#include \"pybind11/numpy.h\"\n";
+    os << "#include \"pybind11/stl.h\"\n";
+    os << "#include \"pybind11/stl_bind.h\"\n";
+    os << "#include \"py_eg_reference.hpp\"\n";
+    os << "#include \"eg_runtime/eg_runtime.hpp\"\n";
+    os << "#include <boost/program_options.hpp>\n";
+    
     
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
@@ -97,13 +108,11 @@ int main( int argc, const char* argv[] )
         //os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
     }
     
-    os << "\n";
-    
     os << "void allocate_buffers()\n";
     os << "{\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-    os << "    for( EGInstance i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
+    os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
@@ -122,7 +131,7 @@ int main( int argc, const char* argv[] )
     for( std::size_t sz = layout.getBuffers().size(); sz > 0U; --sz )
     {
         const eg::Buffer* pBuffer = layout.getBuffers()[ sz - 1U ];
-    os << "    for( EGInstance i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
+    os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
@@ -135,7 +144,7 @@ int main( int argc, const char* argv[] )
     os << "\n";
     
     os << "//initialiser\n";
-    os << "extern void initialise( EGDependencyProvider* pDependencyProvider );\n";
+    os << "extern void initialise( " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "* pDependencyProvider );\n";
     
     os << "\n";
     
@@ -146,8 +155,8 @@ int main( int argc, const char* argv[] )
     {
         if( pAction->getParent() )
         {
-    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( EGInstance _gid );\n";
-    os << "extern void " << pAction->getName() << "_stopper( EGInstance _gid );\n";
+    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
+    os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
     //os << "extern bool " << pAction->getName() << "_executor();\n";
     
     ////executor
@@ -158,8 +167,8 @@ int main( int argc, const char* argv[] )
     const eg::DataMember* pPauseTimestamp   = layout.getDataMember( pAction->getPauseTimestamp()   );
     const eg::DataMember* pCoroutine        = layout.getDataMember( pAction->getCoroutine()        );
     
-    os << "    const EGTimeStamp subcycle = clock::subcycle();\n";
-    os << "    for( EGInstance i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
+    os << "    const " << eg::EG_TIME_STAMP << " subcycle = clock::subcycle();\n";
+    os << "    for( " << eg::EG_INSTANCE << " i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
     os << "    {\n";
     os << "        if( " << eg::Printer( pRunningTimestamp, "i" ) << " <= subcycle )\n";
     os << "        {\n";
@@ -184,9 +193,11 @@ int main( int argc, const char* argv[] )
     }
     
     os << "\n\n";
+    os << "std::shared_ptr< std::mutex > g_pSimulationMutex;\n";
     
     os << "bool executeSchedule()\n";
     os << "{\n";
+    os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
     os << "    bool bWaited = false;\n";
     for( const eg::concrete::Action* pAction : actions )
     {
@@ -197,14 +208,16 @@ int main( int argc, const char* argv[] )
     os << "}\n";
     
     os << "\n";
+    generate_python( os, session );
+    os << "\n";
     
     os << "//Dependency Provider Implementation\n";
-    os << "struct BasicHost_EGDependencyProvider : public EGDependencyProvider\n";
+    os << "struct BasicHost_EGDependencyProvider : public " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "\n";
     os << "{\n";
-    os << "     __eg_clock* m_pClock;\n";
-    os << "     __eg_event_log* m_pEventLog;\n";
+    os << "     eg::_clock* m_pClock;\n";
+    os << "     eg::_event_log* m_pEventLog;\n";
     os << "\n";
-    os << "     BasicHost_EGDependencyProvider( __eg_clock* pClock, __eg_event_log* pEventLog )\n";
+    os << "     BasicHost_EGDependencyProvider( eg::_clock* pClock, eg::_event_log* pEventLog )\n";
     os << "         :   m_pClock( pClock ),\n";
     os << "             m_pEventLog( pEventLog )\n";
     os << "     {\n";
@@ -221,8 +234,8 @@ int main( int argc, const char* argv[] )
     os << "    }\n";
     os << "    virtual void* getInterface( const char* pszName )\n";
     os << "    {\n";
-    os << "        if( 0U == strcmp( pszName, \"__eg_clock\" ) ) return m_pClock;\n";
-    os << "        if( 0U == strcmp( pszName, \"__eg_event_log\" ) ) return m_pEventLog;\n";
+    os << "        if( 0U == strcmp( pszName, \"_clock\" ) ) return m_pClock;\n";
+    os << "        if( 0U == strcmp( pszName, \"_event_log\" ) ) return m_pEventLog;\n";
     os << "        return nullptr;\n";
     os << "    }\n";
     os << "};\n";
@@ -236,20 +249,56 @@ int main( int argc, const char* argv[] )
     
 int main( int argc, const char* argv[] )
 {
+    std::string strPythonFile;
+    std::string strDatabaseFile;
+    
+    {
+        bool bDebug = false;
+        namespace po = boost::program_options;
+        po::variables_map vm;
+        try
+        {
+            po::options_description desc("Allowed options");
+            desc.add_options()
+                ("help", "produce help message")
+                
+                //options
+                ("debug",       po::value< bool >( &bDebug )->implicit_value( true ), 
+                    "Wait at startup to allow attaching a debugger" )
+                ("python",      po::value< std::string >( &strPythonFile ), "Python file to run" )
+                ("database",    po::value< std::string >( &strDatabaseFile ), "Program Database" )
+            ;
+
+            po::positional_options_description p;
+            p.add( "python", -1 );
+
+            po::store( po::command_line_parser( argc, argv).
+                        options( desc ).
+                        positional( p ).run(),
+                        vm );
+            po::notify(vm);
+
+            if (vm.count("help"))
+            {
+                std::cout << desc << "\n";
+                return 1;
+            }
+        }
+        catch( std::exception& )
+        {
+            std::cout << "Invalid input. Type '--help' for options\n";
+            return 1;
+        }
+        //wait for input 
+        if( bDebug )
+        {
+            Common::debug_break();
+        }
+    }
+    
     try
     {
-        HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
-        if( argc > 1 )
-        {
-            sleepDuration = std::chrono::milliseconds( atoi( argv[ 1 ] ) );
-        }
-        
-        //wait for input 
-        if( argc > 2 )
-        {
-            char c;
-            std::cin >> c;
-        }
+        HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 1000 / 60 );
         
         IPC::PID thePID;
         
@@ -271,6 +320,33 @@ int main( int argc, const char* argv[] )
         
         //start the root
         root_starter( 0 );
+        
+        g_pSimulationMutex = std::make_shared< std::mutex >();
+        std::unique_ptr< std::thread > pPythonThread;
+        if( !strPythonFile.empty() && !strDatabaseFile.empty() )
+        {
+            std::string strScript;
+            const boost::filesystem::path pythonFilePath = 
+                boost::filesystem::edsCannonicalise(
+                    boost::filesystem::absolute( strPythonFile ) );
+            if( !boost::filesystem::exists( pythonFilePath ) )
+            {
+                std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
+                return 0;
+            } 
+            boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
+            
+            const boost::filesystem::path databaseFilePath = 
+                boost::filesystem::edsCannonicalise(
+                    boost::filesystem::absolute( strDatabaseFile ) );
+            if( !boost::filesystem::exists( databaseFilePath ) )
+            {
+                std::cout << "Cannot locate file: " << databaseFilePath.string() << std::endl;
+                return 0;
+            } 
+            pPythonThread = std::make_unique< std::thread >( 
+                std::bind( &runPython, strDatabaseFile, strScript ) );
+        }
         
         while( g_root[ 0 ].g_root_timestamp_runnning <= clock::subcycle() )
         {
@@ -298,6 +374,8 @@ int main( int argc, const char* argv[] )
                 }
             }
         }
+        
+        if( pPythonThread ) pPythonThread->join();
         
     }
     catch( std::exception& e )
