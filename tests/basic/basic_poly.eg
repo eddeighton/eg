@@ -39,8 +39,8 @@ action B[ 2 ] : Base
     }
 }
 
-Base baseA = A();
-Base baseB = B();
+Base2 baseA = A();
+Base2 baseB = B();
 
 baseA.theStr( std::string( "A" ) );
 baseB.theStr( std::string( "B" ) );

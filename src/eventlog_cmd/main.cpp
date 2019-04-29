@@ -106,17 +106,46 @@ struct CmdLine
 };
 
 
-void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDatabase, 
-        const IPC::Event::Event& event, std::ostream& os )
+class WinConsole
 {
-    HANDLE hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
-
+public:
+    WinConsole()
+    {
+        if( !hConsole = GetStdHandle(STD_OUTPUT_HANDLE) )
+        {
+            THROW_RTE( "Failed to get console" );
+        }
+        
+        if( !GetConsoleScreenBufferInfo( hConsole, &csbiScreenInfo ) )
+        {
+            THROW_RTE( "Failed to get console info" );
+        }
+    }
     
+    ~WinConsole()
+    {
+        SetConsoleTextAttribute( hConsole, csbiScreenInfo.wAttributes );
+    }
+    
+    void colour( WORD wdColour )
+    {
+        SetConsoleTextAttribute( hConsole, wdColour );
+    }
+private:
+    HANDLE hConsole;
+    CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
+    
+};
+    
+
+void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDatabase, 
+        const IPC::Event::Event& event, std::ostream& os, WinConsole& console )
+{
     if( 0 == strcmp( event.getType_c_str(), "start" ) )
     {
         if( cmdLine.keep( event.getType_c_str() ) )
         {
-            SetConsoleTextAttribute( hConsole, FOREGROUND_GREEN );
+            console.colour( FOREGROUND_GREEN );
             
             VERIFY_RTE( sizeof( eg::reference ) == event.getValueSize() );
             const eg::reference* pRef = reinterpret_cast< const eg::reference* >( event.getValue() );
@@ -136,7 +165,7 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
     {
         if( cmdLine.keep( event.getType_c_str() ) )
         {
-            SetConsoleTextAttribute( hConsole, FOREGROUND_BLUE );
+            console.colour( FOREGROUND_BLUE );
             
             VERIFY_RTE( sizeof( eg::reference ) == event.getValueSize() );
             const eg::reference* pRef = reinterpret_cast< const eg::reference* >( event.getValue() );
@@ -156,7 +185,7 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
     {
         if( cmdLine.keep( event.getType_c_str() ) )
         {
-            SetConsoleTextAttribute( hConsole, FOREGROUND_RED );
+            console.colour( FOREGROUND_RED );
             os << "log   " << reinterpret_cast< const char* >( event.getValue() ) << std::endl;
         }
     }
@@ -164,7 +193,7 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
     {
         if( cmdLine.keep( event.getType_c_str() ) )
         {
-            SetConsoleTextAttribute( hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY );
+            console.colour( FOREGROUND_RED | FOREGROUND_INTENSITY );
             os << "error : " << reinterpret_cast< const char* >( event.getValue() ) << std::endl;
         }
     }
@@ -172,7 +201,7 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
     {
         if( cmdLine.keep( event.getType_c_str() ) )
         {
-            SetConsoleTextAttribute( hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY );
+            console.colour( FOREGROUND_GREEN | FOREGROUND_INTENSITY );
             os << "pass  : " << reinterpret_cast< const char* >( event.getValue() ) << std::endl;
         }
     }
@@ -180,7 +209,7 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
     {
         if( cmdLine.keep( event.getType_c_str() ) )
         {
-            SetConsoleTextAttribute( hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY );
+            console.colour( FOREGROUND_RED | FOREGROUND_INTENSITY );
             os << "fail  : " << reinterpret_cast< const char* >( event.getValue() ) << std::endl;
         }
     }
@@ -188,12 +217,12 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
     {
         if( cmdLine.keep( event.getType_c_str() ) )
         {
-            SetConsoleTextAttribute( hConsole, FOREGROUND_BLUE | FOREGROUND_INTENSITY );
+            console.colour( FOREGROUND_BLUE | FOREGROUND_INTENSITY );
             os << "unknown event type: " << event.getType_c_str() << std::endl;
         }
     }
 }
-    
+
 int mainImpl( int argc, char* argv[] )
 {
     CmdLine cmdLine;
@@ -212,6 +241,8 @@ int mainImpl( int argc, char* argv[] )
         IPC::Event::Server server( pid, cmdLine.eventLogPath );
     }
     
+    WinConsole console;
+    
     std::shared_ptr< eg::ReadSession > pDatabase;
     if( !cmdLine.databasePath.empty() )
     {
@@ -226,7 +257,7 @@ int mainImpl( int argc, char* argv[] )
         IPC::Event::Event event;
         while( eventLog.read( iter, event ) )
         {
-            printEvent( cmdLine, pDatabase, event, std::cout );
+            printEvent( cmdLine, pDatabase, event, std::cout, console );
         }
         
     }
@@ -244,7 +275,7 @@ int mainImpl( int argc, char* argv[] )
             IPC::Event::Event event;
             while( eventLog.read( iter, event ) )
             {
-                printEvent( cmdLine, pDatabase, event, std::cout );
+                printEvent( cmdLine, pDatabase, event, std::cout, console );
             }
             
             if( tick.elapsed( 1.0f ) )
