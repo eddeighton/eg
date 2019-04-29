@@ -276,12 +276,12 @@ namespace eg
     {
         return *one< Layout >( getObjects( IndexedObject::ANALYSIS_FILE ) );
     }
-    const abstract::Action* ReadSession::getAbstractAction( TypeID id ) const
+    const concrete::Action* ReadSession::getConcreteAction( TypeID id ) const
     {
         const IndexedObject::Array& tree = getObjects( IndexedObject::MASTER_FILE );
         if( id >=0 && id < static_cast< TypeID >( tree.size() ) )
         {
-            return dynamic_cast< const abstract::Action* >( tree[ id ] );
+            return dynamic_cast< const concrete::Action* >( tree[ id ] );
         }
         return nullptr;
     }

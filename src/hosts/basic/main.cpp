@@ -292,7 +292,12 @@ int main( int argc, const char* argv[] )
         //wait for input 
         if( bDebug )
         {
+#ifdef _DEBUG
             Common::debug_break();
+#else
+            char c;
+            std::cin >> c;
+#endif 
         }
     }
     

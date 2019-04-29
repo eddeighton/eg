@@ -782,34 +782,29 @@ namespace eg
                 }
             }
             
-            std::set< const abstract::Action*, CompareIndexedObjects > compatibleTypes;
-            
-            std::vector< const concrete::Inheritance_Node* > derived;
-            for( const concrete::Inheritance_Node* pINode : iNodes )
+            std::set< const abstract::Action*, CompareIndexedObjects > staticCompatibleTypes;
+            std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
             {
-                if( !pInstanceAction || ( pINode != pInstanceAction->getInheritance() ) )
+                for( const concrete::Inheritance_Node* pINode : iNodes )
                 {
-                    if( pINode->getAbstractAction() == pNodeAction )
+                    if( !pInstanceAction || ( pINode != pInstanceAction->getInheritance() ) )
                     {
-                        for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
+                        if( pINode->getAbstractAction() == pNodeAction )
                         {
-                            compatibleTypes.insert( pINodeIter->getAbstractAction() );
+                            for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
+                            {
+                                staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
+                                dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
+                            }
+                            pINode->getStaticDerived( staticCompatibleTypes );
+                            pINode->getDynamicDerived( dynamicCompatibleTypes );
                         }
                     }
                 }
             }
             
-            if( pInstanceAction )
-            {
-                pInstanceAction->getInheritance()->getDerived( compatibleTypes );
-            }
-            else
-            {
-                
-            }
-            
             //conversion traits
-            for( const abstract::Action* pCompatible : compatibleTypes )
+            for( const abstract::Action* pCompatible : staticCompatibleTypes )
             {
                 std::ostringstream osCompatibleTypeName;
                 {
@@ -836,7 +831,7 @@ namespace eg
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
             os << "  switch( from.data.type )\n";
             os << "  {\n";
-            for( const abstract::Action* pCompatible : compatibleTypes )
+            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
             {
             os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
             }
@@ -856,7 +851,7 @@ namespace eg
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
             os << "  switch( from.data.type )\n";
             os << "  {\n";
-            for( const abstract::Action* pCompatible : compatibleTypes )
+            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
             {
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
             }

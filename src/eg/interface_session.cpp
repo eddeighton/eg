@@ -70,9 +70,9 @@ namespace eg
             concrete::Inheritance_Node* pChildInheritanceNode = construct< concrete::Inheritance_Node >(); 
             pInheritanceNode->m_children.push_back( pChildInheritanceNode );
             
-            pChildInheritanceNode->m_pInstance  = pInstance;
-            pChildInheritanceNode->m_pParent    = pInheritanceNode;
-            pChildInheritanceNode->m_pAction    = pBase;
+            pChildInheritanceNode->m_pRootConcreteAction    = pInstance;
+            pChildInheritanceNode->m_pParent                = pInheritanceNode;
+            pChildInheritanceNode->m_pAction                = pBase;
             
             m_pDerivationAnalysis->m_inheritanceMap.insert( std::make_pair( pBase, pChildInheritanceNode ) );
             
@@ -127,8 +127,8 @@ namespace eg
                 calculateInstanceActionName( pChildInstance );
                 
                 pChildInstance->m_inheritance = construct< concrete::Inheritance_Node >(); 
-                pChildInstance->m_inheritance->m_pInstance = pChildInstance;
-                pChildInstance->m_inheritance->m_pAction = pChildAction;
+                pChildInstance->m_inheritance->m_pRootConcreteAction    = pChildInstance;
+                pChildInstance->m_inheritance->m_pAction                = pChildAction;
                 
                 m_pDerivationAnalysis->m_inheritanceMap.insert( std::make_pair( pChildAction, pChildInstance->m_inheritance ) );
                 m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pChildAction, pChildInstance ) );
@@ -250,7 +250,8 @@ namespace eg
             pInstance->m_children.push_back( pInstance->m_pAllocatorData );
         }
         
-        for( concrete::Element* pChild : pInstance->m_children )
+        std::vector< concrete::Element* > temp = pInstance->m_children;
+        for( concrete::Element* pChild : temp )
         {
             if( concrete::Action* pChildAction = dynamic_cast< concrete::Action* >( pChild ) )
             {
@@ -277,8 +278,8 @@ namespace eg
         pRoot->m_pParent = nullptr;
         calculateInstanceActionName( pRoot );
         pRoot->m_inheritance = construct< concrete::Inheritance_Node >(); 
-        pRoot->m_inheritance->m_pInstance = pRoot;
-        pRoot->m_inheritance->m_pAction = pActionRoot;
+        pRoot->m_inheritance->m_pRootConcreteAction = pRoot;
+        pRoot->m_inheritance->m_pAction             = pActionRoot;
         
         m_pDerivationAnalysis->m_inheritanceMap.insert( std::make_pair( pActionRoot, pRoot->m_inheritance ) );
         m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pActionRoot, pRoot ) );

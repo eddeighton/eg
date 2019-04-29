@@ -8,28 +8,30 @@ namespace abstract
     std::vector< Element* > getPath( Element* pNode, Element* pFrom /*= nullptr*/ )
     {
         std::vector< Element* > path;
-        Element* pNodeIter = pNode; 
-        do
-        {   VERIFY_RTE( pNodeIter );
-            path.push_back( pNodeIter );
-            pNodeIter = pNodeIter->getParent();
-        }while( ( pNodeIter != pFrom ) && pNodeIter->getInputElement() );
-        
-        std::reverse( path.begin(), path.end() );
+        if( Element* pNodeIter = pNode )
+        {
+            do
+            {   
+                path.push_back( pNodeIter );
+                pNodeIter = pNodeIter->getParent();
+            }while( pNodeIter && ( pNodeIter != pFrom ) && pNodeIter->getInputElement() );
+            std::reverse( path.begin(), path.end() );
+        }
         return path;
     }
     
     std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom /*= nullptr*/ )
     {
         std::vector< const Element* > path;
-        const Element* pNodeIter = pNode; 
-        do
-        {   VERIFY_RTE( pNodeIter );
-            path.push_back( pNodeIter );
-            pNodeIter = pNodeIter->getParent();
-        }while( ( pNodeIter != pFrom ) && pNodeIter->getInputElement() );
-        
-        std::reverse( path.begin(), path.end() );
+        if( const Element* pNodeIter = pNode )
+        {
+            do
+            {   
+                path.push_back( pNodeIter );
+                pNodeIter = pNodeIter->getParent();
+            }while( pNodeIter && ( pNodeIter != pFrom ) && pNodeIter->getInputElement() );
+            std::reverse( path.begin(), path.end() );
+        }
         return path;
     }
     

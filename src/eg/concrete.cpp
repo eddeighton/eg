@@ -36,7 +36,7 @@ namespace concrete
 
     void Inheritance_Node::load( Loader& loader )
     {
-        m_pInstance = loader.loadObjectRef< Action >();
+        m_pRootConcreteAction = loader.loadObjectRef< Action >();
         m_pAction = loader.loadObjectRef< abstract::Action >();
         m_pParent = loader.loadObjectRef< Inheritance_Node >();
         loader.loadObjectVector( m_children );
@@ -46,7 +46,7 @@ namespace concrete
     
     void Inheritance_Node::store( Storer& storer ) const
     {
-        storer.storeObjectRef( m_pInstance );
+        storer.storeObjectRef( m_pRootConcreteAction );
         storer.storeObjectRef( m_pAction );
         storer.storeObjectRef( m_pParent );
         storer.storeObjectVector( m_children );
@@ -157,7 +157,7 @@ namespace concrete
     
     void Dimension_User::print( std::ostream& os, std::string& strIndent ) const
     {
-        os << strIndent << "dim: " << getDimension()->getIdentifier() << "\n";
+        os << strIndent << "dim(" << getIndex() << "): " << getDimension()->getIdentifier() << "\n";
     }
     
     void Dimension_User::printType( std::ostream& os ) const
@@ -265,6 +265,10 @@ namespace concrete
         THROW_RTE( "Unknown generated dimension type" );
     }
     
+    void Dimension_Generated::print( std::ostream& os, std::string& strIndent ) const
+    {
+        //os << strIndent << "gen dim( " << getIndex() << ")\n";
+    }
     void Dimension_Generated::printType( std::ostream& os ) const
     {
         switch( m_type )
@@ -585,7 +589,7 @@ namespace concrete
     void Action::print( std::ostream& os, std::string& strIndent ) const
     {
         const abstract::Action* pAction = getAction();
-        os << strIndent << pAction->getIdentifier() << "\n";
+        os << strIndent << "action(" << getIndex() << ") " << pAction->getIdentifier() << "\n";
         
         if( !m_children.empty() )
         {

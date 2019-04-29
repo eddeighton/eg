@@ -1,42 +1,54 @@
 
 
-abstract Base[ 2 ]
+abstract Base2
+{
+    dim int x;
+}
+
+abstract Base : Base2
 {
     action TestA
     {
-        TEST( theStr() == std::string( "A" ) );
+        TEST_MSG( theStr() == std::string( "A" ), "String should be A: " << theStr() );
     }
     
     action TestB
     {
-        TEST( theStr() == std::string( "B" ) );
+        TEST_MSG( theStr() == std::string( "B" ), "String should be B: " << theStr() );
     }
     
-    //while( TestA.Size() || TestB.Size() )
-    //{
-    //    SLEEP;
-    //}
 }
 
 action A[ 2 ] : Base
 {
     dim std::string theStr;
-    //theStr( std::string( "A" ) );
+    
+    while( TestA.Size() || TestB.Size() )
+    {
+        SLEEP;
+    }
 }
 
 action B[ 2 ] : Base
 {
     dim std::string theStr;
-    //theStr( std::string( "B" ) );
+    
+    while( TestA.Size() || TestB.Size() )
+    {
+        SLEEP;
+    }
 }
 
 Base baseA = A();
 Base baseB = B();
 
+baseA.theStr( std::string( "A" ) );
+baseB.theStr( std::string( "B" ) );
+
 baseA.TestA();
 baseB.TestB();
 
-//while( A.Size() || B.Size() )
-//{
-//    SLEEP;
-//}
+while( A.Size() || B.Size() )
+{
+    SLEEP;
+}

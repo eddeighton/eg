@@ -88,7 +88,7 @@ namespace eg
                 const concrete::Element* getInstance() const
                 {
                     if( pInheritanceNode )
-                        return pInheritanceNode->getAction();
+                        return pInheritanceNode->getRootConcreteAction();
                     else if( pDimension )
                         return pDimension;
                     else

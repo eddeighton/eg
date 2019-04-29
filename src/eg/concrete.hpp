@@ -40,16 +40,24 @@ namespace concrete
         const Inheritance_Node* findInstance( const Element* pInstance, 
             const Dimension*& pDimensionResult, Inheritance_Node_SetCst& visited) const;
             
-        inline void getDerived( std::set< const abstract::Action*, CompareIndexedObjects >& derived ) const
+        inline void getStaticDerived( std::set< const abstract::Action*, CompareIndexedObjects >& derived ) const
         {
             derived.insert( m_pAction );
             for( const Inheritance_Node* p : m_children )
             {
-                p->getDerived( derived );
+                p->getStaticDerived( derived );
+            }
+        }
+        inline void getDynamicDerived( std::set< const concrete::Action*, CompareIndexedObjects >& derived ) const
+        {
+            derived.insert( m_pRootConcreteAction );
+            for( const Inheritance_Node* p : m_children )
+            {
+                p->getDynamicDerived( derived );
             }
         }
         
-        Action* getAction() const { return m_pInstance; }
+        Action* getRootConcreteAction() const { return m_pRootConcreteAction; }
         const ::eg::abstract::Action* getAbstractAction() const { return m_pAction; }
         Inheritance_Node* getParent() const { return m_pParent; }
         const Inheritance_Node_Vector& getChildren() const { return m_children; }
@@ -57,7 +65,7 @@ namespace concrete
         const std::vector< Dimension* >& getDimensions() const { return m_dimensions; }
         
     private:
-        Action* m_pInstance;
+        Action* m_pRootConcreteAction;
         const ::eg::abstract::Action* m_pAction;
         Inheritance_Node* m_pParent = nullptr;
         Inheritance_Node_Vector m_children;
@@ -179,7 +187,6 @@ namespace concrete
         
         const ::eg::abstract::Dimension* getDimension() const { return dynamic_cast< const ::eg::abstract::Dimension* >( m_pElement ); }
         
-        ::eg::TypeID getAbstractTypeID() const { return static_cast< ::eg::TypeID >( getDimension()->getIndex() ); }
     private:
         Dimension_Generated* m_pTimestamp = nullptr;
     };
@@ -218,7 +225,7 @@ namespace concrete
         virtual void store( Storer& storer ) const;
         
         const std::string& getIdentifier() const;
-        virtual void print( std::ostream& os, std::string& strIndent ) const{}
+        virtual void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
         
         virtual int getDataSize() const;
@@ -266,7 +273,6 @@ namespace concrete
         const ::eg::abstract::Action* getAction() const { return dynamic_cast< const ::eg::abstract::Action* >( m_pElement ); }
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
         const std::string& getName() const { return m_strName; }
-        ::eg::TypeID getAbstractTypeID() const { return static_cast< ::eg::TypeID >( getAction()->getIndex() ); }
         
         const Dimension_Generated* getRunningTimestamp () const { return m_pRunningTimestamp ; }
         const Dimension_Generated* getPauseTimestamp   () const { return m_pPauseTimestamp   ; }

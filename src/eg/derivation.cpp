@@ -447,7 +447,7 @@ namespace eg
                         ASSERT( ref.pInheritanceNode );
 
                         DerivationStep* pNextStep = 
-                            addStep( ref.pInheritanceNode->getAction(), pStep, DerivationStep::eDeReference, 1 );
+                            addStep( ref.pInheritanceNode->getRootConcreteAction(), pStep, DerivationStep::eDeReference, 1 );
 
                         for( int j : ref.children )
                         {
@@ -460,9 +460,12 @@ namespace eg
             {
                 pLast = &name;
 
+                DerivationStep* pNextStep =
+                    addStep( name.pInheritanceNode->getRootConcreteAction(), pStep, DerivationStep::eParent, 1 );
+
                 for( int i : name.children )
                 {
-                    buildSolutionGraph_recurse( analysis, resolution, pLast, resolution.nodes[ i ], pStep );
+                    buildSolutionGraph_recurse( analysis, resolution, pLast, resolution.nodes[ i ], pNextStep );
                 }
             }
         }
@@ -489,15 +492,13 @@ namespace eg
                 if( bIsStarter )
                 {
                     const concrete::Element* pFrom = pLast->getInstance();
-                    
-                    VERIFY_RTE( name.pInheritanceNode->getAction() );
-                    const concrete::Element* pTo = name.pInheritanceNode->getAction();
+                    ASSERT( name.pInheritanceNode );
+                    const concrete::Element* pTo = name.pInheritanceNode->getRootConcreteAction();
                     const concrete::Element* pParent = pTo->getParent();
-                    VERIFY_RTE( pParent );
+                    VERIFY_RTE( pTo && pParent );
                     
                     if( pStep = buildDerivation( analysis, pFrom, pParent, pStep, true ) )
                     {
-                        ASSERT( name.pInheritanceNode->getAction() );
                         pStep = addStep( pTo, pStep, DerivationStep::eTarget, 1 );
                         m_targetTypes.push_back( pTo->getAbstractElement() );
                     }
@@ -517,8 +518,8 @@ namespace eg
                         }
                         else 
                         {
-                            ASSERT( name.pInheritanceNode->getAction() );
-                            pStep = addStep( name.pInheritanceNode->getAction(), pStep, DerivationStep::eTarget, 1 );
+                            ASSERT( name.pInheritanceNode );
+                            pStep = addStep( name.pInheritanceNode->getRootConcreteAction(), pStep, DerivationStep::eTarget, 1 );
                         }
                         m_targetTypes.push_back( pStep->pInstance->getAbstractElement() );
                     }

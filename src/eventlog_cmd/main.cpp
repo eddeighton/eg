@@ -123,8 +123,8 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
             
             if( pDatabase )
             {
-                const eg::abstract::Action* pAction = pDatabase->getAbstractAction( pRef->type );
-                os << "start " << pAction->getFriendlyName() << " " << pRef->instance << " " << pRef->timestamp << std::endl;
+                const eg::concrete::Action* pAction = pDatabase->getConcreteAction( pRef->type );
+                os << "start " << pAction->getName() << " " << pRef->instance << " " << pRef->timestamp << std::endl;
             }
             else
             {
@@ -143,8 +143,8 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
             
             if( pDatabase )
             {
-                const eg::abstract::Action* pAction = pDatabase->getAbstractAction( pRef->type );
-                os << "stop  " << pAction->getFriendlyName() << " " << pRef->instance << " " << pRef->timestamp << std::endl;
+                const eg::concrete::Action* pAction = pDatabase->getConcreteAction( pRef->type );
+                os << "stop  " << pAction->getName() << " " << pRef->instance << " " << pRef->timestamp << std::endl;
             }
             else
             {
