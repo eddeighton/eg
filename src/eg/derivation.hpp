@@ -9,10 +9,33 @@
 #include "runtime/eg_common.hpp"
 
 #include <map>
+#include <set>
 #include <vector>
 
 namespace eg
 {
+    template< class T >
+    inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
+    {
+        /*
+        not this...
+        std::sort( ids.begin(), ids.end() );
+        auto last = std::unique( ids.begin(), ids.end() );
+        ids.erase( last, ids.end() );
+        */
+        
+        std::vector< T > result;
+        std::set< T > uniq;
+        for( const T& value : ids )
+        {
+            if( uniq.count( value ) == 0 )
+            {
+                result.push_back( value );
+                uniq.insert( value );
+            }
+        }
+        return result;
+    }
 
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////

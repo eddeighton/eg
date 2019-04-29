@@ -583,11 +583,7 @@ namespace eg
         propagate_failed( m_pRoot );
         
         //uniquify the targets
-        {
-            std::sort( m_targetTypes.begin(), m_targetTypes.end() );
-            auto last = std::unique( m_targetTypes.begin(), m_targetTypes.end() );
-            m_targetTypes.erase( last, m_targetTypes.end() );
-        }
+        m_targetTypes = uniquify_without_reorder( m_targetTypes );
     }
     
     bool InvocationSolution::isImplicitStarter() const

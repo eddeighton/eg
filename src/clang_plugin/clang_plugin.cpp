@@ -303,13 +303,6 @@ namespace eg
         }
     }
     
-    template< class T >
-    void uniquify( std::vector< T >& ids )
-    {
-        std::sort( ids.begin(), ids.end() );
-        auto last = std::unique( ids.begin(), ids.end() );
-        ids.erase( last, ids.end() );
-    }
     
     EGDB_EXPORT void getInvocationResultType( const clang::QualType& type, clang::QualType& resultType )
     {
@@ -362,7 +355,7 @@ namespace eg
                                                 g_pOperationsSession->fromEGTypeID( typeID, false );
                                             std::copy( result.begin(), result.end(), std::back_inserter( contexts ) );
                                         }
-                                        uniquify( contexts );
+                                        contexts = uniquify_without_reorder( contexts );
                                     }
                                     
                                     std::vector< std::vector< const abstract::Element* > > typePathElements;
