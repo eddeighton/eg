@@ -296,7 +296,7 @@ namespace concrete
                     
                     os << pAction->getBaseType();
                     
-                    //only support single object inheritance for now so it is always __interface_Base_0< void >
+                    //only support single object inheritance for now so it is always __eg_Base_0< void >
                     //printActionType( os, pAction );
                     //os << "::__interface_Base_0< void >::Type";
                     

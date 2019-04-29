@@ -1,6 +1,7 @@
 
 #include "eg/implementation_session.hpp"
 #include "eg/codegen.hpp"
+#include "eg/input.hpp"
 
 #include <ostream>
 
@@ -82,10 +83,11 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "//Python Interface\n";
     
     
-    os << "__interface_root< void > get_root()\n";
+    os << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void > get_root()\n";
     os << "{\n";
     os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
-    os << "    return  __interface_root< void >( " << eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", 0 } );\n";
+    os << "    return  " << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void >( " << 
+        eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", 0 } );\n";
     os << "}\n";
     os << "\n";
     

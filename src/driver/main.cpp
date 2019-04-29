@@ -90,7 +90,7 @@ int main( int argc, const char* argv[] )
     bool bBenchCommands = false;
     bool bTestRun = false;
     bool bSaveConfig = false;
-    std::string strConfigurationFile, strHost;
+    std::string strConfigurationFile, strHost = "basic_host";
     Configuration config;
     
     //TODO config this from command line

@@ -83,13 +83,20 @@ namespace eg
             }
         }
         
+        //for range enumerations we want to enumerate all deriving types
+        bool bDerivingPathElements = false;
+        if( operationType == id_Range )
+        {
+            bDerivingPathElements = true;
+        }
+        
         std::vector< std::vector< const concrete::Element* > > concreteTypePath;
         {
             for( const std::vector< const abstract::Element* >& typePathElement : typePath )
             {
                 std::vector< const concrete::Element* > instances;
                 for( const abstract::Element* pElement : typePathElement )
-                    m_pDerivationAnalysis->getInstances( pElement, instances );
+                    m_pDerivationAnalysis->getInstances( pElement, instances, bDerivingPathElements );
                 concreteTypePath.emplace_back( std::move( instances ) );
             }
         }

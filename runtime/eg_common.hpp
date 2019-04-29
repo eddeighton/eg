@@ -19,18 +19,18 @@ namespace eg
 
     enum OperationID : TypeID
     {
-        id_Imp_NoParams             = std::numeric_limits< TypeID >::min(),
-        id_Imp_Params               ,
-        id_Get                      ,
-        id_Update                   ,
-        id_Old                      ,
-        id_Stop                     ,
-        id_Pause                    ,
-        id_Resume                   ,
-        id_Defer                    ,
-        id_Size                     ,
-        id_Range                    ,
-        HIGHEST_OPERATION_TYPE
+        id_Imp_NoParams             = std::numeric_limits< TypeID >::min(),//id_Imp_NoParams (-2147483648)
+        id_Imp_Params               , //id_Imp_Params   (-2147483647)
+        id_Get                      , //id_Get          (-2147483646)
+        id_Update                   , //id_Update       (-2147483645)
+        id_Old                      , //id_Old          (-2147483644)
+        id_Stop                     , //id_Stop         (-2147483643)
+        id_Pause                    , //id_Pause        (-2147483642)
+        id_Resume                   , //id_Resume       (-2147483641)
+        id_Defer                    , //id_Defer        (-2147483640)
+        id_Size                     , //id_Size         (-2147483639)
+        id_Range                    , //id_Range        (-2147483638)
+        HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483637)
     };
 
     enum InvocableID : TypeID

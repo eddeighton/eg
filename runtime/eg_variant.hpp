@@ -57,7 +57,7 @@ namespace eg
             return ( variant_runtime_type_check_helper< sequence >::test( from ) || ... );
         }
     };
-
+    
 }
 
 template< typename... Ts >
@@ -84,7 +84,7 @@ struct [[clang::eg_type( eg::id_Variant )]] __eg_variant
     template< class T >
     inline __eg_variant( const T& from )
     {
-        static_assert( is_convertible_many< T, Ts... >::value, "Incompatible eg type conversion" );
+        static_assert( eg::is_convertible_many< T, Ts... >::value, "Incompatible eg type conversion" );
         data = from.data;
     }
     
@@ -158,5 +158,6 @@ namespace eg
         static constexpr const bool value = is_convertible_many< to, varArgs... >::value;
     };
 }
+
 
 #endif //EG_VARIANT

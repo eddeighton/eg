@@ -1,0 +1,31 @@
+
+
+action A[ 4 ]
+{
+    action B[ 4 ]
+    {
+        action C[ 4 ]
+        {
+        }
+    }
+}
+
+A a = A();
+A::B b = a.B();
+A::B::C c = b.C();
+
+SLEEP;
+SLEEP;
+
+int iCounter = 0;
+for( A a : b.A.Range() )
+{
+    ++iCounter;
+}
+TEST_MSG( iCounter == 1, "iCounter should be 1: " << iCounter );
+
+A aFromB = eg::one< A >( b.A.Range() );
+
+TEST_MSG( a == aFromB, a << " : " << aFromB );
+TEST( a == eg::one< A >( b.A.Range() ) );
+TEST( a == eg::one< A >( c.A.Range() ) );

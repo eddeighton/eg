@@ -1,0 +1,41 @@
+
+
+abstract A
+{
+
+}
+
+action B[ 2 ] : A
+{
+
+}
+
+B();
+
+SLEEP;
+SLEEP;
+
+int iCounter = 0;
+for( A iter : A.Range() )
+{
+    ++iCounter;
+}
+
+for( B iter : A.Range() )
+{
+    ++iCounter;
+}
+
+for( A iter : B.Range() )
+{
+    ++iCounter;
+}
+
+for( B iter : B.Range() )
+{
+    ++iCounter;
+}
+
+TEST_MSG( iCounter == 4, "Counter should be 4: " << iCounter );
+
+

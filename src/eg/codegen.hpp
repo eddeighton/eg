@@ -14,8 +14,8 @@
 namespace eg
 {
     static const char* EG_BASE_PREFIX = "Base_";
-    static const char* EG_INTERFACE_PREFIX = "__interface_";
-    static const char* EG_INTERFACE_PARAMETER_TYPE = "__EGInterface";
+    static const char* EG_INTERFACE_PREFIX = "__eg_";
+    static const char* EG_INTERFACE_PARAMETER_TYPE = "__eg";
     
     static const char* EG_INSTANCE = "eg::Instance";
     static const char* EG_TYPE_ID = "eg::TypeID";

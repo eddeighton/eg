@@ -111,7 +111,8 @@ class WinConsole
 public:
     WinConsole()
     {
-        if( !hConsole = GetStdHandle(STD_OUTPUT_HANDLE) )
+        hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        if( !hConsole )
         {
             THROW_RTE( "Failed to get console" );
         }

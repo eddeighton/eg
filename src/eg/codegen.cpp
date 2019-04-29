@@ -772,22 +772,22 @@ namespace eg
             std::string strActionInterfaceType = getInterfaceType( pNode->getIdentifier() );
             
             const abstract::Action* pNodeAction = dynamic_cast< const abstract::Action* >( pNode );
-            const concrete::Action* pInstanceAction = nullptr;
-            for( const concrete::Action* pInstance : instances )
-            {
-                if( pInstance->getAction() == pNodeAction )
-                {
-                    pInstanceAction = pInstance;
-                    break;
-                }
-            }
+            //const concrete::Action* pInstanceAction = nullptr;
+            //for( const concrete::Action* pInstance : instances )
+            //{
+            //    if( pInstance->getAction() == pNodeAction )
+            //    {
+            //        pInstanceAction = pInstance;
+            //        break;
+            //    }
+            //}
             
             std::set< const abstract::Action*, CompareIndexedObjects > staticCompatibleTypes;
             std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
             {
                 for( const concrete::Inheritance_Node* pINode : iNodes )
                 {
-                    if( !pInstanceAction || ( pINode != pInstanceAction->getInheritance() ) )
+                    //if( !pInstanceAction || ( pINode != pInstanceAction->getInheritance() ) )
                     {
                         if( pINode->getAbstractAction() == pNodeAction )
                         {
@@ -829,6 +829,8 @@ namespace eg
             os << osTypeName.str() << "::" << strActionInterfaceType << "( const TFrom& from )\n";
             os << "{\n";
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
+            if( !dynamicCompatibleTypes.empty() )
+            {
             os << "  switch( from.data.type )\n";
             os << "  {\n";
             for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
@@ -841,6 +843,11 @@ namespace eg
             os << "         data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             os << "         break;\n";
             os << "  }\n";
+            }
+            else
+            {
+            os << "    data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
+            }
             os << "}\n";
             
             //assignment operator
@@ -849,6 +856,8 @@ namespace eg
             os << osTypeNameAsType.str() << "& " << osTypeName.str() << "::operator=( const TFrom& from )\n";
             os << "{\n";
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
+            if( !dynamicCompatibleTypes.empty() )
+            {
             os << "  switch( from.data.type )\n";
             os << "  {\n";
             for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
@@ -861,49 +870,88 @@ namespace eg
             os << "         data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             os << "         break;\n";
             os << "  }\n";
+            }
+            else
+            {
+            os << "    data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
+            }
             os << "  return *this;\n";
             os << "}\n";
             
-            //event access
-            if( pInstanceAction )
-            {
-            const DataMember* pEventIterator = layout.getDataMember( pInstanceAction->getEventIterator() );
-                
+            //get_next_event
             os << osTemplateArgLists.str();
             os << EG_EVENT_TYPE << " " << osTypeName.str() << "::get_next_event() const\n";
             os << "{\n";
             os << "    " << EG_EVENT_TYPE << " ev;\n";
             os << "    " << EG_EVENT_LOG_EVENT_TYPE << " _event;\n";
-            os << "    while( g_eg_event_log->GetEvent( " << pEventIterator->getBuffer()->getVariableName() << 
-                                                            "[ data.instance ]." << pEventIterator->getName() << ", _event ) )\n";
-            os << "    {\n";   
-            os << "         if( 0 == strcmp( _event.type, \"stop\" ) )\n";
-            os << "         {\n";
-            os << "             ev.data = *reinterpret_cast< const " << EG_REFERENCE_TYPE << "* >( _event.value );\n";
-            os << "             break;\n";
-            os << "         }\n"; 
+            os << "    " << EG_EVENT_ITERATOR << "* pIterator = nullptr;\n";
+            
+            if( dynamicCompatibleTypes.size() > 1 )
+            {
+            os << "  switch( data.type )\n";
+            os << "  {\n";
+            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            {
+                const DataMember* pEventIterator = layout.getDataMember( pCompatible->getEventIterator() );
+            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
+            os << "         pIterator = &" << Printer( pEventIterator, "data.instance" ) << ";\n";
+            os << "         break;\n";
+            }
+            os << "     default:\n";
+            os << "         break;\n";
+            os << "  }\n";
+            }
+            else if( dynamicCompatibleTypes.size() == 1 )
+            {
+                const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
+                const DataMember* pEventIterator = layout.getDataMember( pCompatible->getEventIterator() );
+            os << "    pIterator = &" << Printer( pEventIterator, "data.instance" ) << ";\n";
+            }
+            if( !dynamicCompatibleTypes.empty() )
+            {
+            os << "    if( pIterator )\n";
+            os << "    {\n";
+            os << "         while( g_eg_event_log->GetEvent( *pIterator, _event ) )\n";
+            os << "         {\n";   
+            os << "              if( 0 == strcmp( _event.type, \"stop\" ) )\n";
+            os << "              {\n";
+            os << "                  ev.data = *reinterpret_cast< const " << EG_REFERENCE_TYPE << "* >( _event.value );\n";
+            os << "                  break;\n";
+            os << "              }\n"; 
+            os << "         }\n";
             os << "    }\n";
+            }
             os << "    return ev;\n";
             os << "}\n";
             
-            const DataMember* pReference = layout.getDataMember( pInstanceAction->getReference() );
-            const DataMember* pRunning = layout.getDataMember( pInstanceAction->getRunningTimestamp() );
-            
-            //iterator type
+            //getTimestamp
+            if( !dynamicCompatibleTypes.empty() )
+            {
             os << "template<>\n";
-            os << "inline bool isInstanceRunning< " << osTypeVoid.str() << " >( " << EG_INSTANCE << " instance )\n";
+            os << "inline " << EG_TIME_STAMP << " getTimestamp< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
             os << "{\n";
+            if( dynamicCompatibleTypes.size() > 1 )
+            {
+            os << "    switch( type )\n";
+            os << "    {\n";
+            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            {
+                const DataMember* pRunning = layout.getDataMember( pCompatible->getRunningTimestamp() );
+            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
+            os << "         return " << Printer( pRunning, "instance" ) << ";\n";
+            }
+            os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
+            os << "    }\n";
+            }
+            else //if( dynamicCompatibleTypes.size() == 1 )
+            {
+                const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
+                const DataMember* pRunning = layout.getDataMember( pCompatible->getRunningTimestamp() );
             os << "    return " << Printer( pRunning, "instance" ) << ";\n";
-            os << "}\n";
-            os << "\n";
-            os << "template<>\n";
-            os << "inline const " << osTypeVoid.str() << "& getReference< " << osTypeVoid.str() << " >( " << EG_INSTANCE << " instance )\n";
-            os << "{\n";
-            os << "    return " << Printer( pReference, "instance" ) << ";\n";
+            }
             os << "}\n";
             os << "\n";
             }
-            
         }
         void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
         {    
@@ -1111,71 +1159,110 @@ namespace eg
     
     void printReturnType( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
-        if( areTargetTypesHomogeneous( objects, invocation ) )
+        const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
+        switch( invocation.getOperation() )
         {
-            switch( invocation.getOperation() )
-            {
-                case id_Imp_NoParams   :
-                case id_Imp_Params  :
-                    if( invocation.isImplicitStarter() )
+            case id_Imp_NoParams   :
+            case id_Imp_Params  :
+                if( invocation.isImplicitStarter() )
+                {
+                    if( targets.size() > 1 )
                     {
-                        const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
-                        if( targets.size() > 1 )
+                        os << EG_VARIANT_TYPE << "< ";
+                        for( const abstract::Element* pTarget : targets )
                         {
-                            os << EG_VARIANT_TYPE << "< ";
-                            for( const abstract::Element* pTarget : targets )
+                            if( pTarget != targets.front() )
                             {
-                                if( pTarget != targets.front() )
-                                {
-                                    os << ", ";
-                                }
-                                printType( os, objects, pTarget );
+                                os << ", ";
                             }
-                            os << " >";
+                            printType( os, objects, pTarget );
                         }
-                        else
-                        {
-                            printType( os, objects, targets.front() );
-                        }
+                        os << " >";
                     }
-                    else if( invocation.getOperation() == id_Imp_NoParams )
+                    else if( !targets.empty() )
                     {
-                        printType( os, objects, invocation.getTargetTypes().front() );
-                        os << "::Read";
+                        printType( os, objects, targets.front() );
                     }
-                    else if( invocation.getOperation() == id_Imp_Params )
+                    else
                     {
                         os << "void";
                     }
-                    break;
-                case id_Get        :
-                case id_Update     :
-                case id_Old        : 
-                    printType( os, objects, invocation.getTargetTypes().front() );
-                    os << "::Read";
-                    break;
-                case id_Stop       : 
-                case id_Pause      : 
-                case id_Resume     : 
+                }
+                else if( invocation.getOperation() == id_Imp_NoParams )
+                {
+                    if( !targets.empty() )
+                    {
+                        if( areTargetTypesHomogeneous( objects, invocation ) )
+                        {
+                            printType( os, objects, targets.front() );
+                            os << "::Read";
+                        }
+                        else
+                        {
+                            THROW_RTE( "not implemented" );
+                        }
+                    }
+                    else
+                    {
+                        os << "void";
+                    }
+                }
+                else if( invocation.getOperation() == id_Imp_Params )
+                {
                     os << "void";
-                    break;
-                case id_Defer      : 
-                    break;
-                case id_Size      : 
-                    os << "int";
-                    break;
-                case id_Range      : 
-                    printType( os, objects, invocation.getTargetTypes().front() );
-                    os << "::EGRangeType";
-                    break;
-                default:
-                    THROW_RTE( "Unknown operation type" );
-                    break;
-            }
-        }
-        else
-        {
-            THROW_RTE( "not implemented" );
+                }
+                break;
+            case id_Get        :
+            case id_Update     :
+            case id_Old        : 
+                if( !targets.empty() )
+                {
+                    if( areTargetTypesHomogeneous( objects, invocation ) )
+                    {
+                        printType( os, objects, targets.front() );
+                        os << "::Read";
+                    }
+                    else
+                    {
+                        THROW_RTE( "not implemented" );
+                    }
+                }
+                else
+                {
+                    os << "void";
+                }
+                break;
+            case id_Stop       : 
+            case id_Pause      : 
+            case id_Resume     : 
+                os << "void";
+                break;
+            case id_Defer      : 
+                break;
+            case id_Size      : 
+                os << "int";
+                break;
+            case id_Range      : 
+                if( !targets.empty() )
+                {
+                    if( areTargetTypesHomogeneous( objects, invocation ) )
+                    {
+                        printType( os, objects, targets.front() );
+                        os << "::EGRangeType";
+                    }
+                    else
+                    {
+                        THROW_RTE( "not implemented" );
+                    }
+                }
+                else
+                {
+                    os << "void";
+                }
+                break;
+            default:
+                THROW_RTE( "Unknown operation type" );
+                break;
         }
     }
     
@@ -1183,26 +1270,33 @@ namespace eg
     {
         if( areTargetTypesHomogeneous( objects, invocation ) )
         {
+            const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
             switch( invocation.getOperation() )
             {
                 case id_Imp_NoParams   :
                 case id_Imp_Params  :
-                    if( invocation.isImplicitStarter() )
+                    if( !targets.empty() )
                     {
-                    }
-                    else if( invocation.getOperation() == id_Imp_NoParams )
-                    {
-                    }
-                    else if( invocation.getOperation() == id_Imp_Params )
-                    {
-                        printType( os, objects, invocation.getTargetTypes().front() );
-                        os << "::Write";
+                        if( invocation.isImplicitStarter() )
+                        {
+                        }
+                        else if( invocation.getOperation() == id_Imp_NoParams )
+                        {
+                        }
+                        else if( invocation.getOperation() == id_Imp_Params )
+                        {
+                            printType( os, objects, targets.front() );
+                            os << "::Write";
+                        }
                     }
                     break;
                 case id_Get        :
                 case id_Update     :
-                    printType( os, objects, invocation.getTargetTypes().front() );
-                    os << "::Write";
+                    if( !targets.empty() )
+                    {
+                        printType( os, objects, targets.front() );
+                        os << "::Write";
+                    }
                     break;
                 case id_Old        : 
                     break;
@@ -1229,26 +1323,33 @@ namespace eg
     {
         if( areTargetTypesHomogeneous( objects, invocation ) )
         {
+            const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
             switch( invocation.getOperation() )
             {
                 case id_Imp_NoParams   :
                 case id_Imp_Params  :
-                    if( invocation.isImplicitStarter() )
+                    if( !targets.empty() )
                     {
-                    }
-                    else if( invocation.getOperation() == id_Imp_NoParams )
-                    {
-                    }
-                    else if( invocation.getOperation() == id_Imp_Params )
-                    {
-                        printType( os, objects, invocation.getTargetTypes().front() );
-                        os << "::Write value";
+                        if( invocation.isImplicitStarter() )
+                        {
+                        }
+                        else if( invocation.getOperation() == id_Imp_NoParams )
+                        {
+                        }
+                        else if( invocation.getOperation() == id_Imp_Params )
+                        {
+                            printType( os, objects, targets.front() );
+                            os << "::Write value";
+                        }
                     }
                     break;
                 case id_Get        :
                 case id_Update     :
-                    printType( os, objects, invocation.getTargetTypes().front() );
-                    os << "::Write value";
+                    if( !targets.empty() )
+                    {
+                        printType( os, objects, targets.front() );
+                        os << "::Write value";
+                    }
                     break;
                 case id_Old        : 
                     break;
@@ -1470,7 +1571,6 @@ namespace eg
 
                             if( pDimension && pNext->next.size() > 1 )
                             {
-                                THROW_RTE( "What is this" );
                                 const DataMember* pDimensionInstance =
                                     layout.getDataMember( pDimension );
                                 const Buffer* pBuffer = pDimensionInstance->getBuffer();
@@ -1483,11 +1583,11 @@ namespace eg
                                 for( const InvocationSolution::DerivationStep* pIter : pNext->next )
                                 {
                                     if( pIter == pNext->next.front() )
-                                        os << strIndent << "if( " << osVar.str() << " == 0 )\n";
+                                        os << strIndent << "if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
                                     else if( pIter == pNext->next.back() )
-                                        os << strIndent << "else //if( " << osVar.str() << " == 0 )\n";
+                                        os << strIndent << "else //if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
                                     else
-                                        os << strIndent << "else if( " << osVar.str() << " == 0 )\n";
+                                        os << strIndent << "else if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
                                     os << strIndent << "{\n";
                                     strIndent.push_back( ' ' );
                                     strIndent.push_back( ' ' );
@@ -1916,11 +2016,11 @@ namespace eg
                             
                             generator.os << generator.strIndent;
                             pAction->printType( generator.os );
-                            generator.os << "::Iterator begin( iBegin, iEnd );\n";
+                            generator.os << "::Iterator begin( iBegin, iEnd, " << pAction->getIndex() << " );\n";
                                 
                             generator.os << generator.strIndent;
                             pAction->printType( generator.os );
-                            generator.os << "::Iterator end( iEnd, iEnd );\n";
+                            generator.os << "::Iterator end( iEnd, iEnd, " << pAction->getIndex() << " );\n";
                                 
                             const DataMember* pDimensionInstance =
                                 generator.layout.getDataMember( pAction->getRunningTimestamp() );
@@ -2294,9 +2394,7 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "inline ResultType __invoke_impl( ContextType context, Args... args );\n";
         os << "\n";
         os << "template< typename ReferenceType >\n";
-        os << "inline bool isInstanceRunning( " << EG_INSTANCE << " instance );\n";
-        os << "template< typename ReferenceType >\n";
-        os << "inline const ReferenceType& getReference( " << EG_INSTANCE << " instance );\n";
+        os << "inline " << EG_TIME_STAMP << " getTimestamp( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance );\n";
         os << "\n";
         
         std::vector< const InvocationSolution* > invocations;
@@ -2327,7 +2425,7 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "    while( instance != sentinal )\n";
         os << "    {\n";
         os << "        ++instance;\n";
-        os << "        if( isInstanceRunning< ReferenceType >( instance ) )\n";
+        os << "        if( getTimestamp< ReferenceType >( type, instance ) != " << EG_INVALID_TIMESTAMP << " )\n";
         os << "        {\n";
         os << "            break;\n";
         os << "        }\n";
@@ -2335,9 +2433,9 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "    return *this;\n";
         os << "}\n";
         os << "template< class ReferenceType >\n";
-        os << "const ReferenceType& " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator*()\n";
+        os << "const ReferenceType " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator*()\n";
         os << "{\n";
-        os << "    return getReference< ReferenceType >( instance );\n";
+        os << "    return ReferenceType( " << EG_REFERENCE_TYPE << "{ instance, type, getTimestamp< ReferenceType >( type, instance ) } );\n";
         os << "}\n";
         os << "\n";
         

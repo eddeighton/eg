@@ -36,12 +36,23 @@ namespace eg
         using InheritanceNodeMap = std::multimap< const abstract::Action*, const concrete::Inheritance_Node* >;
         InheritanceNodeMap m_inheritanceMap;
         
-        void getInstances( const abstract::Element* pElement, std::vector< const concrete::Element* >& instances ) const
+        void getInstances( const abstract::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const
         {
-            InstanceMap::const_iterator iLower = m_instanceMap.lower_bound( pElement );
-            InstanceMap::const_iterator iUpper = m_instanceMap.upper_bound( pElement );
-            for( ; iLower != iUpper; ++iLower )
-                instances.push_back( iLower->second );
+            const abstract::Action* pAction = dynamic_cast< const abstract::Action* >( pElement );
+            if( bDeriving && pAction )
+            {
+                InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
+                InheritanceNodeMap::const_iterator iUpper = m_inheritanceMap.upper_bound( pAction );
+                for( ; iLower != iUpper; ++iLower )
+                    instances.push_back( iLower->second->getRootConcreteAction() );
+            }
+            else
+            {
+                InstanceMap::const_iterator iLower = m_instanceMap.lower_bound( pElement );
+                InstanceMap::const_iterator iUpper = m_instanceMap.upper_bound( pElement );
+                for( ; iLower != iUpper; ++iLower )
+                    instances.push_back( iLower->second );
+            }
         }
         
         void getInheritanceNodes( const abstract::Action* pAction, std::vector< const concrete::Inheritance_Node* >& inheritanceNodes ) const
