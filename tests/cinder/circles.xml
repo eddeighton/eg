@@ -2,6 +2,7 @@
 <project>
     <folder>W:/workspace/eg/tests/cinder</folder>
     <flags>-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -fcoroutines-ts -Wno-deprecated -Wno-inconsistent-missing-override</flags>
+    <hostflags_debug>-nostdlib -lmsvcrtd -lopengl32 -Xlinker /SUBSYSTEM:CONSOLE</hostflags_debug>
     <hostflags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:CONSOLE</hostflags>
     <hostcmd>&quot;cinder_host.exe&quot;</hostcmd>
     <dependencies>
@@ -14,11 +15,32 @@
         <cpp>
             <file>circles_build/main.cpp</file>
             <file>../../runtime/py_eg_reference.cpp</file>
-            <file>../../runtime/win_console.cpp</file>
             <file>../../src/common/backtrace.cpp</file>
             <file>../../src/common/file.cpp</file>
         </cpp>
     </source>
+    <libs_debug>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_filesystem-vc141-mt-gd-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_date_time-vc141-mt-gd-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_program_options-vc141-mt-gd-x32-1_70.lib</file>
+        <file>C:/Anaconda3/libs/python35.lib</file>
+        <file>W:/workspace/eg/bin/eventloglibd.lib</file>
+        <file>W:/workspace/eg/bin/eg_runtimed.lib</file>
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/libEGL.lib</file>
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/libGLESv2.lib</file>
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/libpng.lib</file>
+        <file>W:/workspace/third_party/cinder/lib/msw/x86/Debug/v141/cinder.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/AdvAPI32.Lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/kernel32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/user32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/gdi32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/winspool.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/shell32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/ole32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/oleaut32.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/uuid.lib</file>
+        <file>C:/Program Files (x86)/Windows Kits/10/Lib/10.0.17763.0/um/x86/comdlg32.lib</file>
+    </libs_debug>
     <libs>
         <file>W:/workspace/eg/third_party/install/boost/lib/libboost_filesystem-vc141-mt-x32-1_70.lib</file>
         <file>W:/workspace/eg/third_party/install/boost/lib/libboost_date_time-vc141-mt-x32-1_70.lib</file>
@@ -54,14 +76,15 @@
         <user>
             <file>eg.hpp</file>
             <file>cinder_include.hpp</file>
-            <file>W:/workspace/prototype/src/eventlog/server.hpp</file>
-            <file>W:/workspace/prototype/src/eventlog/pid.hpp</file>
+            <file>W:/workspace/eg/src/eventlog/server.hpp</file>
+            <file>W:/workspace/eg/src/eventlog/pid.hpp</file>
             <file>W:/workspace/eg/src/common/assert_verify.hpp</file>
             <file>W:/workspace/eg/src/common/backtrace.hpp</file>
             <file>W:/workspace/eg/src/common/file.hpp</file>
             <file>W:/workspace/third_party/cinder/include/cinder/app/App.h</file>
             <file>W:/workspace/third_party/cinder/include/cinder/app/RendererGl.h</file>
             <file>W:/workspace/third_party/cinder/include/cinder/gl/gl.h</file>
+            <file>W:/workspace/eg/runtime/py_glm.hpp</file>
         </user>
         <system>
             <file>&lt;chrono&gt;</file>

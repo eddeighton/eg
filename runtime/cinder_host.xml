@@ -45,7 +45,6 @@
         </generated>
         <cpp>
             <file>W:/workspace/eg/runtime/py_eg_reference.cpp</file>
-            <file>W:/workspace/eg/runtime/win_console.cpp</file>
             <file>W:/workspace/eg/src/common/backtrace.cpp</file>
             <file>W:/workspace/eg/src/common/file.cpp</file>
         </cpp>

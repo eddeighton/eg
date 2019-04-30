@@ -1,6 +1,7 @@
 
 
 #include "eg/implementation_session.hpp"
+#include "eg/codegen.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -111,7 +112,7 @@ int main( int argc, const char* argv[] )
     os << "{\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-    os << "    for( Instance i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
+    os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
@@ -130,7 +131,7 @@ int main( int argc, const char* argv[] )
     for( std::size_t sz = layout.getBuffers().size(); sz > 0U; --sz )
     {
         const eg::Buffer* pBuffer = layout.getBuffers()[ sz - 1U ];
-    os << "    for( Instance i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
+    os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
@@ -168,7 +169,7 @@ public:
     
     
     os << "//initialiser\n";
-    os << "extern void initialise( EGDependencyProvider* pDependencyProvider );\n";
+    os << "extern void initialise( " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "* pDependencyProvider );\n";
     
     os << "\n";
     
@@ -179,8 +180,8 @@ public:
     {
         if( pAction->getParent() )
         {
-    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( Instance _gid );\n";
-    os << "extern void " << pAction->getName() << "_stopper( Instance _gid );\n";
+    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
+    os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
     //os << "extern bool " << pAction->getName() << "_executor();\n";
     
     ////executor
@@ -191,8 +192,8 @@ public:
     const eg::DataMember* pPauseTimestamp   = layout.getDataMember( pAction->getPauseTimestamp()   );
     const eg::DataMember* pCoroutine        = layout.getDataMember( pAction->getCoroutine()        );
     
-    os << "    const TimeStamp subcycle = clock::subcycle();\n";
-    os << "    for( Instance i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
+    os << "    const " << eg::EG_TIME_STAMP << " subcycle = clock::subcycle();\n";
+    os << "    for( " << eg::EG_INSTANCE << " i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
     os << "    {\n";
     os << "        if( " << eg::Printer( pRunningTimestamp, "i" ) << " <= subcycle )\n";
     os << "        {\n";
@@ -235,13 +236,13 @@ public:
     os << "\n";
     
     os << "//Dependency Provider Implementation\n";
-    os << "struct CinderHost_EGDependencyProvider : public EGDependencyProvider\n";
+    os << "struct CinderHost_EGDependencyProvider : public " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "\n";
     os << "{\n";
-    os << "     __eg_clock* m_pClock;\n";
-    os << "     __eg_event_log* m_pEventLog;\n";
+    os << "     eg::_clock* m_pClock;\n";
+    os << "     eg::_event_log* m_pEventLog;\n";
     os << "     __eg_input* m_pInput;\n";
     os << "\n";
-    os << "     CinderHost_EGDependencyProvider( __eg_clock* pClock, __eg_event_log* pEventLog, __eg_input* pInput )\n";
+    os << "     CinderHost_EGDependencyProvider( eg::_clock* pClock, eg::_event_log* pEventLog, __eg_input* pInput )\n";
     os << "         :   m_pClock( pClock ),\n";
     os << "             m_pEventLog( pEventLog ),\n";
     os << "             m_pInput( pInput )\n";
@@ -259,8 +260,8 @@ public:
     os << "    }\n";
     os << "    virtual void* getInterface( const char* pszName )\n";
     os << "    {\n";
-    os << "        if( 0U == strcmp( pszName, \"__eg_clock\" ) ) return m_pClock;\n";
-    os << "        if( 0U == strcmp( pszName, \"__eg_event_log\" ) ) return m_pEventLog;\n";
+    os << "        if( 0U == strcmp( pszName, \"_clock\" ) ) return m_pClock;\n";
+    os << "        if( 0U == strcmp( pszName, \"_event_log\" ) ) return m_pEventLog;\n";
     os << "        if( 0U == strcmp( pszName, \"__eg_input\" ) ) return m_pInput;\n";
     os << "        return nullptr;\n";
     os << "    }\n";
@@ -478,7 +479,12 @@ int main( int argc, const char* argv[] )
         //wait for input 
         if( bDebug )
         {
+#ifdef _DEBUG
             Common::debug_break();
+#else
+            char c;
+            std::cin >> c;
+#endif 
         }
     }
     

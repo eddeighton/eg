@@ -11,7 +11,7 @@
 
 #include "pybind11/numpy.h"
 
-#include "cinder/include/glm/gtc/type_ptr.hpp" // includes all vector and matrix types too
+#include "glm/gtc/type_ptr.hpp" // includes all vector and matrix types too
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -33,7 +33,7 @@ template<typename T, glm::precision P>
 struct type_caster<glm::tvec2<T, P>>
 {
 	using vector_type = glm::tvec2<T, P>;
-	typedef typename T Scalar;
+	typedef T Scalar;
 	static constexpr std::size_t num_elements = 2;
 
 	bool load(handle src, bool)
@@ -81,7 +81,7 @@ template<typename T, glm::precision P>
 struct type_caster<glm::tvec3<T, P>>
 {
 	using vector_type = glm::tvec3<T, P>;
-	typedef typename T Scalar;
+	typedef T Scalar;
 	static constexpr std::size_t num_elements = 3;
 
 	bool load(handle src, bool)
@@ -129,7 +129,7 @@ template<typename T, glm::precision P>
 struct type_caster<glm::tvec4<T, P>>
 {
 	using vector_type = glm::tvec4<T, P>;
-	typedef typename T Scalar;
+	typedef T Scalar;
 	static constexpr std::size_t num_elements = 4;
 
 	bool load(handle src, bool)
@@ -177,7 +177,7 @@ template<typename T, glm::precision P>
 struct type_caster<glm::tmat4x4<T, P>>
 {
 	using matrix_type = glm::tmat4x4<T, P>;
-	typedef typename T Scalar;
+	typedef T Scalar;
 	static constexpr std::size_t num_rows = 4;
 	static constexpr std::size_t num_cols = 4;
 

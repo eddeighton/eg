@@ -40,6 +40,7 @@ namespace eg
             PyObject* pResult = m_pythonType.create( m_reference );
             {
                 PythonEGReference* pNewRef = PythonEGReferenceType::getReference( pResult );
+                pNewRef->m_type_path.reserve( m_type_path.size() + 1U );
                 pNewRef->m_type_path = m_type_path;
                 pNewRef->m_type_path.push_back( typeID );
             }
@@ -50,8 +51,7 @@ namespace eg
     
     int PythonEGReference::set( void* pClosure, PyObject* pValue )
     {
-        const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
-        
+        //const char* pszAttributeIdentity = reinterpret_cast< char* >( pClosure );
         return 0;
     }
     

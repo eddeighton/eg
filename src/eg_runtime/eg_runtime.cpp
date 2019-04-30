@@ -107,10 +107,10 @@ namespace eg
             InvocationSolution::Context context;
             {
                 ASSERT( ref.type > 0 );
-                const abstract::Action* pContextAction = 
-                    dynamic_cast< const abstract::Action* >( objects[ ref.type ] );
+                const concrete::Action* pContextAction = 
+                    dynamic_cast< const concrete::Action* >( objects[ ref.type ] );
                 ASSERT( pContextAction );
-                context.push_back( pContextAction );
+                context.push_back( pContextAction->getAction() );
             }
         
             TypeID operationType = HIGHEST_OPERATION_TYPE;

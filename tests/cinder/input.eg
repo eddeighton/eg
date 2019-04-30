@@ -57,7 +57,7 @@ action EventListener
 {
     while( true )
     {
-        while( EGEvent e = get_next_event() )
+        while( eg::Event e = get_next_event() )
         {
             if( Circle c = e )
             {
@@ -68,7 +68,7 @@ action EventListener
     }
 }
 
-EventListener.Start();
+EventListener();
 
 bool bContinue = true;
 while( bContinue )
@@ -85,7 +85,7 @@ while( bContinue )
             case InputEvent::eMouseDown:
                 {
                     lastPos( std::optional< vec2 >( e.mouseEvent.getPos() ) );
-                    if( Circle c = Circle.Start() )
+                    if( Circle c = Circle() )
                     {
                         c.position( lastPos().value() );
                         c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
@@ -108,7 +108,7 @@ while( bContinue )
                     const float fSteps = glm::length( dir ) * 0.1f;
                     for( float i = 0.0f; i < fSteps; ++i )
                     {
-                        if( Circle c = Circle.Start() )
+                        if( Circle c = Circle() )
                         {
                             c.position( lastPos().value() + ( dir * ( i / fSteps ) ) );
                             c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
@@ -117,7 +117,7 @@ while( bContinue )
                     lastPos( std::optional< vec2 >( mousePos ) );
                     
                     //try to start a circle
-                    if( Circle c = Circle.Start() )
+                    if( Circle c = Circle() )
                     {
                         c.position( lastPos().value() );
                         c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
