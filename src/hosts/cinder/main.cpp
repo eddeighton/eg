@@ -117,6 +117,7 @@ int main( int argc, const char* argv[] )
     os << "#include \"py_eg_reference.hpp\"\n";
     os << "#include \"eg_runtime/eg_runtime.hpp\"\n";
     os << "#include <boost/program_options.hpp>\n";
+    os << "#include <boost/filesystem.hpp>\n";
     
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
@@ -327,7 +328,6 @@ public:
 
 private:
     HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
-    IPC::PID thePID;
     HostClock theClock;
     HostEventLog theEventLog;
     InputEvents inputEvents;
@@ -337,7 +337,7 @@ private:
 
 
 BasicApp::BasicApp()
-    :   theEventLog( thePID, boost::filesystem::current_path() / std::string( strEventLogFolder ) ),
+    :   theEventLog( "basicapp", strEventLogFolder.c_str() ),
         dependencies( &theClock, &theEventLog, &inputEvents )
 {
     allocate_buffers();

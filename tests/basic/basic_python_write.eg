@@ -1,0 +1,15 @@
+
+
+dim int x;
+
+TEST( x() == 0 );
+
+while( x() != 1 )
+    if( clock::ct() > 3 )
+        break;
+    else
+        SLEEP;
+    
+TEST( x() == 1 );
+
+    

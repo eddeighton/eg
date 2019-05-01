@@ -118,6 +118,7 @@ int main( int argc, const char* argv[] )
     os << "#include \"py_eg_reference.hpp\"\n";
     os << "#include \"eg_runtime/eg_runtime.hpp\"\n";
     os << "#include <boost/program_options.hpp>\n";
+    os << "#include <boost/filesystem.hpp>\n";
     
     
     os << "\n//buffers\n";
@@ -324,20 +325,12 @@ int main( int argc, const char* argv[] )
     {
         HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 1000 / 60 );
         
-        IPC::PID thePID;
-        
         //allocate everything
         allocate_buffers();
         
         //setup the dependencies
-        const boost::filesystem::path eventLogPath = 
-            boost::filesystem::current_path() / std::string( strEventLogFolder );
-        
-        //std::cout << "pid: " << thePID << std::endl;
-        //std::cout << "log: " << eventLogPath.generic_string() << std::endl;
-        
         HostClock theClock;
-        HostEventLog theEventLog( thePID, eventLogPath );
+        HostEventLog theEventLog( "basic", strEventLogFolder.c_str() );
         
         BasicHost_EGDependencyProvider dependencies( &theClock, &theEventLog );
         initialise( &dependencies );
