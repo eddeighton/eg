@@ -6,7 +6,7 @@ do
     NAME=`echo "$f" | cut -d'.' -f1`
     
     echo Test: $NAME
-    eg --host basic_host $f
+    eg --host cinder_host $f
     
     EXE=${NAME}.exe
     eval "./$EXE"

@@ -7,7 +7,7 @@
         <file>W:/workspace/eg/third_party/install/boost/lib/libboost_date_time-vc141-mt-x32-1_70.lib</file>
         <file>W:/workspace/eg/third_party/install/boost/lib/libboost_program_options-vc141-mt-x32-1_70.lib</file>
         <file>C:/Anaconda3/libs/python35.lib</file>
-        <file>W:/workspace/eg/bin/eventloglib.lib</file>
+        <file>W:/workspace/eg/bin/eventlog.lib</file>
         <file>W:/workspace/eg/bin/eg_runtime.lib</file>
     </libs>
     <includedirectories>

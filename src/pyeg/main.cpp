@@ -21,7 +21,6 @@
 #include "eg/implementation_session.hpp"
 
 #include "runtime/py_eg_reference.hpp"
-#include "runtime/py_glm.hpp"
 #include "eg_runtime/eg_runtime.hpp"
 
 #include "common/file.hpp"
@@ -99,7 +98,7 @@ namespace pybind11
 
 struct Stuff
 {
-    glm::vec3 v3;
+    //glm::vec3 v3;
     float x = 0.0f,
         y = 0.0f,
         z = 0.0f;
@@ -118,7 +117,7 @@ void write_x( eg::Instance instance, pybind11::tuple args )
 {
     m_buffer[ instance ].x = pybind11::cast< float >( args[ 0 ] );
 }
-
+/*
 glm::vec3 read_v3( eg::Instance instance )
 {
     return m_buffer[ instance ].v3;
@@ -127,7 +126,7 @@ void write_v3( eg::Instance instance, glm::vec3 v3 )
 {
     m_buffer[ instance ].v3 = v3;
 }
-
+*/
 
 std::string testHostFunction( RootReferenceCPPType instance )
 {
@@ -149,7 +148,7 @@ RootReferenceCPPType root()
 
 PYBIND11_EMBEDDED_MODULE( pyeg, module ) 
 {
-    PYBIND11_NUMPY_DTYPE( glm::vec3, x, y, z );
+    //PYBIND11_NUMPY_DTYPE( glm::vec3, x, y, z );
     
     // `m` is a `py::module` which is used to bind functions and classes
     module.def( "testHostFunction", testHostFunction );
@@ -158,8 +157,8 @@ PYBIND11_EMBEDDED_MODULE( pyeg, module )
     module.def( "read_x", read_x );
     module.def( "write_x", write_x );
     
-    module.def( "read_v3", read_v3 );
-    module.def( "write_v3", write_v3 );
+    //module.def( "read_v3", read_v3 );
+    //module.def( "write_v3", write_v3 );
 }
 
 struct HostFunctions : public eg::HostFunctionAccessor, public eg::HostEvaluator

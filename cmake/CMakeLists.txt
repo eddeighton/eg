@@ -52,6 +52,7 @@ project( eg )
 
 add_subdirectory(eventlog)
 add_subdirectory(eventlog_cmd)
+add_subdirectory(eventlog_module)
 add_subdirectory(eg)
 add_subdirectory(eg_runtime)
 add_subdirectory(clang_plugin)

@@ -21,8 +21,6 @@
 #ifndef RUNTIME_API_26_04_2019
 #define RUNTIME_API_26_04_2019
 
-
-
 #ifdef EG_RUNTIME_SHARED_MODULE
     #define EGRT_EXPORT __declspec( dllexport )
 #else
