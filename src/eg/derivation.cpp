@@ -331,6 +331,7 @@ namespace eg
         loader.load( m_operationType );
         loader.loadObjectVector( m_context );
         loader.loadObjectVector( m_targetTypes );
+        loader.loadObjectVector( m_finalPathTypes );
         loader.load( m_implicitTypePath );
         
     }
@@ -359,6 +360,7 @@ namespace eg
         storer.store( m_operationType );
         storer.storeObjectVector( m_context );
         storer.storeObjectVector( m_targetTypes );
+        storer.storeObjectVector( m_finalPathTypes );
         storer.store( m_implicitTypePath );
     }
     
@@ -385,18 +387,6 @@ namespace eg
             ++iLeft, ++iRight )
             pCommonRoot = *iLeft;
         return pCommonRoot;
-    }
-    
-    inline bool isOperationEnumeration( TypeID id )
-    {
-        switch( id )
-        {
-            case id_Size:
-            case id_Range:
-                return true;
-            default:
-                return false;
-        }
     }
     
     InvocationSolution::DerivationStep* InvocationSolution::buildDerivation( const DerivationAnalysis& analysis,
@@ -479,8 +469,12 @@ namespace eg
             {
                 pLast = &name;
 
-                DerivationStep* pNextStep =
-                    addStep( name.pInheritanceNode->getRootConcreteAction(), pStep, DerivationStep::eParent, 1 );
+                DerivationStep* pNextStep = pStep;
+                if( !isOperationEnumeration( m_operationType ) )
+                {
+                    pNextStep =
+                        addStep( name.pInheritanceNode->getRootConcreteAction(), pStep, DerivationStep::eParent, 1 );
+                }
 
                 for( int i : name.children )
                 {
@@ -603,6 +597,7 @@ namespace eg
         
         //uniquify the targets
         m_targetTypes = uniquify_without_reorder( m_targetTypes );
+        
     }
     
     bool InvocationSolution::isImplicitStarter() const

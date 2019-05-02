@@ -1179,6 +1179,7 @@ namespace eg
     void printReturnType( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
         const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
+        const InvocationSolution::TargetTypes& finalTypes = invocation.getFinalPathTypes();
         switch( invocation.getOperation() )
         {
             case id_Imp_NoParams   :
@@ -1262,21 +1263,21 @@ namespace eg
                 os << "int";
                 break;
             case id_Range      : 
-                if( !targets.empty() )
+                if( targets.size() == 1 )
                 {
-                    if( areTargetTypesHomogeneous( objects, invocation ) )
-                    {
-                        printType( os, objects, targets.front() );
-                        os << "::EGRangeType";
-                    }
-                    else
-                    {
-                        THROW_RTE( "not implemented" );
-                    }
+                    printType( os, objects, targets.front() );
+                    os << "::EGRangeType";
+                }
+                else if( finalTypes.size() == 1 )
+                {
+                    os << EG_RANGE_TYPE << "< ";
+                    os << EG_MULTI_ITERATOR_TYPE << "< ";
+                    printType( os, objects, finalTypes.front() );
+                    os << ", " << targets.size() << " > >";
                 }
                 else
                 {
-                    os << "void";
+                    THROW_RTE( "not implemented" );
                 }
                 break;
             default:
@@ -1518,6 +1519,7 @@ namespace eg
             const InvocationSolution::DerivationStep* pNext, 
             TargetHandler& handler )
         {
+            //generate variable
             switch( pNext->type )
             {
                 case InvocationSolution::DerivationStep::eParent    :
@@ -1534,39 +1536,6 @@ namespace eg
                         {
                             variables.insert( 
                                 std::make_pair( pNext, getVariableName( pStep, variables ) ) );
-                        }
-                        
-                        if( pNext->next.size() == 1U )
-                        {
-                            generateStep( pNext, pNext->next.front(), handler );
-                        }
-                        else
-                        {
-                            for( const InvocationSolution::DerivationStep* pIter : pNext->next )
-                            {
-                                if( pIter == pNext->next.front() )
-                                    os << strIndent << "if( " << getVariableName( pNext, variables ) << 
-                                        ".data.type == " << pIter->pInstance->getIndex() << " )\n";
-                                else if( pIter == pNext->next.back() )
-                                    os << strIndent << "else //if( " << getVariableName( pNext, variables ) << 
-                                        ".data.type == " << pIter->pInstance->getIndex() << " )\n";
-                                else 
-                                    os << strIndent << "else if( " << getVariableName( pNext, variables ) << 
-                                        ".data.type == " << pIter->pInstance->getIndex() << " )\n";
-                                os << strIndent << "{\n";
-                                strIndent.push_back( ' ' );
-                                strIndent.push_back( ' ' );
-                                strIndent.push_back( ' ' );
-                                strIndent.push_back( ' ' );
-                                
-                                generateStep( pNext, pIter, handler );
-                                
-                                strIndent.pop_back();
-                                strIndent.pop_back();
-                                strIndent.pop_back();
-                                strIndent.pop_back();
-                                os << strIndent << "}\n";
-                            }
                         }
                     }
                     break;
@@ -1587,52 +1556,6 @@ namespace eg
                                 variables.insert(
                                     std::make_pair( pNext, getVariableName( pStep, variables ) ) );
                             }
-
-                            if( pDimension && pNext->next.size() > 1 )
-                            {
-                                const DataMember* pDimensionInstance =
-                                    layout.getDataMember( pDimension );
-                                const Buffer* pBuffer = pDimensionInstance->getBuffer();
-
-                                std::ostringstream osVar;
-                                osVar << pBuffer->getVariableName() << "[ " <<
-                                    getVariableName( pNext, variables ) << " ]." <<
-                                    pDimensionInstance->getName() << ".data.type";
-
-                                for( const InvocationSolution::DerivationStep* pIter : pNext->next )
-                                {
-                                    if( pIter == pNext->next.front() )
-                                        os << strIndent << "if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
-                                    else if( pIter == pNext->next.back() )
-                                        os << strIndent << "else //if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
-                                    else
-                                        os << strIndent << "else if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
-                                    os << strIndent << "{\n";
-                                    strIndent.push_back( ' ' );
-                                    strIndent.push_back( ' ' );
-                                    strIndent.push_back( ' ' );
-                                    strIndent.push_back( ' ' );
-
-                                    generateStep( pNext, pIter, handler );
-
-                                    strIndent.pop_back();
-                                    strIndent.pop_back();
-                                    strIndent.pop_back();
-                                    strIndent.pop_back();
-                                    os << strIndent << "}\n";
-                                }
-                            }
-                            else
-                            {
-                                for( const InvocationSolution::DerivationStep* pIter : pNext->next )
-                                {
-                                    generateStep( pNext, pIter, handler );
-                                }
-                            }
-                        }
-                        else
-                        {
-                            THROW_RTE( "Invalid" );
                         }
                     }
                     break;
@@ -1655,74 +1578,234 @@ namespace eg
                             getVariableName( pStep, variables ) << " ]." <<
                             pDimensionInstance->getName() << ".data.instance";
                         variables.insert( std::make_pair( pNext, os.str() ) );
-
-                        VERIFY_RTE( pNext->next.size() == 1 );
-                        for( const InvocationSolution::DerivationStep* pIter : pNext->next )
-                        {
-                            generateStep( pNext, pIter, handler );
-                        }
-                    }
-                    break;
-                case InvocationSolution::DerivationStep::eTarget    :
-                    {
-                        handler( *this, pStep, pNext );
                     }
                     break;
                 case InvocationSolution::DerivationStep::eRoot      :
                     {
                         variables.insert( std::make_pair( pNext, std::string( "context.data.instance" ) ) );
-                        
-                        if( pNext->next.size() > 1 )
+                    }
+                    break;
+            }
+            
+            //test if enum or recurse
+            int iEnumCounter = 0;
+            for( const InvocationSolution::DerivationStep* pNextIter : pNext->next )
+            {
+                if( pNextIter->type == InvocationSolution::DerivationStep::eEnum )
+                    ++iEnumCounter;
+            }
+            if( ( iEnumCounter > 0 ) && ( iEnumCounter == pNext->next.size() ) )
+            {
+                handler( *this, pStep, pNext );
+            }
+            else
+            {
+                ASSERT( iEnumCounter == 0 );
+                switch( pNext->type )
+                {
+                    case InvocationSolution::DerivationStep::eParent    :
                         {
-                            //this occurs when we have a polymorphic branch 
-                            for( const InvocationSolution::DerivationStep* pIter : pNext->next )
+                            if( pNext->next.size() == 1U )
                             {
-                                if( pIter == pNext->next.front() )
-                                    os << strIndent << "if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
-                                else if( pIter == pNext->next.back() )
-                                    os << strIndent << "else //if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
-                                else 
-                                    os << strIndent << "else if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
-                                os << strIndent << "{\n";
-                                strIndent.push_back( ' ' );
-                                strIndent.push_back( ' ' );
-                                strIndent.push_back( ' ' );
-                                strIndent.push_back( ' ' );
-                                
-                                generateStep( pNext, pIter, handler );
-                                
-                                strIndent.pop_back();
-                                strIndent.pop_back();
-                                strIndent.pop_back();
-                                strIndent.pop_back();
-                                os << strIndent << "}\n";
+                                generateStep( pNext, pNext->next.front(), handler );
+                            }
+                            else
+                            {
+                                for( const InvocationSolution::DerivationStep* pIter : pNext->next )
+                                {
+                                    if( pIter == pNext->next.front() )
+                                        os << strIndent << "if( " << getVariableName( pNext, variables ) << 
+                                            ".data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                    else if( pIter == pNext->next.back() )
+                                        os << strIndent << "else //if( " << getVariableName( pNext, variables ) << 
+                                            ".data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                    else 
+                                        os << strIndent << "else if( " << getVariableName( pNext, variables ) << 
+                                            ".data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                    os << strIndent << "{\n";
+                                    strIndent.push_back( ' ' );
+                                    strIndent.push_back( ' ' );
+                                    strIndent.push_back( ' ' );
+                                    strIndent.push_back( ' ' );
+                                    
+                                    generateStep( pNext, pIter, handler );
+                                    
+                                    strIndent.pop_back();
+                                    strIndent.pop_back();
+                                    strIndent.pop_back();
+                                    strIndent.pop_back();
+                                    os << strIndent << "}\n";
+                                }
                             }
                         }
-                        else
+                        break;
+                    case InvocationSolution::DerivationStep::eChild     :
                         {
+                            if( pNext->domain == 1 )
+                            {
+                                const concrete::Dimension* pDimension =
+                                    dynamic_cast<const concrete::Dimension*>( pNext->pInstance );
+
+                                if( pDimension && pNext->next.size() > 1 )
+                                {
+                                    const DataMember* pDimensionInstance =
+                                        layout.getDataMember( pDimension );
+                                    const Buffer* pBuffer = pDimensionInstance->getBuffer();
+
+                                    std::ostringstream osVar;
+                                    osVar << pBuffer->getVariableName() << "[ " <<
+                                        getVariableName( pNext, variables ) << " ]." <<
+                                        pDimensionInstance->getName() << ".data.type";
+
+                                    for( const InvocationSolution::DerivationStep* pIter : pNext->next )
+                                    {
+                                        if( pIter == pNext->next.front() )
+                                            os << strIndent << "if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
+                                        else if( pIter == pNext->next.back() )
+                                            os << strIndent << "else //if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
+                                        else
+                                            os << strIndent << "else if( " << osVar.str() << " == " << pIter->pInstance->getIndex() << " )\n";
+                                        os << strIndent << "{\n";
+                                        strIndent.push_back( ' ' );
+                                        strIndent.push_back( ' ' );
+                                        strIndent.push_back( ' ' );
+                                        strIndent.push_back( ' ' );
+
+                                        generateStep( pNext, pIter, handler );
+
+                                        strIndent.pop_back();
+                                        strIndent.pop_back();
+                                        strIndent.pop_back();
+                                        strIndent.pop_back();
+                                        os << strIndent << "}\n";
+                                    }
+                                }
+                                else
+                                {
+                                    for( const InvocationSolution::DerivationStep* pIter : pNext->next )
+                                    {
+                                        generateStep( pNext, pIter, handler );
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                THROW_RTE( "Invalid" );
+                            }
+                        }
+                        break;
+                    case InvocationSolution::DerivationStep::eLink      :
+                        {
+                            THROW_RTE( "Unsupported" );
+                        }
+                        break;
+                    case InvocationSolution::DerivationStep::eDeReference :
+                        {
+                            VERIFY_RTE( pNext->next.size() == 1 );
                             for( const InvocationSolution::DerivationStep* pIter : pNext->next )
                             {
                                 generateStep( pNext, pIter, handler );
                             }
                         }
-                    }
-                    break;
-                case InvocationSolution::DerivationStep::eEnum:
-                    {
-                        handler( *this, pStep, pNext );
-                    }
-                    break;
-                case InvocationSolution::DerivationStep::eFailed:
-                    {
-                        //do nothing
-                    }
-                    break;
-                default:
-                    THROW_RTE( "Unknown derivation step type" );
-                    break;
+                        break;
+                    case InvocationSolution::DerivationStep::eTarget    :
+                        {
+                            handler( *this, pStep, pNext );
+                        }
+                        break;
+                    case InvocationSolution::DerivationStep::eRoot      :
+                        {
+                            if( pNext->next.size() > 1 )
+                            {
+                                //this occurs when we have a polymorphic branch 
+                                for( const InvocationSolution::DerivationStep* pIter : pNext->next )
+                                {
+                                    if( pIter == pNext->next.front() )
+                                        os << strIndent << "if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                    else if( pIter == pNext->next.back() )
+                                        os << strIndent << "else //if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                    else 
+                                        os << strIndent << "else if( context.data.type == " << pIter->pInstance->getIndex() << " )\n";
+                                    os << strIndent << "{\n";
+                                    strIndent.push_back( ' ' );
+                                    strIndent.push_back( ' ' );
+                                    strIndent.push_back( ' ' );
+                                    strIndent.push_back( ' ' );
+                                    
+                                    generateStep( pNext, pIter, handler );
+                                    
+                                    strIndent.pop_back();
+                                    strIndent.pop_back();
+                                    strIndent.pop_back();
+                                    strIndent.pop_back();
+                                    os << strIndent << "}\n";
+                                }
+                            }
+                            else
+                            {
+                                for( const InvocationSolution::DerivationStep* pIter : pNext->next )
+                                {
+                                    generateStep( pNext, pIter, handler );
+                                }
+                            }
+                        }
+                        break;
+                    case InvocationSolution::DerivationStep::eEnum:
+                        {
+                            handler( *this, pStep, pNext );
+                        }
+                        break;
+                    case InvocationSolution::DerivationStep::eFailed:
+                        {
+                            //do nothing
+                        }
+                        break;
+                    default:
+                        THROW_RTE( "Unknown derivation step type" );
+                        break;
+                }
             }
         }
     };
+    
+    void recurseEnumerations( const InvocationSolution::DerivationStep* pIter, 
+        std::vector< const concrete::Action* >& stack, 
+        std::vector< std::vector< const concrete::Action* > >& enumActions )
+    {
+        const concrete::Action* pAction = 
+            dynamic_cast< const concrete::Action* >( pIter->pInstance );
+        //if(  )
+        {
+            bool bAdded = false;
+            if( pAction && ( stack.empty() || ( stack.back() != pAction ) ) )
+            {
+                stack.push_back( pAction );
+                bAdded = true;
+            }
+            
+            if( pIter->next.empty() )
+            {
+                if( !stack.empty() )
+                    enumActions.push_back( stack );
+            }
+            else
+            {
+                for( const InvocationSolution::DerivationStep* pNext : pIter->next )
+                {
+                    recurseEnumerations( pNext, stack, enumActions );
+                }
+            }
+            
+            if( bAdded )
+            {
+                stack.pop_back();
+            }
+        }
+        //else
+        //{
+        //    THROW_RTE( "invalid enumeration" );
+        //}
+    }
     
     void generateInvocation( std::ostream& os, const IndexedObject::Array& objects,
         const DerivationAnalysis& derivationAnalysis, 
@@ -1732,7 +1815,7 @@ namespace eg
         
         os << "template<>\n";
         printReturnType( os, objects, invocation );
-        os << "\ninline __invoke_impl\n";
+        os << "\n__invoke_impl\n";//inline 
         os << "<\n";
         os << "    "; printReturnType( os, objects, invocation ); os << ",\n";
         os << "    "; printContextType( os, objects, invocation ); os << ",\n";
@@ -1954,16 +2037,31 @@ namespace eg
                             const InvocationSolution::DerivationStep* pNext
                         )
                         {
-                            if( const concrete::Action* pAction = 
-                                dynamic_cast< const concrete::Action* >( pNext->pInstance ) )
+                            if( pNext->type == InvocationSolution::DerivationStep::eTarget )
+                                pNext = pStep;
+                            
+                            std::vector< const concrete::Action* > enumActions;
                             {
+                                std::vector< std::vector< const concrete::Action* > > enumActionsAll;
+                                std::vector< const concrete::Action* > stack;
+                                recurseEnumerations( pNext, stack, enumActionsAll );
+                                if( enumActionsAll.size() == 1 )
+                                    enumActions = enumActionsAll.front();
+                                else
+                                {
+                                    //error...
+                                }
+                            }
+                            if( !enumActions.empty() )
+                            {
+                                const concrete::Action* pAction = enumActions.back();
                                 const concrete::Action* pParentAction = 
                                     dynamic_cast< const concrete::Action* >( pAction->getParent() );
                                 VERIFY_RTE( pParentAction );
                                 
                                 const DataMember* pIteratorData = 
                                     generator.layout.getDataMember( pParentAction->getIterator( pAction ) );
-                                const std::string strVar = getVariableName( pStep, generator.variables );
+                                const std::string strVar = getVariableName( pNext, generator.variables );
                                 generator.os << generator.strIndent << 
                                     EG_ITERATOR_TYPE << " iter = " << EG_ITERATOR_TYPE << "( " << 
                                         Printer( pIteratorData, strVar.c_str() ) << ".load() );\n";
@@ -1971,8 +2069,6 @@ namespace eg
                                 generator.os << generator.strIndent << "return iter.full ? " << pAction->getLocalDomainSize() << 
                                     " : ( iter.head >= iter.tail ) ? ( iter.head - iter.tail ) : ( " << 
                                         pAction->getLocalDomainSize() << " - iter.tail ) + iter.head;\n";
-                                
-                                //generator.os << generator.strIndent << "return !iter.full && ( iter.tail == iter.head );\n";
                             }
                             else
                             {
@@ -1993,70 +2089,175 @@ namespace eg
                             const InvocationSolution::DerivationStep* pNext
                         )
                         {
+                            const InvocationSolution::TargetTypes& targets = generator.invocation.getTargetTypes();
+                            const InvocationSolution::TargetTypes& finalTypes = generator.invocation.getFinalPathTypes();
                             
-                            //get the sequence of enumeration steps
-                            std::vector< const concrete::Action* > enumActions;
+                            if( pNext->type == InvocationSolution::DerivationStep::eTarget )
+                                pNext = pStep;
+                            
+                            if( targets.size() == 1U )
                             {
-                                const InvocationSolution::DerivationStep* pIter = pNext;
-                                while( pIter /*&& pIter->type == InvocationSolution::DerivationStep::eEnum*/ )
+                                //get the sequence of enumeration steps
+                                std::vector< const concrete::Action* > enumActions;
                                 {
-                                    if( const concrete::Action* pAction = 
-                                        dynamic_cast< const concrete::Action* >( pIter->pInstance ) )
-                                    {
-                                        if( enumActions.empty() || enumActions.back() != pAction )
-                                            enumActions.push_back( pAction );
-                                        VERIFY_RTE( pIter->next.size() < 2 );
-                                        if( pIter->next.empty() )
-                                            pIter = nullptr;
-                                        else
-                                            pIter = pIter->next.front();
-                                    }
+                                    std::vector< std::vector< const concrete::Action* > > enumActionsAll;
+                                    std::vector< const concrete::Action* > stack;
+                                    recurseEnumerations( pNext, stack, enumActionsAll );
+                                    if( enumActionsAll.size() == 1 )
+                                        enumActions = enumActionsAll.front();
                                     else
                                     {
-                                        THROW_RTE( "invalid enumeration" );
+                                        //error...
                                     }
                                 }
-                            }
-                            VERIFY_RTE( !enumActions.empty() );
-                            //determine the multiplier
-                            std::size_t szMultiplier = 1U;
-                            {
-                                for( const concrete::Action* pActionIter : enumActions )
+                                
+                                if( !enumActions.empty() )
                                 {
-                                    szMultiplier *= pActionIter->getLocalDomainSize();
+                                    //determine the multiplier
+                                    std::size_t szMultiplier = 1U;
+                                    {
+                                        for( const concrete::Action* pActionIter : enumActions )
+                                        {
+                                            szMultiplier *= pActionIter->getLocalDomainSize();
+                                        }
+                                    }
+                                    const concrete::Action* pAction = enumActions.back();
+                                    
+                                    generator.os << generator.strIndent << "const " << EG_INSTANCE << " iBegin = " <<
+                                        getVariableName( pNext, generator.variables ) << " * " << szMultiplier << ";\n";
+                                    generator.os << generator.strIndent << "const " << EG_INSTANCE << " iEnd = ( " <<
+                                        getVariableName( pNext, generator.variables ) << " + 1 ) * " << szMultiplier << ";\n";
+                                    
+                                    generator.os << generator.strIndent;
+                                    pAction->printType( generator.os );
+                                    generator.os << "::Iterator begin( iBegin, iEnd, " << pAction->getIndex() << " );\n";
+                                        
+                                    generator.os << generator.strIndent;
+                                    pAction->printType( generator.os );
+                                    generator.os << "::Iterator end( iEnd, iEnd, " << pAction->getIndex() << " );\n";
+                                        
+                                    const DataMember* pDimensionInstance =
+                                        generator.layout.getDataMember( pAction->getRunningTimestamp() );
+           
+                                    generator.os << generator.strIndent << "while( begin != end )\n";
+                                    generator.os << generator.strIndent << "{\n";
+                                    generator.os << generator.strIndent << "    if( " << Printer( pDimensionInstance, "begin.instance" ) << " <= clock::subcycle() )\n";
+                                    generator.os << generator.strIndent << "    {\n";
+                                    generator.os << generator.strIndent << "        break;\n";
+                                    generator.os << generator.strIndent << "    }\n";
+                                    generator.os << generator.strIndent << "    ++begin.instance;\n";
+                                    generator.os << generator.strIndent << "}\n";
+                                        
+                                    generator.os << generator.strIndent << "return ";
+                                    pAction->printType( generator.os );
+                                    generator.os << "::EGRangeType( begin, end );\n";
                                 }
                             }
-                            const concrete::Action* pAction = enumActions.back();
-                            
-                            generator.os << generator.strIndent << "const " << EG_INSTANCE << " iBegin = " <<
-                                getVariableName( pStep, generator.variables ) << " * " << szMultiplier << ";\n";
-                            generator.os << generator.strIndent << "const " << EG_INSTANCE << " iEnd = ( " <<
-                                getVariableName( pStep, generator.variables ) << " + 1 ) * " << szMultiplier << ";\n";
-                            
-                            generator.os << generator.strIndent;
-                            pAction->printType( generator.os );
-                            generator.os << "::Iterator begin( iBegin, iEnd, " << pAction->getIndex() << " );\n";
+                            else if( finalTypes.size() == 1 )
+                            {
+                                std::vector< std::vector< const concrete::Action* > > enumActions;
+                                {
+                                    std::vector< const concrete::Action* > stack;
+                                    recurseEnumerations( pNext, stack, enumActions );
+                                }
                                 
-                            generator.os << generator.strIndent;
-                            pAction->printType( generator.os );
-                            generator.os << "::Iterator end( iEnd, iEnd, " << pAction->getIndex() << " );\n";
+                                //calculate the multipliers
+                                std::vector< std::size_t > multipliers;
+                                std::vector< const concrete::Action* > finalActions;
+                                for( const std::vector< const concrete::Action* >& enumAction : enumActions )
+                                {
+                                    std::size_t szMultiplier = 1U;
+                                    {
+                                        for( const concrete::Action* pActionIter : enumAction )
+                                        {
+                                            szMultiplier *= pActionIter->getLocalDomainSize();
+                                        }
+                                    }
+                                    multipliers.push_back( szMultiplier );
+                                    finalActions.push_back( enumAction.back() );
+                                }
                                 
-                            const DataMember* pDimensionInstance =
-                                generator.layout.getDataMember( pAction->getRunningTimestamp() );
-   
-                            generator.os << generator.strIndent << "while( begin != end )\n";
-                            generator.os << generator.strIndent << "{\n";
-                            generator.os << generator.strIndent << "    if( " << Printer( pDimensionInstance, "begin.instance" ) << " <= clock::subcycle() )\n";
-                            generator.os << generator.strIndent << "    {\n";
-                            generator.os << generator.strIndent << "        break;\n";
-                            generator.os << generator.strIndent << "    }\n";
-                            generator.os << generator.strIndent << "    ++begin.instance;\n";
-                            generator.os << generator.strIndent << "}\n";
+                                const abstract::Action* pFinalType = dynamic_cast< const abstract::Action* >( finalTypes.front() );
+                                ASSERT( pFinalType );
                                 
-                            generator.os << generator.strIndent << "return ";
-                            pAction->printType( generator.os );
-                            generator.os << "::EGRangeType( begin, end );\n";
+                                std::ostringstream osIterType;
+                                {
+                                    osIterType << EG_REFERENCE_ITERATOR_TYPE << "< ";
+                                    printType( osIterType, generator.objects, pFinalType );
+                                    osIterType << " >";
+                                }
                                 
+                                std::ostringstream osMultiIterType;
+                                {
+                                    osMultiIterType << EG_MULTI_ITERATOR_TYPE << "< ";
+                                    printType( osMultiIterType, generator.objects, pFinalType );
+                                    osMultiIterType << ", " << targets.size() << " >";
+                                }
+                                
+                                generator.os << generator.strIndent << "using IterType = " << osIterType.str() << ";\n";
+                                generator.os << generator.strIndent << "using MultiIterType = " << osMultiIterType.str() << ";\n";
+                                generator.os << "\n";
+                                generator.os << generator.strIndent << "MultiIterType::IteratorArray iterators_begin = \n";
+                                generator.os << generator.strIndent << "{\n";
+                                
+                                for(  std::size_t szIndex = 0U; szIndex != finalActions.size(); ++szIndex )
+                                {
+                                    const concrete::Action* pFinalAction = finalActions[ szIndex ];
+                                    const std::size_t szMultiplier = multipliers[ szIndex ];
+                                    
+                                    generator.os << generator.strIndent << "    IterType( " << 
+                                        getVariableName( pNext, generator.variables ) << " * " << szMultiplier <<
+                                        ", ( " << getVariableName( pNext, generator.variables ) << " + 1 ) * " << szMultiplier <<
+                                        ", static_cast< eg::TypeID >( " << pFinalAction->getIndex() << " ) ),\n";
+                                }
+                                generator.os << generator.strIndent << "};\n";
+                                generator.os << "\n";
+                                
+                                generator.os << generator.strIndent << "MultiIterType::IteratorArray iterators_end = \n";
+                                generator.os << generator.strIndent << "{\n";
+                                for(  std::size_t szIndex = 0U; szIndex != finalActions.size(); ++szIndex )
+                                {
+                                    const concrete::Action* pFinalAction = finalActions[ szIndex ];
+                                    const std::size_t szMultiplier = multipliers[ szIndex ];
+                                    
+                                    generator.os << generator.strIndent << "    IterType( ( " << 
+                                        getVariableName( pNext, generator.variables ) << " + 1 ) * " << szMultiplier <<
+                                        ", ( " << getVariableName( pNext, generator.variables ) << " + 1 ) * " << szMultiplier <<
+                                        ", static_cast< eg::TypeID >( " << pFinalAction->getIndex() << " ) ),\n";
+                                }
+                                generator.os << generator.strIndent << "};\n";
+                                generator.os << "\n";
+                                
+                                for(  std::size_t szIndex = 0U; szIndex != finalActions.size(); ++szIndex )
+                                {
+                                    const concrete::Action* pFinalAction = finalActions[ szIndex ];
+                                    const std::size_t szMultiplier = multipliers[ szIndex ];
+                                    
+                                    const DataMember* pDimensionInstance =
+                                        generator.layout.getDataMember( pFinalAction->getRunningTimestamp() );
+                                        
+                                    std::ostringstream osInstance;
+                                    osInstance << "iterators_begin[ " << szIndex << " ].instance";
+           
+                                    generator.os << generator.strIndent << "while( iterators_begin[ " << szIndex << " ] != iterators_end[ " << szIndex << " ] )\n";
+                                    generator.os << generator.strIndent << "{\n";
+                                    generator.os << generator.strIndent << "    if( " << Printer( pDimensionInstance, osInstance.str().c_str() ) << " <= clock::subcycle() )\n";
+                                    generator.os << generator.strIndent << "    {\n";
+                                    generator.os << generator.strIndent << "        break;\n";
+                                    generator.os << generator.strIndent << "    }\n";
+                                    generator.os << generator.strIndent << "    ++iterators_begin[ " << szIndex << " ];\n";
+                                    generator.os << generator.strIndent << "}\n";
+                                    generator.os << "\n";
+                                }
+                                
+                                //construct the actual mutli range 
+                                generator.os << generator.strIndent << "return " << EG_RANGE_TYPE << 
+                                    "< MultiIterType >( MultiIterType( iterators_begin ), MultiIterType( iterators_end ) );\n";
+                            }
+                            else
+                            {
+                                THROW_RTE( "Invalid range operation" );
+                            }
                         }
                     ); 
                 }
@@ -2410,7 +2611,7 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         
         os << "\n\n//invocation implementations\n";
         os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType, typename... Args >\n";
-        os << "inline ResultType __invoke_impl( ContextType context, Args... args );\n";
+        os << "ResultType __invoke_impl( ContextType context, Args... args );\n";
         os << "\n";
         os << "template< typename ReferenceType >\n";
         os << "inline " << EG_TIME_STAMP << " getTimestamp( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance );\n";
@@ -2441,13 +2642,11 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "template< class ReferenceType >\n";
         os << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >& " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator++()\n";
         os << "{\n";
-        os << "    while( instance != sentinal )\n";
+        os << "    while( true )\n";
         os << "    {\n";
         os << "        ++instance;\n";
-        os << "        if( getTimestamp< ReferenceType >( type, instance ) != " << EG_INVALID_TIMESTAMP << " )\n";
-        os << "        {\n";
+        os << "        if( ( instance == sentinal ) || ( getTimestamp< ReferenceType >( type, instance ) <= clock::subcycle() ) )\n";
         os << "            break;\n";
-        os << "        }\n";
         os << "    }\n";
         os << "    return *this;\n";
         os << "}\n";

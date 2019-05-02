@@ -1,0 +1,34 @@
+
+abstract A
+{
+
+}
+
+action B[ 16 ] : A
+{
+
+}
+
+action C[ 16 ] : A
+{
+
+}
+
+for( int i = 0; i < 5; ++i )
+    B();
+    
+for( int j = 0; j < 7; ++j )
+    C();
+
+SLEEP;
+SLEEP;
+
+int iCounter = 0;
+for( A a : A.Range() )
+{
+    ++iCounter;
+}
+
+TEST_MSG( iCounter == 12, "iCounter should be 12: " << iCounter );
+
+

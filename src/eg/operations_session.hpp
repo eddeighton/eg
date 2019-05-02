@@ -40,7 +40,7 @@ namespace eg
         
         std::vector< const abstract::Element* > fromEGTypeID( TypeID typeID, bool bForceDecl );
         const InvocationSolution* getInvocation( const InvocationSolution::Context& context,
-            const InvocationSolution::TypePath& typePath, TypeID operationType, const std::vector< eg::TypeID >& implicitTypePath );
+            const InvocationSolution::TypePath& typePath, OperationID operationType, const std::vector< eg::TypeID >& implicitTypePath );
         
     private:
         const boost::filesystem::path m_tuPath;

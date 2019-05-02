@@ -18,8 +18,8 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#ifndef EG_ITERATORS
-#define EG_ITERATORS
+#ifndef EG_ITERATORS_02_05_2019
+#define EG_ITERATORS_02_05_2019
 
 #include "eg_common.hpp"
 
@@ -48,87 +48,109 @@ namespace eg
         { 
         }
     };
+}
 
-    template< class ReferenceType >
-    class ReferenceIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
-    {
-    public:
-        using value_type = ReferenceType;
-        Instance instance;
-        Instance sentinal;
-        TypeID type;
-        inline ReferenceIterator( Instance instance, Instance sentinal, TypeID type ) : instance( instance ), sentinal( sentinal ), type( type ) {}
-        inline ReferenceIterator( const ReferenceIterator& from ) : instance( from.instance ), sentinal( from.sentinal ), type( from.type ) {}
-        ReferenceIterator& operator++();
-        inline ReferenceIterator operator++(int) {ReferenceIterator tmp(*this); operator++(); return tmp;}
-        inline bool operator==(const ReferenceIterator& rhs) const {return (instance==rhs.instance) && (type==rhs.type);}
-        inline bool operator!=(const ReferenceIterator& rhs) const {return !(rhs==*this);}
-        const value_type operator*();
-    };
-    
-    template< class ReferenceType, int SIZE >
-    class MultiIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
-    {
-        using IteratorType = ReferenceIterator< ReferenceType >;
-        using IteratorArray = std::array< IteratorType, SIZE >;
-        IteratorArray iterators;
-        std::size_t szIndex = 0U;
-    public:
-        using value_type = ReferenceType;
-    
-        template< typename... Iterators >
-        inline MultiIterator( Iterators... iterators ) 
-            :   iterators( iterators... )
-        {
-            
-        }
-        
-        inline MultiIterator& operator++()
-        {
-            while( szIndex != SIZE )
-            {
-                if( iterators[ szIndex ].instance == iterators[ szIndex ].sentinal )
-                    ++szIndex;
-                else
-                {
-                    ++iterators[ szIndex ];
-                    if( iterators[ szIndex ].instance != iterators[ szIndex ].sentinal )
-                        break;
-                }
-            }
-            return *this;
-        }
-        
-        inline MultiIterator operator++(int) 
-        {
-            MultiIterator tmp(*this); 
-            operator++(); 
-            return tmp;
-        }
-        
-        inline bool operator==(const MultiIterator& rhs) const {return (szIndex==rhs.szIndex) && (iterators[ szIndex ]==rhs.iterators[ szIndex ]);}
-        inline bool operator!=(const MultiIterator& rhs) const {return !(rhs==*this);}
-        
-        const ReferenceType operator*()
-        {
-            return *iterators[ szIndex ];
-        }
-    };
+template< class ReferenceType >
+class __eg_ReferenceIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
+{
+public:
+    using value_type = ReferenceType;
+    eg::Instance instance;
+    eg::Instance sentinal;
+    eg::TypeID type;
+    inline __eg_ReferenceIterator( eg::Instance instance, eg::Instance sentinal, eg::TypeID type ) : instance( instance ), sentinal( sentinal ), type( type ) {}
+    inline __eg_ReferenceIterator( const __eg_ReferenceIterator& from ) : instance( from.instance ), sentinal( from.sentinal ), type( from.type ) {}
+    __eg_ReferenceIterator& operator++();
+    inline __eg_ReferenceIterator operator++(int) {__eg_ReferenceIterator tmp(*this); operator++(); return tmp;}
+    inline bool operator==(const __eg_ReferenceIterator& rhs) const {return (instance==rhs.instance) && (type==rhs.type);}
+    inline bool operator!=(const __eg_ReferenceIterator& rhs) const {return !(rhs==*this);}
+    const value_type operator*();
+};
 
-    template< typename Iterator >
-    struct Range
+template< class ReferenceType, int SIZE >
+class __eg_MultiIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
+{
+public:
+    using IteratorType = __eg_ReferenceIterator< ReferenceType >;
+    using IteratorArray = std::array< IteratorType, SIZE >;
+    using value_type = ReferenceType;
+private:
+    IteratorArray iterators;
+    std::size_t szIndex = 0U;
+public:
+    inline __eg_MultiIterator()
+        :   iterators( { ReferenceType{ 0, 0, 0 }, ReferenceType{ 0, 0, 0 } } ),
+            szIndex( 2U )
     {
-        using iterator_type = Iterator;
-        Iterator _begin, _end;
-        Range( Iterator _begin, Iterator _end ) : _begin( _begin ), _end( _end ) {}
-        Iterator begin() const { return _begin; }
-        Iterator end() const { return _end; }
-    }; 
+    }
     
-    template< typename Result, typename Range >
-    inline Result one( const Range& range )
+    //inline __eg_MultiIterator( const __eg_MultiIterator& cpy )
+    //    :   iterators( cpy.iterators ),
+    //        szIndex( cpy.szIndex )
+    //{
+    //    
+    //}
+    
+    inline __eg_MultiIterator( const IteratorArray& iters ) 
+        :   iterators( iters )
     {
-        for( typename Range::iterator_type 
+        while( szIndex != SIZE )
+        {
+            if( iterators[ szIndex ].instance == iterators[ szIndex ].sentinal )
+                ++szIndex;
+            else
+                break;
+        }
+    }
+    
+    inline __eg_MultiIterator& operator++()
+    {
+        if( iterators[ szIndex ].instance != iterators[ szIndex ].sentinal )
+            ++iterators[ szIndex ];
+        if( iterators[ szIndex ].instance == iterators[ szIndex ].sentinal )
+        {
+            while( ( szIndex != SIZE ) && ( iterators[ szIndex ].instance == iterators[ szIndex ].sentinal ) )
+                ++szIndex;
+        }
+        return *this;
+    }
+    
+    inline __eg_MultiIterator operator++(int) 
+    {
+        __eg_MultiIterator tmp(*this); 
+        operator++(); 
+        return tmp;
+    }
+    
+    inline bool operator==(const __eg_MultiIterator& rhs) const 
+    {
+        return (szIndex==rhs.szIndex) && 
+            ( ( szIndex >= SIZE) || ( iterators[ szIndex ] == rhs.iterators[ szIndex ] ) );
+    }
+    inline bool operator!=(const __eg_MultiIterator& rhs) const {return !(rhs==*this);}
+    
+    inline const ReferenceType operator*()
+    {
+        return *iterators[ szIndex ];
+    }
+};
+
+template< typename Iterator >
+struct __eg_Range
+{
+    using iterator_type = Iterator;
+    Iterator _begin, _end;
+    inline __eg_Range( Iterator _begin, Iterator _end ) : _begin( _begin ), _end( _end ) {}
+    inline Iterator begin() const { return _begin; }
+    inline Iterator end() const { return _end; }
+}; 
+    
+namespace eg
+{
+    template< typename Result, typename __eg_Range >
+    inline Result one( const __eg_Range& range )
+    {
+        for( typename __eg_Range::iterator_type 
             i = range.begin(), iEnd = range.end();
             i!=iEnd;  )
         {
@@ -143,4 +165,4 @@ namespace eg
 
 
 
-#endif //EG_ITERATORS
+#endif //EG_ITERATORS_02_05_2019

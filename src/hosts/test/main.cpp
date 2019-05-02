@@ -250,6 +250,13 @@ int main( int argc, const char* argv[] )
 {
     try
     {
+        if( argc > 1 )
+        {
+            std::cout << "waiting for character input...\n";
+            char c;
+            std::cin >> c;
+        }
+        
         HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 1000 / 60 );
                 
         //allocate everything

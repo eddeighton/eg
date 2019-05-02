@@ -1,0 +1,21 @@
+
+action A[ 100 ]
+{
+
+}
+
+for( int i = 0;i < 53; ++i )
+{
+    A();
+}
+
+SLEEP;
+SLEEP;
+
+int iCounter = 0;
+for( A a : A.Range() )
+{
+    ++iCounter;
+}
+TEST_MSG( iCounter == 53, "iCounter should be 53: " << iCounter );
+

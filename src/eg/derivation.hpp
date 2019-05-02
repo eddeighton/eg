@@ -273,9 +273,10 @@ namespace eg
     
         reference evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const;
     public:
-        TypeID getOperation() const { return m_operationType; }
+        OperationID getOperation() const { return m_operationType; }
         const Context& getContext() const { return m_context; }
         const TargetTypes& getTargetTypes() const { return m_targetTypes; }
+        const TargetTypes& getFinalPathTypes() const { return m_finalPathTypes; }
         const TypeIDVector& getImplicitTypePath() const { return m_implicitTypePath; }
         const DerivationStep* getRoot() const { return m_pRoot; }
     protected:
@@ -283,9 +284,10 @@ namespace eg
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
      
-        TypeID m_operationType;
+        OperationID m_operationType;
         Context m_context;
         TargetTypes m_targetTypes;
+        TargetTypes m_finalPathTypes;
         TypeIDVector m_implicitTypePath;
     };
 }

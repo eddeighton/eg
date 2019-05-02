@@ -24,12 +24,12 @@ SLEEP;
 int iACounter = 0;
 int iBCounter = 0;
 int iCCounter = 0;
-/*
+
 for( A iter : A.Range() )
 {
     ++iACounter;
 }
-*/
+
 for( B iter : B.Range() )
 {
     ++iBCounter;

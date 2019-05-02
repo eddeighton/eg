@@ -83,7 +83,7 @@ namespace eg
     const InvocationSolution* OperationsSession::getInvocation( 
             const InvocationSolution::Context& context, 
             const InvocationSolution::TypePath& typePath, 
-            TypeID operationType, const std::vector< eg::TypeID >& implicitTypePath )
+            OperationID operationType, const std::vector< eg::TypeID >& implicitTypePath )
     {
         const InvocationID invocationID( context, typePath, operationType );
         InvocationMap::const_iterator iFind = m_invocations.find( invocationID );
@@ -103,11 +103,7 @@ namespace eg
         }
         
         //for range enumerations we want to enumerate all deriving types
-        bool bDerivingPathElements = false;
-        if( operationType == id_Range )
-        {
-            bDerivingPathElements = true;
-        }
+        const bool bDerivingPathElements = isOperationEnumeration( operationType );
         
         std::vector< std::vector< const concrete::Element* > > concreteTypePath;
         {
@@ -123,9 +119,11 @@ namespace eg
         DerivationAnalysis::NameResolution nameResolution( *m_pDerivationAnalysis );
         nameResolution.resolve( contextNodes, concreteTypePath );
         
-        pInvocation->m_operationType = operationType;
-        pInvocation->m_context = context;
+        pInvocation->m_operationType    = operationType;
+        pInvocation->m_context          = context;
         pInvocation->m_implicitTypePath = implicitTypePath;
+        if( !typePath.empty() )
+            pInvocation->m_finalPathTypes   = typePath.back();
         
         pInvocation->build( *m_pDerivationAnalysis, nameResolution );
         

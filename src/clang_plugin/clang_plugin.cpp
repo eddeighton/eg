@@ -364,7 +364,7 @@ namespace eg
                                         //diagnostic...
                                         return;
                                     }
-                                    eg::TypeID operationTypeID = operationTypeIDOpt.value();
+                                    eg::OperationID operationTypeID = static_cast< eg::OperationID >( operationTypeIDOpt.value() );
                                     
                                     std::vector< const abstract::Element* > contexts;
                                     {
@@ -394,6 +394,7 @@ namespace eg
                                         //establish the return type
                                         clang::DeclContext* pDeclContext = g_pASTContext->getTranslationUnitDecl();
                                         const InvocationSolution::TargetTypes& targets = pSolution->getTargetTypes();
+                                        const InvocationSolution::TargetTypes& finalPathTypes = pSolution->getFinalPathTypes();
                                         clang::SourceLocation loc;
                                         
                                         switch( operationTypeID )
@@ -550,27 +551,11 @@ namespace eg
                                                 break;
                                             case id_Range      : 
                                                 {
-                                                    
-                                                    if( !targets.empty() && !typePathElements.empty() )
+                                                    if( !targets.empty() )
                                                     {
-                                        //std::vector< std::vector< const abstract::Element* > > typePathElements;
-                                        
-                                                        //const std::vector< const abstract::Element* > finalTypePathElements =
-                                                        //    typePathElements.back();
-                                                        //
-                                                        ////determine which of the final elements are actually in the targets
-                                                        //std::vector< const abstract::Element* > rangeTypes;
-                                                        //for( const abstract::Element* pTarget : targets )
-                                                        //{
-                                                        //    for( const abstract::Element* pFinal : finalTypePathElements )
-                                                        //    {
-                                                        //        
-                                                        //    }
-                                                        //}
-                                                        
-                                                        
                                                         if( targets.size() == 1 )
                                                         {
+                                                            ASSERT( finalPathTypes.size() == 1 );
                                                             const abstract::Element* pTarget = targets.front();
                                                             clang::DeclContext* pDeclContextIter = pDeclContext;
                                                             const std::vector< const abstract::Element* > path = getPath( pTarget );
@@ -584,40 +569,30 @@ namespace eg
                                                             if( pDeclContextIter )
                                                                 resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "EGRangeType" );
                                                         }
-                                                        /*else
+                                                        else if( finalPathTypes.size() == 1 )
                                                         {
-                                                            
-                                                            std::vector< clang::QualType > types;
-                                                            for( const abstract::Element* pTarget : targets )
+                                                            const abstract::Element* pIteratorType = finalPathTypes.front();
                                                             {
+                                                                clang::SourceLocation loc;
                                                                 clang::DeclContext* pDeclContextIter = g_pASTContext->getTranslationUnitDecl();
-                                                                const std::vector< const abstract::Element* > path = getPath( pTarget );
+                                                                const std::vector< const abstract::Element* > path = getPath( pIteratorType );
+                                                                std::optional< clang::QualType > iteratorType;
                                                                 for( const abstract::Element* pElementElement : path )
                                                                 {
-                                                                    if( pElementElement == path.back() )
-                                                                    {
-                                                                        clang::QualType variantType = clang::getType( g_pASTContext, g_pSema, 
-                                                                            getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                                                            pDeclContextIter, loc, true );
-                                                                        types.push_back( variantType );
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        clang::getType( g_pASTContext, g_pSema, 
-                                                                            getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                                                            pDeclContextIter, loc, false );
-                                                                        if( !pDeclContextIter ) break;
-                                                                    }
+                                                                    iteratorType = clang::getType( g_pASTContext, g_pSema, 
+                                                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                                                        pDeclContextIter, loc, false );
+                                                                    if( !pDeclContextIter ) break;
+                                                                }
+                                                                if( pDeclContextIter && iteratorType )
+                                                                {
+                                                                    //construct the variant result type
+                                                                    resultType = clang::getMultiIteratorType( g_pASTContext, g_pSema, 
+                                                                        g_pASTContext->getTranslationUnitDecl(), 
+                                                                        loc, iteratorType.value(), targets.size() );
                                                                 }
                                                             }
-                                                            
-                                                            //construct the variant result type
-                                                            clang::SourceLocation loc;
-                                                            resultType = clang::getMultiIteratorType( g_pASTContext, g_pSema, 
-                                                                g_pASTContext->getTranslationUnitDecl(), loc, types );
-                                                            
-                                                            
-                                                        }*/
+                                                        }
                                                     }
                                                 }
                                                 break;

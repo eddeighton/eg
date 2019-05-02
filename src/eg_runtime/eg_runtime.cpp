@@ -132,7 +132,7 @@ namespace eg
                 context.push_back( pContextAction->getAction() );
             }
         
-            TypeID operationType = HIGHEST_OPERATION_TYPE;
+            OperationID operationType = HIGHEST_OPERATION_TYPE;
             InvocationSolution::TypePath typePath;
             {
                 for( TypeID typeID : implicitTypePath )
@@ -140,7 +140,7 @@ namespace eg
                     ASSERT( typeID < 0 );
                     if( isOperationType( typeID ) )
                     {
-                        operationType = typeID;
+                        operationType = static_cast< OperationID >( typeID );
                     }
                     else
                     {
@@ -191,11 +191,7 @@ namespace eg
                     }
                     
                     //for range enumerations we want to enumerate all deriving types
-                    bool bDerivingPathElements = false;
-                    if( operationType == id_Range )
-                    {
-                        bDerivingPathElements = true;
-                    }
+                    const bool bDerivingPathElements = isOperationEnumeration( operationType );
                     
                     std::vector< std::vector< const concrete::Element* > > concreteTypePath;
                     {
@@ -219,6 +215,8 @@ namespace eg
                     pInvocation->m_operationType        = operationType;
                     pInvocation->m_context              = context;
                     pInvocation->m_implicitTypePath     = implicitTypePath;
+                    if( !typePath.empty() )
+                        pInvocation->m_finalPathTypes   = typePath.back();
                     
                     pInvocation->build( analysis, nameResolution );
                     

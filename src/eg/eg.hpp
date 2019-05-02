@@ -36,15 +36,8 @@ namespace eg
     
     using TypeIDVector        = std::vector< TypeID >;
     using TypeIDVectorVector  = std::vector< TypeIDVector >;
-
-    static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();
     
     using OperationIDStringArray = std::array< std::string, TOTAL_OPERATION_TYPES >;
-    
-    inline bool isOperationType( TypeID id )
-    {
-        return id < HIGHEST_OPERATION_TYPE;
-    }
     
     OperationID getOperationName( const std::string& strName );
     

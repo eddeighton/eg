@@ -419,7 +419,65 @@ namespace clang
                 return pSema->CheckTemplateIdType( templateName, loc, TemplateArgs );
             }
         }
-        pDeclContext = nullptr;
+        return QualType();
+    }
+        
+    QualType getMultiIteratorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
+        const clang::QualType& iteratorType, std::size_t szTargetTypes )
+    {
+        SourceLocation iterLoc;
+        IdentifierInfo& identifierInfo = pASTContext->Idents.get( eg::EG_MULTI_ITERATOR_TYPE );
+        LookupResult result( *pSema, &identifierInfo, iterLoc, Sema::LookupAnyName );
+        if( pSema->LookupQualifiedName( result, pDeclContext ) )
+        {
+            if( ClassTemplateDecl* pDecl = llvm::dyn_cast< ClassTemplateDecl >( result.getFoundDecl() ) )
+            {
+                iterLoc = pDecl->getTemplatedDecl()->getBeginLoc();
+                TemplateArgumentListInfo TemplateArgs( iterLoc, iterLoc );
+                
+                TemplateArgumentLocInfo tali;
+                {
+                    TemplateArgs.addArgument( 
+                        TemplateArgumentLoc( 
+                            TemplateArgument( iteratorType ), 
+                            pASTContext->getTrivialTypeSourceInfo( iteratorType, loc ) ) );
+                }
+                {
+                    const llvm::APInt actualValue( 8U * 4U, static_cast< uint64_t >( szTargetTypes ), true );
+                    const llvm::APSInt compileTimeIntValue( actualValue );
+                    
+                    TemplateArgumentLocInfo tali;
+                    TemplateArgs.addArgument( 
+                        TemplateArgumentLoc( 
+                            TemplateArgument( *pASTContext, compileTimeIntValue, getIntType( pASTContext ) ), tali ) );
+                }
+                
+                
+                TemplateName templateName( pDecl );
+                QualType multiIteratorType = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
+                
+                
+                SourceLocation rangeLoc;
+                IdentifierInfo& rangeIdentifierInfo = pASTContext->Idents.get( eg::EG_RANGE_TYPE );
+                LookupResult result( *pSema, &rangeIdentifierInfo, rangeLoc, Sema::LookupAnyName );
+                if( pSema->LookupQualifiedName( result, pDeclContext ) )
+                {
+                    if( ClassTemplateDecl* pDecl = llvm::dyn_cast< ClassTemplateDecl >( result.getFoundDecl() ) )
+                    {
+                        rangeLoc = pDecl->getTemplatedDecl()->getBeginLoc();
+                        TemplateArgumentListInfo TemplateArgs( rangeLoc, rangeLoc );
+                        
+                        TemplateArgs.addArgument( 
+                            TemplateArgumentLoc( 
+                                TemplateArgument( multiIteratorType ), 
+                                pASTContext->getTrivialTypeSourceInfo( multiIteratorType, loc ) ) );
+                        TemplateName templateName( pDecl );
+                        return pSema->CheckTemplateIdType( templateName, rangeLoc, TemplateArgs );
+                    }
+                }
+                
+            }
+        }
         return QualType();
     }
     

@@ -52,6 +52,25 @@ namespace eg
         HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483637)
     };
 
+    static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();
+    
+    inline bool isOperationType( TypeID id )
+    {
+        return id < HIGHEST_OPERATION_TYPE;
+    }
+    
+    inline bool isOperationEnumeration( OperationID id )
+    {
+        switch( id )
+        {
+            case id_Size:
+            case id_Range:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     enum InvocableID : TypeID
     {
         id_Variant = HIGHEST_OPERATION_TYPE,
