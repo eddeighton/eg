@@ -2092,8 +2092,12 @@ namespace eg
                             const InvocationSolution::TargetTypes& targets = generator.invocation.getTargetTypes();
                             const InvocationSolution::TargetTypes& finalTypes = generator.invocation.getFinalPathTypes();
                             
+                            bool bSkipDomain = false;
                             if( pNext->type == InvocationSolution::DerivationStep::eTarget )
+                            {
+                                bSkipDomain = true;
                                 pNext = pStep;
+                            }
                             
                             if( targets.size() == 1U )
                             {
@@ -2118,7 +2122,8 @@ namespace eg
                                     {
                                         for( const concrete::Action* pActionIter : enumActions )
                                         {
-                                            szMultiplier *= pActionIter->getLocalDomainSize();
+                                            if( !bSkipDomain || pActionIter != enumActions.front() )
+                                                szMultiplier *= pActionIter->getLocalDomainSize();
                                         }
                                     }
                                     const concrete::Action* pAction = enumActions.back();
@@ -2170,7 +2175,8 @@ namespace eg
                                     {
                                         for( const concrete::Action* pActionIter : enumAction )
                                         {
-                                            szMultiplier *= pActionIter->getLocalDomainSize();
+                                            if( !bSkipDomain || pActionIter != enumAction.front() )
+                                                szMultiplier *= pActionIter->getLocalDomainSize();
                                         }
                                     }
                                     multipliers.push_back( szMultiplier );

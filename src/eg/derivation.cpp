@@ -400,6 +400,13 @@ namespace eg
         
         while( pFrom != pCommon )
         {
+            //do not allow parent steps in enumerations
+            if( isOperationEnumeration( m_operationType ) )
+            {
+                addStep( pFrom, pStep, DerivationStep::eFailed, pFrom->getLocalDomainSize() );
+                return nullptr;
+            }
+            
             std::size_t szSize = pFrom->getLocalDomainSize();
             pFrom = pFrom->getParent();
             pStep = addStep( pFrom, pStep, DerivationStep::eParent, szSize );
