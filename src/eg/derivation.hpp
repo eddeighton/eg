@@ -24,12 +24,14 @@
 #include "eg.hpp"
 #include "objects.hpp"
 #include "concrete.hpp"
+#include "session.hpp"
 
 #include "runtime/eg_common.hpp"
 
 #include <map>
 #include <set>
 #include <vector>
+#include <tuple>
 
 namespace eg
 {
@@ -184,11 +186,15 @@ namespace eg
     
     class EGRuntimeImpl;
     
+    class Identifiers;
+    class InvocationSolutionMap;
+    
     class InvocationSolution : public IndexedObject
     {
         friend class ObjectFactoryImpl;
         friend class OperationsSession;
         friend class EGRuntimeImpl;
+        friend class InvocationSolutionMap;
     public:
         static const ObjectType Type = eInvocationSolution;
     protected:
@@ -262,8 +268,23 @@ namespace eg
             
             
     public:
+        using InvocationID = std::tuple< Context, TypePath, OperationID >;
+        using InvocationMap = std::map< InvocationID, InvocationSolution* >;
+    
+        static InvocationID invocationIDFromTypeIDs( 
+            const IndexedObject::Array& objects, const Identifiers& identifiers, 
+            const std::vector< TypeID >& contextTypes, 
+            const std::vector< TypeID >& implicitTypePath, eg::OperationID operationTypeID );
+            
+        static InvocationID invocationIDFromTypeIDs( 
+            const IndexedObject::Array& objects, const Identifiers& identifiers, 
+            const TypeID runtimeContextType, 
+            const std::vector< TypeID >& implicitTypePath, bool bHasParameters );
+        
+    private:
         void build( const DerivationAnalysis& analysis, const DerivationAnalysis::NameResolution& resolution );
         
+    public:
         bool isImplicitStarter() const;
         
         reference evaluate( RuntimeEvaluator& evaluator, const reference& context ) const;
@@ -289,6 +310,28 @@ namespace eg
         TargetTypes m_targetTypes;
         TargetTypes m_finalPathTypes;
         TypeIDVector m_implicitTypePath;
+    };
+    
+    class InvocationSolutionMap
+    {
+        friend class ObjectFactoryImpl;
+        friend class OperationsSession;
+        friend class EGRuntimeImpl;
+    public:
+        InvocationSolutionMap( CreatingSession& session, const DerivationAnalysis& analysis )
+            :   m_session( session ),
+                m_analysis( analysis )
+        {
+        }
+        
+        const InvocationSolution* getInvocation( 
+            const InvocationSolution::InvocationID& invocationID, 
+            const std::vector< TypeID >& implicitTypePath );
+        
+    private:
+        CreatingSession& m_session;
+        const DerivationAnalysis& m_analysis;
+        InvocationSolution::InvocationMap m_invocations;
     };
 }
 

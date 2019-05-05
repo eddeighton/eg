@@ -1,0 +1,25 @@
+
+
+action A
+{
+
+    action B
+    {
+        dim int x;
+    }
+
+}
+
+action C : A
+{
+    action D : B
+    {
+        
+    }
+}
+
+link E : C::D
+{
+    dim int x;
+}
+

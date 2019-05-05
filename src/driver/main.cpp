@@ -403,6 +403,7 @@ int main( int argc, const char* argv[] )
     }
     
     //compile the interface to pch file
+    if( !bPrintInstance )
     {
         LogEntry log( std::cout, "Compiling interface to pch", bBenchCommands );
         std::ostringstream osCmd;

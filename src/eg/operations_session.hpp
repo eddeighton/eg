@@ -25,6 +25,10 @@
 #include "derivation.hpp"
 #include "identifiers.hpp"
 
+#include "runtime/eg_common.hpp"
+
+#include <vector>
+
 namespace eg
 {
 
@@ -38,19 +42,19 @@ namespace eg
         
         void store() const;
         
-        std::vector< const abstract::Element* > fromEGTypeID( TypeID typeID, bool bForceDecl );
-        const InvocationSolution* getInvocation( const InvocationSolution::Context& context,
-            const InvocationSolution::TypePath& typePath, OperationID operationType, const std::vector< eg::TypeID >& implicitTypePath );
+        const Identifiers& getIdentifiers() const;
+        
+        const InvocationSolution* getInvocation( 
+            const InvocationSolution::InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath );
         
     private:
         const boost::filesystem::path m_tuPath;
-        
-        using InvocationID = std::tuple< InvocationSolution::Context, InvocationSolution::TypePath, TypeID >;
-        using InvocationMap = std::map< InvocationID, InvocationSolution* >;
-        InvocationMap m_invocations;
-        
         const DerivationAnalysis* m_pDerivationAnalysis;
+        InvocationSolutionMap m_invocations;
+        
+        
         const Identifiers* m_pIdentifiers;
+        
     };
 
 

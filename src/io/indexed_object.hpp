@@ -73,7 +73,6 @@ namespace eg
             
         }
         
-        virtual void print( std::ostream& os, std::string& strIndent ) const { };
     private:
         Type    m_type      = NO_TYPE;
         FileID  m_fileID    = NO_FILE;

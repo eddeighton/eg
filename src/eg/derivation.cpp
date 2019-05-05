@@ -21,6 +21,8 @@
 
 #include "derivation.hpp"
 
+#include "identifiers.hpp"
+
 namespace eg
 {
     /////////////////////////////////////////////////////////////////////////////////////
@@ -286,6 +288,138 @@ namespace eg
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    std::vector< const abstract::Element* > fromEGTypeID( const IndexedObject::Array& objects, 
+        const Identifiers& identifiers, TypeID typeID, bool bForceDecl )
+    {
+        std::vector< const abstract::Element* > result;
+        
+        if( !isOperationType( typeID ) )
+        {
+            if( typeID < 0 )
+            {
+                if( -typeID < static_cast< int >( objects.size() ) )
+                {
+                    if( const abstract::Element* pElement = 
+                            dynamic_cast< const abstract::Element* >( objects[ -typeID ] ) )
+                    {
+                        return identifiers.getGroup( pElement );
+                    }
+                }
+            }
+            else if( bForceDecl )
+            {
+                if( typeID < static_cast< int >( objects.size() ) )
+                {
+                    if( const abstract::Element* pElement = 
+                        dynamic_cast< const abstract::Element* >( objects[ typeID ] ) )
+                    {
+                        return identifiers.getGroupBack( pElement );
+                    }   
+                }   
+            }
+            else if( typeID < static_cast< int >( objects.size() ) )
+            {
+                if( const abstract::Element* pElement = 
+                        dynamic_cast< const abstract::Element* >( objects[ typeID ] ) )
+                {
+                    result.push_back( pElement );
+                }
+            }
+        }
+        return result;
+    }
+    
+    InvocationSolution::InvocationID InvocationSolution::invocationIDFromTypeIDs( 
+        const IndexedObject::Array& objects, const Identifiers& identifiers, 
+        const std::vector< TypeID >& contextTypes, 
+        const std::vector< TypeID >& implicitTypePath, OperationID operationType )
+    {
+        
+        std::vector< const abstract::Element* > context;
+        {
+            for( TypeID typeID : contextTypes )
+            {
+                std::vector< const abstract::Element* > result =
+                    fromEGTypeID( objects, identifiers, typeID, false );
+                std::copy( result.begin(), result.end(), std::back_inserter( context ) );
+            }
+            context = uniquify_without_reorder( context );
+        }
+        
+        
+        std::vector< std::vector< const abstract::Element* > > typePath;
+        {
+            for( TypeID typeID : implicitTypePath )
+            {
+                std::vector< const abstract::Element* > result =
+                    fromEGTypeID( objects, identifiers, typeID, true );
+                if( !result.empty() )
+                    typePath.push_back( result );
+            }
+        }
+        
+        return InvocationSolution::InvocationID( context, typePath, operationType );
+    }
+    
+    InvocationSolution::InvocationID InvocationSolution::invocationIDFromTypeIDs( 
+        const IndexedObject::Array& objects, const Identifiers& identifiers, 
+        const TypeID runtimeContextType, 
+        const std::vector< TypeID >& implicitTypePath, bool bHasParameters )
+    {        
+        InvocationSolution::Context context;
+        {
+            ASSERT( runtimeContextType > 0 );
+            const concrete::Action* pContextAction = 
+                dynamic_cast< const concrete::Action* >( objects[ runtimeContextType ] );
+            ASSERT( pContextAction );
+            context.push_back( pContextAction->getAction() );
+        }
+    
+        OperationID operationType = HIGHEST_OPERATION_TYPE;
+        InvocationSolution::TypePath typePath;
+        {
+            for( TypeID typeID : implicitTypePath )
+            {
+                ASSERT( typeID < 0 );
+                if( isOperationType( typeID ) )
+                {
+                    operationType = static_cast< OperationID >( typeID );
+                }
+                else
+                {
+                    ASSERT( -typeID < static_cast< int >( objects.size() ) );
+                        
+                    const abstract::Element* pElement = 
+                        dynamic_cast< const abstract::Element* >( objects[ -typeID ] );
+                    ASSERT( pElement );
+                    if( pElement )
+                    {
+                        std::vector< const abstract::Element* > elements =
+                            identifiers.getGroup( pElement );
+                        typePath.push_back( elements );
+                    }
+                }
+            }
+        }
+        
+        if( operationType == HIGHEST_OPERATION_TYPE )
+        {
+            //infer the operation type
+            if( bHasParameters )
+            {
+                operationType = id_Imp_Params;
+            }
+            else
+            {
+                operationType = id_Imp_NoParams;
+            }
+        }
+        
+        return InvocationSolution::InvocationID( context, typePath, operationType );
+    }
+    
     void InvocationSolution::load( Loader& loader )
     {
         {
@@ -688,4 +822,57 @@ namespace eg
         
     }
     
-}
+    const InvocationSolution* InvocationSolutionMap::getInvocation( 
+        const InvocationSolution::InvocationID& invocationID, 
+        const std::vector< TypeID >& implicitTypePath )
+    {
+        InvocationSolution::InvocationMap::const_iterator
+            iFind = m_invocations.find( invocationID );
+        if( iFind != m_invocations.end() )
+        {
+            return iFind->second;
+        }
+        
+        //construct new invocation
+        InvocationSolution* pInvocation = m_session.construct< InvocationSolution >();
+        
+        std::vector< const concrete::Inheritance_Node* > contextNodes;
+        {
+            for( const abstract::Element* pContext : std::get< InvocationSolution::Context >( invocationID ) )
+            {
+                if( const abstract::Action* pContextAction = dynamic_cast< const abstract::Action* >( pContext ) )
+                    m_analysis.getInheritanceNodes( pContextAction, contextNodes );
+            }
+        }
+        
+        //for range enumerations we want to enumerate all deriving types
+        const bool bDerivingPathElements = isOperationEnumeration( std::get< OperationID >( invocationID ) );
+        
+        std::vector< std::vector< const concrete::Element* > > concreteTypePath;
+        {
+            for( const std::vector< const abstract::Element* >& typePathElement : std::get< InvocationSolution::TypePath >( invocationID ) )
+            {
+                std::vector< const concrete::Element* > instances;
+                for( const abstract::Element* pElement : typePathElement )
+                    m_analysis.getInstances( pElement, instances, bDerivingPathElements );
+                concreteTypePath.emplace_back( std::move( instances ) );
+            }
+        }
+        
+        DerivationAnalysis::NameResolution nameResolution( m_analysis );
+        nameResolution.resolve( contextNodes, concreteTypePath );
+        
+        pInvocation->m_operationType    = std::get< OperationID >( invocationID );
+        pInvocation->m_context          = std::get< InvocationSolution::Context >( invocationID );
+        pInvocation->m_implicitTypePath = implicitTypePath;
+        if( !std::get< InvocationSolution::TypePath >( invocationID ).empty() )
+            pInvocation->m_finalPathTypes   = std::get< InvocationSolution::TypePath >( invocationID ).back();
+        
+        pInvocation->build( m_analysis, nameResolution );
+        
+        m_invocations.insert( std::make_pair( invocationID, pInvocation ) );
+                                    
+        return pInvocation;
+    }
+
+} //namespace eg

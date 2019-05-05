@@ -1,0 +1,20 @@
+
+
+action A
+{
+
+}
+
+action C : A
+{
+    
+}
+
+link B : A
+{
+    action D
+    {
+    
+    }
+}
+

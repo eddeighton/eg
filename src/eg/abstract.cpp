@@ -88,7 +88,7 @@ namespace abstract
                 case eInputOpaque    :
                 case eInputDimension :
                 case eInputInclude   :
-                    m_pElement->print( os, strIndent );
+                    m_pElement->print( os, strIndent, getIndex() );
                     break;
                 case eInputRoot      :
                 case eInputAction    :
@@ -96,7 +96,7 @@ namespace abstract
                         input::Action* pAction = dynamic_cast< input::Action* >( m_pElement );
                         VERIFY_RTE( pAction );
                         
-                        pAction->printDeclaration( os, strIndent );
+                        pAction->printDeclaration( os, strIndent, getIndex() );
                         
                         os << "\n" << strIndent << "{\n";
 

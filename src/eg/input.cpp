@@ -50,9 +50,9 @@ namespace input
         storer.store( m_str );
     }
     
-    void Opaque::print( std::ostream& os, std::string& strIndent ) const
+    void Opaque::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
     {
-        os << strIndent << m_str;
+        os << strIndent << m_str << "//" << szIndex;
     }
     
     Dimension::Dimension( const IndexedObject& object )
@@ -74,10 +74,10 @@ namespace input
         storer.storeObjectRef( m_pType );
     }
     
-    void Dimension::print( std::ostream& os, std::string& strIndent ) const
+    void Dimension::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
     {
         VERIFY_RTE( m_pType );
-        os << strIndent << "dim " << m_pType->getStr() << " " << m_strIdentifier << ";\n";
+        os << strIndent << "dim " << m_pType->getStr() << " " << m_strIdentifier << ";//" << szIndex << "\n";
     }
     
     Include::Include( const IndexedObject& object )
@@ -104,12 +104,12 @@ namespace input
         storer.store( m_bIsSystemInclude );
     }
     
-    void Include::print( std::ostream& os, std::string& strIndent ) const
+    void Include::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
     {
         if( m_strIdentifier.empty() )
-            os << strIndent << "include( " << m_path.string() << " );\n";
+            os << strIndent << "include( " << m_path.string() << " );//" << szIndex << "\n";
         else
-            os << strIndent << "include " << m_strIdentifier << "( " << m_path.string() << " );\n";
+            os << strIndent << "include " << m_strIdentifier << "( " << m_path.string() << " );//" << szIndex << "\n";
     }
     
     void Include::setIncludeFilePath( const std::string& strIncludeFile )
@@ -179,7 +179,7 @@ namespace input
         return nullptr;
     }
     
-    void Action::printDeclaration( std::ostream& os, std::string& strIndent ) const
+    void Action::printDeclaration( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
     {
         if( m_bIsTemplate )
         {
@@ -215,13 +215,15 @@ namespace input
             else
                 os << ", " << pInherited->getStr();
         }
+        
+        os << " //" << szIndex;
     }
     
-    void Action::print( std::ostream& os, std::string& strIndent ) const
+    void Action::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
     {
-        printDeclaration( os, strIndent );
+        printDeclaration( os, strIndent, getIndex() );
         
-        os << "\n" << strIndent << "{\n";
+        /*os << "\n" << strIndent << "{\n";
 
         strIndent.push_back( ' ' );
         strIndent.push_back( ' ' );
@@ -234,7 +236,7 @@ namespace input
         strIndent.pop_back();
         strIndent.pop_back();
 
-        os << "\n" << strIndent << "}\n";
+        os << "\n" << strIndent << "}//" << szIndex << "\n";*/
     }
     
     
@@ -261,9 +263,9 @@ namespace input
         storer.store( m_bMainFile );
     }
     
-    void Root::print( std::ostream& os, std::string& strIndent ) const
+    void Root::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
     {
-        Action::print( os, strIndent );
+        Action::print( os, strIndent, szIndex );
     }
 
 } //namespace input

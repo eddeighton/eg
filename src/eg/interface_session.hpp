@@ -58,7 +58,12 @@ namespace eg
         using DimensionOverrideMap = 
             std::map< const abstract::Dimension*, concrete::Dimension*, CompareNodeIdentity< const abstract::Dimension > >;
             
-        void collateBases( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode );
+        concrete::Inheritance_Node* constructInheritanceNode( concrete::Action* pRootInstance, 
+            concrete::Inheritance_Node* pParent, const abstract::Action* pAction );
+        concrete::Inheritance_Node* constructInheritanceTree( concrete::Action* pInstance, 
+            concrete::Inheritance_Node* pInheritanceNode, const abstract::Action* pAction );
+        void constructInheritanceTree( concrete::Action* pInstance );
+        
         void calculateInstanceActionName( concrete::Action* pAction );
         void collateOverrides( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode,
                 ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances );

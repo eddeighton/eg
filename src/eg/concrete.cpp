@@ -608,7 +608,14 @@ namespace concrete
     void Action::print( std::ostream& os, std::string& strIndent ) const
     {
         const abstract::Action* pAction = getAction();
-        os << strIndent << "action(" << getIndex() << ") " << pAction->getIdentifier() << "\n";
+        if( pAction->isLink() )
+        {
+            os << strIndent << "link(" << getIndex() << ") " << pAction->getIdentifier() << "\n";
+        }
+        else
+        {
+            os << strIndent << "action(" << getIndex() << ") " << pAction->getIdentifier() << "\n";
+        }
         
         if( !m_children.empty() )
         {

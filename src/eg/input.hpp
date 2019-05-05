@@ -44,6 +44,8 @@ namespace eg
             friend class ::eg::ObjectFactoryImpl;
         protected:
             Element( const IndexedObject& object );
+        public:
+            virtual void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const { };
         };
 
         class Opaque : public Element
@@ -58,7 +60,7 @@ namespace eg
             const std::string& getStr() const { return m_str; }
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent ) const;
+            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
         private:
             std::string m_str;
         };
@@ -77,7 +79,7 @@ namespace eg
         
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent ) const;
+            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
         private:
             std::string m_strIdentifier;
             Opaque* m_pType;
@@ -99,7 +101,7 @@ namespace eg
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent ) const;
+            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
             void setIncludeFilePath( const std::string& strIncludeFile );
             
         private:
@@ -128,8 +130,8 @@ namespace eg
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             Action* findAction( const std::string& strIdentifier ) const;
-            void printDeclaration( std::ostream& os, std::string& strIndent ) const;
-            void print( std::ostream& os, std::string& strIndent ) const;
+            void printDeclaration( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
 
         protected:
             std::vector< Element* > m_elements;
@@ -157,7 +159,7 @@ namespace eg
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent ) const;
+            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
         private:
             boost::filesystem::path m_path;
             bool m_bMainFile;

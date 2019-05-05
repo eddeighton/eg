@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+    <folder>W:/workspace/eg/tests/unittests</folder>
+    <flags>-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -fcoroutines-ts -Wno-deprecated -Wno-inconsistent-missing-override</flags>
+    <hostflags>-nostdlib -lmsvcrt</hostflags>
+    <hostcmd>&quot;test_host.exe&quot;</hostcmd>
+    <source>
+        <eg>
+            <file>name_resolution.eg</file>
+        </eg>
+        <cpp>
+            <file>name_resolution_build/main.cpp</file>
+        </cpp>
+    </source>
+    <libs>
+        <file>W:/workspace/eg/bin/eventlog.lib</file>
+    </libs>
+    <includedirectories>
+        <folder>W:/workspace/eg/api</folder>
+        <folder>W:/workspace/eg/src</folder>
+        <folder>W:/workspace/eg</folder>
+    </includedirectories>
+    <include>
+        <user>
+            <file>eg.hpp</file>
+        </user>
+        <system>
+            <file>&lt;chrono&gt;</file>
+            <file>&lt;sstream&gt;</file>
+            <file>&lt;iostream&gt;</file>
+            <file>&lt;limits&gt;</file>
+            <file>&lt;array&gt;</file>
+            <file>&lt;iterator&gt;</file>
+            <file>&lt;thread&gt;</file>
+            <file>&lt;atomic&gt;</file>
+        </system>
+    </include>
+</project>

@@ -82,21 +82,39 @@ namespace eg
         }
     }
     
-    void InterfaceSession::collateBases( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode )
+    concrete::Inheritance_Node* InterfaceSession::constructInheritanceNode( concrete::Action* pConcreteAction, 
+            concrete::Inheritance_Node* pParent, const abstract::Action* pAbstractAction )
     {
-        for( abstract::Action* pBase : pInheritanceNode->m_pAction->m_baseActions )
+        concrete::Inheritance_Node* pInheritanceNode    = construct< concrete::Inheritance_Node >(); 
+        pInheritanceNode->m_pRootConcreteAction         = pConcreteAction;
+        pInheritanceNode->m_pParent                     = pParent;
+        pInheritanceNode->m_pAction                     = pAbstractAction;
+        
+        if( pParent )
+            pParent->m_children.push_back( pInheritanceNode );
+        
+        m_pDerivationAnalysis->m_inheritanceMap.insert( std::make_pair( pAbstractAction, pInheritanceNode ) );
+        
+        return pInheritanceNode;
+    }
+    
+    concrete::Inheritance_Node* InterfaceSession::constructInheritanceTree( concrete::Action* pConcreteAction,  
+                concrete::Inheritance_Node* pParent, const abstract::Action* pAbstractAction )
+    {
+        concrete::Inheritance_Node* pInheritanceNode  
+            = constructInheritanceNode( pConcreteAction, pParent, pAbstractAction );
+        
+        for( const abstract::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
         {
-            concrete::Inheritance_Node* pChildInheritanceNode = construct< concrete::Inheritance_Node >(); 
-            pInheritanceNode->m_children.push_back( pChildInheritanceNode );
-            
-            pChildInheritanceNode->m_pRootConcreteAction    = pInstance;
-            pChildInheritanceNode->m_pParent                = pInheritanceNode;
-            pChildInheritanceNode->m_pAction                = pBase;
-            
-            m_pDerivationAnalysis->m_inheritanceMap.insert( std::make_pair( pBase, pChildInheritanceNode ) );
-            
-            collateBases( pInstance, pChildInheritanceNode );
+            constructInheritanceTree( pConcreteAction, pInheritanceNode, pBaseAbstractAction );
         }
+        
+        return pInheritanceNode;
+    }
+    
+    void InterfaceSession::constructInheritanceTree( concrete::Action* pConcreteAction )
+    {
+        pConcreteAction->m_inheritance = constructInheritanceTree( pConcreteAction, nullptr, pConcreteAction->getAction() );
     }
     
     template< typename T >
@@ -145,11 +163,6 @@ namespace eg
                 pChildInstance->m_pParent = pInstance;
                 calculateInstanceActionName( pChildInstance );
                 
-                pChildInstance->m_inheritance = construct< concrete::Inheritance_Node >(); 
-                pChildInstance->m_inheritance->m_pRootConcreteAction    = pChildInstance;
-                pChildInstance->m_inheritance->m_pAction                = pChildAction;
-                
-                m_pDerivationAnalysis->m_inheritanceMap.insert( std::make_pair( pChildAction, pChildInstance->m_inheritance ) );
                 m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pChildAction, pChildInstance ) );
                 
                 //record it in the inheritance node
@@ -243,7 +256,7 @@ namespace eg
     
     void InterfaceSession::constructInstance( concrete::Action* pInstance )
     {
-        collateBases( pInstance, pInstance->m_inheritance );
+        constructInheritanceTree( pInstance );
         
         ActionOverrideMap      actionInstances;
         DimensionOverrideMap   dimensionInstances;
@@ -296,11 +309,7 @@ namespace eg
         pRoot->m_pElement = pActionRoot;
         pRoot->m_pParent = nullptr;
         calculateInstanceActionName( pRoot );
-        pRoot->m_inheritance = construct< concrete::Inheritance_Node >(); 
-        pRoot->m_inheritance->m_pRootConcreteAction = pRoot;
-        pRoot->m_inheritance->m_pAction             = pActionRoot;
         
-        m_pDerivationAnalysis->m_inheritanceMap.insert( std::make_pair( pActionRoot, pRoot->m_inheritance ) );
         m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pActionRoot, pRoot ) );
         
         constructInstance( pRoot );

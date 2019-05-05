@@ -366,30 +366,13 @@ namespace eg
                                     }
                                     eg::OperationID operationTypeID = static_cast< eg::OperationID >( operationTypeIDOpt.value() );
                                     
-                                    std::vector< const abstract::Element* > contexts;
-                                    {
-                                        for( eg::TypeID typeID : contextTypes )
-                                        {
-                                            std::vector< const abstract::Element* > result =
-                                                g_pOperationsSession->fromEGTypeID( typeID, false );
-                                            std::copy( result.begin(), result.end(), std::back_inserter( contexts ) );
-                                        }
-                                        contexts = uniquify_without_reorder( contexts );
-                                    }
+                                    const InvocationSolution::InvocationID invocationID = 
+                                        InvocationSolution::invocationIDFromTypeIDs( 
+                                            g_pOperationsSession->getObjects( IndexedObject::MASTER_FILE ), 
+                                            g_pOperationsSession->getIdentifiers(),
+                                            contextTypes, typePathTypes, operationTypeID );
                                     
-                                    std::vector< std::vector< const abstract::Element* > > typePathElements;
-                                    {
-                                        for( eg::TypeID typeID : typePathTypes )
-                                        {
-                                            std::vector< const abstract::Element* > result =
-                                                g_pOperationsSession->fromEGTypeID( typeID, true );
-                                            if( !result.empty() )
-                                                typePathElements.push_back( result );
-                                        }
-                                    }
-                                    
-                                    if( const InvocationSolution* pSolution = g_pOperationsSession->getInvocation( 
-                                        contexts, typePathElements, operationTypeID, typePathTypes ) )
+                                    if( const InvocationSolution* pSolution = g_pOperationsSession->getInvocation( invocationID, typePathTypes ) )
                                     {
                                         //establish the return type
                                         clang::DeclContext* pDeclContext = g_pASTContext->getTranslationUnitDecl();

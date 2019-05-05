@@ -42,33 +42,32 @@ namespace eg
         
     }
     
+    std::shared_ptr< eg::ReadSession > loadDatabase( const char* pszDatabaseFilePath )
+    {
+        const boost::filesystem::path databaseFilePath = 
+            boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( 
+                    std::string( pszDatabaseFilePath ) ) );
+        if( !boost::filesystem::exists( databaseFilePath ) )
+        {
+            THROW_RTE( "Cannot locate file: " << databaseFilePath.string() );
+        } 
+        return std::make_shared< eg::ReadSession >( databaseFilePath );
+    }
     
-    class EGRuntimeImpl : public EGRuntime, public RuntimeEvaluator
+    class EGRuntimeImpl : public EGRuntime, public RuntimeEvaluator, public CreatingSession
     {
     public:
         EGRuntimeImpl( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath )
-            :   m_hostAccessor( hostAccessor )
+            :   CreatingSession( IndexedFile::FileIDtoPathMap{}, IndexedObject::NO_FILE ),
+                m_hostAccessor( hostAccessor ),
+                m_pDatabase( loadDatabase( pszDatabaseFilePath ) ),
+                m_invocations( *this, m_pDatabase->getDerivationAnalysis() )
         {
-            {
-                const boost::filesystem::path databaseFilePath = 
-                    boost::filesystem::edsCannonicalise(
-                        boost::filesystem::absolute( 
-                            std::string( pszDatabaseFilePath ) ) );
-                if( !boost::filesystem::exists( databaseFilePath ) )
-                {
-                    THROW_RTE( "Cannot locate file: " << databaseFilePath.string() );
-                } 
-                m_pDatabase = std::make_shared< eg::ReadSession >( databaseFilePath );
-            }
             
         }
         ~EGRuntimeImpl()
         {
-            for( InvocationMap::const_iterator i = m_invocations.begin(),
-                iEnd = m_invocations.end(); i!=iEnd; ++i )
-            {
-                delete i->second;
-            }
         }
         //RuntimeEvaluator
         virtual reference getReference( const reference& dimension )
@@ -119,110 +118,11 @@ namespace eg
         
         virtual void invoke( const reference& ref, const std::vector< TypeID >& implicitTypePath, bool bHasParameters )
         {
-            const IndexedObject::Array& objects = m_pDatabase->getObjects( IndexedObject::MASTER_FILE );
-            const DerivationAnalysis& analysis = m_pDatabase->getDerivationAnalysis();
-            const Identifiers& identifiers = m_pDatabase->getIdentifiers();
-            
-            InvocationSolution::Context context;
-            {
-                ASSERT( ref.type > 0 );
-                const concrete::Action* pContextAction = 
-                    dynamic_cast< const concrete::Action* >( objects[ ref.type ] );
-                ASSERT( pContextAction );
-                context.push_back( pContextAction->getAction() );
-            }
-        
-            OperationID operationType = HIGHEST_OPERATION_TYPE;
-            InvocationSolution::TypePath typePath;
-            {
-                for( TypeID typeID : implicitTypePath )
-                {
-                    ASSERT( typeID < 0 );
-                    if( isOperationType( typeID ) )
-                    {
-                        operationType = static_cast< OperationID >( typeID );
-                    }
-                    else
-                    {
-                        ASSERT( -typeID < static_cast< int >( objects.size() ) );
-                            
-                        const abstract::Element* pElement = 
-                            dynamic_cast< const abstract::Element* >( objects[ -typeID ] );
-                        ASSERT( pElement );
-                        if( pElement )
-                        {
-                            std::vector< const abstract::Element* > elements =
-                                identifiers.getGroup( pElement );
-                            typePath.push_back( elements );
-                        }
-                    }
-                }
-            }
-            if( operationType == HIGHEST_OPERATION_TYPE )
-            {
-                //infer the operation type
-                if( bHasParameters )
-                {
-                    operationType = id_Imp_Params;
-                }
-                else
-                {
-                    operationType = id_Imp_NoParams;
-                }
-            }
-            
-            InvocationSolution* pInvocation = nullptr;
-            {
-                const InvocationID invocationID( context, typePath, operationType );
-                InvocationMap::const_iterator iFind = m_invocations.find( invocationID );
-                if( iFind != m_invocations.end() )
-                {
-                    pInvocation = iFind->second;
-                }
-                else
-                {
-                    std::vector< const concrete::Inheritance_Node* > contextNodes;
-                    {
-                        for( const abstract::Element* pContext : context )
-                        {
-                            if( const abstract::Action* pContextAction = dynamic_cast< const abstract::Action* >( pContext ) )
-                                analysis.getInheritanceNodes( pContextAction, contextNodes );
-                        }
-                    }
+            const InvocationSolution::InvocationID invocationID = 
+                InvocationSolution::invocationIDFromTypeIDs( m_pDatabase->getObjects( IndexedObject::MASTER_FILE ), 
+                    m_pDatabase->getIdentifiers(), ref.type, implicitTypePath, bHasParameters );
                     
-                    //for range enumerations we want to enumerate all deriving types
-                    const bool bDerivingPathElements = isOperationEnumeration( operationType );
-                    
-                    std::vector< std::vector< const concrete::Element* > > concreteTypePath;
-                    {
-                        for( const std::vector< const abstract::Element* >& typePathElement : typePath )
-                        {
-                            std::vector< const concrete::Element* > instances;
-                            for( const abstract::Element* pElement : typePathElement )
-                                analysis.getInstances( pElement, instances, bDerivingPathElements );
-                            concreteTypePath.emplace_back( std::move( instances ) );
-                        }
-                    }
-                    
-                    pInvocation = new InvocationSolution( 
-                        IndexedObject( InvocationSolution::Type, 
-                            InvocationSolution::NO_FILE, 
-                            InvocationSolution::NO_INDEX ) );
-                            
-                    DerivationAnalysis::NameResolution nameResolution( analysis );
-                    nameResolution.resolve( contextNodes, concreteTypePath );
-                    
-                    pInvocation->m_operationType        = operationType;
-                    pInvocation->m_context              = context;
-                    pInvocation->m_implicitTypePath     = implicitTypePath;
-                    if( !typePath.empty() )
-                        pInvocation->m_finalPathTypes   = typePath.back();
-                    
-                    pInvocation->build( analysis, nameResolution );
-                    
-                    m_invocations.insert( std::make_pair( invocationID, pInvocation ) );
-                }
-            }
+            const InvocationSolution* pInvocation = m_invocations.getInvocation( invocationID, implicitTypePath );
             ASSERT( pInvocation );
             
             const InvocationSolution::TargetTypes& targets = pInvocation->getTargetTypes();
@@ -282,10 +182,7 @@ namespace eg
     private:
         HostFunctionAccessor& m_hostAccessor;
         std::shared_ptr< eg::ReadSession > m_pDatabase;
-        
-        using InvocationID = std::tuple< InvocationSolution::Context, InvocationSolution::TypePath, TypeID >;
-        using InvocationMap = std::map< InvocationID, InvocationSolution* >;
-        InvocationMap m_invocations;
+        InvocationSolutionMap m_invocations;
     };
     
     
