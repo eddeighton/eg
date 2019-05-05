@@ -27,6 +27,8 @@
 #include "derivation.hpp"
 #include "layout.hpp"
 #include "identifiers.hpp"
+#include "derivation.hpp"
+#include "invocation.hpp"
 
 #include <boost/bind.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -1084,7 +1086,7 @@ namespace eg
             os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
             os << "    return __invoke_impl< typename " << EG_RESULT_TYPE << "< " << 
                 osTypeName.str() << ", TypePath, Operation >::Type, " << 
-                osTypeName.str() << ", CanonicalTypePathType, Operation >( *this, args... );\n";
+                osTypeName.str() << ", CanonicalTypePathType, Operation >()( *this, args... );\n";
             
             strIndent.pop_back();
             strIndent.pop_back();
@@ -1510,7 +1512,7 @@ namespace eg
         VertexVariableMap& variables;
         const InvocationSolution& invocation;
         
-        std::string strIndent = "    ";
+        std::string strIndent = "        ";
         std::vector< const abstract::Action* > concreteActionStack;
         
         template< class TargetHandler >
@@ -1814,48 +1816,16 @@ namespace eg
         VertexVariableMap variables;
         
         os << "template<>\n";
-        printReturnType( os, objects, invocation );
-        os << "\n__invoke_impl\n";//inline 
+        os << "struct __invoke_impl\n";
         os << "<\n";
         os << "    "; printReturnType( os, objects, invocation ); os << ",\n";
         os << "    "; printContextType( os, objects, invocation ); os << ",\n";
         os << "    "; printTypePathType( os, objects, invocation ); os << ",\n";
         os << "    " << getOperationString( static_cast< OperationID >( invocation.getOperation() ) );
-        
-        //invocation arguments types
-        switch( invocation.getOperation() )
-        {
-            case id_Imp_NoParams   :
-            case id_Imp_Params  :
-                if( invocation.isImplicitStarter() )
-                {
-                    os << "\n";   break;
-                }
-                else if( invocation.getOperation() == id_Imp_NoParams )
-                {
-                    os << "\n";   break;
-                }
-                else if( invocation.getOperation() == id_Imp_Params )
-                {
-                    os << ",\n"; printParameterTypes( os, objects, invocation ); os << "\n";
-                }
-                break;
-            case id_Get                  :
-            case id_Update               :  break;
-            case id_Old                  :  os << "\n";   break;
-            case id_Stop                 :  
-            case id_Pause                :  
-            case id_Resume               :  os << "\n";   break;
-            case id_Defer                :  break;
-            case id_Size                 :  os << "\n";   break;
-            case id_Range                :  os << "\n";   break;
-            case TOTAL_OPERATION_TYPES : 
-            default:
-                THROW_RTE( "Unknown operation type" );
-        }
-        
         os << ">\n";
-        os << "( "; printContextType( os, objects, invocation ); os << " context"; 
+        os << "{\n";
+        //os << "    template< typename... Args >\n";
+        os << "    "; printReturnType( os, objects, invocation ); os << " operator()( "; printContextType( os, objects, invocation ); os << " context"; 
         
         //invocation parameters
         switch( invocation.getOperation() )
@@ -1872,7 +1842,7 @@ namespace eg
                 }
                 else if( invocation.getOperation() == id_Imp_Params )
                 {
-                    os << ","; printParameters( os, objects, invocation ); os << " )\n";
+                    os << ", "; printParameters( os, objects, invocation ); os << " )\n";
                 }
                 break;
             case id_Get                  :
@@ -1889,8 +1859,7 @@ namespace eg
                 THROW_RTE( "Unknown operation type" );
         }
         
-        os << "{\n";
-        
+        os << "    {\n";
         //generate body
         InvocationGenerator generator( os, objects, derivationAnalysis, layout, variables, invocation );
         
@@ -2273,7 +2242,8 @@ namespace eg
                 THROW_RTE( "NOT IMPLEMENTED YET" );
         }
         
-        os << "}\n";
+        os << "    }\n";
+        os << "};\n";
     }
     
     void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
@@ -2616,8 +2586,12 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "\n";
         
         os << "\n\n//invocation implementations\n";
-        os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType, typename... Args >\n";
-        os << "ResultType __invoke_impl( ContextType context, Args... args );\n";
+        //os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType, typename... Args >\n";
+        //os << "ResultType __invoke_impl( ContextType context, Args... args );\n";
+        
+        os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType >\n";
+        os << "struct __invoke_impl{};\n";
+        
         os << "\n";
         os << "template< typename ReferenceType >\n";
         os << "inline " << EG_TIME_STAMP << " getTimestamp( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance );\n";
@@ -2641,7 +2615,7 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "__eg_variant< Ts... >::invoke( Args... args )\n";
         os << "{\n";
         os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
-        os << "    return __invoke_impl< typename " << EG_RESULT_TYPE << "< __eg_variant< Ts... >, TypePath, Operation >::Type, __eg_variant< Ts... >, CanonicalTypePathType, Operation >( *this, args... );\n";
+        os << "    return __invoke_impl< typename " << EG_RESULT_TYPE << "< __eg_variant< Ts... >, TypePath, Operation >::Type, __eg_variant< Ts... >, CanonicalTypePathType, Operation >()( *this, args... );\n";
         os << "}\n";
         os << "\n";
         

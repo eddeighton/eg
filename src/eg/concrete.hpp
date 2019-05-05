@@ -196,7 +196,7 @@ namespace concrete
     public:
         bool isEGType() const
         {
-            return getDimension()->getCanonicalType().empty();
+            return !getActionTypes().empty();
         }
         
         const std::vector< ::eg::abstract::Action* >& getActionTypes() const

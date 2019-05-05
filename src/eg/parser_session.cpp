@@ -47,6 +47,8 @@
 
 #pragma warning( pop ) 
 
+#include <boost/algorithm/string.hpp>
+
 namespace eg
 {
     //cannibalised version of clang parser for parsing eg source code
@@ -74,6 +76,19 @@ namespace eg
         {
             return Diag( Tok, DiagID );
         }
+        
+        bool getSourceText( clang::SourceLocation startLoc, clang::SourceLocation endLoc, std::string& str )
+        {
+            bool bInvalid = false;
+            const clang::SourceRange range( startLoc, endLoc );
+            clang::CharSourceRange charRange = clang::CharSourceRange::getCharRange( range );
+            str = clang::Lexer::getSourceText( charRange, sm, languageOptions, &bInvalid );
+            //sort out carriage returns
+            boost::replace_all( str, "\r\n", "\n" );
+            
+            return !bInvalid;
+        }
+        
 
         /// Tok - The current token we are peeking ahead.  All parsing methods assume
         /// that this is valid.
@@ -713,9 +728,7 @@ namespace eg
                 next = NextToken();
             }
             
-            clang::SourceRange range( startLoc, endLoc );
-            clang::CharSourceRange charRange = clang::CharSourceRange::getCharRange( range );
-            pOpaque->m_str = clang::Lexer::getSourceText( charRange, sm, languageOptions, nullptr );
+            VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
         }
 
         void parse_dimension( ParserSession& session, input::Dimension* pDimension )
@@ -763,10 +776,8 @@ namespace eg
                 ConsumeAnyToken();
             }
 
-            clang::SourceRange range( startLoc, endLoc );
-            clang::CharSourceRange charRange = clang::CharSourceRange::getCharRange( range );
-            
-            std::string strFile = clang::Lexer::getSourceText( charRange, sm, languageOptions, nullptr );
+            std::string strFile;
+            VERIFY_RTE( getSourceText( startLoc, endLoc, strFile ) );
             strFile.erase( std::remove( strFile.begin(), strFile.end(), '\"' ), strFile.end() );
             if( !strFile.empty() )
             {
@@ -899,9 +910,7 @@ namespace eg
                 
                 {
                     input::Opaque* pOpaque = session.construct< input::Opaque >();
-                    clang::SourceRange range( startLoc, endLoc );
-                    clang::CharSourceRange charRange = clang::CharSourceRange::getCharRange( range );
-                    pOpaque->m_str = clang::Lexer::getSourceText( charRange, sm, languageOptions, nullptr );
+                    VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
                     pAction->m_pSize = pOpaque;
                 }
                 
@@ -954,9 +963,7 @@ namespace eg
                     
                     {
                         input::Opaque* pOpaque = session.construct< input::Opaque >();
-                        clang::SourceRange range( startLoc, endLoc );
-                        clang::CharSourceRange charRange = clang::CharSourceRange::getCharRange( range );
-                        pOpaque->m_str = clang::Lexer::getSourceText( charRange, sm, languageOptions, nullptr );
+                        VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
                         pAction->m_inheritance.push_back( pOpaque );
                     }
                     
@@ -1168,9 +1175,7 @@ namespace eg
                         ConsumeAnyToken();
                     }
                     
-                    clang::SourceRange range( startLoc, endLoc );
-                    clang::CharSourceRange charRange = clang::CharSourceRange::getCharRange( range );
-                    pOpaque->m_str = clang::Lexer::getSourceText( charRange, sm, languageOptions, nullptr );
+                    VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
                 }
             }
             

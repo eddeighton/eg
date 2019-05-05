@@ -69,44 +69,44 @@ struct events
     static void put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size );
 };
 
-#define LOG( msg )\
+#define LOG( __msg )\
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         std::ostringstream os;\
-        os << msg;\
-        std::string str = os.str();\
-        events::put( "log", clock::subcycle(), str.data(), str.size() + 1 );\
+        os << __msg;\
+        std::string __str = os.str();\
+        events::put( "log", clock::subcycle(), __str.data(), __str.size() + 1 );\
         )
         
-#define ERROR( msg )\
+#define ERROR( __msg )\
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        events::put( "error", clock::subcycle(), msg, strlen( msg ) + 1 );\
+        events::put( "error", clock::subcycle(), __msg, strlen( __msg ) + 1 );\
         )
         
-#define TEST( expr )\
+#define TEST( __expr )\
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        std::string str = #expr;\
-        if( !( expr ) )\
+        std::string __str = #__expr;\
+        if( !( __expr ) )\
         {\
-            events::put( "fail", clock::subcycle(), str.data(), str.size() + 1 );\
+            events::put( "fail", clock::subcycle(), __str.data(), __str.size() + 1 );\
         }\
         else\
         {\
-            events::put( "pass", clock::subcycle(), str.data(), str.size() + 1 );\
+            events::put( "pass", clock::subcycle(), __str.data(), __str.size() + 1 );\
         }\
     )
         
-#define TEST_MSG( expr, msg )\
+#define TEST_MSG( __expr, __msg )\
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         std::ostringstream os;\
-        os << #expr << " " << msg;\
-        std::string str = os.str();\
-        if( !( expr ) )\
+        os << #__expr << " " << __msg;\
+        std::string __str = os.str();\
+        if( !( __expr ) )\
         {\
-            events::put( "fail", clock::subcycle(), str.data(), str.size() + 1 );\
+            events::put( "fail", clock::subcycle(), __str.data(), __str.size() + 1 );\
         }\
         else\
         {\
-            events::put( "pass", clock::subcycle(), str.data(), str.size() + 1 );\
+            events::put( "pass", clock::subcycle(), __str.data(), __str.size() + 1 );\
         }\
     )
     

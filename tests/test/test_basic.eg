@@ -1,0 +1,27 @@
+
+dim int x;
+dim std::string str;
+
+x( 123.5f );
+TEST( x() == 123 );
+
+x( 123 );
+TEST( x() == 123 );
+
+x( 123.5 );
+TEST( x() == 123 );
+
+str();
+
+str( "this is a string" );
+
+TEST( "this is a string" == str() );
+
+str( std::string( "this is a string too" ) );
+
+TEST( "this is a string too" == str() );
+
+
+
+
+

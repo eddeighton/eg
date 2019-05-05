@@ -1,0 +1,65 @@
+
+abstract Base
+{
+    dim int x;
+}
+
+action D[ 16 ] : Base
+{
+}
+
+action A[ 16 ]
+{
+    action B[ 16 ] : Base
+    {
+        action C[ 16 ] : Base
+        {
+            SLEEP;
+            SLEEP;
+            {
+                //auto r = Base.Range();
+                //const std::size_t szCount = std::distance( r.begin(), r.end() );
+                //TEST_MSG( szCount == 1, "Count should be 1: " << szCount );
+            }
+            
+            
+        }
+        SLEEP;
+        SLEEP;
+        //{
+        //    auto r = Base.Range();
+        //    const std::size_t szCount = std::distance( r.begin(), r.end() );
+        //    TEST_MSG( szCount == 10, "Count should be 10: " << szCount );
+        //}
+        SLEEP;
+    }
+    SLEEP;
+    SLEEP;
+    SLEEP;
+}
+
+int iCounter = 0;
+for( int i = 0; i < 10; ++i )
+{
+    A a = A();
+    for( int j = 0; j < 10; ++j )
+    {
+        A::B b = a.B();
+        ++iCounter;
+        for( int k = 0; k < 10; ++k )
+        {
+            A::B::C c = b.C();
+            ++iCounter;
+        }
+    }
+
+}
+
+SLEEP;
+SLEEP;
+
+auto r = Base.Range();
+const std::size_t szCount = std::distance( r.begin(), r.end() );
+TEST_MSG( szCount == iCounter, "Total bases should be 1100: " << szCount );
+
+SLEEP;

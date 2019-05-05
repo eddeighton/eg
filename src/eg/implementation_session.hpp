@@ -26,6 +26,7 @@
 #include "derivation.hpp"
 #include "layout.hpp"
 #include "identifiers.hpp"
+#include "invocation.hpp"
 
 namespace eg
 {

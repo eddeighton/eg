@@ -79,8 +79,5 @@ TEST( NameResolution, LoadDatabase )
     const eg::InvocationSolution* pInvocation = 
         pDatabase->getInvocation( invocationID, implicitTypePath );
 
-    const eg::InvocationSolution::TargetTypes& targets = pInvocation->getTargetTypes();
-
-    ASSERT_EQ( toTypeIDs( targets ), std::vector< eg::TypeID >{ 15 } );
-    
+    ASSERT_EQ( toTypeIDs( pInvocation->getTargetTypes() ), std::vector< eg::TypeID >{ 15 } );
 }
