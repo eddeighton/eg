@@ -168,7 +168,6 @@ namespace eg
     inline std::ostream& operator<<( std::ostream& os, const InvocationSolution::InvocationID& invocationID )
     {
         {
-            os << "context: ";
             const InvocationSolution::Context& context = 
                 std::get< InvocationSolution::Context >( invocationID );
             if( context.size() > 1 )
@@ -180,7 +179,7 @@ namespace eg
                 std::vector< const abstract::Element* > path = getPath( pContextElement );
                 for( const abstract::Element* pPathElement : path )
                 {
-                    if( pPathElement == path.front() )
+                    if( pPathElement != path.front() )
                         os << "::";
                     os << pPathElement->getIdentifier();
                 }
@@ -188,11 +187,10 @@ namespace eg
             if( context.size() > 1 )
                 os << " >";
             else if( context.empty() )
-                os << " empty";
+                os << "no context";
         }
-        
         {
-            os << " path: ";
+            os << "[";
             const InvocationSolution::TypePath& typePath = 
                 std::get< InvocationSolution::TypePath >( invocationID );
             bool bFirst = true;
@@ -207,10 +205,10 @@ namespace eg
                 else
                     os << "_";
             }
+            os << "]";
         }
-        
         {
-            os << " operation: " << getOperationString( std::get< OperationID >( invocationID ) );
+            os << getOperationString( std::get< OperationID >( invocationID ) );
         }
         
         return os;

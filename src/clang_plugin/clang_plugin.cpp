@@ -51,6 +51,7 @@
 #pragma warning( pop ) 
 
 #include <sstream>
+#include <cstdlib>
 
 namespace
 {
@@ -295,7 +296,8 @@ namespace eg
         }
     }
         
-    EGDB_EXPORT void getInvocationOperationType( const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType )
+    EGDB_EXPORT bool getInvocationOperationType( const clang::SourceLocation& loc, 
+            const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType )
     {
         //determine the operation type...
         if( const clang::IdentifierInfo* pIdentifierInfo = 
@@ -313,6 +315,7 @@ namespace eg
             if( operatorClassDecl )
             {
                 operationType = g_pASTContext->getTagDeclType( operatorClassDecl );
+                return true;
             }
             else
             {
@@ -323,6 +326,7 @@ namespace eg
         {
             
         }
+        return false;
     }
     
     
@@ -537,8 +541,9 @@ namespace eg
                 break;
         }
     }
-    
-    EGDB_EXPORT void getInvocationResultType( const clang::QualType& type, clang::QualType& resultType )
+    //warn_eg_generic_warning
+    //err_eg_generic_error
+    EGDB_EXPORT bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& type, clang::QualType& resultType )
     {
         if( g_pOperationsSession )
         {
@@ -563,21 +568,21 @@ namespace eg
                                     if( !clang::getContextTypes( g_pASTContext, context, contextTypes ) )
                                     {
                                         //diagnostic...
-                                        return;
+                                        return false;
                                     }
                                     
                                     std::vector< eg::TypeID > typePathTypes;
                                     if( !clang::getTypePathTypes( g_pASTContext, typePath, typePathTypes ) )
                                     {
                                         //diagnostic...
-                                        return;
+                                        return false;
                                     }
                                     
                                     std::optional< eg::TypeID > operationTypeIDOpt = getEGTypeID( g_pASTContext, operationType );
                                     if( !operationTypeIDOpt )
                                     {
                                         //diagnostic...
-                                        return;
+                                        return false;
                                     }
                                     eg::OperationID operationTypeID = static_cast< eg::OperationID >( operationTypeIDOpt.value() );
                                     
@@ -597,9 +602,12 @@ namespace eg
                                     }
                                     catch( eg::NameResolutionException& nameResolutionException )
                                     {
-                                        g_pASTContext->getDiagnostics().Report( clang::diag::err_only_enums_have_underlying_types ) <<
+                                        g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
                                             nameResolutionException.what();
+                                        return false;
                                     }
+                                    
+                                    return true;
                                 }
                             }
                         }
@@ -607,8 +615,7 @@ namespace eg
                 }
             }
         }
-        
-        
+        return false;
     }
 }
 
@@ -622,26 +629,29 @@ namespace clang
     class Sema;
     class QualType;
     class IdentifierInfo;
+    class SourceLocation;
 
     namespace clang_eg 
     {
-        void eg_initialise( ASTContext* pASTContext, Sema* pSema ) { }
-        void eg_initialiseMode_Interface( const char* strDatabasePath ) { }
+        void eg_initialise( ASTContext* pASTContext, Sema* pSema ) { Common::debug_break(); std::abort(); }
+        void eg_initialiseMode_Interface( const char* strDatabasePath ) { Common::debug_break(); std::abort(); }
         void eg_initialiseMode_Operations( const char* strDatabasePath, 
-            const char* strTranslationUnitDatabasePath, unsigned uiTranslationUnitID ) { }
-        void eg_initialiseMode_Implementation() { }
-        void eg_runFinalAnalysis() { }
-        const char* eg_getTypePathString() { return eg::getTypePathString(); }
-        const char* eg_getInvocationString() { return eg::getInvocationString(); }
-        const char* eg_getVariantString() { return eg::getVariantString(); }
-        const char* eg_getInvokeString() { return eg::getInvokeString(); }
-        const char* eg_getResultTypeTrait() { return eg::getResultTypeTrait(); }
-        bool eg_isEGEnabled() { return false; }
-        bool eg_isEGType( const QualType& type ) { return false; }
-        bool eg_isPossibleEGType( const QualType& type ) { return false; }
-        bool eg_isPossibleEGTypeIdentifier( const Token& token ) { return false; }
-        int eg_isPossibleEGTypeIdentifierDecl( const Token& token, bool bIsTypePathParsing ) { return false; }
-        void eg_getInvocationOperationType( const QualType& typePathType, bool bHasArguments, QualType& operationType ) { }
-        void eg_getInvocationResultType( const QualType& baseType, QualType& resultType ) { }
+            const char* strTranslationUnitDatabasePath, unsigned uiTranslationUnitID ) { Common::debug_break(); std::abort(); }
+        void eg_initialiseMode_Implementation() { Common::debug_break(); std::abort(); }
+        void eg_runFinalAnalysis() { Common::debug_break(); std::abort(); }
+        
+        const char* eg_getTypePathString()      { return eg::getTypePathString(); }
+        const char* eg_getInvocationString()    { return eg::getInvocationString(); }
+        const char* eg_getVariantString()       { return eg::getVariantString(); }
+        const char* eg_getInvokeString()        { return eg::getInvokeString(); }
+        const char* eg_getResultTypeTrait()     { return eg::getResultTypeTrait(); }
+        
+        bool eg_isEGEnabled() { Common::debug_break(); std::abort(); return false; }
+        bool eg_isEGType( const QualType& type ) { Common::debug_break(); std::abort(); return false; }
+        bool eg_isPossibleEGType( const QualType& type ) { Common::debug_break(); std::abort(); return false; }
+        bool eg_isPossibleEGTypeIdentifier( const Token& token ) { Common::debug_break(); std::abort(); return false; }
+        int eg_isPossibleEGTypeIdentifierDecl( const Token& token, bool bIsTypePathParsing ) { Common::debug_break(); std::abort(); return false; }
+        bool eg_getInvocationOperationType( const SourceLocation& loc, const QualType& typePathType, bool bHasArguments, QualType& operationType ) { Common::debug_break(); std::abort(); return false; }
+        bool eg_getInvocationResultType( const SourceLocation& loc, const QualType& baseType, QualType& resultType ) { Common::debug_break(); std::abort(); return false; }
     }
 }

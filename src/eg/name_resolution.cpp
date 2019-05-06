@@ -103,7 +103,10 @@ namespace eg
             {
                 int bestScore = std::numeric_limits< int >::max();
                 
-                VERIFY_RTE( node.pInheritanceNode );
+                if( !node.pInheritanceNode )
+                {
+                    THROW_NAMERESOLUTION_EXCEPTION( "Cannot resolve futher element in type path after a dimension. " << m_invocationID );
+                }
                 
                 using ResultPair = std::pair< const concrete::Inheritance_Node*, const concrete::Dimension* >;
                 std::map< const concrete::Element*, ResultPair > results;
@@ -231,7 +234,8 @@ namespace eg
     }
     
     NameResolution::NameResolution( const DerivationAnalysis& analysis, const InvocationSolution::InvocationID& invocationID ) 
-        :   m_analysis( analysis )
+        :   m_analysis( analysis ),
+            m_invocationID( invocationID )
     {
         std::vector< const concrete::Inheritance_Node* > contextNodes;
         {
@@ -242,9 +246,9 @@ namespace eg
             }
         }
         
-        //if( contextNodes.empty() )
+        if( contextNodes.empty() )
         {
-           // THROW_NAMERESOLUTION_EXCEPTION( "Invocation: " << invocationID << " test error" );
+            THROW_NAMERESOLUTION_EXCEPTION( "no invocation context. " << m_invocationID );
         }
         
         //for range enumerations we want to enumerate all deriving types

@@ -82,6 +82,7 @@ namespace eg
     class NameResolution
     {
         const DerivationAnalysis& m_analysis;
+        const InvocationSolution::InvocationID& m_invocationID;
         
         //do not allow copy
         NameResolution( NameResolution& ) = delete;

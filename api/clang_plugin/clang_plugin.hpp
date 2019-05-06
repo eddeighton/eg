@@ -35,6 +35,7 @@ namespace clang
     class ASTContext;
     class Sema;
     class Token;
+    class SourceLocation;
 }
 
 //EG Database Interface
@@ -60,8 +61,8 @@ namespace eg
     EGDB_EXPORT bool isPossibleEGType( const clang::QualType& type );
     EGDB_EXPORT bool isPossibleEGTypeIdentifier( const clang::Token& token );
     EGDB_EXPORT int isPossibleEGTypeIdentifierDecl( const clang::Token& token, bool bIsTypePathParsing );
-    EGDB_EXPORT void getInvocationOperationType( const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType );
-    EGDB_EXPORT void getInvocationResultType( const clang::QualType& baseType, clang::QualType& resultType );
+    EGDB_EXPORT bool getInvocationOperationType( const clang::SourceLocation& loc, const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType );
+    EGDB_EXPORT bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& baseType, clang::QualType& resultType );
 }
 
 
