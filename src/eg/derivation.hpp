@@ -98,14 +98,14 @@ namespace eg
                     instances.push_back( iLower->second );
             }
         }
-        
+        /*
         void getInheritanceNodes( const abstract::Action* pAction, std::vector< const concrete::Inheritance_Node* >& inheritanceNodes ) const
         {
             InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
             InheritanceNodeMap::const_iterator iUpper = m_inheritanceMap.upper_bound( pAction );
             for( ; iLower != iUpper; ++iLower )
                 inheritanceNodes.push_back( iLower->second );
-        }
+        }*/
         
         using InstancePair = std::pair< const concrete::Element*, const concrete::Element* >;
         using CommonRootMap = std::map< InstancePair, const concrete::Element* >;

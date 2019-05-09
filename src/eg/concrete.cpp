@@ -73,52 +73,6 @@ namespace concrete
         storer.storeObjectVector( m_dimensions );
     }
     
-    const Inheritance_Node* Inheritance_Node::findInstance( const Element* pInstance, 
-        const Dimension*& pDimensionResult, Inheritance_Node_SetCst& visited ) const
-    {
-        if( visited.count( this ) != 0 )
-            return nullptr;
-        visited.insert( this );
-        
-        //is the instance this?
-        if( m_pAction == pInstance->getAbstractElement() )
-            return this;
-        
-        for( const Dimension* pDimension : m_dimensions )
-        {
-            if( pDimension == pInstance )
-            {
-                pDimensionResult = pDimension;
-                return nullptr;
-            }
-        }
-        
-        for( Action* pAction : m_actions )
-        {
-            if( pAction == pInstance )
-            {
-                //return the root inheritance node
-                return pAction->m_inheritance;
-            }
-        }
-        
-        if( m_pParent )
-        {
-            const Inheritance_Node* pResult = m_pParent->findInstance( pInstance, pDimensionResult, visited );
-            if( pResult || pDimensionResult )
-                return pResult;
-        }
-        
-        for( const Inheritance_Node* pChild : m_children )
-        {
-            const Inheritance_Node* pResult = pChild->findInstance( pInstance, pDimensionResult, visited );
-            if( pResult || pDimensionResult )
-                return pResult;
-        }
-        
-        return nullptr;
-    }
-    
     void Element::load( Loader& loader )
     {
         m_pParent = loader.loadObjectRef< Element >();
@@ -673,7 +627,6 @@ namespace concrete
         }
         return m_totalDomainSize;
     }
-
 
 } //namespace concrete
 } //namespace eg

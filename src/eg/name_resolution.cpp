@@ -23,20 +23,12 @@
 namespace eg
 {
 
-    Name* NameResolution::add( 
-        int iParent, const concrete::Inheritance_Node* pInheritanceNode, int score, bool bIsTarget /*= false*/ )
+    Name* NameResolution::add( std::size_t iParent, const concrete::Element* pElement, bool bIsMember, bool bIsReference )
     {
-        nodes.emplace_back( Name( pInheritanceNode, score, bIsTarget ) );
-        Name* pNewNode = &nodes.back();
-        nodes[ iParent ].children.push_back( nodes.size() - 1U );
-        return pNewNode;
-    }
-    Name* NameResolution::add( 
-        int iParent, const concrete::Dimension* pDimension, int score, bool bIsTarget /*= false*/ )
-    {
-        nodes.emplace_back( Name( pDimension, score, bIsTarget ) );
-        Name* pNewNode = &nodes.back();
-        nodes[ iParent ].children.push_back( nodes.size() - 1U );
+        ASSERT( iParent < m_nodes.size() );
+        m_nodes.emplace_back( Name( pElement, bIsMember, bIsReference ) );
+        Name* pNewNode = &m_nodes.back();
+        m_nodes[ iParent ].m_children.push_back( m_nodes.size() - 1U );
         return pNewNode;
     }
     
@@ -47,44 +39,32 @@ namespace eg
         {
             bContinue = false;
 
-            const std::size_t szSize = nodes.size();
+            const std::size_t szSize = m_nodes.size();
             for( std::size_t iNodeID = 0U; iNodeID < szSize; ++iNodeID )
             {
                 //is node a leaf node?
-                Name& node = nodes[ iNodeID ];
-                if( node.children.empty() )
+                Name& node = m_nodes[ iNodeID ];
+                if( node.getChildren().empty() )
                 {
-                    if( node.pInheritanceNode )
+                    if( const concrete::Dimension_User* pUserDim = 
+                        dynamic_cast< const concrete::Dimension_User* >( node.getElement() ) )
                     {
-                        //not a reference
-                    }
-                    else if( node.pDimension )
-                    {
-                        if( const concrete::Dimension_User* pUserDim = 
-                            dynamic_cast< const concrete::Dimension_User* >( node.pDimension ) )
+                        if( pUserDim->isEGType() )
                         {
-                            if( pUserDim->isEGType() )
+                            node.m_bIsReference = true;
+                            bContinue = true;
+                            
+                            for( const abstract::Action* pAction : pUserDim->getActionTypes() )
                             {
-                                node.isTarget = true;
-                                bContinue = true;
+                                std::vector< const concrete::Element* > instances;
+                                m_analysis.getInstances( pAction, instances, true );
                                 
-                                for( const abstract::Action* pAction : pUserDim->getActionTypes() )
+                                for( const concrete::Element* pElement : instances )
                                 {
-                                    DerivationAnalysis::InheritanceNodeMap::const_iterator iLower = 
-                                        m_analysis.m_inheritanceMap.lower_bound( pAction );
-                                    DerivationAnalysis::InheritanceNodeMap::const_iterator iUpper = 
-                                        m_analysis.m_inheritanceMap.upper_bound( pAction );
-                                    for( ; iLower != iUpper; ++iLower )
-                                    {
-                                        add( iNodeID, iLower->second, 0 );
-                                    }
+                                    add( iNodeID, pElement, false, false );
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        THROW_RTE( "Invalid node" );
                     }
                 }
             }
@@ -93,67 +73,42 @@ namespace eg
     
     void NameResolution::addType( const std::vector< const concrete::Element* >& instances )
     {
-        const std::size_t szSize = nodes.size();
+        const std::size_t szSize = m_nodes.size();
         for( std::size_t iNodeID = 0U; iNodeID < szSize; ++iNodeID )
         {
-            Name& node = nodes[ iNodeID ];
+            Name& node = m_nodes[ iNodeID ];
         
             //is node a leaf node?
-            if( node.children.empty() )
+            if( node.m_children.empty() )
             {
-                int bestScore = std::numeric_limits< int >::max();
-                
-                if( !node.pInheritanceNode )
+                const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( node.getElement() );
+                if( !pAction )
                 {
-                    THROW_NAMERESOLUTION_EXCEPTION( "Cannot resolve futher element in type path after a dimension. " << m_invocationID );
+                    THROW_NAMERESOLUTION_EXCEPTION( 
+                        "Cannot resolve futher element in type path after a dimension. " << m_invocationID );
                 }
                 
-                using ResultPair = std::pair< const concrete::Inheritance_Node*, const concrete::Dimension* >;
-                std::map< const concrete::Element*, ResultPair > results;
+                std::set< const concrete::Element* > results;
                 for( const concrete::Element* pInstance : instances )
                 {
-                    //is pInstance within node.pInheritanceNode?
-                    const concrete::Dimension* pDimensionResult = nullptr;
-                    concrete::Inheritance_Node::Inheritance_Node_SetCst visited;
-                    const concrete::Inheritance_Node* pResult = 
-                        node.pInheritanceNode->findInstance( pInstance, pDimensionResult, visited );
-                    
-                    if( pResult || pDimensionResult )
+                    if( pAction->isMember( pInstance ) )
                     {
-                        //we have found one...
-                        results.insert( std::make_pair( pInstance, std::make_pair( pResult, pDimensionResult ) ) );
+                        results.insert( pInstance );
                     }
                 }
                 
                 if( !results.empty() )
                 {
-                    //record the child results
-                    for( const std::pair< const concrete::Element*, ResultPair >& result : results )
+                    for( const concrete::Element* pResult : results )
                     {
-                        if( result.second.first )
-                            add( iNodeID, result.second.first, 0 );
-                        else
-                            add( iNodeID, result.second.second, 0 );
+                        add( iNodeID, pResult, true, false );
                     }
                 }
                 else
                 {
-                    //get the non-child results
                     for( const concrete::Element* pInstance : instances )
                     {
-                        if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pInstance ) )
-                        {
-                            add( iNodeID, pAction->getInheritance(), 1 );
-                        }
-                        else if( const concrete::Dimension* pDimension = 
-                            dynamic_cast< const concrete::Dimension* >( pInstance ) )
-                        {
-                            add( iNodeID, pDimension, 1 );
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unknown type" );
-                        }
+                        add( iNodeID, pInstance, false, false );
                     }
                 }
             }
@@ -162,65 +117,55 @@ namespace eg
     
     void NameResolution::pruneBranches( Name* pNode )
     {
-        if( !pNode->children.empty() )
+        if( !pNode->m_children.empty() )
         {
-            if( pNode->isTarget )
+            if( pNode->m_bIsReference )
             {
-                pNode->score = std::numeric_limits< int >::max();
-                for( int index : pNode->children )
+                if( !pNode->m_bIsMember )
                 {
-                    Name* pChild = &( nodes[ index ] );
-                    pruneBranches( pChild );
-                    if( pNode->score > pChild->score )
-                        pNode->score = pChild->score;
+                    for( int index : pNode->getChildren() )
+                    {
+                        Name* pChild = &( m_nodes[ index ] );
+                        pruneBranches( pChild );
+                        if( pChild->m_bIsMember )
+                        {
+                            pNode->m_bIsMember = true;
+                        }
+                    }
                 }
             }
             else
             {
-                //only keep highest scoring subset
-                std::vector< int > best;
-                pNode->score = std::numeric_limits< int >::max();
+                std::vector< std::size_t > best;
                 bool bRemovedChild = false;
-                for( int index : pNode->children )
+                for( std::size_t index : pNode->getChildren() )
                 {
-                    Name* pChild = &( nodes[ index ] );
+                    Name* pChild = &( m_nodes[ index ] );
                     pruneBranches( pChild );
-                    if( pNode->score > pChild->score )
-                    {
-                        if( !best.empty() )
-                        {
-                            bRemovedChild = true;
-                            best.clear();
-                        }
+                    if( pChild->m_bIsMember )
                         best.push_back( index );
-                        pNode->score = pChild->score;
-                    }
-                    else if( pNode->score == pChild->score )
-                    {
-                        best.push_back( index );
-                    }
                     else
-                    {
                         bRemovedChild = true;
-                    }
-                } 
-                if( bRemovedChild )
+                }
+                if( !best.empty() )
                 {
-                    pNode->children = best;
+                    pNode->m_bIsMember = true;
+                    if( bRemovedChild )
+                        pNode->m_children = best;
                 }
             }
         }
     }
     
     void NameResolution::resolve( 
-        const std::vector< const concrete::Inheritance_Node* >& contextInstances,
+        const std::vector< const concrete::Element* >& contextInstances,
         const std::vector< std::vector< const concrete::Element* > >& typePathInstances )
     {
-        nodes.emplace_back( Name( (const concrete::Inheritance_Node*)nullptr, 0, false ) );
+        m_nodes.emplace_back( Name( (const concrete::Element*)nullptr, false, true ) );
         
-        for( const concrete::Inheritance_Node* pRoot : contextInstances )
+        for( const concrete::Element* pRoot : contextInstances )
         {
-            add( 0, pRoot, 0, true );
+            add( 0, pRoot, false, false );
         }
         
         for( const std::vector< const concrete::Element* >& instances : typePathInstances )
@@ -229,44 +174,23 @@ namespace eg
             
             addType( instances );
             
-            pruneBranches( &nodes[ 0 ] );
+            pruneBranches( &m_nodes[ 0 ] );
         }
     }
     
-    NameResolution::NameResolution( const DerivationAnalysis& analysis, const InvocationSolution::InvocationID& invocationID ) 
+    NameResolution::NameResolution( const DerivationAnalysis& analysis, 
+                const InvocationSolution::InvocationID& invocationID,
+                std::vector< const concrete::Element* >& contextElements,
+                std::vector< std::vector< const concrete::Element* > >& concreteTypePath  ) 
         :   m_analysis( analysis ),
             m_invocationID( invocationID )
     {
-        std::vector< const concrete::Inheritance_Node* > contextNodes;
-        {
-            for( const abstract::Element* pContext : std::get< InvocationSolution::Context >( invocationID ) )
-            {
-                if( const abstract::Action* pContextAction = dynamic_cast< const abstract::Action* >( pContext ) )
-                    m_analysis.getInheritanceNodes( pContextAction, contextNodes );
-            }
-        }
-        
-        if( contextNodes.empty() )
+        if( contextElements.empty() )
         {
             THROW_NAMERESOLUTION_EXCEPTION( "no invocation context. " << m_invocationID );
         }
         
-        //for range enumerations we want to enumerate all deriving types
-        const bool bDerivingPathElements = isOperationEnumeration( std::get< OperationID >( invocationID ) );
-        
-        std::vector< std::vector< const concrete::Element* > > concreteTypePath;
-        {
-            for( const std::vector< const abstract::Element* >& typePathElement : std::get< InvocationSolution::TypePath >( invocationID ) )
-            {
-                std::vector< const concrete::Element* > instances;
-                for( const abstract::Element* pElement : typePathElement )
-                    m_analysis.getInstances( pElement, instances, bDerivingPathElements );
-                concreteTypePath.emplace_back( std::move( instances ) );
-            }
-        }
-        
-        resolve( contextNodes, concreteTypePath );
-    
+        resolve( contextElements, concreteTypePath );
     }
 
 }

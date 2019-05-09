@@ -55,9 +55,6 @@ namespace concrete
         using Inheritance_Node_Vector = std::vector< Inheritance_Node* >;
         using Inheritance_Node_Set = std::set< Inheritance_Node*, CompareIndexedObjects >;
         using Inheritance_Node_SetCst = std::set< const Inheritance_Node*, CompareIndexedObjects >;
-        
-        const Inheritance_Node* findInstance( const Element* pInstance, 
-            const Dimension*& pDimensionResult, Inheritance_Node_SetCst& visited) const;
             
         inline void getStaticDerived( std::set< const abstract::Action*, CompareIndexedObjects >& derived ) const
         {
@@ -118,6 +115,10 @@ namespace concrete
         virtual int getTotalDomainSize() const = 0;
         virtual int getDataSize() const = 0;
         
+        inline bool isMember( const Element* pElement ) const
+        {
+            return std::find( m_children.begin(), m_children.end(), pElement ) != m_children.end();
+        }
     protected:
         Element* m_pParent = nullptr;
         const ::eg::abstract::Element* m_pElement = nullptr;

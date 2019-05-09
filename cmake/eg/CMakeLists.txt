@@ -57,6 +57,8 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/name_resolution.cpp
     ${EG_SRC_DIR}/eg/invocation.hpp
     ${EG_SRC_DIR}/eg/invocation.cpp
+    ${EG_SRC_DIR}/eg/instruction.hpp
+    ${EG_SRC_DIR}/eg/instruction.cpp
     )
     
 add_library( eglib 

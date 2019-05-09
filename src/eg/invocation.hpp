@@ -22,6 +22,7 @@
 #define INVOCATION_05_05_2019
 
 #include "derivation.hpp"
+#include "instruction.hpp"
 
 namespace eg
 {
@@ -36,9 +37,22 @@ namespace eg
     
     class Identifiers;
     class InvocationSolutionMap;
-    struct Name;
+    class Name;
     class NameResolution;
     
+    class InvocationException : public std::runtime_error
+    {
+    public:
+        InvocationException( const std::string& strMessage )
+            :   std::runtime_error( strMessage )
+        {}
+    };
+    
+    #define THROW_INVOCATION_EXCEPTION( msg ) \
+        DO_STUFF_AND_REQUIRE_SEMI_COLON( \
+            std::ostringstream _os; \
+            _os << msg; \
+            throw InvocationException( _os.str() );)
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -50,80 +64,26 @@ namespace eg
         friend class InvocationSolutionMap;
     public:
         static const ObjectType Type = eInvocationSolution;
+        using Context = std::vector< const abstract::Element* >;
+        using TypePath = std::vector< std::vector< const abstract::Element* > >;
+        using TargetTypes = std::vector< const abstract::Element* >;
+        using InvocationID = std::tuple< Context, TypePath, OperationID >;
+        using InvocationMap = std::map< InvocationID, InvocationSolution* >;
     protected:
         InvocationSolution( const IndexedObject& object )
             :   IndexedObject( object )
         {
         }
-        
-    public:
-        using Context = std::vector< const abstract::Element* >;
-        using TypePath = std::vector< std::vector< const abstract::Element* > >;
-        using TargetTypes = std::vector< const abstract::Element* >;
-        
-        struct DerivationStep
+        InvocationSolution( const IndexedObject& object, const InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath )
+            :   IndexedObject( object ),
+                m_invocationID( invocationID ),
+                m_implicitTypePath( implicitTypePath )
         {
-            std::size_t id;
-            const concrete::Element* pInstance  = nullptr;
-            DerivationStep* pParent = nullptr;
-            enum Type
-            {
-                eParent,
-                eChild,
-                eLink,
-                eDeReference,
-                eTarget,
-                eRoot,
-                eEnum,
-                eFailed
-            };
-            Type type;
-            int domain;    
-            std::vector< DerivationStep* > next;        
-        };
-    protected:
-        std::vector< DerivationStep* > m_steps;
-        DerivationStep* m_pRoot;
-        
-        DerivationStep* addStep( 
-            const concrete::Element* pInstance, 
-            DerivationStep* pParent,
-            DerivationStep::Type type,
-            int domain )
-        {
-            for( DerivationStep* pExisting : m_steps )
-            {
-                if( pExisting->pInstance == pInstance && 
-                    pExisting->pParent == pParent &&
-                    pExisting->type == type )
-                    return pExisting;
-            }
-            DerivationStep* pNewVertex = new DerivationStep{ m_steps.size(), pInstance, pParent, type, domain };
-            m_steps.push_back( pNewVertex );
-            if( pParent )
-            {
-                pParent->next.push_back( pNewVertex );
-            }
-            return pNewVertex;
+            if( !std::get< InvocationSolution::TypePath >( m_invocationID ).empty() )
+                m_finalPathTypes = std::get< InvocationSolution::TypePath >( m_invocationID ).back();
         }
         
-        DerivationStep* buildDerivation( const DerivationAnalysis& analysis, 
-            const concrete::Element* pFrom, 
-            const concrete::Element* pTo,
-            DerivationStep* pStep,
-            bool bFinal );
-            
-        void buildSolutionGraph_recurse( const DerivationAnalysis& analysis, 
-            const NameResolution& resolution,
-            const Name* pLast,
-            const Name& name,
-            DerivationStep* pStep );
-            
-            
     public:
-        using InvocationID = std::tuple< Context, TypePath, OperationID >;
-        using InvocationMap = std::map< InvocationID, InvocationSolution* >;
-    
         static InvocationID invocationIDFromTypeIDs( 
             const IndexedObject::Array& objects, const Identifiers& identifiers, 
             const std::vector< TypeID >& contextTypes, 
@@ -141,78 +101,36 @@ namespace eg
         bool isImplicitStarter() const;
         
         reference evaluate( RuntimeEvaluator& evaluator, const reference& context ) const;
-            
-    private:
-        void propagate_failed( DerivationStep* pStep );
-    
-        reference evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const;
+   
     public:
-        OperationID getOperation() const { return m_operationType; }
-        const Context& getContext() const { return m_context; }
+        const InvocationID& getID() const { return m_invocationID; }
+        OperationID getOperation() const { return std::get< OperationID >( m_invocationID ); }
+        const Context& getContext() const { return std::get< Context >( m_invocationID ); }
         const TargetTypes& getTargetTypes() const { return m_targetTypes; }
         const TargetTypes& getFinalPathTypes() const { return m_finalPathTypes; }
         const TypeIDVector& getImplicitTypePath() const { return m_implicitTypePath; }
-        const DerivationStep* getRoot() const { return m_pRoot; }
+        
+        const std::vector< const concrete::Element* >& getConcreteContext() const { return m_contextElements; }
+        const std::vector< std::vector< const concrete::Element* > >& getConcreteTypePath() const { return m_concreteTypePath; }
+        
+        const RootInstruction* getRoot() const { return m_pRoot; }
     protected:
      
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
      
-        OperationID m_operationType;
-        Context m_context;
-        TargetTypes m_targetTypes;
-        TargetTypes m_finalPathTypes;
+        InvocationID m_invocationID;
         TypeIDVector m_implicitTypePath;
+        TargetTypes m_finalPathTypes;
+        
+        TargetTypes m_targetTypes;
+        std::vector< const concrete::Element* > m_contextElements;
+        std::vector< std::vector< const concrete::Element* > > m_concreteTypePath;
+        
+        RootInstruction* m_pRoot = nullptr;
     };
     
-    inline std::ostream& operator<<( std::ostream& os, const InvocationSolution::InvocationID& invocationID )
-    {
-        {
-            const InvocationSolution::Context& context = 
-                std::get< InvocationSolution::Context >( invocationID );
-            if( context.size() > 1 )
-                os << "Var< ";
-            for( const abstract::Element* pContextElement : context )
-            {
-                if( pContextElement != context.front() )
-                    os << ", ";
-                std::vector< const abstract::Element* > path = getPath( pContextElement );
-                for( const abstract::Element* pPathElement : path )
-                {
-                    if( pPathElement != path.front() )
-                        os << "::";
-                    os << pPathElement->getIdentifier();
-                }
-            }
-            if( context.size() > 1 )
-                os << " >";
-            else if( context.empty() )
-                os << "no context";
-        }
-        {
-            os << "[";
-            const InvocationSolution::TypePath& typePath = 
-                std::get< InvocationSolution::TypePath >( invocationID );
-            bool bFirst = true;
-            for( const std::vector< const abstract::Element* >& step : typePath )
-            {
-                if( bFirst ) 
-                    bFirst = false;
-                else
-                    os << ".";
-                if( !step.empty() )
-                    os << step.front()->getIdentifier();
-                else
-                    os << "_";
-            }
-            os << "]";
-        }
-        {
-            os << getOperationString( std::get< OperationID >( invocationID ) );
-        }
-        
-        return os;
-    }
+    std::ostream& operator<<( std::ostream& os, const InvocationSolution::InvocationID& invocationID );
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////

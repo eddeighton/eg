@@ -44,59 +44,51 @@ namespace eg
             _os << msg; \
             throw NameResolutionException( _os.str() );)
 
-    struct Name
+    class NameResolution;
+            
+    class Name
     {
-        const concrete::Inheritance_Node* pInheritanceNode    = nullptr;
-        const concrete::Dimension*        pDimension          = nullptr;
-        int score;
-        bool isTarget;
-        std::vector< int > children;
+        friend class NameResolution;
         
-        Name( const concrete::Inheritance_Node* pInheritanceNode, int score, bool isTarget )
-            :   pInheritanceNode( pInheritanceNode ),
-                score( score ),
-                isTarget( isTarget )
-        {
-        }
-        Name( const concrete::Dimension* pDimension, int score, bool isTarget )
-            :   pDimension( pDimension ),
-                score( score ),
-                isTarget( isTarget )
-        {
-        }
+        const concrete::Element* m_pElement;
+        bool m_bIsMember;
+        bool m_bIsReference;
+        std::vector< std::size_t > m_children;
         
-        const concrete::Element* getInstance() const
+        Name( const concrete::Element* pElement, bool bIsMember, bool bIsReference )
+            :   m_pElement( pElement ),
+                m_bIsMember( bIsMember ),
+                m_bIsReference( bIsReference )
         {
-            if( pInheritanceNode )
-                return pInheritanceNode->getRootConcreteAction();
-            else if( pDimension )
-                return pDimension;
-            else
-            {
-                THROW_RTE( "Invalid name" );
-            }
         }
+    
+        bool isMember() const { return m_bIsMember; }
+    public:
+        const concrete::Element* getElement() const { return m_pElement; }
+        bool isReference() const { return m_bIsReference; }
+        bool isTerminal() const { return m_children.empty(); }
+        const std::vector< std::size_t >& getChildren() const { return m_children; }
     };
-
     
     class NameResolution
     {
         const DerivationAnalysis& m_analysis;
         const InvocationSolution::InvocationID& m_invocationID;
+        std::vector< Name > m_nodes;
         
         //do not allow copy
         NameResolution( NameResolution& ) = delete;
         NameResolution& operator=( NameResolution& ) = delete;
     public:
-        NameResolution( const DerivationAnalysis& analysis, const InvocationSolution::InvocationID& invocationID );
-        
-        const std::vector< Name >& getNodes() const { return nodes; }
+        NameResolution( const DerivationAnalysis& analysis, 
+            const InvocationSolution::InvocationID& invocationID,
+            std::vector< const concrete::Element* >& concreteContext,
+            std::vector< std::vector< const concrete::Element* > >& concreteTypePath );
+                    
+        const std::vector< Name >& getNodes() const { return m_nodes; }
         
     private:
-        Name* add( int iParent, const concrete::Inheritance_Node* pInheritanceNode, int score, bool bIsTarget = false );
-        Name* add( int iParent, const concrete::Dimension* pDimension, int score, bool bIsTarget = false );
-        
-        std::vector< Name > nodes;
+        Name* add( std::size_t iParent, const concrete::Element* pElement, bool bIsMember, bool bIsReference );
         
         void expandReferences();
         
@@ -105,7 +97,7 @@ namespace eg
         void pruneBranches( Name* pNode );
         
         void resolve( 
-            const std::vector< const concrete::Inheritance_Node* >& contextInstances,
+            const std::vector< const concrete::Element* >& contextInstances,
             const std::vector< std::vector< const concrete::Element* > >& typePathInstances );
     };
 

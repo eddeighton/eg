@@ -97,6 +97,12 @@ namespace eg
             pParent->m_children.push_back( pNewObject );
             return pNewObject;
         }
+        
+        template< class T, class... Args >
+        static inline T* create( IndexedObject::FileID fileID, IndexedObject::Index index, Args... args )
+        {
+            return new T( IndexedObject( T::Type, fileID, index ), args... );
+        }
     };
 }
 
