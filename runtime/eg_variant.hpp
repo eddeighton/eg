@@ -84,15 +84,15 @@ struct [[clang::eg_type( eg::id_Variant )]] __eg_variant
 {
     inline __eg_variant()
     {
-        data.timestamp = INVALID_TIMESTAMP;
+        data.timestamp = eg::INVALID_TIMESTAMP;
     }
     
     inline __eg_variant( const Event& from )
     {
         //when convert from event need to check runtime type against all __eg_variant types
-        if( ( from.timestamp == INVALID_TIMESTAMP ) || !eg::variant_runtime_type_check< Ts... >::test( from ) )
+        if( ( from.data.timestamp == eg::INVALID_TIMESTAMP ) || !eg::variant_runtime_type_check< Ts... >::test( from ) )
         {
-            data.timestamp = INVALID_TIMESTAMP;
+            data.timestamp = eg::INVALID_TIMESTAMP;
         }
         else 
         {
@@ -110,9 +110,9 @@ struct [[clang::eg_type( eg::id_Variant )]] __eg_variant
     inline __eg_variant& operator=( const Event& from )
     {
         //when convert from event need to check runtime type against all __eg_variant types
-        if( ( from.data.timestamp == INVALID_TIMESTAMP ) || !eg::variant_runtime_type_check< Ts... >::test( from ) )
+        if( ( from.data.timestamp == eg::INVALID_TIMESTAMP ) || !eg::variant_runtime_type_check< Ts... >::test( from ) )
         {
-            data.timestamp = INVALID_TIMESTAMP;
+            data.timestamp = eg::INVALID_TIMESTAMP;
         }
         else 
         {
@@ -149,7 +149,7 @@ struct [[clang::eg_type( eg::id_Variant )]] __eg_variant
     
     inline operator const void*() const
     {
-        if( data.timestamp != INVALID_TIMESTAMP )
+        if( data.timestamp != eg::INVALID_TIMESTAMP )
         {
             return reinterpret_cast< const void* >( &data );
         }

@@ -1002,7 +1002,7 @@ namespace eg
         {
             braceStack.push_back( BraceCount );
                 
-            VERIFY_RTE( !pAction->m_bDefined );
+            //VERIFY_RTE( !pAction->m_bDefined );
             pAction->m_bDefined = true;
 
             while( !isEofOrEom() )
@@ -1185,9 +1185,20 @@ namespace eg
         
         input::Root* parse_root( ParserSession& session, const boost::filesystem::path& egSourceFile, bool bMainFile )
         {
-            input::Root* pRoot = session.construct< input::Root >();
-            pRoot->m_path = egSourceFile;
-            pRoot->m_bMainFile = bMainFile;
+            input::Root* pRoot = nullptr;
+            
+            //if main file then reuse root
+            if( bMainFile )
+            {
+                pRoot = oneOpt< input::Root >( session.getNewObjects() );
+            }
+            
+            if( !pRoot )
+            {
+                pRoot = session.construct< input::Root >();
+                pRoot->m_path = egSourceFile;
+                pRoot->m_bMainFile = bMainFile;
+            }
 
             parse_action_body( session, pRoot );
             
@@ -1350,11 +1361,7 @@ namespace eg
                 }
             }
         }while( !newIncludePaths.empty() );
-        
-        
     }
-    
-    
     
     
     abstract::Element* addChild( ParserSession& session, abstract::Element* pParent, input::Element* pElement )

@@ -11,7 +11,7 @@ abstract A
     B b = B();
 }
 
-action C : A
+action C[ 2 ] : A
 {
     action D : A::B
     {

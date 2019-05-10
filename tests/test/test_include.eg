@@ -1,0 +1,6 @@
+
+action A
+{
+    action Function1;
+}
+

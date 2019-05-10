@@ -95,7 +95,9 @@ namespace eg
     {
         static const int INDENT = 4;
     public:
-        CodeGenerator( const Layout& layout, int iIndent ) : m_layout( layout ) 
+        CodeGenerator( const Layout& layout, int iIndent, const std::string& strFailureType ) 
+            :   m_layout( layout ), 
+                m_strFailureType( strFailureType )
         {
             for( int i = 0; i != iIndent; ++i )
                 pushIndent();
@@ -128,12 +130,15 @@ namespace eg
                 m_strIndent.pop_back();
         }
         
-        virtual Printer getDimension( const concrete::Dimension* pDimension, const std::string& strIndex );
+        Printer getDimension( const concrete::Dimension* pDimension, const std::string& strIndex );
+        
+        std::string getFailureReturnType() const { return m_strFailureType; }
         
     private:
         VariableExprMap m_variables;
         std::string m_strIndent;
         const Layout& m_layout;
+        std::string m_strFailureType;
     };
 }
 

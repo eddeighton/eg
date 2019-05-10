@@ -40,8 +40,10 @@ enum ASTElementType //for serialisation
     eRootInstruction,
     eParentDerivationInstruction,
     eChildDerivationInstruction,
+    eEnumDerivationInstruction,
     eFailureInstruction,
     eEliminationInstruction,
+    ePruneInstruction,
     eDimensionReferenceReadInstruction,
     eMonoReferenceInstruction,
     ePolyReferenceInstruction,
@@ -308,6 +310,28 @@ private:
     InstanceVariable* m_pTo = nullptr;
 };
 
+class EnumDerivationInstruction : public Instruction
+{
+public:
+    EnumDerivationInstruction(){}
+    EnumDerivationInstruction( InstanceVariable* pFrom, InstanceVariable* pTo )
+        :   m_pFrom( pFrom ),
+            m_pTo( pTo )
+    {
+        
+    }
+    
+    virtual ASTElementType getType() const { return eEnumDerivationInstruction; }
+    
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
+    InstanceVariable* m_pFrom = nullptr;
+    InstanceVariable* m_pTo = nullptr;
+};
+
 class FailureInstruction : public Instruction
 {
 public:
@@ -323,6 +347,17 @@ class EliminationInstruction : public Instruction
 {
 public:
     virtual ASTElementType getType() const { return eEliminationInstruction; }
+    
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const { THROW_RTE( "Unreachable" ); }
+};
+
+class PruneInstruction : public Instruction
+{
+public:
+    virtual ASTElementType getType() const { return ePruneInstruction; }
     
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );

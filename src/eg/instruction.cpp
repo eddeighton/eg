@@ -58,8 +58,10 @@ namespace eg
                     case eRootInstruction:                      THROW_RTE( "Unreachable" );
                     case eParentDerivationInstruction:          pNewElement = new ParentDerivationInstruction; break;
                     case eChildDerivationInstruction:           pNewElement = new ChildDerivationInstruction; break;
-                    case eFailureInstruction:                   pNewElement = new FailureInstruction; break;
-                    case eEliminationInstruction:               pNewElement = new EliminationInstruction; break;
+                    case eEnumDerivationInstruction:            pNewElement = new EnumDerivationInstruction; break;
+                    case eFailureInstruction:                   THROW_RTE( "Unreachable" );
+                    case eEliminationInstruction:               THROW_RTE( "Unreachable" );
+                    case ePruneInstruction:                     THROW_RTE( "Unreachable" );
                     case eDimensionReferenceReadInstruction:    pNewElement = new DimensionReferenceReadInstruction; break;
                     case eMonoReferenceInstruction:             pNewElement = new MonomorphicReferenceInstruction; break;
                     case ePolyReferenceInstruction:             pNewElement = new PolymorphicReferenceBranchInstruction; break;
@@ -249,6 +251,42 @@ namespace eg
                 if( elimination != eAmbiguous )
                     elimination = eFailure;
             }
+            else if( PruneInstruction* pPrune = 
+                dynamic_cast< PruneInstruction* >( pChild ) )
+            {
+                Vector success, failure;
+                
+                Vector& nested = pPrune->m_children;
+                for( Instruction* pNested : nested )
+                {
+                    VERIFY_RTE( !dynamic_cast< PruneInstruction* >( pNested ) );
+                    const Elimination nestedResult = pNested->eliminate();
+                    switch( nestedResult )
+                    {
+                        case eSuccess:   success.push_back( pNested );    break;
+                        case eFailure:   failure.push_back( pNested );    break;
+                        case eAmbiguous: THROW_RTE( "Unreachable" );
+                    }
+                }
+                
+                nested.clear();
+                
+                for( Instruction* pFailure : failure )
+                    delete pFailure;
+                
+                if( !success.empty() )
+                {
+                    //successful
+                    VERIFY_RTE( m_children.size() == 1 );
+                    m_children = std::move( success );
+                    delete pPrune;
+                    break;
+                }
+                else if( success.empty() )
+                {
+                    elimination = eFailure;
+                }
+            }
             else
             {
                 const Elimination nestedResult = pChild->eliminate();
@@ -284,8 +322,10 @@ namespace eg
                 case eRootInstruction                    :
                 case eParentDerivationInstruction        :
                 case eChildDerivationInstruction         :
+                case eEnumDerivationInstruction          :
                 case eFailureInstruction                 :
                 case eEliminationInstruction             :
+                case ePruneInstruction                   :
                 case eDimensionReferenceReadInstruction  :
                 case eMonoReferenceInstruction           :
                 case ePolyReferenceInstruction           :
@@ -392,6 +432,28 @@ namespace eg
         }
     }
     
+    void EnumDerivationInstruction::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Instruction::load( serialiser, loader );
+        serialiser.load( loader, m_pFrom );
+        serialiser.load( loader, m_pTo );
+    }
+    void EnumDerivationInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Instruction::store( serialiser, storer );
+        serialiser.store( storer, m_pFrom );
+        serialiser.store( storer, m_pTo );
+    }
+    void EnumDerivationInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
+        //generator.setVarExpr( m_pTo, generator.getVarExpr( m_pFrom ) );
+        ASSERT( m_children.size() == 1U );
+        for( const Instruction* pChild : m_children )
+        {
+            pChild->generate( generator, os );
+        }
+    }
+    
     void FailureInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Instruction::load( serialiser, loader );
@@ -406,6 +468,15 @@ namespace eg
         Instruction::load( serialiser, loader );
     }
     void EliminationInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Instruction::store( serialiser, storer );
+    }
+    
+    void PruneInstruction::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Instruction::load( serialiser, loader );
+    }
+    void PruneInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Instruction::store( serialiser, storer );
     }
@@ -483,6 +554,7 @@ namespace eg
         {
             pChild->generate( generator, os );
         }
+        os << generator.getIndent() << "default: return " << generator.getFailureReturnType() << ";\n";
         generator.popIndent();
         os << generator.getIndent() << "}\n";
     }
@@ -735,5 +807,7 @@ namespace eg
     }
     void RangeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
+        os << generator.getIndent() << 
+            "//TODO...\n";
     }
 }
