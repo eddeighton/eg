@@ -67,18 +67,6 @@ namespace eg
         DataMember* m_pDependency = nullptr;
     };
     
-    struct Printer
-    {
-        const DataMember* m_pDimension;
-        const char* pszIndex;
-        Printer( const DataMember* pDimension, const char* pszIndex ) : m_pDimension( pDimension ), pszIndex( pszIndex ) {}
-    };
-    inline std::ostream& operator<<( std::ostream& os, const Printer& printer )
-    {
-        printer.m_pDimension->printVariableAccess( os, printer.pszIndex );;
-        return os;
-    }
-    
     class Buffer : public IndexedObject
     {
         friend class ObjectFactoryImpl;

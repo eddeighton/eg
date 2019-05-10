@@ -1,0 +1,26 @@
+
+
+dim int x;
+action A[ 2 ]
+{
+    dim int x;
+    action B[ 3 ]
+    {
+        dim int x;
+        
+        x();
+        A.x();
+        root.x();
+        C.x();
+        D.x();
+    }
+}
+
+action C
+{
+    dim int x;
+    action D
+    {
+        dim int x;
+    }
+}

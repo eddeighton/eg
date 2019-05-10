@@ -290,9 +290,12 @@ namespace eg
                 
                 while( pFrom != pCommon )
                 {
+                    const concrete::Action* pParent = 
+                        dynamic_cast< const concrete::Action* >( pFrom->getParent() );
+                    ASSERT( pParent );
                     //generate parent derivation instruction
                     InstanceVariable* pInstanceVariable = 
-                        new InstanceVariable( pVariable, pFrom->getParent() );
+                        new InstanceVariable( pVariable, pParent );
                     
                     ParentDerivationInstruction* pParentDerivation = 
                         new ParentDerivationInstruction( pVariable, pInstanceVariable );
@@ -322,33 +325,163 @@ namespace eg
                     }
                     else
                     {
-                        InstanceVariable* pInstanceVariable = 
-                            new InstanceVariable( pVariable, pIter );
-                        
-                        ChildDerivationInstruction* pChildDerivation = 
-                            new ChildDerivationInstruction( pVariable, pInstanceVariable );
-                        pInstruction->append( pChildDerivation );
-                        
-                        pVariable = pInstanceVariable;
-                        pInstruction = pChildDerivation;
+                        if( const concrete::Action* pAction = 
+                            dynamic_cast< const concrete::Action* >( pIter ) )
+                        {
+                            InstanceVariable* pInstanceVariable = 
+                                new InstanceVariable( pVariable, pAction );
+                            
+                            ChildDerivationInstruction* pChildDerivation = 
+                                new ChildDerivationInstruction( pVariable, pInstanceVariable );
+                            pInstruction->append( pChildDerivation );
+                            
+                            pVariable = pInstanceVariable;
+                            pInstruction = pChildDerivation;
+                        }
+                        else if( const concrete::Dimension_User* pUserDimension =
+                            dynamic_cast< const concrete::Dimension_User* >( pIter ) )
+                        {
+                            //just ignor this - always only want the parent instance variable..
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unreachable" );
+                        }
                     }
                 }
             }
         }
+        
+        void buildTerminal( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable )
+        {
+            const concrete::Element* pElement = current.getElement();
+            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
+            {
+                switch( m_solution.getOperation() )
+                {
+                    case id_Imp_NoParams        :
+                    case id_Imp_Params          :
+                        {
+                            //only derive the parent for the starter
+                            commonRootDerivation( prev.getElement(), current.getElement()->getParent(), 
+                                pInstruction, pVariable );
+                            StartOperation* pStart = new StartOperation( pVariable, pAction );
+                            pInstruction->append( pStart );
+                        }
+                        break;
+                    case id_Get                 :
+                        {
+                            commonRootDerivation( prev.getElement(), current.getElement(), 
+                                pInstruction, pVariable );
+                            GetActionOperation* pGetAction = new GetActionOperation( pVariable, pAction );
+                            pInstruction->append( pGetAction );
+                        }
+                        break;
+                    case id_Update              :
+                    case id_Old                 :
+                        THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on action: " << m_solution.getID() );
+                        break;
+                    case id_Stop                :
+                        {
+                            commonRootDerivation( prev.getElement(), current.getElement(), 
+                                pInstruction, pVariable );
+                            StopOperation* pStop = new StopOperation( pVariable, pAction );
+                            pInstruction->append( pStop );
+                        }
+                        break;
+                    case id_Pause               :
+                        {
+                            commonRootDerivation( prev.getElement(), current.getElement(), 
+                                pInstruction, pVariable );
+                            PauseOperation* pPause = new PauseOperation( pVariable, pAction );
+                            pInstruction->append( pPause );
+                        }
+                        break;
+                    case id_Resume              :
+                        {
+                            commonRootDerivation( prev.getElement(), current.getElement(), 
+                                pInstruction, pVariable );
+                            ResumeOperation* pResume = new ResumeOperation( pVariable, pAction );
+                            pInstruction->append( pResume );
+                        }
+                        break;
+                    case id_Defer               :
+                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
+                    default:
+                        THROW_RTE( "Unreachable" );
+                }
+            }
+            else if( const concrete::Dimension_User* pUserDimension = 
+                dynamic_cast< const concrete::Dimension_User* >( pElement ) )
+            {
+                commonRootDerivation( prev.getElement(), current.getElement(), pInstruction, pVariable );
+            
+                switch( m_solution.getOperation() )
+                {
+                    case id_Imp_NoParams        :
+                        {
+                            ReadOperation* pRead = new ReadOperation( pVariable, pUserDimension );
+                            pInstruction->append( pRead );
+                        }
+                        break;
+                    case id_Imp_Params          :
+                        {
+                            WriteOperation* pWrite = new WriteOperation( pVariable, pUserDimension );
+                            pInstruction->append( pWrite );
+                        }
+                        break;
+                    case id_Get                 :
+                    case id_Update              :
+                    case id_Old                 :
+                        break;
+                    case id_Stop                :
+                    case id_Pause               :
+                    case id_Resume              :
+                        THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension: " << m_solution.getID() );
+                    case id_Defer               :
+                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
+                    default:
+                        THROW_RTE( "Unreachable" );
+                }
+            }
+            else
+            {
+                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
+            }
+            
+        }
             
         void buildPolymorphicCase( const Name& prev, const Name& current, 
-            PolymorphicReferenceBranchInstruction* pInstruction, ReferenceVariable* pVariable )
+            Instruction* pInstruction, ReferenceVariable* pVariable )
         {
             const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getElement() );
             ASSERT( pType );
             
             InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pInstance );
+            PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
+            pInstruction->append( pCase );
+            pInstruction = pCase;
             
-            for( std::size_t index : current.getChildren() )
+            if( current.getChildren().size() > 1U )
             {
-                const Name& next = m_resolution.getNodes()[ index ];
-                buildGenerateName( current, next, pCase, pInstance );
+                EliminationInstruction* pElim = new EliminationInstruction;
+                pInstruction->append( pElim );
+                pInstruction = pElim;
+            }
+            
+            if( current.isTerminal() )
+            {
+                buildTerminal( prev, current, pInstruction, pInstance );
+            }
+            else
+            {
+                ASSERT( !current.getChildren().empty() );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildGenerateName( current, next, pInstruction, pInstance );
+                }
             }
         }
         
@@ -359,15 +492,32 @@ namespace eg
             ASSERT( pType );
             
             InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            
-            MonomorphicReferenceInstruction* pMono = 
-                new MonomorphicReferenceInstruction( pVariable, pInstance );
-            pInstruction->append( pMono );
-            
-            for( std::size_t index : current.getChildren() )
             {
-                const Name& next = m_resolution.getNodes()[ index ];
-                buildGenerateName( current, next, pMono, pInstance );
+                MonomorphicReferenceInstruction* pMono = 
+                    new MonomorphicReferenceInstruction( pVariable, pInstance );
+                pInstruction->append( pMono );
+                pInstruction = pMono;
+            }
+            
+            if( current.getChildren().size() > 1U )
+            {
+                EliminationInstruction* pElim = new EliminationInstruction;
+                pInstruction->append( pElim );
+                pInstruction = pElim;
+            }
+            
+            if( current.isTerminal() )
+            {
+                buildTerminal( prev, current, pInstruction, pInstance );
+            }
+            else
+            {
+                ASSERT( !current.getChildren().empty() );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildGenerateName( current, next, pInstruction, pInstance );
+                }
             }
         }
         
@@ -376,101 +526,7 @@ namespace eg
         {
             if( current.isTerminal() )
             {
-                const concrete::Element* pElement = current.getElement();
-                if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
-                {
-                    switch( m_solution.getOperation() )
-                    {
-                        case id_Imp_NoParams        :
-                        case id_Imp_Params          :
-                            {
-                                //only derive the parent for the starter
-                                commonRootDerivation( prev.getElement(), current.getElement()->getParent(), 
-                                    pInstruction, pVariable );
-                                StartOperation* pStart = new StartOperation( pVariable, pAction );
-                                pInstruction->append( pStart );
-                            }
-                            break;
-                        case id_Get                 :
-                            {
-                                commonRootDerivation( prev.getElement(), current.getElement(), 
-                                    pInstruction, pVariable );
-                                GetActionOperation* pGetAction = new GetActionOperation( pVariable, pAction );
-                                pInstruction->append( pGetAction );
-                            }
-                            break;
-                        case id_Update              :
-                        case id_Old                 :
-                            THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on action: " << m_solution.getID() );
-                            break;
-                        case id_Stop                :
-                            {
-                                commonRootDerivation( prev.getElement(), current.getElement(), 
-                                    pInstruction, pVariable );
-                                StopOperation* pStop = new StopOperation( pVariable, pAction );
-                                pInstruction->append( pStop );
-                            }
-                            break;
-                        case id_Pause               :
-                            {
-                                commonRootDerivation( prev.getElement(), current.getElement(), 
-                                    pInstruction, pVariable );
-                                PauseOperation* pPause = new PauseOperation( pVariable, pAction );
-                                pInstruction->append( pPause );
-                            }
-                            break;
-                        case id_Resume              :
-                            {
-                                commonRootDerivation( prev.getElement(), current.getElement(), 
-                                    pInstruction, pVariable );
-                                ResumeOperation* pResume = new ResumeOperation( pVariable, pAction );
-                                pInstruction->append( pResume );
-                            }
-                            break;
-                        case id_Defer               :
-                            THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
-                        default:
-                            THROW_RTE( "Unreachable" );
-                    }
-                }
-                else if( const concrete::Dimension_User* pUserDimension = 
-                    dynamic_cast< const concrete::Dimension_User* >( pElement ) )
-                {
-                    commonRootDerivation( prev.getElement(), current.getElement(), pInstruction, pVariable );
-                
-                    switch( m_solution.getOperation() )
-                    {
-                        case id_Imp_NoParams        :
-                            {
-                                ReadOperation* pRead = new ReadOperation( pVariable, pUserDimension );
-                                pInstruction->append( pRead );
-                            }
-                            break;
-                        case id_Imp_Params          :
-                            {
-                                WriteOperation* pWrite = new WriteOperation( pVariable, pUserDimension );
-                                pInstruction->append( pWrite );
-                            }
-                            break;
-                        case id_Get                 :
-                        case id_Update              :
-                        case id_Old                 :
-                            break;
-                        case id_Stop                :
-                        case id_Pause               :
-                        case id_Resume              :
-                            THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension: " << m_solution.getID() );
-                        case id_Defer               :
-                            THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
-                        default:
-                            THROW_RTE( "Unreachable" );
-                    }
-                }
-                else
-                {
-                    THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
-                }
-                
+                buildTerminal( prev, current, pInstruction, pVariable );
             }
             else if( current.isReference() )
             {
@@ -483,19 +539,34 @@ namespace eg
                     types.push_back( next.getElement() );
                 }
                 
+                const concrete::Dimension* pDimension = 
+                    dynamic_cast< const concrete::Dimension* >( current.getElement() );
+                ASSERT( pDimension );
+                
                 DimensionReferenceVariable* pReferenceVariable = 
                     new DimensionReferenceVariable( pVariable, types );
+                    
+                {
+                    DimensionReferenceReadInstruction* pDimensionRead = 
+                        new DimensionReferenceReadInstruction( 
+                            pVariable, pReferenceVariable, pDimension );
+                    pInstruction->append( pDimensionRead );
+                    pInstruction = pDimensionRead;
+                }
                 
                 if( types.size() > 1U )
                 {
-                    PolymorphicReferenceBranchInstruction* pBranch = 
-                        new PolymorphicReferenceBranchInstruction( pReferenceVariable );
-                    pInstruction->append( pBranch );
+                    {
+                        PolymorphicReferenceBranchInstruction* pBranch = 
+                            new PolymorphicReferenceBranchInstruction( pReferenceVariable );
+                        pInstruction->append( pBranch );
+                        pInstruction = pBranch;
+                    }
                     
                     for( std::size_t index : current.getChildren() )
                     {
                         const Name& next = m_resolution.getNodes()[ index ];
-                        buildPolymorphicCase( current, next, pBranch, pReferenceVariable );
+                        buildPolymorphicCase( current, next, pInstruction, pReferenceVariable );
                     }
                 }
                 else
@@ -546,20 +617,19 @@ namespace eg
             }
             else
             {
-                InstanceVariable* pInstance = new InstanceVariable( pVariable, contextTypes.front() );
-                //start the recursion
                 const Name& current = m_resolution.getNodes()[ 0U ];
+                ASSERT( current.getChildren().size() == 1U );
                 for( std::size_t index : current.getChildren() )
                 {
                     const Name& next = m_resolution.getNodes()[ index ];
-                    buildGenerateName( current, next, pInstruction, pInstance );
+                    buildMonoDereference( current, next, pInstruction, pVariable );
                 }
             }
         }
         
     };
     
-    
+    /*
     class EnumerationOperationVisitor 
     {
         InvocationSolution& m_solution;
@@ -582,9 +652,12 @@ namespace eg
                 
                 while( pFrom != pCommon )
                 {
+                    const concrete::Action* pParent = 
+                        dynamic_cast< const concrete::Action* >( pFrom->getParent() );
+                    ASSERT( pParent );
                     //generate parent derivation instruction
                     InstanceVariable* pInstanceVariable = 
-                        new InstanceVariable( pVariable, pFrom->getParent() );
+                        new InstanceVariable( pVariable, pParent );
                     
                     ParentDerivationInstruction* pParentDerivation = 
                         new ParentDerivationInstruction( pVariable, pInstanceVariable );
@@ -614,15 +687,28 @@ namespace eg
                     }
                     else
                     {
-                        InstanceVariable* pInstanceVariable = 
-                            new InstanceVariable( pVariable, pIter );
-                        
-                        ChildDerivationInstruction* pChildDerivation = 
-                            new ChildDerivationInstruction( pVariable, pInstanceVariable );
-                        pInstruction->append( pChildDerivation );
-                        
-                        pVariable = pInstanceVariable;
-                        pInstruction = pChildDerivation;
+                        if( const concrete::Action* pAction = 
+                            dynamic_cast< const concrete::Action* >( pIter ) )
+                        {
+                            InstanceVariable* pInstanceVariable = 
+                                new InstanceVariable( pVariable, pAction );
+                            
+                            ChildDerivationInstruction* pChildDerivation = 
+                                new ChildDerivationInstruction( pVariable, pInstanceVariable );
+                            pInstruction->append( pChildDerivation );
+                            
+                            pVariable = pInstanceVariable;
+                            pInstruction = pChildDerivation;
+                        }
+                        else if( const concrete::Dimension_User* pUserDimension =
+                            dynamic_cast< const concrete::Dimension_User* >( pIter ) )
+                        {
+                            //just ignor this - always only want the parent instance variable..
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unreachable" );
+                        }
                     }
                 }
             }
@@ -635,7 +721,7 @@ namespace eg
             ASSERT( pType );
             
             InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pInstance );
+            PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
             
             for( std::size_t index : current.getChildren() )
             {
@@ -762,7 +848,8 @@ namespace eg
             }
             else
             {
-                InstanceVariable* pInstance = new InstanceVariable( pVariable, contextTypes.front() );
+                const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( contextTypes.front() );
+                InstanceVariable* pInstance = new InstanceVariable( pVariable, pAction );
                 //start the recursion
                 const Name& current = m_resolution.getNodes()[ 0U ];
                 for( std::size_t index : current.getChildren() )
@@ -773,7 +860,7 @@ namespace eg
             }
         }
         
-    };
+    };*/
     
     void InvocationSolution::build( const DerivationAnalysis& analysis, const NameResolution& resolution )
     {
@@ -800,8 +887,8 @@ namespace eg
             case id_Size                :
             case id_Range               :
                 {
-                    EnumerationOperationVisitor builder( *this, resolution );
-                    builder( m_pRoot, pContextVariable );
+                    //EnumerationOperationVisitor builder( *this, resolution );
+                    //builder( m_pRoot, pContextVariable );
                 }
                 break;
             case HIGHEST_OPERATION_TYPE :
@@ -820,9 +907,9 @@ namespace eg
                 }
                 break;
             case Instruction::eFailure   :
-                THROW_INVOCATION_EXCEPTION( "Invocation failed to resolve: " << m_invocationID );
+                THROW_INVOCATION_EXCEPTION( "No possible derivation for: " << m_invocationID );
             case Instruction::eAmbiguous :
-                THROW_INVOCATION_EXCEPTION( "Invocation is ambiguous: " << m_invocationID );
+                THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for: " << m_invocationID );
         }
     }
     

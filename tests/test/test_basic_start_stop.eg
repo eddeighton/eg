@@ -1,0 +1,11 @@
+
+action A
+{
+    
+}
+
+A a = A();
+
+a.Pause();
+a.Resume();
+a.Stop();

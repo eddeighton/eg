@@ -30,6 +30,7 @@ struct DimensionTraits
 {
     using Read  = const T&;
     using Write = T;
+    using Get   = T&;
     static const Instance Size = sizeof( T );
 };
 

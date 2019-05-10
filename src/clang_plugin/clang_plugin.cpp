@@ -428,17 +428,45 @@ namespace eg
                     if( targets.size() == 1 )
                     {
                         const abstract::Element* pTarget = targets.front();
-                        clang::DeclContext* pDeclContextIter = pDeclContext;
-                        const std::vector< const abstract::Element* > path = getPath( pTarget );
-                        for( const abstract::Element* pElementElement : path )
+                        if( const abstract::Action* pAction = dynamic_cast< const abstract::Action* >( pTarget ) )
                         {
-                            clang::getType( g_pASTContext, g_pSema, 
-                                getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                pDeclContextIter, loc, false );
-                            if( !pDeclContextIter ) break;
+                            clang::DeclContext* pDeclContextIter = pDeclContext;
+                            const std::vector< const abstract::Element* > path = getPath( pTarget );
+                            for( const abstract::Element* pElementElement : path )
+                            {
+                                if( pElementElement == path.back() )
+                                {
+                                    resultType = clang::getType( g_pASTContext, g_pSema, 
+                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                        pDeclContextIter, loc, false );
+                                }
+                                else
+                                {
+                                    clang::getType( g_pASTContext, g_pSema, 
+                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                        pDeclContextIter, loc, false );
+                                    if( !pDeclContextIter ) break;
+                                }
+                            }
                         }
-                        if( pDeclContextIter )
-                            resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "Write" );
+                        else if( const abstract::Dimension* pDimension = dynamic_cast< const abstract::Dimension* >( pTarget ) )
+                        {
+                            clang::DeclContext* pDeclContextIter = pDeclContext;
+                            const std::vector< const abstract::Element* > path = getPath( pTarget );
+                            for( const abstract::Element* pElementElement : path )
+                            {
+                                clang::getType( g_pASTContext, g_pSema, 
+                                    getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                    pDeclContextIter, loc, false );
+                                if( !pDeclContextIter ) break;
+                            }
+                            if( pDeclContextIter )
+                                resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "Get" );
+                        }
+                        else
+                        {
+                            //error
+                        }
                     }
                 }
                 break;
@@ -567,21 +595,24 @@ namespace eg
                                     std::vector< eg::TypeID > contextTypes;
                                     if( !clang::getContextTypes( g_pASTContext, context, contextTypes ) )
                                     {
-                                        //diagnostic...
+                                        g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
+                                            "Invalid context for invocation";
                                         return false;
                                     }
                                     
                                     std::vector< eg::TypeID > typePathTypes;
                                     if( !clang::getTypePathTypes( g_pASTContext, typePath, typePathTypes ) )
                                     {
-                                        //diagnostic...
+                                        g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
+                                            "Invalid type path for invocation";
                                         return false;
                                     }
                                     
                                     std::optional< eg::TypeID > operationTypeIDOpt = getEGTypeID( g_pASTContext, operationType );
                                     if( !operationTypeIDOpt )
                                     {
-                                        //diagnostic...
+                                        g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
+                                            "Invalid operation for invocation";
                                         return false;
                                     }
                                     eg::OperationID operationTypeID = static_cast< eg::OperationID >( operationTypeIDOpt.value() );
@@ -604,6 +635,12 @@ namespace eg
                                     {
                                         g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
                                             nameResolutionException.what();
+                                        return false;
+                                    }
+                                    catch( eg::InvocationException& invocationException )
+                                    {
+                                        g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
+                                            invocationException.what();
                                         return false;
                                     }
                                     

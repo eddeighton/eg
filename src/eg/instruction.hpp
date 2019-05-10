@@ -1,3 +1,21 @@
+//  Copyright (c) Deighton Systems Limited. 2019. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #ifndef INSTRUCTION_08_05_2019
 #define INSTRUCTION_08_05_2019
@@ -24,6 +42,7 @@ enum ASTElementType //for serialisation
     eChildDerivationInstruction,
     eFailureInstruction,
     eEliminationInstruction,
+    eDimensionReferenceReadInstruction,
     eMonoReferenceInstruction,
     ePolyReferenceInstruction,
     ePolyCaseInstruction,
@@ -111,7 +130,7 @@ public:
     InstanceVariable()
     {
     }
-    InstanceVariable( const Variable* pParent, const concrete::Element* pType )
+    InstanceVariable( const Variable* pParent, const concrete::Action* pType )
         :   Variable( pParent ),
             m_pType( pType )
     {
@@ -119,11 +138,12 @@ public:
 
     virtual ASTElementType getType() const { return eInstanceVariable; }
     
+    const concrete::Action* getConcreteType() const { return m_pType; }
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     
-    const concrete::Element* m_pType;
+    const concrete::Action* m_pType;
 };
 
 class ReferenceVariable : public Variable
@@ -183,6 +203,7 @@ protected:
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 class Operation;
+class CodeGenerator;
 
 class Instruction : public ASTElement
 {
@@ -212,6 +233,8 @@ public:
     };
     Elimination eliminate();
     void getOperations( std::vector< const Operation* >& operations ) const;
+    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const = 0;
 protected:
     Vector m_children;
 };
@@ -233,6 +256,7 @@ public:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     
 protected:
     ContextVariable* m_pContext = nullptr;
@@ -250,10 +274,12 @@ public:
     }
     
     virtual ASTElementType getType() const { return eParentDerivationInstruction; }
+    
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pFrom = nullptr;
     InstanceVariable* m_pTo = nullptr;
 };
@@ -270,10 +296,12 @@ public:
     }
     
     virtual ASTElementType getType() const { return eChildDerivationInstruction; }
+    
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pFrom = nullptr;
     InstanceVariable* m_pTo = nullptr;
 };
@@ -286,15 +314,41 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const { THROW_RTE( "Unreachable" ); }
 };
 
 class EliminationInstruction : public Instruction
 {
 public:
     virtual ASTElementType getType() const { return eEliminationInstruction; }
+    
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const { THROW_RTE( "Unreachable" ); }
+};
+
+class DimensionReferenceReadInstruction : public Instruction
+{
+public:
+    DimensionReferenceReadInstruction(){}
+    DimensionReferenceReadInstruction( InstanceVariable* pInstance, 
+                DimensionReferenceVariable* pReference, const concrete::Dimension* pDimension )
+        :   m_pInstance( pInstance ),
+            m_pReference( pReference ),
+            m_pDimension( pDimension )
+    {
+        
+    }
+    virtual ASTElementType getType() const { return eDimensionReferenceReadInstruction; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+    
+    InstanceVariable* m_pInstance = nullptr;
+    DimensionReferenceVariable* m_pReference = nullptr;
+    const concrete::Dimension* m_pDimension = nullptr;
 };
 
 class MonomorphicReferenceInstruction : public Instruction 
@@ -311,6 +365,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     
     ReferenceVariable* m_pFrom = nullptr;
     InstanceVariable* m_pInstance = nullptr;
@@ -331,7 +386,8 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     ReferenceVariable* m_pFrom = nullptr;
 };
 
@@ -339,25 +395,27 @@ class PolymorphicCaseInstruction : public Instruction
 {
 public:
     PolymorphicCaseInstruction(){}
-    PolymorphicCaseInstruction( InstanceVariable* pTo )
-        :   m_pTo( pTo )
+    PolymorphicCaseInstruction( ReferenceVariable* pReference, InstanceVariable* pTo )
+        :   m_pReference( pReference ),
+            m_pTo( pTo )
     {
     }
     virtual ASTElementType getType() const { return ePolyCaseInstruction; }
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
+    ReferenceVariable* m_pReference = nullptr;
     InstanceVariable* m_pTo = nullptr;
 };
 
 class Operation : public Instruction
 {
-public:
-    
+protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    
+public:
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const = 0;
 };
 
@@ -375,7 +433,8 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
@@ -394,7 +453,8 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
@@ -413,7 +473,8 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
@@ -432,7 +493,8 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
@@ -451,7 +513,8 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
@@ -470,7 +533,8 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Dimension_User* m_pTarget = nullptr;
 };
@@ -489,7 +553,8 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
-    
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Dimension_User* m_pTarget = nullptr;
 

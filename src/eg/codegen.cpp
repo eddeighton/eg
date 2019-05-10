@@ -450,6 +450,7 @@ namespace eg
             os << "  using Type  = " << pElement->getType()->getStr() << ";\n";
             os << "  using Read  = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Read;\n";
             os << "  using Write = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Write;\n";
+            os << "  using Get   = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Get;\n";
             os << "  static const " << EG_INSTANCE << " Size = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Size;\n";
             os << "};\n";
         }    
@@ -1235,6 +1236,30 @@ namespace eg
                 }
                 break;
             case id_Get        :
+                if( !targets.empty() )
+                {
+                    if( areTargetTypesHomogeneous( objects, invocation ) )
+                    {
+                        if( const abstract::Action* pAction = dynamic_cast< const abstract::Action* >( targets.front() ) )
+                        {
+                            printType( os, objects, pAction );
+                        }
+                        else
+                        {
+                            printType( os, objects, targets.front() );
+                            os << "::Get";
+                        }
+                    }
+                    else
+                    {
+                        THROW_RTE( "not implemented" );
+                    }
+                }
+                else
+                {
+                    os << "void";
+                }
+                break;
             case id_Update     :
             case id_Old        : 
                 if( !targets.empty() )
@@ -1456,10 +1481,72 @@ namespace eg
     }
     
     
+    Printer CodeGenerator::getDimension( const concrete::Dimension* pDimension, const std::string& strIndex )
+    {
+        return Printer( m_layout.getDataMember( pDimension ), strIndex.c_str() );
+    }
+    
+    inline std::ostream& operator<<( std::ostream& os, const Printer& printer )
+    {
+        printer.m_pDataMember->printVariableAccess( os, printer.pszIndex );;
+        return os;
+    }
+    
     void generateInvocation( std::ostream& os, const IndexedObject::Array& objects,
         const DerivationAnalysis& derivationAnalysis, 
         const Layout& layout, const InvocationSolution& invocation )
     {
+        os << "template<>\n";
+        os << "struct __invoke_impl\n";
+        os << "<\n";
+        os << "    "; printReturnType( os, objects, invocation ); os << ",\n";
+        os << "    "; printContextType( os, objects, invocation ); os << ",\n";
+        os << "    "; printTypePathType( os, objects, invocation ); os << ",\n";
+        os << "    " << getOperationString( static_cast< OperationID >( invocation.getOperation() ) );
+        os << ">\n";
+        os << "{\n";
+        //os << "    template< typename... Args >\n";
+        os << "    "; printReturnType( os, objects, invocation ); os << " operator()( "; printContextType( os, objects, invocation ); os << " context"; 
+        
+        //invocation parameters
+        switch( invocation.getOperation() )
+        {
+            case id_Imp_NoParams   :
+            case id_Imp_Params  :
+                if( invocation.isImplicitStarter() )
+                {
+                    os << " )\n";
+                }
+                else if( invocation.getOperation() == id_Imp_NoParams )
+                {
+                    os << " )\n";
+                }
+                else if( invocation.getOperation() == id_Imp_Params )
+                {
+                    os << ", "; printParameters( os, objects, invocation ); os << " )\n";
+                }
+                break;
+            case id_Get                  :  os << " )\n";   break;
+            case id_Update               :  break;
+            case id_Old                  :  os << " )\n";   break;
+            case id_Stop                 :  
+            case id_Pause                :  
+            case id_Resume               :  os << " )\n";   break;
+            case id_Defer                :  break;
+            case id_Size                 :  os << " )\n";   break;
+            case id_Range                :  os << " )\n";   break;
+            case TOTAL_OPERATION_TYPES : 
+            default:
+                THROW_RTE( "Unknown operation type" );
+        }
+        
+        os << "    {\n";
+        
+        CodeGenerator codeGenerator( layout, 2 );
+        invocation.getRoot()->generate( codeGenerator, os );
+        
+        os << "    }\n";
+        os << "};\n";
     }
     
     void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const Layout& layout, const concrete::Action* pAction )

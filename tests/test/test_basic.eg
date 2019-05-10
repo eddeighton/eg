@@ -2,10 +2,8 @@
 action A
 {
     dim int x;
-    dim int y;
-    dim int z;
 }
 
 A a;
 
-a.A.A.A.A.x();
+a.x();

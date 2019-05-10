@@ -1,0 +1,25 @@
+
+
+action A
+{
+    action B
+    {
+        dim C::D d;
+    }
+}
+
+action C[ 2 ]
+{
+    dim int y;
+    dim int x;
+    action D[ 2 ]
+    {
+        dim int x;
+    }
+}
+
+dim int y;
+
+d.x();
+d.C.y();
+d.C.x();

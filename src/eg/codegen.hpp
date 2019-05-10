@@ -24,6 +24,7 @@
 
 #include "abstract.hpp"
 #include "implementation_session.hpp"
+#include "instruction.hpp"
 
 #include <string>
 #include <cstddef>
@@ -76,6 +77,64 @@ namespace eg
 
     void generateImplementationSource( std::ostream& os, const ImplementationSession& program, 
         std::size_t szTranslationUnitID, const std::vector< std::string >& dependencies );
+        
+            
+    class DataMember;
+
+    struct Printer
+    {
+        const DataMember* m_pDataMember;
+        const char* pszIndex;
+        Printer( const DataMember* pDataMember, const char* pszIndex ) : m_pDataMember( pDataMember ), pszIndex( pszIndex ) {}
+    };
+    
+    inline std::ostream& operator<<( std::ostream& os, const Printer& printer );
+
+    class Layout;
+    class CodeGenerator
+    {
+        static const int INDENT = 4;
+    public:
+        CodeGenerator( const Layout& layout, int iIndent ) : m_layout( layout ) 
+        {
+            for( int i = 0; i != iIndent; ++i )
+                pushIndent();
+        }
+        
+        using VariableExprMap = std::map< const Variable*, std::string >;
+        
+        inline void setVarExpr( const Variable* pVariable, const std::string& str )
+        {
+            VariableExprMap::const_iterator iFind = m_variables.find( pVariable );
+            VERIFY_RTE( iFind == m_variables.end() );
+            m_variables.insert( std::make_pair( pVariable, str ) );
+        }
+        inline const std::string& getVarExpr( const Variable* pVariable ) const
+        {
+            VariableExprMap::const_iterator iFind = m_variables.find( pVariable );
+            VERIFY_RTE( iFind != m_variables.end() );
+            return iFind->second;
+        }
+        
+        const std::string& getIndent() const { return m_strIndent; }
+        void pushIndent() 
+        { 
+            for( int i = 0; i != INDENT; ++i )
+                m_strIndent.push_back( ' ' );
+        }
+        void popIndent()
+        {
+            for( int i = 0; i != INDENT; ++i )
+                m_strIndent.pop_back();
+        }
+        
+        virtual Printer getDimension( const concrete::Dimension* pDimension, const std::string& strIndex );
+        
+    private:
+        VariableExprMap m_variables;
+        std::string m_strIndent;
+        const Layout& m_layout;
+    };
 }
 
 #endif //CODE_GEN_18_04_2019

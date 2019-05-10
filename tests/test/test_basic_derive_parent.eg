@@ -1,0 +1,23 @@
+
+dim int w;
+action A[ 2 ]
+{
+    dim int x;
+    action B[ 3 ]
+    {
+        dim int y;
+        action C[ 4 ]
+        {
+            dim int z;
+        
+        }
+    }
+}
+
+A::B::C c;
+c.w();
+c.x();
+c.y();
+c.z();
+
+

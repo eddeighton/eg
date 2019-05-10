@@ -1,0 +1,7 @@
+
+action A
+{
+    
+}
+
+A a = A.Get();

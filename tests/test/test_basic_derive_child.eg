@@ -1,0 +1,11 @@
+
+action A
+{
+    action B
+    {
+        dim int x;
+    }
+}
+
+x();
+

@@ -1,0 +1,11 @@
+
+action A
+{
+    dim B b;
+}
+action B
+{
+    dim int x;
+}
+
+B _b = A.b();
