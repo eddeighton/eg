@@ -72,6 +72,8 @@ namespace eg
                     case eGetActionOperation:                   pNewElement = new GetActionOperation; break;
                     case eReadOperation:                        pNewElement = new ReadOperation; break;
                     case eWriteOperation:                       pNewElement = new WriteOperation; break;
+                    case eSizeOperation:                        pNewElement = new SizeOperation; break;
+                    case eRangeOperation:                       pNewElement = new RangeOperation; break;
                     default:
                         break;
                 }
@@ -298,6 +300,8 @@ namespace eg
                 case eGetActionOperation                 :
                 case eReadOperation                      :
                 case eWriteOperation                     :
+                case eSizeOperation                      :
+                case eRangeOperation                     :
                     operations.push_back( dynamic_cast< const Operation* >( pChild ) );
                     break;
                                 
@@ -347,8 +351,15 @@ namespace eg
         std::ostringstream osExpr;
         {
             const concrete::Action* pType = m_pFrom->getConcreteType();
-            osExpr << "( " << generator.getVarExpr( m_pFrom ) << " )";
-            osExpr << " / " << pType->getLocalDomainSize();
+            if( pType->getLocalDomainSize() > 1U )
+            {
+                osExpr << "( " << generator.getVarExpr( m_pFrom ) << " )";
+                osExpr << " / " << pType->getLocalDomainSize();
+            }
+            else
+            {
+                osExpr << generator.getVarExpr( m_pFrom );
+            }
         }
         generator.setVarExpr( m_pTo, osExpr.str() );
         
@@ -682,5 +693,47 @@ namespace eg
     {
         os << generator.getIndent() << 
             generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << " = value;\n";
+    }
+    
+    
+    void SizeOperation::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Operation::load( serialiser, loader );
+        serialiser.load( loader, m_pInstance );
+        m_pTarget = loader.loadObjectRef< concrete::Action >();
+    }
+    void SizeOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Operation::store( serialiser, storer );
+        serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pTarget );
+    }
+    void SizeOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pTarget->getAction() );
+    }
+    void SizeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
+    }
+    
+    
+    void RangeOperation::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Operation::load( serialiser, loader );
+        serialiser.load( loader, m_pInstance );
+        m_pTarget = loader.loadObjectRef< concrete::Action >();
+    }
+    void RangeOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Operation::store( serialiser, storer );
+        serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pTarget );
+    }
+    void RangeOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pTarget->getAction() );
+    }
+    void RangeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
     }
 }

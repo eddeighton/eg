@@ -156,6 +156,21 @@ namespace abstract
         }
     }
     
+    std::string Element::getFriendlyName() const
+    {
+        std::ostringstream os;
+        
+        const std::vector< const Element* > path = getPath( this );
+        for( const Element* pElement : path )
+        {
+            if( pElement != *path.begin())
+                os << "::";
+            os << pElement->getIdentifier();
+        }
+        
+        return os.str();
+    }
+    
     
     Opaque::Opaque( const IndexedObject& indexedObject )
         :   Element( indexedObject, nullptr, nullptr )
@@ -310,21 +325,6 @@ namespace abstract
         storer.store( m_strDependency );
         storer.storeObjectVector( m_inheriters );
         storer.storeObjectVector( m_linkers );
-    }
-    
-    std::string Action::getFriendlyName() const
-    {
-        std::ostringstream os;
-        
-        const std::vector< const Element* > path = getPath( this );
-        for( const Element* pElement : path )
-        {
-            if( pElement != *path.begin())
-                os << "::";
-            os << pElement->getIdentifier();
-        }
-        
-        return os.str();
     }
     
     void Action::getDimensions( std::vector< Dimension* >& dimensions ) const

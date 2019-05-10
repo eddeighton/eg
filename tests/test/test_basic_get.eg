@@ -4,4 +4,6 @@ action A
     
 }
 
-A a = A.Get();
+A a1 = A();
+A a2 = A.Get();
+TEST( a1 == a2 );

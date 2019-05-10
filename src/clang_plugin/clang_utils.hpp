@@ -66,8 +66,8 @@ namespace clang
     QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, const std::string& strTypeParam, 
         DeclContext*& pDeclContext, SourceLocation& loc, bool bLast );
         
-    void interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session );
-    void operationsAnalysis( ASTContext* pASTContext, Sema* pSema, eg::OperationsSession& session );
+    bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session );
+    bool operationsAnalysis( ASTContext* pASTContext, Sema* pSema, eg::OperationsSession& session );
 }
 
 #endif //CLANG_UTILS_19_04_2019

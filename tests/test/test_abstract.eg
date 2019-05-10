@@ -1,0 +1,26 @@
+
+abstract A
+{
+    dim int x;
+    
+    abstract B
+    {
+        dim int y;
+    }
+    
+    B b = B();
+}
+
+action C : A
+{
+    action D : A::B
+    {
+    }
+}
+
+action E : A
+{
+    action F : A::B
+    {
+    }
+}

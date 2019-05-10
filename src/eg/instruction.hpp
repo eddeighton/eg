@@ -54,6 +54,8 @@ enum ASTElementType //for serialisation
     eGetActionOperation,
     eReadOperation,
     eWriteOperation,
+    eSizeOperation,
+    eRangeOperation,
     
     TOTAL_AST_TYPES
 };
@@ -560,7 +562,48 @@ private:
 
 };
 
+class SizeOperation : public Operation
+{
+public:
+    SizeOperation(){}
+    SizeOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pTarget( pTarget )
+    {
+    }
+    virtual ASTElementType getType() const { return eSizeOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const concrete::Action* m_pTarget = nullptr;
 
+};
+
+class RangeOperation : public Operation
+{
+public:
+    RangeOperation(){}
+    RangeOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pTarget( pTarget )
+    {
+    }
+    virtual ASTElementType getType() const { return eRangeOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const concrete::Action* m_pTarget = nullptr;
+
+};
+    
 }
 
 #endif //INSTRUCTION_08_05_2019

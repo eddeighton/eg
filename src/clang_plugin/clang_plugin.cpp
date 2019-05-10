@@ -68,6 +68,7 @@ namespace
     clang::Sema* g_pSema = nullptr;
     eg::InterfaceSession* g_pInterfaceSession = nullptr;
     eg::OperationsSession* g_pOperationsSession = nullptr;
+    bool g_bError = false;
 }
 
 namespace eg
@@ -124,16 +125,26 @@ namespace eg
             case eInterface:
                 if( g_pInterfaceSession )
                 {
-                    clang::interfaceAnalysis( g_pASTContext, g_pSema, *g_pInterfaceSession );
-                    g_pInterfaceSession->store();
+                    if( !g_bError )
+                    {
+                        if( clang::interfaceAnalysis( g_pASTContext, g_pSema, *g_pInterfaceSession ) )
+                        {
+                            g_pInterfaceSession->store();
+                        }
+                    }
                     delete g_pInterfaceSession;
                 }
                 break;
             case eOperations:
                 if( g_pOperationsSession )
                 {
-                    clang::operationsAnalysis( g_pASTContext, g_pSema, *g_pOperationsSession );
-                    g_pOperationsSession->store();
+                    if( !g_bError )
+                    {
+                        if( clang::operationsAnalysis( g_pASTContext, g_pSema, *g_pOperationsSession ) )
+                        {
+                            g_pOperationsSession->store();
+                        }
+                    }
                     delete g_pOperationsSession;
                 }
                 break;
@@ -597,6 +608,7 @@ namespace eg
                                     {
                                         g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
                                             "Invalid context for invocation";
+                                        g_bError = true;
                                         return false;
                                     }
                                     
@@ -605,6 +617,7 @@ namespace eg
                                     {
                                         g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
                                             "Invalid type path for invocation";
+                                        g_bError = true;
                                         return false;
                                     }
                                     
@@ -613,6 +626,7 @@ namespace eg
                                     {
                                         g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
                                             "Invalid operation for invocation";
+                                        g_bError = true;
                                         return false;
                                     }
                                     eg::OperationID operationTypeID = static_cast< eg::OperationID >( operationTypeIDOpt.value() );
@@ -635,12 +649,14 @@ namespace eg
                                     {
                                         g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
                                             nameResolutionException.what();
+                                        g_bError = true;
                                         return false;
                                     }
                                     catch( eg::InvocationException& invocationException )
                                     {
                                         g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
                                             invocationException.what();
+                                        g_bError = true;
                                         return false;
                                     }
                                     

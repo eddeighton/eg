@@ -149,6 +149,7 @@ namespace abstract
         void print( std::ostream& os, std::string& strIndent ) const;
         const std::string& getIdentifier() const;
         const std::vector< Element* >& getChildren() const { return m_children; }
+        std::string getFriendlyName() const;
     protected:
         input::Element* m_pElement;
         Element* m_pParent;
@@ -233,7 +234,6 @@ namespace abstract
         virtual void store( Storer& storer ) const;
 
     public:
-        std::string getFriendlyName() const;
         void getDimensions( std::vector< Dimension* >& dimensions ) const;
         std::size_t getBaseCount() const;
         const std::vector< Action* >& getBaseActions() const { return m_baseActions; }

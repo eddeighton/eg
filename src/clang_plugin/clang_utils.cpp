@@ -27,18 +27,19 @@
 #pragma warning( push )
 #include "common/clang_warnings.hpp"
 
-#include "llvm/ADT/APSInt.h"
-
-#include "clang/Lex/Token.h"
+#include "clang/Sema/Ownership.h"
+#include "clang/Sema/ParsedTemplate.h"
+#include "clang/Sema/Sema.h"
+#include "clang/Sema/Lookup.h"
 #include "clang/AST/Decl.h"
 #include "clang/AST/DeclCXX.h"
 #include "clang/AST/Type.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/Expr.h"
-#include "clang/Sema/Ownership.h"
-#include "clang/Sema/ParsedTemplate.h"
-#include "clang/Sema/Sema.h"
-#include "clang/Sema/Lookup.h"
+#include "clang/Lex/Token.h"
+#include "clang/Basic/DiagnosticParse.h"
+
+#include "llvm/ADT/APSInt.h"
 
 #pragma warning( pop ) 
 
@@ -639,7 +640,7 @@ namespace clang
         }
     };
     
-    void interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session, 
+    bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session, 
         eg::abstract::Action* pAction, SourceLocation loc, DeclContext* pContext )
     {
         ::eg::IndexedObject::Array& objects = session.getAppendingObjects();
@@ -696,6 +697,10 @@ namespace clang
                                 else
                                 {
                                     //diag
+                                    std::ostringstream os;
+                                    os << "Invalid dimension type: " << pDimension->getFriendlyName();
+                                    pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
+                                    return false;
                                 }
                             }
                         }
@@ -734,6 +739,26 @@ namespace clang
                                 AbstractMutator::setInherited( *pAction, pLinkedAction );
                             }
                         }
+                        else
+                        {
+                            //error invalid inheritance type
+                            std::ostringstream os;
+                            os << "Invalid inheritance type for " << pAction->getFriendlyName() << " of " << typeTypeCanonical.getAsString();
+                            if( iLinkEGTypeID < 0 )
+                            {
+                                const eg::TypeID negativeType = -iLinkEGTypeID;
+                                if( negativeType > 0 && negativeType < static_cast< ::eg::TypeID >( objects.size() ) )
+                                {
+                                    if( ::eg::abstract::Action* pShouldBeAction = 
+                                        dynamic_cast< ::eg::abstract::Action* >( objects[ negativeType ] ) )
+                                    {
+                                        os << " should it be " << pShouldBeAction->getFriendlyName() << "?";
+                                    }
+                                }
+                            }
+                            pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
+                            return false;
+                        }
                     }
                     else
                     {
@@ -760,31 +785,34 @@ namespace clang
                 pAction->getChildActions( actions );
                 for( eg::abstract::Action* pChildAction : actions )
                 {
-                    interfaceAnalysis( pASTContext, pSema, session, pChildAction, result.loc, result.pContext );
+                    if( !interfaceAnalysis( pASTContext, pSema, session, pChildAction, result.loc, result.pContext ) )
+                        return false;
                 }
             }
         }
+        return true;
     }
     
-    void interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session )
+    bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session )
     {
         eg::abstract::Root* pRoot = session.getTreeRoot();
         
         std::vector< eg::abstract::Action* > actions;
         pRoot->getChildActions( actions );
         
-        
         SourceLocation loc;
         DeclContext* pContext = pASTContext->getTranslationUnitDecl();
         
         for( eg::abstract::Action* pAction : actions )
         {
-            interfaceAnalysis( pASTContext, pSema, session, pAction, loc, pContext );
+            if( !interfaceAnalysis( pASTContext, pSema, session, pAction, loc, pContext ) )
+                return false;
         }
+        return true;
     }
     
-    void operationsAnalysis( ASTContext* pASTContext, Sema* pSema, eg::OperationsSession& session )
+    bool operationsAnalysis( ASTContext* pASTContext, Sema* pSema, eg::OperationsSession& session )
     {
-        
+        return true;
     }
 }

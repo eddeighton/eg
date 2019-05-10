@@ -352,7 +352,7 @@ namespace eg
             }
         }
         
-        void buildTerminal( const Name& prev, const Name& current, 
+        void buildOperation( const Name& prev, const Name& current, 
             Instruction* pInstruction, InstanceVariable* pVariable )
         {
             const concrete::Element* pElement = current.getElement();
@@ -463,19 +463,18 @@ namespace eg
             pInstruction->append( pCase );
             pInstruction = pCase;
             
-            if( current.getChildren().size() > 1U )
-            {
-                EliminationInstruction* pElim = new EliminationInstruction;
-                pInstruction->append( pElim );
-                pInstruction = pElim;
-            }
-            
             if( current.isTerminal() )
             {
-                buildTerminal( prev, current, pInstruction, pInstance );
+                buildOperation( prev, current, pInstruction, pInstance );
             }
             else
             {
+                if( current.getChildren().size() > 1U )
+                {
+                    EliminationInstruction* pElim = new EliminationInstruction;
+                    pInstruction->append( pElim );
+                    pInstruction = pElim;
+                }
                 ASSERT( !current.getChildren().empty() );
                 for( std::size_t index : current.getChildren() )
                 {
@@ -499,19 +498,18 @@ namespace eg
                 pInstruction = pMono;
             }
             
-            if( current.getChildren().size() > 1U )
-            {
-                EliminationInstruction* pElim = new EliminationInstruction;
-                pInstruction->append( pElim );
-                pInstruction = pElim;
-            }
-            
             if( current.isTerminal() )
             {
-                buildTerminal( prev, current, pInstruction, pInstance );
+                buildOperation( prev, current, pInstruction, pInstance );
             }
             else
             {
+                if( current.getChildren().size() > 1U )
+                {
+                    EliminationInstruction* pElim = new EliminationInstruction;
+                    pInstruction->append( pElim );
+                    pInstruction = pElim;
+                }
                 ASSERT( !current.getChildren().empty() );
                 for( std::size_t index : current.getChildren() )
                 {
@@ -526,7 +524,7 @@ namespace eg
         {
             if( current.isTerminal() )
             {
-                buildTerminal( prev, current, pInstruction, pVariable );
+                buildOperation( prev, current, pInstruction, pVariable );
             }
             else if( current.isReference() )
             {
@@ -539,14 +537,12 @@ namespace eg
                     types.push_back( next.getElement() );
                 }
                 
-                const concrete::Dimension* pDimension = 
-                    dynamic_cast< const concrete::Dimension* >( current.getElement() );
-                ASSERT( pDimension );
-                
                 DimensionReferenceVariable* pReferenceVariable = 
                     new DimensionReferenceVariable( pVariable, types );
-                    
                 {
+                    const concrete::Dimension* pDimension = 
+                        dynamic_cast< const concrete::Dimension* >( current.getElement() );
+                    ASSERT( pDimension );
                     DimensionReferenceReadInstruction* pDimensionRead = 
                         new DimensionReferenceReadInstruction( 
                             pVariable, pReferenceVariable, pDimension );
@@ -556,17 +552,14 @@ namespace eg
                 
                 if( types.size() > 1U )
                 {
-                    {
-                        PolymorphicReferenceBranchInstruction* pBranch = 
-                            new PolymorphicReferenceBranchInstruction( pReferenceVariable );
-                        pInstruction->append( pBranch );
-                        pInstruction = pBranch;
-                    }
+                    PolymorphicReferenceBranchInstruction* pBranch = 
+                        new PolymorphicReferenceBranchInstruction( pReferenceVariable );
+                    pInstruction->append( pBranch );
                     
                     for( std::size_t index : current.getChildren() )
                     {
                         const Name& next = m_resolution.getNodes()[ index ];
-                        buildPolymorphicCase( current, next, pInstruction, pReferenceVariable );
+                        buildPolymorphicCase( current, next, pBranch, pReferenceVariable );
                     }
                 }
                 else
@@ -626,10 +619,9 @@ namespace eg
                 }
             }
         }
-        
     };
     
-    /*
+    
     class EnumerationOperationVisitor 
     {
         InvocationSolution& m_solution;
@@ -713,20 +705,63 @@ namespace eg
                 }
             }
         }
+        
+        void buildOperation( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable )
+        {
+            const concrete::Element* pElement = current.getElement();
+            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
+            {
+                switch( m_solution.getOperation() )
+                {
+                    case id_Size                :
+                        {
+                        }
+                        break;
+                    case id_Range               :
+                        {
+                        }
+                        break;
+                    default:
+                        THROW_RTE( "Unreachable" );
+                }
+            }
+            else
+            {
+                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
+            }
+            
+        }
             
         void buildPolymorphicCase( const Name& prev, const Name& current, 
-            PolymorphicReferenceBranchInstruction* pInstruction, ReferenceVariable* pVariable )
+            Instruction* pInstruction, ReferenceVariable* pVariable )
         {
             const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getElement() );
             ASSERT( pType );
             
             InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
             PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
+            pInstruction->append( pCase );
+            pInstruction = pCase;
             
-            for( std::size_t index : current.getChildren() )
+            if( current.isTerminal() )
             {
-                const Name& next = m_resolution.getNodes()[ index ];
-                buildGenerateName( current, next, pCase, pInstance );
+                buildOperation( prev, current, pInstruction, pInstance );
+            }
+            else
+            {
+                if( current.getChildren().size() > 1U )
+                {
+                    EliminationInstruction* pElim = new EliminationInstruction;
+                    pInstruction->append( pElim );
+                    pInstruction = pElim;
+                }
+                ASSERT( !current.getChildren().empty() );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildGenerateName( current, next, pInstruction, pInstance );
+                }
             }
         }
         
@@ -737,15 +772,31 @@ namespace eg
             ASSERT( pType );
             
             InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            
-            MonomorphicReferenceInstruction* pMono = 
-                new MonomorphicReferenceInstruction( pVariable, pInstance );
-            pInstruction->append( pMono );
-            
-            for( std::size_t index : current.getChildren() )
             {
-                const Name& next = m_resolution.getNodes()[ index ];
-                buildGenerateName( current, next, pMono, pInstance );
+                MonomorphicReferenceInstruction* pMono = 
+                    new MonomorphicReferenceInstruction( pVariable, pInstance );
+                pInstruction->append( pMono );
+                pInstruction = pMono;
+            }
+            
+            if( current.isTerminal() )
+            {
+                buildOperation( prev, current, pInstruction, pInstance );
+            }
+            else
+            {
+                if( current.getChildren().size() > 1U )
+                {
+                    EliminationInstruction* pElim = new EliminationInstruction;
+                    pInstruction->append( pElim );
+                    pInstruction = pElim;
+                }
+                ASSERT( !current.getChildren().empty() );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildGenerateName( current, next, pInstruction, pInstance );
+                }
             }
         }
         
@@ -754,25 +805,7 @@ namespace eg
         {
             if( current.isTerminal() )
             {
-                const concrete::Element* pElement = current.getElement();
-                if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
-                {
-                    switch( m_solution.getOperation() )
-                    {
-                        case id_Size        :
-                        case id_Range       :
-                            {
-                            }
-                            break;
-                        default:
-                            THROW_RTE( "Unreachable" );
-                    }
-                }
-                else
-                {
-                    THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
-                }
-                
+                buildOperation( prev, current, pInstruction, pVariable );
             }
             else if( current.isReference() )
             {
@@ -787,6 +820,16 @@ namespace eg
                 
                 DimensionReferenceVariable* pReferenceVariable = 
                     new DimensionReferenceVariable( pVariable, types );
+                {
+                    const concrete::Dimension* pDimension = 
+                        dynamic_cast< const concrete::Dimension* >( current.getElement() );
+                    ASSERT( pDimension );
+                    DimensionReferenceReadInstruction* pDimensionRead = 
+                        new DimensionReferenceReadInstruction( 
+                            pVariable, pReferenceVariable, pDimension );
+                    pInstruction->append( pDimensionRead );
+                    pInstruction = pDimensionRead;
+                }
                 
                 if( types.size() > 1U )
                 {
@@ -848,19 +891,16 @@ namespace eg
             }
             else
             {
-                const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( contextTypes.front() );
-                InstanceVariable* pInstance = new InstanceVariable( pVariable, pAction );
-                //start the recursion
                 const Name& current = m_resolution.getNodes()[ 0U ];
+                ASSERT( current.getChildren().size() == 1U );
                 for( std::size_t index : current.getChildren() )
                 {
                     const Name& next = m_resolution.getNodes()[ index ];
-                    buildGenerateName( current, next, pInstruction, pInstance );
+                    buildMonoDereference( current, next, pInstruction, pVariable );
                 }
             }
         }
-        
-    };*/
+    };
     
     void InvocationSolution::build( const DerivationAnalysis& analysis, const NameResolution& resolution )
     {
@@ -887,8 +927,8 @@ namespace eg
             case id_Size                :
             case id_Range               :
                 {
-                    //EnumerationOperationVisitor builder( *this, resolution );
-                    //builder( m_pRoot, pContextVariable );
+                    EnumerationOperationVisitor builder( *this, resolution );
+                    builder( m_pRoot, pContextVariable );
                 }
                 break;
             case HIGHEST_OPERATION_TYPE :
@@ -1014,7 +1054,7 @@ namespace eg
         }
         
         //for range enumerations we want to enumerate all deriving types
-        const bool bDerivingPathElements = isOperationEnumeration( std::get< OperationID >( invocationID ) );
+        //const bool bDerivingPathElements = true;//isOperationEnumeration( std::get< OperationID >( invocationID ) );
         
         //calculate the concrete type path
         {
@@ -1023,7 +1063,7 @@ namespace eg
             {
                 std::vector< const concrete::Element* > instances;
                 for( const abstract::Element* pElement : typePathElement )
-                    m_analysis.getInstances( pElement, instances, bDerivingPathElements );
+                    m_analysis.getInstances( pElement, instances, true );
                 
                 if( instances.empty() )
                 {
