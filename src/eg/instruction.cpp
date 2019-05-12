@@ -59,6 +59,7 @@ namespace eg
                     case eParentDerivationInstruction:          pNewElement = new ParentDerivationInstruction; break;
                     case eChildDerivationInstruction:           pNewElement = new ChildDerivationInstruction; break;
                     case eEnumDerivationInstruction:            pNewElement = new EnumDerivationInstruction; break;
+                    case eEnumerationInstruction:               pNewElement = new EnumerationInstruction; break;
                     case eFailureInstruction:                   THROW_RTE( "Unreachable" );
                     case eEliminationInstruction:               THROW_RTE( "Unreachable" );
                     case ePruneInstruction:                     THROW_RTE( "Unreachable" );
@@ -323,6 +324,7 @@ namespace eg
                 case eParentDerivationInstruction        :
                 case eChildDerivationInstruction         :
                 case eEnumDerivationInstruction          :
+                case eEnumerationInstruction             :
                 case eFailureInstruction                 :
                 case eEliminationInstruction             :
                 case ePruneInstruction                   :
@@ -353,15 +355,34 @@ namespace eg
         }
     }
     
+    int Instruction::setReturnTypes( const std::vector< const interface::Element* >& targets )
+    {
+        int maxReturnTypes = 1;
+        for( Instruction* pChild : m_children )
+        {
+            maxReturnTypes = std::max( maxReturnTypes, pChild->setReturnTypes( targets ) );
+        }
+        return maxReturnTypes;
+    }
+    void Instruction::setMaxRanges( int iMaxRanges )
+    {
+        for( Instruction* pChild : m_children )
+        {
+            pChild->setMaxRanges( iMaxRanges );
+        }
+    }
+    
     void RootInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Instruction::load( serialiser, loader );
         serialiser.load( loader, m_pContext );
+        loader.load( m_iMaxRanges );
     }
     void RootInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Instruction::store( serialiser, storer );
         serialiser.store( storer, m_pContext );
+        storer.store( m_iMaxRanges );
     }
     void RootInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -372,6 +393,11 @@ namespace eg
         {
             pChild->generate( generator, os );
         }
+    }
+    void RootInstruction::setMaxRanges( int iMaxRanges )
+    {
+        Instruction::setMaxRanges( iMaxRanges );
+        m_iMaxRanges = iMaxRanges;
     }
     
     void ParentDerivationInstruction::load( ASTSerialiser& serialiser, Loader& loader )
@@ -453,6 +479,108 @@ namespace eg
             pChild->generate( generator, os );
         }
     }
+    
+    void EnumerationInstruction::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Instruction::load( serialiser, loader );
+        serialiser.load( loader, m_pContext );
+        loader.loadObjectVector( m_returnTypes );
+        loader.load( m_iMaxRanges );
+    }
+    void EnumerationInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Instruction::store( serialiser, storer );
+        serialiser.store( storer, m_pContext );
+        storer.storeObjectVector( m_returnTypes );
+        storer.store( m_iMaxRanges );
+    }
+    int EnumerationInstruction::setReturnTypes( const std::vector< const interface::Element* >& targets )
+    {
+        m_returnTypes = targets;
+        std::vector< const Operation* > operations;
+        getOperations( operations );
+        return operations.size();
+    }
+    void EnumerationInstruction::setMaxRanges( int iMaxRanges )
+    {
+        m_iMaxRanges = iMaxRanges;
+    }
+    void EnumerationInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
+        ASSERT( !m_returnTypes.empty() );
+        
+        std::vector< const Operation* > operations;
+        getOperations( operations );
+        
+        const concrete::Action* pEnumerationAction = m_pContext->getConcreteType();
+        
+        if( operations.size() == 1U )
+        {
+            const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( operations.front() );
+            ASSERT( pRangeOp );
+            const concrete::Action* pTarget = pRangeOp->getTarget();
+            std::size_t szDomainMultiplier = 1U;
+            
+            const concrete::Action* pIter = pTarget;
+            for( ; pIter != pEnumerationAction; 
+                pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
+            {
+                ASSERT( pIter );
+                szDomainMultiplier *= pIter->getLocalDomainSize();
+            }
+            ASSERT( pIter == pEnumerationAction );
+            
+            os << generator.getIndent() << "const " << EG_INSTANCE << " iBegin = " <<
+                generator.getVarExpr( m_pContext ) << " * " << szDomainMultiplier << ";\n";
+            os << generator.getIndent() << "const " << EG_INSTANCE << " iEnd = ( " <<
+                generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier << ";\n";
+                
+            if( m_returnTypes.size() == 1U )
+            {
+                const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
+                ASSERT( pReturnType );
+                
+                os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " );\n";
+                os << generator.getIndent() << "++begin;\n";
+                os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
+                os << generator.getIndent() << "return " << pReturnType->getStaticType() << "::EGRangeType( begin, end );\n";
+            }
+            else
+            {
+                std::ostringstream osType;
+                {
+                    osType << EG_VARIANT_TYPE << "< ";
+                    for( const interface::Element* pElement : m_returnTypes )
+                    {
+                        const interface::Action* pReturnType = 
+                            dynamic_cast< const interface::Action* >( pElement );
+                        ASSERT( pReturnType );
+                        if( pElement != *m_returnTypes.begin())
+                            osType << ", ";
+                        osType << pReturnType->getStaticType();
+                    }
+                    osType << " >";
+                }
+                std::ostringstream osIterType;
+                {
+                    osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >";
+                }
+                os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " );\n";
+                os << generator.getIndent() << "++begin;\n";
+                os << generator.getIndent() << osIterType.str() << " end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
+                os << generator.getIndent() << "return " << EG_RANGE_TYPE << "< " << osIterType.str() << " >( begin, end );\n";
+            }
+                
+            
+        }
+        else
+        {
+            //multi range
+            os << generator.getIndent() << "//TODO multi range support\n";
+        }
+    }
+    
+    
     
     void FailureInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -554,7 +682,7 @@ namespace eg
         {
             pChild->generate( generator, os );
         }
-        os << generator.getIndent() << "default: return " << generator.getFailureReturnType() << ";\n";
+        //os << generator.getIndent() << "default: return " << generator.getFailureReturnType() << ";\n";
         generator.popIndent();
         os << generator.getIndent() << "}\n";
     }
@@ -614,7 +742,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void StartOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void StartOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getAction() );
     }
@@ -636,7 +764,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void StopOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void StopOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getAction() );
     }
@@ -658,7 +786,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void PauseOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void PauseOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getAction() );
     }
@@ -681,7 +809,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void ResumeOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void ResumeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getAction() );
     }
@@ -704,7 +832,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void GetActionOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void GetActionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getAction() );
     }
@@ -735,7 +863,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void ReadOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void ReadOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getDimension() );
     }
@@ -757,7 +885,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void WriteOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void WriteOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getDimension() );
     }
@@ -780,7 +908,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void SizeOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void SizeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getAction() );
     }
@@ -801,13 +929,11 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pTarget );
     }
-    void RangeOperation::getTargetAbstractTypes( std::vector< const abstract::Element* >& abstractTypes ) const
+    void RangeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pTarget->getAction() );
     }
     void RangeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        os << generator.getIndent() << 
-            "//TODO...\n";
     }
 }

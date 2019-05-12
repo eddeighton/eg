@@ -605,43 +605,43 @@ namespace clang
     class AbstractMutator
     {
     public:
-        static void setSize( ::eg::abstract::Action& action, std::size_t szSize )
+        static void setSize( ::eg::interface::Action& action, std::size_t szSize )
         {
             action.m_size = szSize;
         }
-        static void setSize( ::eg::abstract::Dimension& dimension, std::size_t szSize )
+        static void setSize( ::eg::interface::Dimension& dimension, std::size_t szSize )
         {
             dimension.m_size = szSize;
         }
-        static void setCanonicalType( ::eg::abstract::Dimension& dimension, const std::string& strType )
+        static void setCanonicalType( ::eg::interface::Dimension& dimension, const std::string& strType )
         {
             dimension.m_canonicalType = strType;
         }
-        static void appendActionTypes( ::eg::abstract::Dimension& dimension, ::eg::abstract::Action* pAction )
+        static void appendActionTypes( ::eg::interface::Dimension& dimension, ::eg::interface::Action* pAction )
         {
             dimension.m_actionTypes.push_back( pAction );
         }
-        static void setInherited( ::eg::abstract::Action& action, ::eg::abstract::Action* pLink )
+        static void setInherited( ::eg::interface::Action& action, ::eg::interface::Action* pLink )
         {
-            std::vector< ::eg::abstract::Action* >::iterator iFind = 
+            std::vector< ::eg::interface::Action* >::iterator iFind = 
                 std::find( action.m_baseActions.begin(), action.m_baseActions.end(), pLink );
             if( iFind == action.m_baseActions.end() )
             {
                 action.m_baseActions.push_back( pLink );
             }
         }
-        static void setInherited( ::eg::abstract::Action& action, const std::string& strType )
+        static void setInherited( ::eg::interface::Action& action, const std::string& strType )
         {
             action.m_strBaseType = strType;
         }
-        static void setDependency( ::eg::abstract::Action& action, const std::string& strType )
+        static void setDependency( ::eg::interface::Action& action, const std::string& strType )
         {
             action.m_strDependency = strType;
         }
     };
     
     bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session, 
-        eg::abstract::Action* pAction, SourceLocation loc, DeclContext* pContext )
+        eg::interface::Action* pAction, SourceLocation loc, DeclContext* pContext )
     {
         ::eg::IndexedObject::Array& objects = session.getAppendingObjects();
                             
@@ -655,9 +655,9 @@ namespace clang
             }
             
             //determine the dimension types
-            std::vector< ::eg::abstract::Dimension* > dimensions;
+            std::vector< ::eg::interface::Dimension* > dimensions;
             pAction->getDimensions( dimensions );
-            for( ::eg::abstract::Dimension* pDimension : dimensions )
+            for( ::eg::interface::Dimension* pDimension : dimensions )
             {
                 DeclLocType dimensionResult = getNestedDeclContext( pASTContext, pSema,
                     result.pContext, result.loc, ::eg::getInterfaceType( pDimension->getIdentifier() ), true );
@@ -689,7 +689,7 @@ namespace clang
                                 if( index > 0 && index < static_cast< ::eg::TypeID >( objects.size() ) )
                                 {
                                     ::eg::IndexedObject* pObject = objects[ index ];
-                                    if( ::eg::abstract::Action* pAction = dynamic_cast< ::eg::abstract::Action* >( pObject ) )
+                                    if( ::eg::interface::Action* pAction = dynamic_cast< ::eg::interface::Action* >( pObject ) )
                                     {
                                         AbstractMutator::appendActionTypes( *pDimension, pAction );
                                     }
@@ -734,7 +734,7 @@ namespace clang
                         if( iLinkEGTypeID > 0 && iLinkEGTypeID < static_cast< ::eg::TypeID >( objects.size() ) )
                         {
                             ::eg::IndexedObject* pObject = objects[ iLinkEGTypeID ];
-                            if( ::eg::abstract::Action* pLinkedAction = dynamic_cast< ::eg::abstract::Action* >( pObject ) )
+                            if( ::eg::interface::Action* pLinkedAction = dynamic_cast< ::eg::interface::Action* >( pObject ) )
                             {
                                 AbstractMutator::setInherited( *pAction, pLinkedAction );
                             }
@@ -749,8 +749,8 @@ namespace clang
                                 const eg::TypeID negativeType = -iLinkEGTypeID;
                                 if( negativeType > 0 && negativeType < static_cast< ::eg::TypeID >( objects.size() ) )
                                 {
-                                    if( ::eg::abstract::Action* pShouldBeAction = 
-                                        dynamic_cast< ::eg::abstract::Action* >( objects[ negativeType ] ) )
+                                    if( ::eg::interface::Action* pShouldBeAction = 
+                                        dynamic_cast< ::eg::interface::Action* >( objects[ negativeType ] ) )
                                     {
                                         os << " should it be " << pShouldBeAction->getFriendlyName() << "?";
                                     }
@@ -781,9 +781,9 @@ namespace clang
             }
             //recurse
             {
-                std::vector< eg::abstract::Action* > actions;
+                std::vector< eg::interface::Action* > actions;
                 pAction->getChildActions( actions );
-                for( eg::abstract::Action* pChildAction : actions )
+                for( eg::interface::Action* pChildAction : actions )
                 {
                     if( !interfaceAnalysis( pASTContext, pSema, session, pChildAction, result.loc, result.pContext ) )
                         return false;
@@ -795,15 +795,15 @@ namespace clang
     
     bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session )
     {
-        eg::abstract::Root* pRoot = session.getTreeRoot();
+        eg::interface::Root* pRoot = session.getTreeRoot();
         
-        std::vector< eg::abstract::Action* > actions;
+        std::vector< eg::interface::Action* > actions;
         pRoot->getChildActions( actions );
         
         SourceLocation loc;
         DeclContext* pContext = pASTContext->getTranslationUnitDecl();
         
-        for( eg::abstract::Action* pAction : actions )
+        for( eg::interface::Action* pAction : actions )
         {
             if( !interfaceAnalysis( pASTContext, pSema, session, pAction, loc, pContext ) )
                 return false;

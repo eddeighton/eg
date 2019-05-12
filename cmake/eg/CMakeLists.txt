@@ -35,8 +35,8 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/session.cpp
     ${EG_SRC_DIR}/eg/parser_session.hpp
     ${EG_SRC_DIR}/eg/parser_session.cpp
-    ${EG_SRC_DIR}/eg/abstract.hpp
-    ${EG_SRC_DIR}/eg/abstract.cpp
+    ${EG_SRC_DIR}/eg/interface.hpp
+    ${EG_SRC_DIR}/eg/interface.cpp
     ${EG_SRC_DIR}/eg/concrete.hpp
     ${EG_SRC_DIR}/eg/concrete.cpp
     ${EG_SRC_DIR}/eg/codegen.hpp

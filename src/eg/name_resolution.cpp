@@ -54,7 +54,7 @@ namespace eg
                             node.m_bIsReference = true;
                             bContinue = true;
                             
-                            for( const abstract::Action* pAction : pUserDim->getActionTypes() )
+                            for( const interface::Action* pAction : pUserDim->getActionTypes() )
                             {
                                 std::vector< const concrete::Element* > instances;
                                 m_analysis.getInstances( pAction, instances, true );

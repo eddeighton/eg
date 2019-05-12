@@ -27,9 +27,9 @@ namespace eg
     {
     }
     
-    const abstract::Root* ImplementationSession::getTreeRoot() const
+    const interface::Root* ImplementationSession::getTreeRoot() const
     {
-        return root< abstract::Root >( getObjects( IndexedObject::MASTER_FILE ) );
+        return root< interface::Root >( getObjects( IndexedObject::MASTER_FILE ) );
     }
     const concrete::Action* ImplementationSession::getInstanceRoot() const
     {
@@ -275,9 +275,9 @@ namespace eg
     {
     }
     
-    const abstract::Root* ReadSession::getTreeRoot() const
+    const interface::Root* ReadSession::getTreeRoot() const
     {
-        return root< abstract::Root >( getObjects( IndexedObject::MASTER_FILE ) );
+        return root< interface::Root >( getObjects( IndexedObject::MASTER_FILE ) );
     }
     const concrete::Action* ReadSession::getInstanceRoot() const
     {

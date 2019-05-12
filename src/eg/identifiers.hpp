@@ -21,7 +21,7 @@
 #ifndef IDENTIFIERS_19_04_2019
 #define IDENTIFIERS_19_04_2019
 
-#include "abstract.hpp"
+#include "interface.hpp"
 
 #include <io/indexed_object.hpp>
 
@@ -44,25 +44,25 @@ namespace eg
     public:
         void populate( const IndexedObject::Array& objects );
         
-        using IdentifierMap = std::map< std::string, const abstract::Element* >;
+        using IdentifierMap = std::map< std::string, const interface::Element* >;
         const IdentifierMap& getIdentifiersMap() const { return m_identifierMap; }
         
-        const abstract::Element* isElement( const std::string& strIdentifier ) const;
-        std::vector< const abstract::Element* > getGroup( const abstract::Element* pElement ) const;
-        std::vector< const abstract::Element* > getGroupBack( const abstract::Element* pElement ) const;
+        const interface::Element* isElement( const std::string& strIdentifier ) const;
+        std::vector< const interface::Element* > getGroup( const interface::Element* pElement ) const;
+        std::vector< const interface::Element* > getGroupBack( const interface::Element* pElement ) const;
     private:
         struct CompareIdentifiers
         {
-            bool operator()( const abstract::Element* pLeft, const abstract::Element* pRight ) const
+            bool operator()( const interface::Element* pLeft, const interface::Element* pRight ) const
             {
                 return pLeft->getIdentifier() < pRight->getIdentifier();
             }
         };
-        std::map< std::string, const abstract::Element* > m_identifierMap;
-        using GroupMap = std::multimap< const abstract::Element*, const abstract::Element*, CompareIdentifiers >;
+        std::map< std::string, const interface::Element* > m_identifierMap;
+        using GroupMap = std::multimap< const interface::Element*, const interface::Element*, CompareIdentifiers >;
         GroupMap m_identifierGroups;
         
-        using GroupBackMap = std::map< const abstract::Element*, const abstract::Element*, CompareIdentifiers >;
+        using GroupBackMap = std::map< const interface::Element*, const interface::Element*, CompareIdentifiers >;
         GroupBackMap m_identifierGroupsBack;
     };
 

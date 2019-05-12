@@ -35,7 +35,7 @@ namespace eg
     public:
         ImplementationSession( const IndexedFile::FileIDtoPathMap& files );
         
-        const abstract::Root* getTreeRoot() const;
+        const interface::Root* getTreeRoot() const;
         const concrete::Action* getInstanceRoot() const;
         const DerivationAnalysis& getDerivationAnalysis() const;
         const Layout& getLayout() const;
@@ -54,12 +54,12 @@ namespace eg
     public:
         ReadSession( const boost::filesystem::path& filePath );
         
-        const abstract::Root* getTreeRoot() const;
+        const interface::Root* getTreeRoot() const;
         const concrete::Action* getInstanceRoot() const;
         const DerivationAnalysis& getDerivationAnalysis() const;
         const Identifiers& getIdentifiers() const;
         const Layout& getLayout() const;
-        //const abstract::Action* getAbstractAction( TypeID id ) const;
+        //const interface::Action* getAbstractAction( TypeID id ) const;
         const concrete::Action* getConcreteAction( TypeID id ) const;
         
         using Invocations = std::vector< const InvocationSolution* >;

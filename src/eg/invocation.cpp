@@ -33,12 +33,12 @@ namespace eg
                 std::get< InvocationSolution::Context >( invocationID );
             if( context.size() > 1 )
                 os << "Var< ";
-            for( const abstract::Element* pContextElement : context )
+            for( const interface::Element* pContextElement : context )
             {
                 if( pContextElement != context.front() )
                     os << ", ";
-                std::vector< const abstract::Element* > path = getPath( pContextElement );
-                for( const abstract::Element* pPathElement : path )
+                std::vector< const interface::Element* > path = getPath( pContextElement );
+                for( const interface::Element* pPathElement : path )
                 {
                     if( pPathElement != path.front() )
                         os << "::";
@@ -55,7 +55,7 @@ namespace eg
             const InvocationSolution::TypePath& typePath = 
                 std::get< InvocationSolution::TypePath >( invocationID );
             bool bFirst = true;
-            for( const std::vector< const abstract::Element* >& step : typePath )
+            for( const std::vector< const interface::Element* >& step : typePath )
             {
                 if( bFirst ) 
                     bFirst = false;
@@ -75,10 +75,10 @@ namespace eg
         return os;
     }
 
-    std::vector< const abstract::Element* > fromEGTypeID( const IndexedObject::Array& objects, 
+    std::vector< const interface::Element* > fromEGTypeID( const IndexedObject::Array& objects, 
         const Identifiers& identifiers, TypeID typeID, bool bForceDecl )
     {
-        std::vector< const abstract::Element* > result;
+        std::vector< const interface::Element* > result;
         
         if( !isOperationType( typeID ) )
         {
@@ -86,8 +86,8 @@ namespace eg
             {
                 if( -typeID < static_cast< int >( objects.size() ) )
                 {
-                    if( const abstract::Element* pElement = 
-                            dynamic_cast< const abstract::Element* >( objects[ -typeID ] ) )
+                    if( const interface::Element* pElement = 
+                            dynamic_cast< const interface::Element* >( objects[ -typeID ] ) )
                     {
                         return identifiers.getGroup( pElement );
                     }
@@ -97,8 +97,8 @@ namespace eg
             {
                 if( typeID < static_cast< int >( objects.size() ) )
                 {
-                    if( const abstract::Element* pElement = 
-                        dynamic_cast< const abstract::Element* >( objects[ typeID ] ) )
+                    if( const interface::Element* pElement = 
+                        dynamic_cast< const interface::Element* >( objects[ typeID ] ) )
                     {
                         return identifiers.getGroupBack( pElement );
                     }   
@@ -106,8 +106,8 @@ namespace eg
             }
             else if( typeID < static_cast< int >( objects.size() ) )
             {
-                if( const abstract::Element* pElement = 
-                        dynamic_cast< const abstract::Element* >( objects[ typeID ] ) )
+                if( const interface::Element* pElement = 
+                        dynamic_cast< const interface::Element* >( objects[ typeID ] ) )
                 {
                     result.push_back( pElement );
                 }
@@ -121,11 +121,11 @@ namespace eg
         const std::vector< TypeID >& contextTypes, 
         const std::vector< TypeID >& implicitTypePath, OperationID operationType )
     {
-        std::vector< const abstract::Element* > context;
+        std::vector< const interface::Element* > context;
         {
             for( TypeID typeID : contextTypes )
             {
-                std::vector< const abstract::Element* > result =
+                std::vector< const interface::Element* > result =
                     fromEGTypeID( objects, identifiers, typeID, false );
                 std::copy( result.begin(), result.end(), std::back_inserter( context ) );
             }
@@ -133,11 +133,11 @@ namespace eg
         }
         
         
-        std::vector< std::vector< const abstract::Element* > > typePath;
+        std::vector< std::vector< const interface::Element* > > typePath;
         {
             for( TypeID typeID : implicitTypePath )
             {
-                std::vector< const abstract::Element* > result =
+                std::vector< const interface::Element* > result =
                     fromEGTypeID( objects, identifiers, typeID, true );
                 if( !result.empty() )
                     typePath.push_back( result );
@@ -175,12 +175,12 @@ namespace eg
                 {
                     ASSERT( -typeID < static_cast< int >( objects.size() ) );
                         
-                    const abstract::Element* pElement = 
-                        dynamic_cast< const abstract::Element* >( objects[ -typeID ] );
+                    const interface::Element* pElement = 
+                        dynamic_cast< const interface::Element* >( objects[ -typeID ] );
                     ASSERT( pElement );
                     if( pElement )
                     {
-                        std::vector< const abstract::Element* > elements =
+                        std::vector< const interface::Element* > elements =
                             identifiers.getGroup( pElement );
                         typePath.push_back( elements );
                     }
@@ -688,14 +688,6 @@ namespace eg
             const concrete::Element* pElement = current.getElement();
             if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
             {
-                {
-                    PruneInstruction* pPrune = new PruneInstruction;
-                    pInstruction->append( pPrune );
-                    pInstruction = pPrune;
-                }
-                
-                targetDerivation( prev.getElement(), pAction, pInstruction, pVariable );
-                
                 switch( m_solution.getOperation() )
                 {
                     case id_Size                :
@@ -718,6 +710,38 @@ namespace eg
             }
             
         }
+        
+        void buildEnum( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable )
+        {
+            if( current.isReference() )
+            {
+                THROW_INVOCATION_EXCEPTION( "Cannot have reference in range invocation type path: " << m_solution.getID() );
+            }
+            
+            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( current.getElement() ) )
+            {
+                targetDerivation( prev.getElement(), pAction, pInstruction, pVariable );
+                
+                if( current.isTerminal() )
+                {
+                    buildOperation( prev, current, pInstruction, pVariable );
+                }
+                else 
+                {
+                    ASSERT( !current.getChildren().empty() );
+                    for( std::size_t index : current.getChildren() )
+                    {
+                        const Name& next = m_resolution.getNodes()[ index ];
+                        buildEnum( current, next, pInstruction, pVariable );
+                    }
+                }
+            }
+            else
+            {
+                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
+            }
+        }
             
         void buildPolymorphicCase( const Name& prev, const Name& current, 
             Instruction* pInstruction, ReferenceVariable* pVariable )
@@ -726,15 +750,29 @@ namespace eg
             ASSERT( pType );
             
             InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
-            pInstruction->append( pCase );
-            pInstruction = pCase;
+            {
+                PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
+                pInstruction->append( pCase );
+                pInstruction = pCase;
+            }
+            
+            {
+                EnumerationInstruction* pEnumeration = new EnumerationInstruction( pInstance );
+                pInstruction->append( pEnumeration );
+                pInstruction = pEnumeration;
+            }
+            
+            {
+                PruneInstruction* pPrune = new PruneInstruction;
+                pInstruction->append( pPrune );
+                pInstruction = pPrune;
+            }
             
             ASSERT( !current.getChildren().empty() );
             for( std::size_t index : current.getChildren() )
             {
                 const Name& next = m_resolution.getNodes()[ index ];
-                buildOperation( current, next, pInstruction, pInstance );
+                buildEnum( current, next, pInstruction, pInstance );
             }
         }
         
@@ -752,11 +790,23 @@ namespace eg
                 pInstruction = pMono;
             }
             
+            {
+                EnumerationInstruction* pEnumeration = new EnumerationInstruction( pInstance );
+                pInstruction->append( pEnumeration );
+                pInstruction = pEnumeration;
+            }
+            
+            {
+                PruneInstruction* pPrune = new PruneInstruction;
+                pInstruction->append( pPrune );
+                pInstruction = pPrune;
+            }
+            
             ASSERT( !current.getChildren().empty() );
             for( std::size_t index : current.getChildren() )
             {
                 const Name& next = m_resolution.getNodes()[ index ];
-                buildOperation( current, next, pInstruction, pInstance );
+                buildEnum( current, next, pInstruction, pInstance );
             }
         }
         
@@ -822,7 +872,7 @@ namespace eg
             case HIGHEST_OPERATION_TYPE :
                 break;
         }
-        
+         
         switch( m_pRoot->eliminate() )
         {
             case Instruction::eSuccess   :
@@ -832,6 +882,11 @@ namespace eg
                     for( const Operation* pOperation : operations )
                         pOperation->getTargetAbstractTypes( m_targetTypes );
                     m_targetTypes = uniquify_without_reorder( m_targetTypes );
+                    if( getOperation() == id_Range )
+                    {
+                        const int iMaxRanges = m_pRoot->setReturnTypes( m_targetTypes );
+                        m_pRoot->setMaxRanges( iMaxRanges );
+                    }
                 }
                 break;
             case Instruction::eFailure   :
@@ -843,9 +898,9 @@ namespace eg
     
     bool InvocationSolution::isImplicitStarter() const
     {
-        for( const abstract::Element* pTarget : m_targetTypes )
+        for( const interface::Element* pTarget : m_targetTypes )
         {
-            if( !dynamic_cast< const abstract::Action* >( pTarget ) )
+            if( !dynamic_cast< const interface::Action* >( pTarget ) )
             {
                 return false;
             }
@@ -934,9 +989,9 @@ namespace eg
         
         //calcualate the concrete context
         {
-            for( const abstract::Element* pContext : std::get< InvocationSolution::Context >( invocationID ) )
+            for( const interface::Element* pContext : std::get< InvocationSolution::Context >( invocationID ) )
             {
-                if( const abstract::Action* pContextAction = dynamic_cast< const abstract::Action* >( pContext ) )
+                if( const interface::Action* pContextAction = dynamic_cast< const interface::Action* >( pContext ) )
                     m_analysis.getInstances( pContextAction, pInvocation->m_contextElements, true );
             }
         }
@@ -946,11 +1001,11 @@ namespace eg
         
         //calculate the concrete type path
         {
-            for( const std::vector< const abstract::Element* >& typePathElement : 
+            for( const std::vector< const interface::Element* >& typePathElement : 
                 std::get< InvocationSolution::TypePath >( invocationID ) )
             {
                 std::vector< const concrete::Element* > instances;
-                for( const abstract::Element* pElement : typePathElement )
+                for( const interface::Element* pElement : typePathElement )
                     m_analysis.getInstances( pElement, instances, true );
                 
                 if( instances.empty() )

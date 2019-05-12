@@ -41,6 +41,7 @@ enum ASTElementType //for serialisation
     eParentDerivationInstruction,
     eChildDerivationInstruction,
     eEnumDerivationInstruction,
+    eEnumerationInstruction,
     eFailureInstruction,
     eEliminationInstruction,
     ePruneInstruction,
@@ -237,7 +238,8 @@ public:
     };
     Elimination eliminate();
     void getOperations( std::vector< const Operation* >& operations ) const;
-    
+    virtual int setReturnTypes( const std::vector< const interface::Element* >& targets );
+    virtual void setMaxRanges( int iMaxRanges );
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const = 0;
 protected:
     Vector m_children;
@@ -259,11 +261,15 @@ public:
     
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void setMaxRanges( int iMaxRanges );
     
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     
+    int getMaxRanges() const { return m_iMaxRanges; }
+    
 protected:
     ContextVariable* m_pContext = nullptr;
+    int m_iMaxRanges;
 };
 
 class ParentDerivationInstruction : public Instruction
@@ -330,6 +336,31 @@ protected:
 private:
     InstanceVariable* m_pFrom = nullptr;
     InstanceVariable* m_pTo = nullptr;
+};
+
+class EnumerationInstruction : public Instruction
+{
+public:
+    EnumerationInstruction(){}
+    EnumerationInstruction( InstanceVariable* pContext )
+        :   m_pContext( pContext ),
+            m_iMaxRanges( 1 )
+    {
+        
+    }
+    
+    virtual ASTElementType getType() const { return eEnumerationInstruction; }
+    
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+    virtual int setReturnTypes( const std::vector< const interface::Element* >& targets );
+    virtual void setMaxRanges( int iMaxRanges );
+private:
+    InstanceVariable* m_pContext = nullptr;
+    std::vector< const interface::Element* > m_returnTypes;
+    int m_iMaxRanges;
 };
 
 class FailureInstruction : public Instruction
@@ -453,7 +484,7 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
 public:
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const = 0;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const = 0;
 };
 
 class StartOperation : public Operation
@@ -469,7 +500,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -489,7 +520,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -509,7 +540,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -529,7 +560,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -549,7 +580,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -569,7 +600,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -589,7 +620,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -610,7 +641,7 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
@@ -631,8 +662,11 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const abstract::Element* >& abstracTypes ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+public:
+    const InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Action* getTarget() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const concrete::Action* m_pTarget = nullptr;

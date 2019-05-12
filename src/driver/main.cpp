@@ -327,7 +327,7 @@ int main( int argc, const char* argv[] )
             pParserSession->parse( config.egSourceCode, pFileManager, pDiagnosticsEngine );
             
             //build the eg master tree
-            const eg::abstract::Root* pRoot = pParserSession->buildAbstractTree();
+            const eg::interface::Root* pRoot = pParserSession->buildAbstractTree();
         
             //print the tree
             if( bPrintMaster )

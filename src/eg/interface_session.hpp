@@ -23,7 +23,7 @@
 #define INTERFACE_SESSION_18_04_2019
 
 #include "session.hpp"
-#include "abstract.hpp"
+#include "interface.hpp"
 #include "concrete.hpp"
 #include "derivation.hpp"
 
@@ -42,8 +42,8 @@ namespace eg
         concrete::Action* instanceAnalysis();
         void dependencyAnalysis();
         
-        const abstract::Root* getTreeRoot() const { return eg::root_cst< eg::abstract::Root >( getMaster() ); }
-        abstract::Root* getTreeRoot() { return eg::root< eg::abstract::Root >( getAppendingObjects() ); }
+        const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
+        interface::Root* getTreeRoot() { return eg::root< eg::interface::Root >( getAppendingObjects() ); }
     private:
         template< typename T >
         struct CompareNodeIdentity
@@ -54,14 +54,14 @@ namespace eg
             }
         };
         using ActionOverrideMap = 
-            std::map< const abstract::Action*, concrete::Action*, CompareNodeIdentity< const abstract::Action > >;
+            std::map< const interface::Action*, concrete::Action*, CompareNodeIdentity< const interface::Action > >;
         using DimensionOverrideMap = 
-            std::map< const abstract::Dimension*, concrete::Dimension*, CompareNodeIdentity< const abstract::Dimension > >;
+            std::map< const interface::Dimension*, concrete::Dimension*, CompareNodeIdentity< const interface::Dimension > >;
             
         concrete::Inheritance_Node* constructInheritanceNode( concrete::Action* pRootInstance, 
-            concrete::Inheritance_Node* pParent, const abstract::Action* pAction );
+            concrete::Inheritance_Node* pParent, const interface::Action* pAction );
         concrete::Inheritance_Node* constructInheritanceTree( concrete::Action* pInstance, 
-            concrete::Inheritance_Node* pInheritanceNode, const abstract::Action* pAction );
+            concrete::Inheritance_Node* pInheritanceNode, const interface::Action* pAction );
         void constructInheritanceTree( concrete::Action* pInstance );
         
         void calculateInstanceActionName( concrete::Action* pAction );

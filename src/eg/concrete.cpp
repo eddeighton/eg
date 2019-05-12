@@ -56,7 +56,7 @@ namespace concrete
     void Inheritance_Node::load( Loader& loader )
     {
         m_pRootConcreteAction = loader.loadObjectRef< Action >();
-        m_pAction = loader.loadObjectRef< abstract::Action >();
+        m_pAction = loader.loadObjectRef< interface::Action >();
         m_pParent = loader.loadObjectRef< Inheritance_Node >();
         loader.loadObjectVector( m_children );
         loader.loadObjectVector( m_actions );
@@ -76,7 +76,7 @@ namespace concrete
     void Element::load( Loader& loader )
     {
         m_pParent = loader.loadObjectRef< Element >();
-        m_pElement = loader.loadObjectRef< abstract::Element >();
+        m_pElement = loader.loadObjectRef< interface::Element >();
         loader.loadObjectVector( m_children );
     }
     
@@ -114,18 +114,6 @@ namespace concrete
     {
         Dimension::store( storer );
         storer.storeObjectRef( m_pTimestamp );
-        
-    }
-    
-    void printActionType( std::ostream& os, const abstract::Action* pElement )
-    {
-        std::vector< const abstract::Element* > path = ::eg::abstract::getPath( pElement );
-        for( const abstract::Element* pNodeIter : path )
-        {
-            if( pNodeIter != *path.begin())
-                os << "::";
-            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
-        }
     }
     
     void Dimension_User::print( std::ostream& os, std::string& strIndent ) const
@@ -135,37 +123,38 @@ namespace concrete
     
     void Dimension_User::printType( std::ostream& os ) const
     {
-        const abstract::Dimension* pNodeDimension = dynamic_cast< const abstract::Dimension* >( m_pElement );
+        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
         if( pNodeDimension->getActionTypes().empty() )
         {
             os << pNodeDimension->getCanonicalType();
         }
         else if( pNodeDimension->getActionTypes().size() == 1U )
         {
-            printActionType( os, pNodeDimension->getActionTypes().front() );
+            const interface::Action* pAction = pNodeDimension->getActionTypes().front();
+            os << pAction->getStaticType();
         }
         else
         {
-            os << "__eg_variant< ";
-            for( const abstract::Action* pAction : pNodeDimension->getActionTypes() )
+            os << EG_VARIANT_TYPE << "< ";
+            for( const interface::Action* pAction : pNodeDimension->getActionTypes() )
             {
                 if( pAction != pNodeDimension->getActionTypes().front() )
                     os << ", ";
-                printActionType( os, pAction );
+                os << pAction->getStaticType();
             }
             os << " >";
         }
     }
     int Dimension_User::getDataSize() const
     {
-        const abstract::Dimension* pNodeDimension = dynamic_cast< const abstract::Dimension* >( m_pElement );
+        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
         if( pNodeDimension->getActionTypes().empty() )
         {
             return pNodeDimension->getSize();
         }
         else if( pNodeDimension->getActionTypes().size() == 1U )
         {
-            const abstract::Action* pAction = pNodeDimension->getActionTypes().front();
+            const interface::Action* pAction = pNodeDimension->getActionTypes().front();
             if( pAction->isIndirectlyAbstract() )
                 return 12;
             else
@@ -263,15 +252,11 @@ namespace concrete
                 //use the type traits in the interface
                 {
                     VERIFY_RTE( m_pAction );
-                    const abstract::Action* pAction = m_pAction->getAction();
+                    const interface::Action* pAction = m_pAction->getAction();
                     
                     os << EG_OBJECT_TRAITS << "< ";
                     
                     os << pAction->getBaseType();
-                    
-                    //only support single object inheritance for now so it is always __eg_Base_0< void >
-                    //printActionType( os, pAction );
-                    //os << "::__interface_Base_0< void >::Type";
                     
                     os << " >::PtrType";
                     
@@ -280,8 +265,8 @@ namespace concrete
             case eActionReference    :
                 {
                     VERIFY_RTE( m_pAction );
-                    const abstract::Action* pAction = m_pAction->getAction();
-                    printActionType( os, pAction );
+                    const interface::Action* pAction = m_pAction->getAction();
+                    os << pAction->getStaticType();
                 }
                 break;
             case eActionAllocatorData:
@@ -313,13 +298,6 @@ namespace concrete
             case eActionObject       :
                 //use the type traits in the interface
                 //TODO - need to report this in link analysis
-                //{
-                //    VERIFY_RTE( m_pAction );
-                //    const abstract::Action* pAction = dynamic_cast< const abstract::Action* >( m_pAction->m_pElement );
-                //    printActionType( os, pAction );
-                //    //only support single object inheritance for now so it is always __interface_Base_0< void >
-                //    os << "__interface_Base_0< void >::Size";
-                //}
                 return 4;
             case eActionReference    :
                 return 12;
@@ -357,7 +335,7 @@ namespace concrete
                 //use the type traits in the interface
                 {
                     VERIFY_RTE( m_pAction );
-                    const abstract::Action* pAction = m_pAction->getAction();
+                    const interface::Action* pAction = m_pAction->getAction();
                     os << strIndent;
                     printer.printVariableAccess( os, strIndex );
                     os << " = " << EG_OBJECT_TRAITS << "< ";
@@ -377,11 +355,10 @@ namespace concrete
             case eActionReference       :
                 {
                     VERIFY_RTE( m_pAction );
-                    const abstract::Action* pAction = m_pAction->getAction();
+                    const interface::Action* pAction = m_pAction->getAction();
                     os << strIndent;
                     printer.printVariableAccess( os, strIndex );
-                    os << " = ";
-                    printActionType( os, pAction );
+                    os << " = " << pAction->getStaticType();
                     os << "( " << EG_REFERENCE_TYPE << " { i, " << m_pAction->getIndex() << ", 0 } );\n";
                 }
                 break;
@@ -410,7 +387,7 @@ namespace concrete
                 //use the type traits in the interface
                 {
                     VERIFY_RTE( m_pAction );
-                    const abstract::Action* pAction = m_pAction->getAction();
+                    const interface::Action* pAction = m_pAction->getAction();
                     os << strIndent << EG_OBJECT_TRAITS << "< ";
                     os << pAction->getBaseType();
                     if( m_pDependency )
@@ -451,7 +428,7 @@ namespace concrete
                 //use the type traits in the interface
                 {
                     VERIFY_RTE( m_pAction );
-                    const abstract::Action* pAction = m_pAction->getAction();
+                    const interface::Action* pAction = m_pAction->getAction();
                     os << strIndent << EG_OBJECT_TRAITS << "< ";
                     os << pAction->getBaseType();
                     if( m_pDependency )
@@ -493,7 +470,7 @@ namespace concrete
                 //use the type traits in the interface
                 {
                     VERIFY_RTE( m_pAction );
-                    const abstract::Action* pAction = m_pAction->getAction();
+                    const interface::Action* pAction = m_pAction->getAction();
                     os << strIndent << EG_OBJECT_TRAITS << "< ";
                     os << pAction->getBaseType();
                     if( m_pDependency )
@@ -561,7 +538,7 @@ namespace concrete
     
     void Action::print( std::ostream& os, std::string& strIndent ) const
     {
-        const abstract::Action* pAction = getAction();
+        const interface::Action* pAction = getAction();
         if( pAction->isLink() )
         {
             os << strIndent << "link(" << getIndex() << ") " << pAction->getIdentifier() << "\n";
@@ -590,14 +567,7 @@ namespace concrete
     
     void Action::printType( std::ostream& os ) const
     {
-        std::vector< const ::eg::abstract::Element* > path = 
-            ::eg::abstract::getPath( const_cast< const ::eg::abstract::Element* >( m_pElement ) );
-        for( const abstract::Element* pNodeIter : path )
-        {
-            if( pNodeIter != *path.begin())
-                os << "::";
-            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
-        }
+        os << getAction()->getStaticType();
     }
     
     int Action::getDataSize() const
@@ -606,7 +576,7 @@ namespace concrete
     }
     int Action::getLocalDomainSize() const
     {
-        const abstract::Action* pAction = getAction();
+        const interface::Action* pAction = getAction();
         VERIFY_RTE( pAction );
         return pAction->getSize();
     }

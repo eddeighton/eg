@@ -18,11 +18,12 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "abstract.hpp"
+#include "interface.hpp"
+#include "codegen.hpp"
 
 namespace eg
 {
-namespace abstract
+namespace interface
 {
     std::vector< Element* > getPath( Element* pNode, Element* pFrom /*= nullptr*/ )
     {
@@ -411,6 +412,19 @@ namespace abstract
     {
         return ( m_size == 1U ) ? true : false;
     }
+    std::string Action::getStaticType() const
+    {
+        std::ostringstream os;
+        std::vector< const ::eg::interface::Element* > path = 
+            ::eg::interface::getPath( this );
+        for( const interface::Element* pNodeIter : path )
+        {
+            if( pNodeIter != *path.begin())
+                os << "::";
+            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
+        }
+        return os.str();
+    }
     
     
     Root::Root( const IndexedObject& indexedObject )
@@ -453,5 +467,5 @@ namespace abstract
     }
 
     
-} //namespace abstract
+} //namespace interface
 } //namespace eg

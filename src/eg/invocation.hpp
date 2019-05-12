@@ -64,9 +64,9 @@ namespace eg
         friend class InvocationSolutionMap;
     public:
         static const ObjectType Type = eInvocationSolution;
-        using Context = std::vector< const abstract::Element* >;
-        using TypePath = std::vector< std::vector< const abstract::Element* > >;
-        using TargetTypes = std::vector< const abstract::Element* >;
+        using Context = std::vector< const interface::Element* >;
+        using TypePath = std::vector< std::vector< const interface::Element* > >;
+        using TargetTypes = std::vector< const interface::Element* >;
         using InvocationID = std::tuple< Context, TypePath, OperationID >;
         using InvocationMap = std::map< InvocationID, InvocationSolution* >;
     protected:

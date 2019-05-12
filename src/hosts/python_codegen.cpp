@@ -26,7 +26,7 @@
 
 void generate_python( std::ostream& os, eg::ReadSession& session )
 {
-    const eg::abstract::Root* pRoot = session.getTreeRoot();
+    const eg::interface::Root* pRoot = session.getTreeRoot();
     const eg::concrete::Action* pInstanceRoot = session.getInstanceRoot();
     const eg::DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
     const eg::Layout& layout = session.getLayout();
@@ -42,22 +42,22 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "    namespace detail\n";
     os << "    {\n";
     
-    std::vector< const eg::abstract::Action* > abstractActions = 
-        eg::many_cst< eg::abstract::Action >( objects );
+    std::vector< const eg::interface::Action* > abstractActions = 
+        eg::many_cst< eg::interface::Action >( objects );
         
-    using ActionTypeMap = std::map< const eg::abstract::Action*, std::string >;
+    using ActionTypeMap = std::map< const eg::interface::Action*, std::string >;
     ActionTypeMap actionTypeMap;
     
-    for( const eg::abstract::Action* pAbstractAction : abstractActions )
+    for( const eg::interface::Action* pAbstractAction : abstractActions )
     {
         if( pAbstractAction->getParent() )
         {
             std::ostringstream osType;
             {
-                std::vector< const eg::abstract::Element* > path = eg::abstract::getPath( pAbstractAction );
+                std::vector< const eg::interface::Element* > path = eg::interface::getPath( pAbstractAction );
                 //generate type explicit template specialisation
                 {
-                    for( const eg::abstract::Element* pNodeIter : path )
+                    for( const eg::interface::Element* pNodeIter : path )
                     {
                         if( pNodeIter != *path.begin())
                             osType << "::";
@@ -73,7 +73,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
             i = actionTypeMap.begin(),
             iEnd = actionTypeMap.end(); i!=iEnd; ++i )
     {
-        const eg::abstract::Action* pAbstractAction = i->first;
+        const eg::interface::Action* pAbstractAction = i->first;
         const std::string& strType = i->second;
     os << "        template <> struct type_caster< " << strType << " >\n";
     os << "        {\n";

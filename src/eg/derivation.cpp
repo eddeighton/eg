@@ -32,7 +32,7 @@ namespace eg
             loader.load( szSize );
             for( std::size_t sz = 0; sz != szSize; ++sz )
             {
-                const abstract::Element*     pElement   = loader.loadObjectRef< const abstract::Element >();
+                const interface::Element*     pElement   = loader.loadObjectRef< const interface::Element >();
                 const concrete::Element*     pInstance  = loader.loadObjectRef< concrete::Element >();
                 m_instanceMap.insert( std::make_pair( pElement, pInstance ) );
             }
@@ -42,7 +42,7 @@ namespace eg
             loader.load( szSize );
             for( std::size_t sz = 0; sz != szSize; ++sz )
             {
-                const abstract::Action*             pAction          = loader.loadObjectRef< const abstract::Action >();
+                const interface::Action*             pAction          = loader.loadObjectRef< const interface::Action >();
                 const concrete::Inheritance_Node*   pInheritanceNode = loader.loadObjectRef< const concrete::Inheritance_Node >();
                 m_inheritanceMap.insert( std::make_pair( pAction, pInheritanceNode ) );
             }

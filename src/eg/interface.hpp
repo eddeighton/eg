@@ -39,7 +39,7 @@ namespace eg
     class ParserSession;
     class InterfaceSession;
 
-namespace abstract
+namespace interface
 {
 
     class Element : public IndexedObject
@@ -244,6 +244,7 @@ namespace abstract
         bool isIndirectlyAbstract() const;
         bool isSingular() const;
         std::size_t getSize() const { return m_size; }
+        std::string getStaticType() const;
         
     protected:
         input::Action* m_pAction = nullptr;
@@ -279,7 +280,7 @@ namespace abstract
         input::Root* m_pRoot = nullptr;
     };
 
-} //namespace abstract
+} //namespace interface
 } //namespace eg
 
 #endif //ABSTRACT_TREE_18_04_2019

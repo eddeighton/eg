@@ -21,7 +21,7 @@
 #include "objects.hpp"
 
 #include "input.hpp"
-#include "abstract.hpp"
+#include "interface.hpp"
 #include "concrete.hpp"
 #include "derivation.hpp"
 #include "layout.hpp"
@@ -44,11 +44,11 @@ namespace eg
             case eInputAction                : pObject = new input::Action                 ( object );  break;
             case eInputRoot                  : pObject = new input::Root                   ( object );  break;
                                                                                            
-            case eAbstractOpaque             : pObject = new abstract::Opaque              ( object );  break;
-            case eAbstractDimension          : pObject = new abstract::Dimension           ( object );  break;
-            case eAbstractInclude            : pObject = new abstract::Include             ( object );  break;
-            case eAbstractAction             : pObject = new abstract::Action              ( object );  break;
-            case eAbstractRoot               : pObject = new abstract::Root                ( object );  break;
+            case eAbstractOpaque             : pObject = new interface::Opaque              ( object );  break;
+            case eAbstractDimension          : pObject = new interface::Dimension           ( object );  break;
+            case eAbstractInclude            : pObject = new interface::Include             ( object );  break;
+            case eAbstractAction             : pObject = new interface::Action              ( object );  break;
+            case eAbstractRoot               : pObject = new interface::Root                ( object );  break;
                                 
             case eInheritanceNode            : pObject = new concrete::Inheritance_Node    ( object );  break;
                                      

@@ -22,7 +22,7 @@
 #include "parser_session.hpp"
 
 #include "input.hpp"
-#include "abstract.hpp"
+#include "interface.hpp"
 #include "identifiers.hpp"
 
 //disable clang warnings
@@ -1364,16 +1364,16 @@ namespace eg
     }
     
     
-    abstract::Element* addChild( ParserSession& session, abstract::Element* pParent, input::Element* pElement )
+    interface::Element* addChild( ParserSession& session, interface::Element* pParent, input::Element* pElement )
     {
-        abstract::Element* pNewNode = nullptr;
+        interface::Element* pNewNode = nullptr;
         switch( pElement->getType() )
         {
-            case eInputOpaque:         pNewNode = session.construct< abstract::Opaque >(    pParent, pElement ); break;
-            case eInputDimension:      pNewNode = session.construct< abstract::Dimension >( pParent, pElement ); break;
-            case eInputInclude:        pNewNode = session.construct< abstract::Include >(   pParent, pElement ); break;
-            case eInputAction:         pNewNode = session.construct< abstract::Action >(    pParent, pElement ); break;
-            case eInputRoot:           pNewNode = session.construct< abstract::Root >(      pParent, pElement ); break;
+            case eInputOpaque:         pNewNode = session.construct< interface::Opaque >(    pParent, pElement ); break;
+            case eInputDimension:      pNewNode = session.construct< interface::Dimension >( pParent, pElement ); break;
+            case eInputInclude:        pNewNode = session.construct< interface::Include >(   pParent, pElement ); break;
+            case eInputAction:         pNewNode = session.construct< interface::Action >(    pParent, pElement ); break;
+            case eInputRoot:           pNewNode = session.construct< interface::Root >(      pParent, pElement ); break;
             default:
                 THROW_RTE( "Unsupported type" );
                 break;
@@ -1382,7 +1382,7 @@ namespace eg
         return pNewNode;
     }
     
-    void ParserSession::buildTree( const FileElementMap& fileMap, abstract::Element* pNode, input::Element* pElement )
+    void ParserSession::buildTree( const FileElementMap& fileMap, interface::Element* pNode, input::Element* pElement )
     {
         switch( pElement->getType() )
         {
@@ -1424,7 +1424,7 @@ namespace eg
                                 else
                                 {
                                     //otherwise insert the root with the include identifier
-                                    abstract::Element* pChild = addChild( *this, pNode, pIncludedRoot );
+                                    interface::Element* pChild = addChild( *this, pNode, pIncludedRoot );
                                     pChild->pIncludeIdentifier = pInclude;
                                     buildTree( fileMap, pChild, pIncludedRoot );
                                 } 
@@ -1436,7 +1436,7 @@ namespace eg
                         }
                         else
                         {
-                            abstract::Element* pChild = addChild( *this, pNode, pElement );
+                            interface::Element* pChild = addChild( *this, pNode, pElement );
                             buildTree( fileMap, pChild, pElement );
                         }
                     }
@@ -1448,9 +1448,9 @@ namespace eg
         }
     }
     
-    const abstract::Root* ParserSession::buildAbstractTree()
+    const interface::Root* ParserSession::buildAbstractTree()
     {
-        abstract::Root* pMasterRoot = construct< abstract::Root >();
+        interface::Root* pMasterRoot = construct< interface::Root >();
         
         std::vector< input::Root* > roots = many< input::Root >( getMaster() );
         VERIFY_RTE( !roots.empty() );
@@ -1465,7 +1465,7 @@ namespace eg
         {
             if( pRootElement->isMainFile() )
             {
-                abstract::Element* pChild = addChild( *this, pMasterRoot, pRootElement );
+                interface::Element* pChild = addChild( *this, pMasterRoot, pRootElement );
                 buildTree( fileMap, pChild, pRootElement );
             }
         }

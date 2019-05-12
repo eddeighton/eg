@@ -103,7 +103,7 @@ namespace eg
             TypeID typeID = getOperationName( strIdentity );
             if( HIGHEST_OPERATION_TYPE == typeID )
             {
-                if( const abstract::Element* pElement = identifiers.isElement( strIdentity )  )
+                if( const interface::Element* pElement = identifiers.isElement( strIdentity )  )
                 {
                     typeID = - static_cast< TypeID >( pElement->getIndex() );
                 }

@@ -40,7 +40,7 @@ namespace eg
 {
     class Identifiers;
     
-    namespace abstract
+    namespace interface
     {
         class Element;
         class Root;
@@ -61,14 +61,14 @@ namespace eg
             std::shared_ptr< clang::FileManager > pFileManager,
             llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine );
             
-        const abstract::Root* buildAbstractTree();
+        const interface::Root* buildAbstractTree();
         
-        const abstract::Root* getTreeRoot() const { return eg::root_cst< eg::abstract::Root >( getMaster() ); }
+        const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
         
         const Identifiers* getIdentifiers() const { return eg::one_cst< eg::Identifiers >( getMaster() ); }
     private:
         using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
-        void buildTree( const FileElementMap& fileMap, abstract::Element*, input::Element* );
+        void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element* );
     };
 
 }

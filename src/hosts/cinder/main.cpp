@@ -101,7 +101,7 @@ int main( int argc, const char* argv[] )
     
     std::ostream& os = *pIncludesFileStream;
     
-    const eg::abstract::Root* pRoot = session.getTreeRoot();
+    const eg::interface::Root* pRoot = session.getTreeRoot();
     
     const eg::DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
     const eg::Layout& layout = session.getLayout();

@@ -21,7 +21,7 @@
 
 #include "interface_session.hpp"
 
-#include "abstract.hpp"
+#include "interface.hpp"
 
 namespace eg
 {
@@ -38,10 +38,10 @@ namespace eg
     {
         //calculate inheritance
         {
-            std::vector< abstract::Action* > actions = many< abstract::Action >( getMaster() );
-            for( abstract::Action* pAction : actions )
+            std::vector< interface::Action* > actions = many< interface::Action >( getMaster() );
+            for( interface::Action* pAction : actions )
             {
-                for( abstract::Action* pBase : pAction->m_baseActions )
+                for( interface::Action* pBase : pAction->m_baseActions )
                 {
                     if( pAction->isLink() )
                     {
@@ -57,24 +57,24 @@ namespace eg
     }
 
     
-    void collateChildren( const abstract::Action* pAction, 
-            std::vector< const abstract::Action* >& actions, 
-            std::vector< const abstract::Dimension* >& dimensions )
+    void collateChildren( const interface::Action* pAction, 
+            std::vector< const interface::Action* >& actions, 
+            std::vector< const interface::Dimension* >& dimensions )
     {
-        for( const abstract::Element* pObject : pAction->getChildren() )
+        for( const interface::Element* pObject : pAction->getChildren() )
         {
             switch( pObject->getType() )
             {
                 case eAbstractDimension : 
-                    dimensions.push_back( dynamic_cast< const abstract::Dimension* >( pObject ) );
+                    dimensions.push_back( dynamic_cast< const interface::Dimension* >( pObject ) );
                     break;
                 case eAbstractRoot      : 
                 case eAbstractAction    :  
-                    if( const abstract::Action* pChildAction = dynamic_cast< const abstract::Action* >( pObject ) )
+                    if( const interface::Action* pChildAction = dynamic_cast< const interface::Action* >( pObject ) )
                     {
                         if( !pChildAction->isAbstract() )
                         {
-                            actions.push_back( dynamic_cast< const abstract::Action* >( pObject ) );
+                            actions.push_back( dynamic_cast< const interface::Action* >( pObject ) );
                         }
                     }
                     break;
@@ -83,7 +83,7 @@ namespace eg
     }
     
     concrete::Inheritance_Node* InterfaceSession::constructInheritanceNode( concrete::Action* pConcreteAction, 
-            concrete::Inheritance_Node* pParent, const abstract::Action* pAbstractAction )
+            concrete::Inheritance_Node* pParent, const interface::Action* pAbstractAction )
     {
         concrete::Inheritance_Node* pInheritanceNode    = construct< concrete::Inheritance_Node >(); 
         pInheritanceNode->m_pRootConcreteAction         = pConcreteAction;
@@ -99,12 +99,12 @@ namespace eg
     }
     
     concrete::Inheritance_Node* InterfaceSession::constructInheritanceTree( concrete::Action* pConcreteAction,  
-                concrete::Inheritance_Node* pParent, const abstract::Action* pAbstractAction )
+                concrete::Inheritance_Node* pParent, const interface::Action* pAbstractAction )
     {
         concrete::Inheritance_Node* pInheritanceNode  
             = constructInheritanceNode( pConcreteAction, pParent, pAbstractAction );
         
-        for( const abstract::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
+        for( const interface::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
         {
             constructInheritanceTree( pConcreteAction, pInheritanceNode, pBaseAbstractAction );
         }
@@ -127,9 +127,9 @@ namespace eg
     };
     
     using ActionOverrideMap = 
-        std::map< abstract::Action*, concrete::Action*, CompareNodeIdentity< abstract::Action > >;
+        std::map< interface::Action*, concrete::Action*, CompareNodeIdentity< interface::Action > >;
     using DimensionOverrideMap = 
-        std::map< abstract::Dimension*, concrete::Dimension*, CompareNodeIdentity< abstract::Dimension > >;
+        std::map< interface::Dimension*, concrete::Dimension*, CompareNodeIdentity< interface::Dimension > >;
         
     void InterfaceSession::calculateInstanceActionName( concrete::Action* pAction )
     {
@@ -146,13 +146,13 @@ namespace eg
     void InterfaceSession::collateOverrides( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode,
             ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances )
     {
-        std::vector< const abstract::Action* > actions;
-        std::vector< const abstract::Dimension* > dimensions;
+        std::vector< const interface::Action* > actions;
+        std::vector< const interface::Dimension* > dimensions;
         collateChildren( pInheritanceNode->m_pAction, actions, dimensions );
         
-        for( const abstract::Action* pChildAction : actions )
+        for( const interface::Action* pChildAction : actions )
         {
-            std::map< const abstract::Action*, concrete::Action* >::iterator iFind = 
+            std::map< const interface::Action*, concrete::Action* >::iterator iFind = 
                 actionInstances.find( pChildAction );
             if( iFind == actionInstances.end() )
             {
@@ -217,9 +217,9 @@ namespace eg
             }
         }
         
-        for( const abstract::Dimension* pChildDimension : dimensions )
+        for( const interface::Dimension* pChildDimension : dimensions )
         {
-            std::map< const abstract::Dimension*, concrete::Dimension* >::iterator iFind = 
+            std::map< const interface::Dimension*, concrete::Dimension* >::iterator iFind = 
                 dimensionInstances.find( pChildDimension );
             if( iFind == dimensionInstances.end() )
             {
@@ -303,7 +303,7 @@ namespace eg
     
     concrete::Action* InterfaceSession::instanceAnalysis()
     {
-        const abstract::Action* pActionRoot = root< const abstract::Action >( getAppendingObjects() );
+        const interface::Action* pActionRoot = root< const interface::Action >( getAppendingObjects() );
         
         concrete::Action* pRoot = construct< concrete::Action >();
         pRoot->m_pElement = pActionRoot;
@@ -321,7 +321,7 @@ namespace eg
     
     void InterfaceSession::dependencyAnalysis_recurse( concrete::Action* pAction )
     {
-        const abstract::Action* pNodeAction = pAction->getAction();
+        const interface::Action* pNodeAction = pAction->getAction();
         
         if( !pNodeAction->m_strDependency.empty() && pNodeAction->m_strDependency != "void" )
         {
@@ -331,7 +331,7 @@ namespace eg
             concrete::Action* pParent = dynamic_cast< concrete::Action* >( pAction->m_pParent );
             for( ; pParent; pParent = dynamic_cast< concrete::Action* >( pParent->m_pParent ) )
             {
-                const abstract::Action* pParentNodeAction = pParent->getAction();
+                const interface::Action* pParentNodeAction = pParent->getAction();
                 if( pParentNodeAction->m_strBaseType == pNodeAction->m_strDependency )
                 {
                     pAction->m_pDependencyProvider = pParent;

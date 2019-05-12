@@ -21,7 +21,7 @@
 #ifndef CONCRETE_TREE_19_04_2019
 #define CONCRETE_TREE_19_04_2019
 
-#include "abstract.hpp"
+#include "interface.hpp"
 
 #include "runtime/eg_common.hpp"
 
@@ -56,7 +56,7 @@ namespace concrete
         using Inheritance_Node_Set = std::set< Inheritance_Node*, CompareIndexedObjects >;
         using Inheritance_Node_SetCst = std::set< const Inheritance_Node*, CompareIndexedObjects >;
             
-        inline void getStaticDerived( std::set< const abstract::Action*, CompareIndexedObjects >& derived ) const
+        inline void getStaticDerived( std::set< const interface::Action*, CompareIndexedObjects >& derived ) const
         {
             derived.insert( m_pAction );
             for( const Inheritance_Node* p : m_children )
@@ -74,7 +74,7 @@ namespace concrete
         }
         
         Action* getRootConcreteAction() const { return m_pRootConcreteAction; }
-        const ::eg::abstract::Action* getAbstractAction() const { return m_pAction; }
+        const ::eg::interface::Action* getAbstractAction() const { return m_pAction; }
         Inheritance_Node* getParent() const { return m_pParent; }
         const Inheritance_Node_Vector& getChildren() const { return m_children; }
         const std::vector< Action* > getActions() const { return m_actions; }
@@ -82,7 +82,7 @@ namespace concrete
         
     private:
         Action* m_pRootConcreteAction;
-        const ::eg::abstract::Action* m_pAction;
+        const ::eg::interface::Action* m_pAction;
         Inheritance_Node* m_pParent = nullptr;
         Inheritance_Node_Vector m_children;
         std::vector< Action* > m_actions;
@@ -106,7 +106,7 @@ namespace concrete
         
     public:
         Element* getParent() const { return m_pParent; }
-        const ::eg::abstract::Element* getAbstractElement() const { return m_pElement; }
+        const ::eg::interface::Element* getAbstractElement() const { return m_pElement; }
         const std::vector< Element* >& getChildren() const { return m_children; }
     
         virtual const std::string& getIdentifier() const = 0;
@@ -121,7 +121,7 @@ namespace concrete
         }
     protected:
         Element* m_pParent = nullptr;
-        const ::eg::abstract::Element* m_pElement = nullptr;
+        const ::eg::interface::Element* m_pElement = nullptr;
         std::vector< Element* > m_children;
     };
     
@@ -200,12 +200,12 @@ namespace concrete
             return !getActionTypes().empty();
         }
         
-        const std::vector< ::eg::abstract::Action* >& getActionTypes() const
+        const std::vector< ::eg::interface::Action* >& getActionTypes() const
         {
             return getDimension()->getActionTypes();
         }
         
-        const ::eg::abstract::Dimension* getDimension() const { return dynamic_cast< const ::eg::abstract::Dimension* >( m_pElement ); }
+        const ::eg::interface::Dimension* getDimension() const { return dynamic_cast< const ::eg::interface::Dimension* >( m_pElement ); }
         
     private:
         Dimension_Generated* m_pTimestamp = nullptr;
@@ -290,7 +290,7 @@ namespace concrete
     public:
         using IteratorMap = std::map< const Action*, const Dimension_Generated* >;
         
-        const ::eg::abstract::Action* getAction() const { return dynamic_cast< const ::eg::abstract::Action* >( m_pElement ); }
+        const ::eg::interface::Action* getAction() const { return dynamic_cast< const ::eg::interface::Action* >( m_pElement ); }
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
         const std::string& getName() const { return m_strName; }
         

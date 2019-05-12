@@ -31,7 +31,7 @@ namespace eg
     
     void Identifiers::populate( const IndexedObject::Array& objects )
     {
-        std::multimap< std::string, const abstract::Element* > forwardDeclMap;
+        std::multimap< std::string, const interface::Element* > forwardDeclMap;
         for( IndexedObject* pObject : objects )
         {
             switch( pObject->getType() )
@@ -41,7 +41,7 @@ namespace eg
                 case eAbstractRoot      :  
                 case eAbstractAction    :  
                     {
-                        const abstract::Element* pElement = dynamic_cast< const abstract::Element* >( pObject );
+                        const interface::Element* pElement = dynamic_cast< const interface::Element* >( pObject );
                         VERIFY_RTE( pElement );
                         forwardDeclMap.insert( 
                             std::make_pair( pElement->getIdentifier(), pElement ) );
@@ -50,16 +50,16 @@ namespace eg
             }
         }
         
-        for( std::multimap< std::string, const abstract::Element* >::iterator 
+        for( std::multimap< std::string, const interface::Element* >::iterator 
             i = forwardDeclMap.begin(),
             iEnd = forwardDeclMap.end();
             i!=iEnd;  )
         {
-            std::multimap< std::string, const abstract::Element* >::iterator 
+            std::multimap< std::string, const interface::Element* >::iterator 
                 iUpper = forwardDeclMap.upper_bound( i->first );
                 
-            std::set< const abstract::Element* > elements;
-            const abstract::Element* pFirst = nullptr;
+            std::set< const interface::Element* > elements;
+            const interface::Element* pFirst = nullptr;
             for( ; i!=iUpper; ++i )
             {
                 elements.insert( i->second );
@@ -68,7 +68,7 @@ namespace eg
             }
             
             ASSERT( !elements.empty() );
-            for( const abstract::Element* pElement : elements )
+            for( const interface::Element* pElement : elements )
             {
                 m_identifierMap.insert( std::make_pair( pFirst->getIdentifier(), pFirst ) );
                 m_identifierGroups.insert( std::make_pair( pFirst, pElement ) );
@@ -86,7 +86,7 @@ namespace eg
             for( std::size_t sz = 0; sz != szSize; ++sz )
             {
                 loader.load( str );
-                const abstract::Element* pObject = loader.loadObjectRef< const abstract::Element >();
+                const interface::Element* pObject = loader.loadObjectRef< const interface::Element >();
                 m_identifierMap.insert( std::make_pair( str, pObject ) );
             }
         }
@@ -101,7 +101,7 @@ namespace eg
         {
             std::size_t szSize = m_identifierMap.size();
             storer.store( szSize );
-            for( std::map< std::string, const abstract::Element* >::const_iterator 
+            for( std::map< std::string, const interface::Element* >::const_iterator 
                 i = m_identifierMap.begin(), 
                 iEnd = m_identifierMap.end(); i!=iEnd; ++i )
             {
@@ -114,9 +114,9 @@ namespace eg
         storer.storeObjectMap( m_identifierGroupsBack );
     }
 
-    const abstract::Element* Identifiers::isElement( const std::string& strIdentifier ) const
+    const interface::Element* Identifiers::isElement( const std::string& strIdentifier ) const
     {
-        std::map< std::string, const abstract::Element* >::const_iterator 
+        std::map< std::string, const interface::Element* >::const_iterator 
             iFind = m_identifierMap.find( strIdentifier );
         if( iFind != m_identifierMap.end() )
         {
@@ -128,9 +128,9 @@ namespace eg
         }
     }
     
-    std::vector< const abstract::Element* > Identifiers::getGroup( const abstract::Element* pElement ) const
+    std::vector< const interface::Element* > Identifiers::getGroup( const interface::Element* pElement ) const
     {
-        std::vector< const abstract::Element* > result;
+        std::vector< const interface::Element* > result;
         GroupMap::const_iterator iLower = m_identifierGroups.lower_bound( pElement );
         GroupMap::const_iterator iUpper = m_identifierGroups.upper_bound( pElement );
         for( ; iLower != iUpper; ++iLower )
@@ -138,7 +138,7 @@ namespace eg
         return result;
     }
     
-    std::vector< const abstract::Element* > Identifiers::getGroupBack( const abstract::Element* pElement ) const
+    std::vector< const interface::Element* > Identifiers::getGroupBack( const interface::Element* pElement ) const
     {
         GroupBackMap::const_iterator iFind = m_identifierGroupsBack.find( pElement );
         if( iFind != m_identifierGroupsBack.end() )
@@ -147,7 +147,7 @@ namespace eg
         }
         else
         {
-            return std::vector< const abstract::Element* >{};
+            return std::vector< const interface::Element* >{};
         }
     }
 }

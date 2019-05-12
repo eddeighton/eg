@@ -22,7 +22,7 @@
 
 #include "eg.hpp"
 #include "input.hpp"
-#include "abstract.hpp"
+#include "interface.hpp"
 #include "concrete.hpp"
 #include "derivation.hpp"
 #include "layout.hpp"
@@ -108,11 +108,11 @@ namespace eg
     
     
     //generate include directives
-    void generateInterfaceIncludes( std::ostream& os, const abstract::Root* pRoot, 
+    void generateInterfaceIncludes( std::ostream& os, const interface::Root* pRoot, 
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser )
     {
-        abstract::Element::Collector< input::Include > includes;
+        interface::Element::Collector< input::Include > includes;
         pRoot->visit( includes );
         std::set< boost::filesystem::path > systemIncludes, userIncludes;
         std::vector< boost::filesystem::path > systemIncludesOrdered, userIncludesOrdered;
@@ -182,7 +182,7 @@ namespace eg
             const std::string& strName = i->first;
             if( !strName.empty() && ( strName != input::Root::RootTypeName ) )
             {
-                const abstract::Element* pElement = i->second;
+                const interface::Element* pElement = i->second;
                 os << "struct [[clang::eg_type( -" << pElement->getIndex() << " )]]" << strName << ";\n";
             }
         }
@@ -226,7 +226,7 @@ namespace eg
             os << strIndent << "template< typename TypePath, typename Operation, typename... Args >\n";
             os << strIndent << "typename " << EG_RESULT_TYPE << "< " << 
                 getInterfaceInstantiationType( strName, depth ) <<
-                ", TypePath, Operation >::Type invoke( Args... args );\n";
+                ", TypePath, Operation >::Type " << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args );\n";
             
             //event access
             os << strIndent << EG_EVENT_TYPE << " get_next_event() const;\n";
@@ -289,19 +289,19 @@ namespace eg
             }
         }
         
-        void push ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void push ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         } 
-        void push ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void push ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
             ++depth;
             os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth << 
                 " >struct [[clang::eg_type(" << pNode->getIndex() << ")]]" << getInterfaceType( pElement->getIdentifier() ) << ";\n";
         }    
-        void push ( const input::Include*   pElement, const abstract::Element* pNode )
+        void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Root* pElement, const abstract::Element* pNode )
+        void push ( const input::Root* pElement, const interface::Element* pNode )
         {    
             ++depth;
             const std::string& strName = pNode->getIdentifier();
@@ -310,10 +310,10 @@ namespace eg
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            addActionInterface( os, strName, dynamic_cast< const abstract::Action* >( pNode )->isIndirectlyAbstract() );
+            addActionInterface( os, strName, dynamic_cast< const interface::Action* >( pNode )->isIndirectlyAbstract() );
             addActionTraits( os, pElement );
         }    
-        void push ( const input::Action* pElement, const abstract::Element* pNode )
+        void push ( const input::Action* pElement, const interface::Element* pNode )
         {
             ++depth;
             os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth <<
@@ -321,7 +321,7 @@ namespace eg
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            addActionInterface( os, pElement->getIdentifier(), dynamic_cast< const abstract::Action* >( pNode )->isIndirectlyAbstract() );
+            addActionInterface( os, pElement->getIdentifier(), dynamic_cast< const interface::Action* >( pNode )->isIndirectlyAbstract() );
             
             if( pElement->getSize() )
             {
@@ -329,19 +329,19 @@ namespace eg
             }
             addActionTraits( os, pElement );
         }
-        void pop ( const input::Opaque* pElement, const abstract::Element* pNode )
+        void pop ( const input::Opaque* pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void pop ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
             --depth;
             //os << strIndent << "using " << pElement->getIdentifier() << " = " << 
             //    getInterfaceType( pElement->getIdentifier() ) << "< " << EG_INTERFACE_PARAMETER_TYPE << depth << " >;\n";
         }    
-        void pop ( const input::Include* pElement, const abstract::Element* pNode )
+        void pop ( const input::Include* pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Root* pElement, const abstract::Element* pNode )
+        void pop ( const input::Root* pElement, const interface::Element* pNode )
         {    
             --depth;
             const std::string& strName = pNode->getIdentifier();
@@ -355,7 +355,7 @@ namespace eg
                 os << strIndent << "using " << strName << " = " << 
                     getInterfaceType( strName ) << "< void >;\n";
         }    
-        void pop ( const input::Action* pElement, const abstract::Element* pNode )
+        void pop ( const input::Action* pElement, const interface::Element* pNode )
         {
             --depth;
             strIndent.pop_back();
@@ -374,27 +374,27 @@ namespace eg
         
         ExplicitInstantiationVisitor( std::ostream& os ) : os( os ) {}
         
-        void push ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void push ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }      
-        void push ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void push ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Include*   pElement, const abstract::Element* pNode )
+        void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Root*      pElement, const abstract::Element* pNode )
+        void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
         }    
-        void push ( const input::Action*    pElement, const abstract::Element* pNode )
+        void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
-            std::vector< const abstract::Element* > path = getPath( pNode );
+            std::vector< const interface::Element* > path = getPath( pNode );
             //generate type explicit template specialisation
             {
                 os << "template struct ";
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         os << "::";
@@ -403,19 +403,19 @@ namespace eg
                 os << ";\n";
             }
         }
-        void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }      
-        void pop ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void pop ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Include*   pElement, const abstract::Element* pNode )
+        void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Root*      pElement, const abstract::Element* pNode )
+        void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Action*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
@@ -427,20 +427,20 @@ namespace eg
         
         ExplicitTraitInstantiationVisitor( std::ostream& os ) : os( os ) {}
                 
-        void push ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void push ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }  
            
-        void push ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void push ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
-            std::vector< const abstract::Element* > path = getPath( pNode );
+            std::vector< const interface::Element* > path = getPath( pNode );
             //generate dimension trait explicit template specialisation
             
-            for( const abstract::Element* pNodeIter : path )
+            for( const interface::Element* pNodeIter : path )
                 os << "template<>\n";
             
             os << "struct ";
-            for( const abstract::Element* pNodeIter : path )
+            for( const interface::Element* pNodeIter : path )
             {
                 if( pNodeIter != *path.begin())
                     os << "::";
@@ -454,25 +454,25 @@ namespace eg
             os << "  static const " << EG_INSTANCE << " Size = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Size;\n";
             os << "};\n";
         }    
-        void push ( const input::Include*   pElement, const abstract::Element* pNode )
+        void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Root*      pElement, const abstract::Element* pNode )
+        void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Action*    pElement, const abstract::Element* pNode )
+        void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
-            std::vector< const abstract::Element* > path = getPath( pNode );
+            std::vector< const interface::Element* > path = getPath( pNode );
             
             std::size_t szCounter = 0;
             for( const input::Opaque* pOpaque : pElement->getInheritance() )
             {
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                     os << "template<>\n";
                 os << "template<>\n";
                 
                 os << "struct ";
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         os << "::";
@@ -489,24 +489,24 @@ namespace eg
                 os << "};\n";
             }
         }
-        void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }     
-        void pop ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void pop ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Include*   pElement, const abstract::Element* pNode )
+        void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Root*      pElement, const abstract::Element* pNode )
+        void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Action*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
     
-    void generateIncludeHeader( std::ostream& os, const abstract::Root* pRoot, 
+    void generateIncludeHeader( std::ostream& os, const interface::Root* pRoot, 
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser )
     {
@@ -518,7 +518,7 @@ namespace eg
         os << "#endif\n";
     }
     
-    void generateInterface( std::ostream& os, const abstract::Root* pRoot, const Identifiers* pIdentifiers )
+    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers )
     {
         generateIncludeGuard( os );
         
@@ -557,28 +557,28 @@ namespace eg
         OperationsSourceVisitor( std::ostream& os ) : os( os ) {}
         
         
-        void push ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void push ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }      
-        void push ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void push ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Include*   pElement, const abstract::Element* pNode )
+        void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Root*      pElement, const abstract::Element* pNode )
+        void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
         }    
-        void push ( const input::Action*    pElement, const abstract::Element* pNode )
+        void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
-            std::vector< const abstract::Element* > path = getPath( pNode );
+            std::vector< const interface::Element* > path = getPath( pNode );
             
             //generate type comment
             {
                 os << "\n//";
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         os << "::";
@@ -590,7 +590,7 @@ namespace eg
             //generate the template argument lists
             {
                 int iCounter = 1;
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     os << strIndent << "template<>\n";
                     ++iCounter;
@@ -600,7 +600,7 @@ namespace eg
             //just generate an explicit template specialisation
             os << strIndent << EG_COROUTINE_TYPE << " ";
             {
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
                 }
@@ -612,7 +612,7 @@ namespace eg
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
             
-            for( const abstract::Element* pChild : pNode->getChildren() )
+            for( const interface::Element* pChild : pNode->getChildren() )
             {
                 if( const input::Opaque* pOpaque = 
                         dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
@@ -626,24 +626,24 @@ namespace eg
             strIndent.pop_back();
             os << strIndent << "}\n";
         }
-        void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }      
-        void pop ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void pop ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Include*   pElement, const abstract::Element* pNode )
+        void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Root*      pElement, const abstract::Element* pNode )
+        void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Action*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
     
-    void generateOperationSource( std::ostream& os, const abstract::Root* pRoot )
+    void generateOperationSource( std::ostream& os, const interface::Root* pRoot )
     {
         generateIncludeGuard( os );
         
@@ -708,28 +708,28 @@ namespace eg
         }
         
         
-        void push ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void push ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }      
-        void push ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void push ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Include*   pElement, const abstract::Element* pNode )
+        void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Root*      pElement, const abstract::Element* pNode )
+        void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
         }    
-        void push ( const input::Action*    pElement, const abstract::Element* pNode )
+        void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
-            std::vector< const abstract::Element* > path = getPath( pNode );
+            std::vector< const interface::Element* > path = getPath( pNode );
             
             //generate type comment
             {
                 os << "\n//";
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         os << "::";
@@ -744,7 +744,7 @@ namespace eg
             std::ostringstream osTemplateArgListsSpecialised;
             {
                 int iCounter = 1;
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     osTemplateArgLists << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >\n";
                     osTemplateArgListsSpecialised << strIndent << "template<>\n";
@@ -757,7 +757,7 @@ namespace eg
             std::ostringstream osTypeName;
             {
                 int iCounter = 1;
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         osTypeName << "::";
@@ -770,7 +770,7 @@ namespace eg
             std::ostringstream osTypeNameAsType;
             {
                 int iCounter = 1;
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         osTypeNameAsType << "::template ";
@@ -783,7 +783,7 @@ namespace eg
             }
             std::ostringstream osTypeVoid;
             {
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         osTypeVoid << "::";
@@ -793,7 +793,7 @@ namespace eg
             
             std::string strActionInterfaceType = getInterfaceType( pNode->getIdentifier() );
             
-            const abstract::Action* pNodeAction = dynamic_cast< const abstract::Action* >( pNode );
+            const interface::Action* pNodeAction = dynamic_cast< const interface::Action* >( pNode );
             //const concrete::Action* pInstanceAction = nullptr;
             //for( const concrete::Action* pInstance : instances )
             //{
@@ -804,7 +804,7 @@ namespace eg
             //    }
             //}
             
-            std::set< const abstract::Action*, CompareIndexedObjects > staticCompatibleTypes;
+            std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
             std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
             {
                 for( const concrete::Inheritance_Node* pINode : iNodes )
@@ -826,12 +826,12 @@ namespace eg
             }
             
             //conversion traits
-            for( const abstract::Action* pCompatible : staticCompatibleTypes )
+            for( const interface::Action* pCompatible : staticCompatibleTypes )
             {
                 std::ostringstream osCompatibleTypeName;
                 {
-                    std::vector< const abstract::Element* > compatiblePath = getPath( pCompatible );
-                    for( const abstract::Element* pNodeIter : compatiblePath )
+                    std::vector< const interface::Element* > compatiblePath = getPath( pCompatible );
+                    for( const interface::Element* pNodeIter : compatiblePath )
                     {
                         if( pNodeIter != *path.begin())
                             osCompatibleTypeName << "::";
@@ -975,19 +975,19 @@ namespace eg
             os << "\n";
             }
         }
-        void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }     
-        void pop ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void pop ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Include*   pElement, const abstract::Element* pNode )
+        void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Root*      pElement, const abstract::Element* pNode )
+        void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Action*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
@@ -1000,28 +1000,28 @@ namespace eg
         InvokeVisitor( std::ostream& os ) : os( os ) {}
         
         
-        void push ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void push ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }      
-        void push ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void push ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Include*   pElement, const abstract::Element* pNode )
+        void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void push ( const input::Root*      pElement, const abstract::Element* pNode )
+        void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
         }    
-        void push ( const input::Action*    pElement, const abstract::Element* pNode )
+        void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
-            std::vector< const abstract::Element* > path = getPath( pNode );
+            std::vector< const interface::Element* > path = getPath( pNode );
             
             //generate type comment
             {
                 os << "\n//";
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         os << "::";
@@ -1033,7 +1033,7 @@ namespace eg
             //generate the template argument lists
             {
                 int iCounter = 1;
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >\n";
                     ++iCounter;
@@ -1046,7 +1046,7 @@ namespace eg
             std::ostringstream osTypeName;
             {
                 int iCounter = 1;
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         osTypeName << "::";
@@ -1062,7 +1062,7 @@ namespace eg
                 //if multiple elements then need typename and use of template keyword
                 os << "typename " << EG_RESULT_TYPE << "< typename ";
                 int iCounter = 1;
-                for( const abstract::Element* pNodeIter : path )
+                for( const interface::Element* pNodeIter : path )
                 {
                     if( pNodeIter != *path.begin())
                         os << "::template ";
@@ -1078,14 +1078,14 @@ namespace eg
             }
             
             //generate the invoke member function name
-            os << osTypeName.str() << "::invoke( Args... args )\n";
+            os << osTypeName.str() << "::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args )\n";
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
             
             //generate the implementation
             os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
-            os << "    return __invoke_impl< typename " << EG_RESULT_TYPE << "< " << 
+            os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << 
                 osTypeName.str() << ", TypePath, Operation >::Type, " << 
                 osTypeName.str() << ", CanonicalTypePathType, Operation >()( *this, args... );\n";
             
@@ -1093,28 +1093,28 @@ namespace eg
             strIndent.pop_back();
             os << strIndent << "}\n";
         }
-        void pop ( const input::Opaque*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
         }     
-        void pop ( const input::Dimension* pElement, const abstract::Element* pNode )
+        void pop ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Include*   pElement, const abstract::Element* pNode )
+        void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Root*      pElement, const abstract::Element* pNode )
+        void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
-        void pop ( const input::Action*    pElement, const abstract::Element* pNode )
+        void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
     
     
-    void printType( std::ostream& os, const IndexedObject::Array& objects, const abstract::Element* pElement )
+    void printType( std::ostream& os, const IndexedObject::Array& objects, const interface::Element* pElement )
     {
-        std::vector< const abstract::Element* > path = getPath( pElement );
-        for( const abstract::Element* pNodeIter : path )
+        std::vector< const interface::Element* > path = getPath( pElement );
+        for( const interface::Element* pNodeIter : path )
         {
             if( pNodeIter != *path.begin())
                 os << "::";
@@ -1124,7 +1124,7 @@ namespace eg
     
     void printType( std::ostream& os, const IndexedObject::Array& objects, TypeID id )
     {
-        const abstract::Element* pElement = dynamic_cast< const abstract::Element* >( objects[ id ] );
+        const interface::Element* pElement = dynamic_cast< const interface::Element* >( objects[ id ] );
         ASSERT( pElement );
         printType( os, objects, pElement );
     }
@@ -1133,16 +1133,16 @@ namespace eg
     {
         bool bHomogeneousTypes = true;
         {
-            std::vector< const abstract::Dimension* > dimensions;
-            std::vector< const abstract::Action* > actions;
+            std::vector< const interface::Dimension* > dimensions;
+            std::vector< const interface::Action* > actions;
             const InvocationSolution::TargetTypes& targetTypes = invocation.getTargetTypes();
-            for( const abstract::Element* pTarget : targetTypes )
+            for( const interface::Element* pTarget : targetTypes )
             {
-                if( const abstract::Dimension* pDimension = dynamic_cast< const abstract::Dimension* >( pTarget ) )
+                if( const interface::Dimension* pDimension = dynamic_cast< const interface::Dimension* >( pTarget ) )
                 {
                     dimensions.push_back( pDimension );
                 }
-                else if( const abstract::Action* pAction = dynamic_cast< const abstract::Action* >( pTarget ) )
+                else if( const interface::Action* pAction = dynamic_cast< const interface::Action* >( pTarget ) )
                 {
                     actions.push_back( pAction );
                 }
@@ -1155,13 +1155,13 @@ namespace eg
             if( actions.empty() )
             {
                 if( bHomogeneousTypes )
-                    bHomogeneousTypes = abstract::Dimension::isHomogenous( dimensions );
+                    bHomogeneousTypes = interface::Dimension::isHomogenous( dimensions );
             }
             else if( dimensions.empty() )
             {
                 if( actions.size() > 1U )
                 {
-                    for( const abstract::Action* pIter : actions )
+                    for( const interface::Action* pIter : actions )
                     {
                         if( pIter != actions.front() )
                         {
@@ -1192,7 +1192,7 @@ namespace eg
                     if( targets.size() > 1 )
                     {
                         os << EG_VARIANT_TYPE << "< ";
-                        for( const abstract::Element* pTarget : targets )
+                        for( const interface::Element* pTarget : targets )
                         {
                             if( pTarget != targets.front() )
                             {
@@ -1240,7 +1240,7 @@ namespace eg
                 {
                     if( areTargetTypesHomogeneous( objects, invocation ) )
                     {
-                        if( const abstract::Action* pAction = dynamic_cast< const abstract::Action* >( targets.front() ) )
+                        if( const interface::Action* pAction = dynamic_cast< const interface::Action* >( targets.front() ) )
                         {
                             printType( os, objects, pAction );
                         }
@@ -1304,7 +1304,21 @@ namespace eg
                 }
                 else
                 {
-                    THROW_RTE( "not implemented" );
+                    os << EG_RANGE_TYPE << "< ";
+                    os << EG_REFERENCE_ITERATOR_TYPE << "< ";
+                    os << EG_VARIANT_TYPE << "< ";
+                    for( const interface::Element* pElement : targets )
+                    {
+                        const interface::Action* pReturnType = 
+                            dynamic_cast< const interface::Action* >( pElement );
+                        ASSERT( pReturnType );
+                        if( pElement != *targets.begin())
+                            os << ", ";
+                        os << pReturnType->getStaticType();
+                    }
+                    os << " >";
+                    os << " >";
+                    os << " >";
                 }
                 break;
             default:
@@ -1428,8 +1442,8 @@ namespace eg
         }
         else
         {
-            os << "__eg_variant< ";
-            for( const abstract::Element* pElement : context )
+            os << EG_VARIANT_TYPE << "< ";
+            for( const interface::Element* pElement : context )
             {
                 if( pElement != *context.begin())
                     os << ",";
@@ -1458,12 +1472,12 @@ namespace eg
             }
             else if( id < 0 )
             {
-                const abstract::Element* pElement = dynamic_cast< const abstract::Element* >( objects[ -id ] );
+                const interface::Element* pElement = dynamic_cast< const interface::Element* >( objects[ -id ] );
                 ASSERT( pElement );
                 switch( pElement->getType() )
                 {
-                    case eAbstractDimension : os << dynamic_cast< const abstract::Dimension* >(  pElement )->getIdentifier(); break;
-                    case eAbstractAction    : os << dynamic_cast< const abstract::Action* >(     pElement )->getIdentifier(); break;
+                    case eAbstractDimension : os << dynamic_cast< const interface::Dimension* >(  pElement )->getIdentifier(); break;
+                    case eAbstractAction    : os << dynamic_cast< const interface::Action* >(     pElement )->getIdentifier(); break;
                     case eAbstractRoot      : 
                     case eAbstractOpaque    :
                     case eAbstractInclude   :
@@ -1497,7 +1511,7 @@ namespace eg
         const Layout& layout, const InvocationSolution& invocation )
     {
         os << "template<>\n";
-        os << "struct __invoke_impl\n";
+        os << "struct " << EG_INVOKE_IMPL_TYPE << "\n";
         os << "<\n";
         os << "    "; printReturnType( os, objects, invocation ); os << ",\n";
         os << "    "; printContextType( os, objects, invocation ); os << ",\n";
@@ -1832,7 +1846,7 @@ namespace eg
     void generateImplementationSource( std::ostream& os, const ImplementationSession& program, 
             std::size_t szTranslationUnitID, const std::vector< std::string >& dependencies )
     {
-        const abstract::Root* pRoot = program.getTreeRoot();
+        const interface::Root* pRoot = program.getTreeRoot();
         const concrete::Action* pInstanceRoot = program.getInstanceRoot();
         
         const DerivationAnalysis& derivationAnalysis = program.getDerivationAnalysis();
@@ -1919,10 +1933,10 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         
         os << "\n\n//invocation implementations\n";
         //os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType, typename... Args >\n";
-        //os << "ResultType __invoke_impl( ContextType context, Args... args );\n";
+        //os << "ResultType " << EG_INVOKE_IMPL_TYPE << "( ContextType context, Args... args );\n";
         
         os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType >\n";
-        os << "struct __invoke_impl{};\n";
+        os << "struct " << EG_INVOKE_IMPL_TYPE << "{};\n";
         
         os << "\n";
         os << "template< typename ReferenceType >\n";
@@ -1943,11 +1957,13 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "\n//generic variant invocation adaptor\n";
         os << "template< typename... Ts >\n";
         os << "template< typename TypePath, typename Operation, typename... Args >\n";
-        os << "typename " << EG_RESULT_TYPE << "< __eg_variant< Ts... >, TypePath, Operation >::Type\n";
-        os << "__eg_variant< Ts... >::invoke( Args... args )\n";
+        os << "typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE << "< Ts... >, TypePath, Operation >::Type\n";
+        os << EG_VARIANT_TYPE << "< Ts... >::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args )\n";
         os << "{\n";
         os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
-        os << "    return __invoke_impl< typename " << EG_RESULT_TYPE << "< __eg_variant< Ts... >, TypePath, Operation >::Type, __eg_variant< Ts... >, CanonicalTypePathType, Operation >()( *this, args... );\n";
+        os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE << 
+                "< Ts... >, TypePath, Operation >::Type, " << EG_VARIANT_TYPE << 
+                "< Ts... >, CanonicalTypePathType, Operation >()( *this, args... );\n";
         os << "}\n";
         os << "\n";
         

@@ -22,7 +22,7 @@
 #define CODE_GEN_18_04_2019
 
 
-#include "abstract.hpp"
+#include "interface.hpp"
 #include "implementation_session.hpp"
 #include "instruction.hpp"
 
@@ -45,8 +45,12 @@ namespace eg
     static const char* EG_DIMENSION_TRAITS = "eg::DimensionTraits";
     static const char* EG_TYPE_PATH = "__eg_type_path";
     static const char* EG_VARIANT_TYPE = "__eg_variant";
+    static const char* EG_INVOCATION_TYPE = "__eg_invocation";
+    static const char* EG_INVOKE_MEMBER_FUNCTION_NAME = "invoke";
+    static const char* EG_INVOKE_IMPL_TYPE = "__invoke_impl";
     static const char* EG_REFERENCE_ITERATOR_TYPE = "__eg_ReferenceIterator";
     static const char* EG_MULTI_ITERATOR_TYPE = "__eg_MultiIterator";
+    static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
     static const char* EG_RANGE_TYPE = "__eg_Range";
     static const char* EG_RESULT_TYPE = "eg::result_type";
     static const char* EG_COROUTINE_TYPE = "eg::Coroutine";
@@ -65,13 +69,13 @@ namespace eg
     std::string getBaseTraitType( std::size_t szIndex );
     std::string getInterfaceInstantiationType( const std::string& strType, int iDepth );
     
-    void generateIncludeHeader( std::ostream& os, const abstract::Root* pRoot, 
+    void generateIncludeHeader( std::ostream& os, const interface::Root* pRoot, 
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser );
     
-    void generateInterface( std::ostream& os, const abstract::Root* pRoot, const Identifiers* pIdentifiers );
+    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers );
 
-    void generateOperationSource( std::ostream& os, const abstract::Root* pRoot );
+    void generateOperationSource( std::ostream& os, const interface::Root* pRoot );
     
     void generateBufferStructures( std::ostream& os, const ImplementationSession& program );
 

@@ -74,15 +74,15 @@ namespace eg
         
     public:
     
-        using InstanceMap = std::multimap< const abstract::Element*, const concrete::Element* >;
+        using InstanceMap = std::multimap< const interface::Element*, const concrete::Element* >;
         InstanceMap m_instanceMap;
         
-        using InheritanceNodeMap = std::multimap< const abstract::Action*, const concrete::Inheritance_Node* >;
+        using InheritanceNodeMap = std::multimap< const interface::Action*, const concrete::Inheritance_Node* >;
         InheritanceNodeMap m_inheritanceMap;
         
-        void getInstances( const abstract::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const
+        void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const
         {
-            const abstract::Action* pAction = dynamic_cast< const abstract::Action* >( pElement );
+            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pElement );
             if( bDeriving && pAction )
             {
                 InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
@@ -99,7 +99,7 @@ namespace eg
             }
         }
         /*
-        void getInheritanceNodes( const abstract::Action* pAction, std::vector< const concrete::Inheritance_Node* >& inheritanceNodes ) const
+        void getInheritanceNodes( const interface::Action* pAction, std::vector< const concrete::Inheritance_Node* >& inheritanceNodes ) const
         {
             InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
             InheritanceNodeMap::const_iterator iUpper = m_inheritanceMap.upper_bound( pAction );
