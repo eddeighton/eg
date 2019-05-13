@@ -56,6 +56,7 @@ namespace concrete
         using Inheritance_Node_Set = std::set< Inheritance_Node*, CompareIndexedObjects >;
         using Inheritance_Node_SetCst = std::set< const Inheritance_Node*, CompareIndexedObjects >;
             
+        //getStaticDerived and getDynamicDerived used by compatibility routines in code gen
         inline void getStaticDerived( std::set< const interface::Action*, CompareIndexedObjects >& derived ) const
         {
             derived.insert( m_pAction );
@@ -79,6 +80,8 @@ namespace concrete
         const Inheritance_Node_Vector& getChildren() const { return m_children; }
         const std::vector< Action* > getActions() const { return m_actions; }
         const std::vector< Dimension* >& getDimensions() const { return m_dimensions; }
+        
+        //const interface::Element* chooseMostDerived( const interface::Element* pFirst, const interface::Element* pSecond ) const;
         
     private:
         Action* m_pRootConcreteAction;

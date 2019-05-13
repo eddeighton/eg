@@ -50,13 +50,19 @@ namespace eg
     {
         friend class NameResolution;
         
-        const concrete::Element* m_pElement;
+        InvocationSolution::ElementPair m_element;
         bool m_bIsMember;
         bool m_bIsReference;
         std::vector< std::size_t > m_children;
         
-        Name( const concrete::Element* pElement, bool bIsMember, bool bIsReference )
-            :   m_pElement( pElement ),
+        Name( bool bIsMember, bool bIsReference )
+            :   m_element( nullptr, nullptr ),
+                m_bIsMember( bIsMember ),
+                m_bIsReference( bIsReference )
+        {
+        }
+        Name( InvocationSolution::ElementPair element, bool bIsMember, bool bIsReference )
+            :   m_element( element ),
                 m_bIsMember( bIsMember ),
                 m_bIsReference( bIsReference )
         {
@@ -64,7 +70,9 @@ namespace eg
     
         bool isMember() const { return m_bIsMember; }
     public:
-        const concrete::Element* getElement() const { return m_pElement; }
+        const interface::Element* getInterface() const { return m_element.first; }
+        const concrete::Element* getConcrete() const { return m_element.second; }
+        
         bool isReference() const { return m_bIsReference; }
         bool isTerminal() const { return m_children.empty(); }
         const std::vector< std::size_t >& getChildren() const { return m_children; }
@@ -82,23 +90,22 @@ namespace eg
     public:
         NameResolution( const DerivationAnalysis& analysis, 
             const InvocationSolution::InvocationID& invocationID,
-            std::vector< const concrete::Element* >& concreteContext,
-            std::vector< std::vector< const concrete::Element* > >& concreteTypePath );
+            const InvocationSolution::ElementPairVector& context,
+            const InvocationSolution::ElementPairVectorVector& typePath );
                     
         const std::vector< Name >& getNodes() const { return m_nodes; }
         
     private:
-        Name* add( std::size_t iParent, const concrete::Element* pElement, bool bIsMember, bool bIsReference );
+        Name* add( std::size_t iParent, InvocationSolution::ElementPair element, bool bIsMember, bool bIsReference );
         
         void expandReferences();
         
-        void addType( const std::vector< const concrete::Element* >& instances );
+        void addType( const InvocationSolution::ElementPairVector& pathElement );
         
         void pruneBranches( Name* pNode );
         
-        void resolve( 
-            const std::vector< const concrete::Element* >& contextInstances,
-            const std::vector< std::vector< const concrete::Element* > >& typePathInstances );
+        void resolve( const InvocationSolution::ElementPairVector& context,
+                    const InvocationSolution::ElementPairVectorVector& typePath );
     };
 
 

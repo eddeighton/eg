@@ -340,13 +340,70 @@ namespace eg
         return false;
     }
     
+    void buildActionReturnType( const InvocationSolution::Context& returnTypes, 
+        clang::DeclContext* pDeclContext, clang::SourceLocation loc, clang::QualType& resultType )
+    {
+        if( returnTypes.size() == 1U )
+        {
+            const interface::Element* pTarget = returnTypes.front();
+            clang::DeclContext* pDeclContextIter = pDeclContext;
+            const std::vector< const interface::Element* > path = getPath( pTarget );
+            for( const interface::Element* pElementElement : path )
+            {
+                if( pElementElement == path.back() )
+                {
+                    resultType = clang::getType( g_pASTContext, g_pSema, 
+                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                        pDeclContextIter, loc, true );
+                }
+                else
+                {
+                    clang::getType( g_pASTContext, g_pSema, 
+                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                        pDeclContextIter, loc, false );
+                    if( !pDeclContextIter ) break;
+                }
+            }
+        }
+        else
+        {
+            std::vector< clang::QualType > types;
+            for( const interface::Element* pTarget : returnTypes )
+            {
+                clang::DeclContext* pDeclContextIter = g_pASTContext->getTranslationUnitDecl();
+                const std::vector< const interface::Element* > path = getPath( pTarget );
+                for( const interface::Element* pElementElement : path )
+                {
+                    if( pElementElement == path.back() )
+                    {
+                        clang::QualType variantType = clang::getType( g_pASTContext, g_pSema, 
+                            getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                            pDeclContextIter, loc, true );
+                        types.push_back( variantType );
+                    }
+                    else
+                    {
+                        clang::getType( g_pASTContext, g_pSema, 
+                            getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                            pDeclContextIter, loc, false );
+                        if( !pDeclContextIter ) break;
+                    }
+                }
+            }
+            //construct the variant result type
+            clang::SourceLocation loc;
+            resultType = clang::getVariantType( g_pASTContext, g_pSema, 
+                g_pASTContext->getTranslationUnitDecl(), loc, types );
+        }
+    }
     
     void calculateReturnType( const InvocationSolution* pSolution, clang::QualType& resultType )
     {
         //establish the return type
+        
         clang::DeclContext* pDeclContext = g_pASTContext->getTranslationUnitDecl();
-        const InvocationSolution::TargetTypes& targets = pSolution->getTargetTypes();
-        const InvocationSolution::TargetTypes& finalPathTypes = pSolution->getFinalPathTypes();
+        const InvocationSolution::Context& returnTypes = pSolution->getReturnTypes();
+        
         clang::SourceLocation loc;
         const eg::OperationID operationTypeID = pSolution->getOperation();
         switch( operationTypeID )
@@ -356,62 +413,11 @@ namespace eg
                 {
                     if( pSolution->isImplicitStarter() )
                     {
-                        if( targets.size() == 1U )
-                        {
-                            const interface::Element* pTarget = targets.front();
-                            clang::DeclContext* pDeclContextIter = pDeclContext;
-                            const std::vector< const interface::Element* > path = getPath( pTarget );
-                            for( const interface::Element* pElementElement : path )
-                            {
-                                if( pElementElement == path.back() )
-                                {
-                                    resultType = clang::getType( g_pASTContext, g_pSema, 
-                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                        pDeclContextIter, loc, true );
-                                }
-                                else
-                                {
-                                    clang::getType( g_pASTContext, g_pSema, 
-                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                        pDeclContextIter, loc, false );
-                                    if( !pDeclContextIter ) break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            std::vector< clang::QualType > types;
-                            for( const interface::Element* pTarget : targets )
-                            {
-                                clang::DeclContext* pDeclContextIter = g_pASTContext->getTranslationUnitDecl();
-                                const std::vector< const interface::Element* > path = getPath( pTarget );
-                                for( const interface::Element* pElementElement : path )
-                                {
-                                    if( pElementElement == path.back() )
-                                    {
-                                        clang::QualType variantType = clang::getType( g_pASTContext, g_pSema, 
-                                            getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                            pDeclContextIter, loc, true );
-                                        types.push_back( variantType );
-                                    }
-                                    else
-                                    {
-                                        clang::getType( g_pASTContext, g_pSema, 
-                                            getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                            pDeclContextIter, loc, false );
-                                        if( !pDeclContextIter ) break;
-                                    }
-                                }
-                            }
-                            //construct the variant result type
-                            clang::SourceLocation loc;
-                            resultType = clang::getVariantType( g_pASTContext, g_pSema, 
-                                g_pASTContext->getTranslationUnitDecl(), loc, types );
-                        }
+                        buildActionReturnType( returnTypes, pDeclContext, loc, resultType );
                     }
                     else if( operationTypeID == id_Imp_NoParams )
                     {
-                        const interface::Element* pTarget = targets.front();
+                        const interface::Element* pTarget = returnTypes.front();
                         clang::DeclContext* pDeclContextIter = pDeclContext;
                         const std::vector< const interface::Element* > path = getPath( pTarget );
                         for( const interface::Element* pElementElement : path )
@@ -436,48 +442,25 @@ namespace eg
                 break;
             case id_Get        :
                 {
-                    if( targets.size() == 1 )
+                    if( pSolution->isReturnTypeDimensions() )
                     {
-                        const interface::Element* pTarget = targets.front();
-                        if( const interface::Action* pAction = dynamic_cast< const interface::Action* >( pTarget ) )
+                        ASSERT( returnTypes.size() == 1 );
+                        const interface::Element* pTarget = returnTypes.front();
+                        clang::DeclContext* pDeclContextIter = pDeclContext;
+                        const std::vector< const interface::Element* > path = getPath( pTarget );
+                        for( const interface::Element* pElementElement : path )
                         {
-                            clang::DeclContext* pDeclContextIter = pDeclContext;
-                            const std::vector< const interface::Element* > path = getPath( pTarget );
-                            for( const interface::Element* pElementElement : path )
-                            {
-                                if( pElementElement == path.back() )
-                                {
-                                    resultType = clang::getType( g_pASTContext, g_pSema, 
-                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                        pDeclContextIter, loc, false );
-                                }
-                                else
-                                {
-                                    clang::getType( g_pASTContext, g_pSema, 
-                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                        pDeclContextIter, loc, false );
-                                    if( !pDeclContextIter ) break;
-                                }
-                            }
+                            clang::getType( g_pASTContext, g_pSema, 
+                                getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                pDeclContextIter, loc, false );
+                            if( !pDeclContextIter ) break;
                         }
-                        else if( const interface::Dimension* pDimension = dynamic_cast< const interface::Dimension* >( pTarget ) )
-                        {
-                            clang::DeclContext* pDeclContextIter = pDeclContext;
-                            const std::vector< const interface::Element* > path = getPath( pTarget );
-                            for( const interface::Element* pElementElement : path )
-                            {
-                                clang::getType( g_pASTContext, g_pSema, 
-                                    getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                    pDeclContextIter, loc, false );
-                                if( !pDeclContextIter ) break;
-                            }
-                            if( pDeclContextIter )
-                                resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "Get" );
-                        }
-                        else
-                        {
-                            //error
-                        }
+                        if( pDeclContextIter )
+                            resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "Get" );
+                    }
+                    else
+                    {
+                        buildActionReturnType( returnTypes, pDeclContext, loc, resultType );
                     }
                 }
                 break;
@@ -488,9 +471,9 @@ namespace eg
                 break;
             case id_Old        : 
                 {
-                    if( targets.size() == 1 )
+                    if( returnTypes.size() == 1 )
                     {
-                        const interface::Element* pTarget = targets.front();
+                        const interface::Element* pTarget = returnTypes.front();
                         clang::DeclContext* pDeclContextIter = pDeclContext;
                         const std::vector< const interface::Element* > path = getPath( pTarget );
                         for( const interface::Element* pElementElement : path )
@@ -531,12 +514,11 @@ namespace eg
                 break;
             case id_Range      : 
                 {
-                    if( !targets.empty() )
+                    if( !returnTypes.empty() )
                     {
-                        if( targets.size() == 1 )
+                        if( returnTypes.size() == 1 )
                         {
-                            ASSERT( finalPathTypes.size() == 1 );
-                            const interface::Element* pTarget = targets.front();
+                            const interface::Element* pTarget = returnTypes.front();
                             clang::DeclContext* pDeclContextIter = pDeclContext;
                             const std::vector< const interface::Element* > path = getPath( pTarget );
                             for( const interface::Element* pElementElement : path )
@@ -549,7 +531,7 @@ namespace eg
                             if( pDeclContextIter )
                                 resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "EGRangeType" );
                         }
-                        else if( finalPathTypes.size() == 1 )
+                        /*else if( finalPathTypes.size() == 1 )
                         {
                             const interface::Element* pIteratorType = finalPathTypes.front();
                             {
@@ -572,10 +554,10 @@ namespace eg
                                         loc, iteratorType.value(), pSolution->getRoot()->getMaxRanges() );
                                 }
                             }
-                        }
+                        }*/
                         else
                         {
-                            
+                            THROW_RTE( "Not implemented" );
                             
                             
                             

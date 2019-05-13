@@ -75,6 +75,952 @@ namespace eg
         return os;
     }
 
+    void InvocationSolution::load( Loader& loader )
+    {
+        loader.loadObjectVector( std::get< Context >( m_invocationID ) );
+        loader.loadObjectVectorVector( std::get< TypePath >( m_invocationID ) );
+        loader.load( std::get< OperationID >( m_invocationID ) );
+        loader.load( m_implicitTypePath );
+        
+        {
+            std::size_t szSize = 0U;
+            loader.load( szSize );
+            for( std::size_t sz = 0U; sz != szSize; ++sz )
+            {
+                const interface::Element* pInterface = loader.loadObjectRef< interface::Element >();
+                const concrete::Element* pConcrete = loader.loadObjectRef< concrete::Element >();
+                m_context.push_back( ElementPair( pInterface, pConcrete ) );
+            }
+        }
+        
+        {
+            std::size_t szSize = 0U;
+            loader.load( szSize );
+            for( std::size_t sz = 0U; sz != szSize; ++sz )
+            {
+                ElementPairVector elementVector;
+                std::size_t szSize2 = 0U;
+                loader.load( szSize2 );
+                for( std::size_t sz2 = 0U; sz2 != szSize2; ++sz2 )
+                {
+                    const interface::Element* pInterface = loader.loadObjectRef< interface::Element >();
+                    const concrete::Element* pConcrete = loader.loadObjectRef< concrete::Element >();
+                    elementVector.push_back( ElementPair( pInterface, pConcrete ) );
+                }
+                m_typePath.push_back( elementVector );
+            }
+        }
+        
+        loader.loadObjectVector( m_returnTypes );
+        loader.load( m_bDimensions );
+        loader.load( m_bHomogeneousDimensions );
+        
+        {
+            ASSERT( !m_pRoot );
+            ASTSerialiser astSerialiser;
+            m_pRoot = new RootInstruction;
+            m_pRoot->load( astSerialiser, loader );
+        }
+        
+    }
+    void InvocationSolution::store( Storer& storer ) const
+    {      
+        storer.storeObjectVector( std::get< Context >( m_invocationID ) );
+        storer.storeObjectVectorVector( std::get< TypePath >( m_invocationID ) );
+        storer.store( std::get< OperationID >( m_invocationID ) );
+        storer.store( m_implicitTypePath );
+        
+        {
+            storer.store( m_context.size() );
+            for( ElementPairVector::const_iterator i = m_context.begin(),
+                iEnd = m_context.end(); i!=iEnd; ++i )
+            {
+                storer.storeObjectRef( i->first );
+                storer.storeObjectRef( i->second );
+            }
+        }
+        
+        {
+            storer.store( m_typePath.size() );
+            for( ElementPairVectorVector::const_iterator j = m_typePath.begin(),
+                jEnd = m_typePath.end(); j!=jEnd; ++j )
+            {
+                const ElementPairVector& element = *j;
+                storer.store( element.size() );
+                for( ElementPairVector::const_iterator i = element.begin(),
+                    iEnd = element.end(); i!=iEnd; ++i )
+                {
+                    storer.storeObjectRef( i->first );
+                    storer.storeObjectRef( i->second );
+                }
+            }
+        }
+        
+        storer.storeObjectVector( m_returnTypes );
+        storer.store( m_bDimensions );
+        storer.store( m_bHomogeneousDimensions );
+        
+        {
+            ASSERT( m_pRoot );
+            ASTSerialiser astSerialiser;
+            m_pRoot->store( astSerialiser, storer );
+        }  
+    }
+    
+    class GenericOperationVisitor 
+    {
+        InvocationSolution& m_solution;
+        const NameResolution& m_resolution;
+        
+    public:
+        GenericOperationVisitor( InvocationSolution& solution, const NameResolution& resolution )
+            :   m_solution( solution ),
+                m_resolution( resolution )
+        {
+            
+        }
+        
+        const concrete::Element* findCommonRoot( const concrete::Element* pLeft, const concrete::Element* pRight )
+        {
+            if( pLeft == pRight ) return pLeft;
+            
+            std::list< const concrete::Element* > left, right;
+            while( pLeft )
+            {
+                left.push_front( pLeft );
+                pLeft = pLeft->getParent();
+            }
+            while( pRight )
+            {
+                right.push_front( pRight );
+                pRight = pRight->getParent();
+            }
+            const concrete::Element* pCommonRoot = nullptr;
+            for( std::list< const concrete::Element* >::iterator 
+                iLeft = left.begin(),
+                iRight = right.begin();
+                iLeft != left.end() && iRight != right.end() && *iLeft == *iRight; 
+                ++iLeft, ++iRight )
+                pCommonRoot = *iLeft;
+            return pCommonRoot;
+        }
+        
+        void commonRootDerivation( const concrete::Element* pFrom, const concrete::Element* pTo, 
+            Instruction*& pInstruction, InstanceVariable*& pVariable )
+        {
+            if( pFrom && pFrom != pTo )
+            {
+                const concrete::Element* pCommon = findCommonRoot( pFrom, pTo );
+                
+                while( pFrom != pCommon )
+                {
+                    const concrete::Action* pParent = 
+                        dynamic_cast< const concrete::Action* >( pFrom->getParent() );
+                    ASSERT( pParent );
+                    //generate parent derivation instruction
+                    InstanceVariable* pInstanceVariable = 
+                        new InstanceVariable( pVariable, pParent );
+                    
+                    ParentDerivationInstruction* pParentDerivation = 
+                        new ParentDerivationInstruction( pVariable, pInstanceVariable );
+                    pInstruction->append( pParentDerivation );
+                    
+                    pVariable = pInstanceVariable;
+                    pInstruction = pParentDerivation;
+                    pFrom = pFrom->getParent();
+                }
+                
+                std::vector< const concrete::Element* > path;
+                while( pTo != pCommon )
+                {
+                    path.push_back( pTo );
+                    pTo = pTo->getParent();
+                }
+                std::reverse( path.begin(), path.end() );
+                
+                for( const concrete::Element* pIter : path )
+                {
+                    if( pIter->getLocalDomainSize() != 1 )
+                    {
+                        FailureInstruction* pFailure = new FailureInstruction;
+                        pInstruction->append( pFailure );
+                        pInstruction = pFailure;
+                        return;
+                    }
+                    else
+                    {
+                        if( const concrete::Action* pAction = 
+                            dynamic_cast< const concrete::Action* >( pIter ) )
+                        {
+                            InstanceVariable* pInstanceVariable = 
+                                new InstanceVariable( pVariable, pAction );
+                            
+                            ChildDerivationInstruction* pChildDerivation = 
+                                new ChildDerivationInstruction( pVariable, pInstanceVariable );
+                            pInstruction->append( pChildDerivation );
+                            
+                            pVariable = pInstanceVariable;
+                            pInstruction = pChildDerivation;
+                        }
+                        else if( const concrete::Dimension_User* pUserDimension =
+                            dynamic_cast< const concrete::Dimension_User* >( pIter ) )
+                        {
+                            //just ignor this - always only want the parent instance variable..
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unreachable" );
+                        }
+                    }
+                }
+            }
+        }
+        
+        void buildOperation( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable )
+        {
+            const concrete::Element* pElement = current.getConcrete();
+            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
+            {
+                const interface::Action* pInterfaceAction = 
+                    dynamic_cast< const interface::Action* >( current.getInterface() );
+                switch( m_solution.getOperation() )
+                {
+                    case id_Imp_NoParams        :
+                    case id_Imp_Params          :
+                        {
+                            //only derive the parent for the starter
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete()->getParent(), pInstruction, pVariable );
+                            StartOperation* pStart = new StartOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pStart );
+                        }
+                        break;
+                    case id_Get                 :
+                        {
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                            GetActionOperation* pGetAction = new GetActionOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pGetAction );
+                        }
+                        break;
+                    case id_Update              :
+                    case id_Old                 :
+                        THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on action: " << m_solution.getID() );
+                        break;
+                    case id_Stop                :
+                        {
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                            StopOperation* pStop = new StopOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pStop );
+                        }
+                        break;
+                    case id_Pause               :
+                        {
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                            PauseOperation* pPause = new PauseOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pPause );
+                        }
+                        break;
+                    case id_Resume              :
+                        {
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                            ResumeOperation* pResume = new ResumeOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pResume );
+                        }
+                        break;
+                    case id_Defer               :
+                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
+                    default:
+                        THROW_RTE( "Unreachable" );
+                }
+            }
+            else if( const concrete::Dimension_User* pUserDimension = 
+                dynamic_cast< const concrete::Dimension_User* >( pElement ) )
+            {
+                commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+            
+                const interface::Dimension* pInterfaceDimension = 
+                    dynamic_cast< const interface::Dimension* >( current.getInterface() );
+                    
+                switch( m_solution.getOperation() )
+                {
+                    case id_Imp_NoParams        :
+                        {
+                            ReadOperation* pRead = new ReadOperation( pVariable, pInterfaceDimension, pUserDimension );
+                            pInstruction->append( pRead );
+                        }
+                        break;
+                    case id_Imp_Params          :
+                        {
+                            WriteOperation* pWrite = new WriteOperation( pVariable, pInterfaceDimension, pUserDimension );
+                            pInstruction->append( pWrite );
+                        }
+                        break;
+                    case id_Get                 :
+                    case id_Update              :
+                    case id_Old                 :
+                        break;
+                    case id_Stop                :
+                    case id_Pause               :
+                    case id_Resume              :
+                        THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension: " << m_solution.getID() );
+                    case id_Defer               :
+                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
+                    default:
+                        THROW_RTE( "Unreachable" );
+                }
+            }
+            else
+            {
+                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
+            }
+            
+        }
+            
+        void buildPolymorphicCase( const Name& prev, const Name& current, 
+            Instruction* pInstruction, ReferenceVariable* pVariable )
+        {
+            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getConcrete() );
+            ASSERT( pType );
+            
+            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
+            PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
+            pInstruction->append( pCase );
+            pInstruction = pCase;
+            
+            if( current.isTerminal() )
+            {
+                buildOperation( prev, current, pInstruction, pInstance );
+            }
+            else
+            {
+                if( current.getChildren().size() > 1U )
+                {
+                    EliminationInstruction* pElim = new EliminationInstruction;
+                    pInstruction->append( pElim );
+                    pInstruction = pElim;
+                }
+                ASSERT( !current.getChildren().empty() );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildGenerateName( current, next, pInstruction, pInstance );
+                }
+            }
+        }
+        
+        void buildMonoDereference( const Name& prev, const Name& current,
+            Instruction* pInstruction, ReferenceVariable* pVariable )
+        {
+            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getConcrete() );
+            ASSERT( pType );
+            
+            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
+            {
+                MonomorphicReferenceInstruction* pMono = 
+                    new MonomorphicReferenceInstruction( pVariable, pInstance );
+                pInstruction->append( pMono );
+                pInstruction = pMono;
+            }
+            
+            if( current.isTerminal() )
+            {
+                buildOperation( prev, current, pInstruction, pInstance );
+            }
+            else
+            {
+                if( current.getChildren().size() > 1U )
+                {
+                    EliminationInstruction* pElim = new EliminationInstruction;
+                    pInstruction->append( pElim );
+                    pInstruction = pElim;
+                }
+                ASSERT( !current.getChildren().empty() );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildGenerateName( current, next, pInstruction, pInstance );
+                }
+            }
+        }
+        
+        void buildGenerateName( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable )
+        {
+            if( current.isTerminal() )
+            {
+                buildOperation( prev, current, pInstruction, pVariable );
+            }
+            else if( current.isReference() )
+            {
+                commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                
+                std::vector< const concrete::Element* > types;
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    types.push_back( next.getConcrete() );
+                }
+                
+                DimensionReferenceVariable* pReferenceVariable = 
+                    new DimensionReferenceVariable( pVariable, types );
+                {
+                    const concrete::Dimension* pDimension = 
+                        dynamic_cast< const concrete::Dimension* >( current.getConcrete() );
+                    ASSERT( pDimension );
+                    DimensionReferenceReadInstruction* pDimensionRead = 
+                        new DimensionReferenceReadInstruction( 
+                            pVariable, pReferenceVariable, pDimension );
+                    pInstruction->append( pDimensionRead );
+                    pInstruction = pDimensionRead;
+                }
+                
+                if( types.size() > 1U )
+                {
+                    PolymorphicReferenceBranchInstruction* pBranch = 
+                        new PolymorphicReferenceBranchInstruction( pReferenceVariable );
+                    pInstruction->append( pBranch );
+                    
+                    for( std::size_t index : current.getChildren() )
+                    {
+                        const Name& next = m_resolution.getNodes()[ index ];
+                        buildPolymorphicCase( current, next, pBranch, pReferenceVariable );
+                    }
+                }
+                else
+                {
+                    ASSERT( !types.empty() );
+                    for( std::size_t index : current.getChildren() )
+                    {
+                        const Name& next = m_resolution.getNodes()[ index ];
+                        buildMonoDereference( current, next, pInstruction, pReferenceVariable );
+                    }
+                }
+            }
+            else
+            {
+                commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                
+                if( current.getChildren().size() > 1U )
+                {
+                    EliminationInstruction* pElim = new EliminationInstruction;
+                    pInstruction->append( pElim );
+                    pInstruction = pElim;
+                }
+                
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildGenerateName( current, next, pInstruction, pVariable );
+                }
+            }
+        }
+        
+        void operator()( Instruction* pInstruction, ContextVariable* pVariable )
+        {
+            const std::vector< const concrete::Element* >& contextTypes = pVariable->getTypes();
+            if( contextTypes.size() > 1U )
+            {
+                PolymorphicReferenceBranchInstruction* pBranch = 
+                    new PolymorphicReferenceBranchInstruction( pVariable );
+                pInstruction->append( pBranch );
+                
+                //start the recursion
+                const Name& current = m_resolution.getNodes()[ 0U ];
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildPolymorphicCase( current, next, pBranch, pVariable );
+                }
+            }
+            else
+            {
+                const Name& current = m_resolution.getNodes()[ 0U ];
+                ASSERT( current.getChildren().size() == 1U );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildMonoDereference( current, next, pInstruction, pVariable );
+                }
+            }
+        }
+    };
+    
+    
+    class EnumerationOperationVisitor 
+    {
+        InvocationSolution& m_solution;
+        const NameResolution& m_resolution;
+        
+    public:
+        EnumerationOperationVisitor( InvocationSolution& solution, const NameResolution& resolution )
+            :   m_solution( solution ),
+                m_resolution( resolution )
+        {
+            
+        }
+        
+        void targetDerivation( const concrete::Element* pContext, const concrete::Element* pTarget, 
+            Instruction*& pInstruction, InstanceVariable*& pVariable )
+        {
+            std::vector< const concrete::Element* > path;
+            while( pTarget && ( pTarget != pContext ) )
+            {
+                path.push_back( pTarget );
+                pTarget = pTarget->getParent();
+            }
+            
+            if( pTarget == pContext )
+            {
+                std::reverse( path.begin(), path.end() );
+                for( const concrete::Element* pIter : path )
+                {
+                    if( const concrete::Action* pAction = 
+                        dynamic_cast< const concrete::Action* >( pIter ) )
+                    {
+                        InstanceVariable* pInstanceVariable = 
+                            new InstanceVariable( pVariable, pAction );
+                        
+                        EnumDerivationInstruction* pEnumDerivation = 
+                            new EnumDerivationInstruction( pVariable, pInstanceVariable );
+                        pInstruction->append( pEnumDerivation );
+                        
+                        pVariable = pInstanceVariable;
+                        pInstruction = pEnumDerivation;
+                    }
+                    else
+                    {
+                        //failure
+                        FailureInstruction* pFailure = new FailureInstruction;
+                        pInstruction->append( pFailure );
+                        pInstruction = pFailure;
+                        return;
+                        
+                    }
+                }
+            }
+            else
+            {
+                //failure
+                FailureInstruction* pFailure = new FailureInstruction;
+                pInstruction->append( pFailure );
+                pInstruction = pFailure;
+                return;
+            }
+        }
+        
+        void buildOperation( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable )
+        {
+            const concrete::Element* pElement = current.getConcrete();
+            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
+            {
+                const interface::Action* pInterfaceAction = 
+                    dynamic_cast< const interface::Action* >( current.getInterface() );
+                switch( m_solution.getOperation() )
+                {
+                    case id_Size                :
+                        {
+                        }
+                        break;
+                    case id_Range               :
+                        {
+                            RangeOperation* pRangeOp = new RangeOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pRangeOp );
+                        }
+                        break;
+                    default:
+                        THROW_RTE( "Unreachable" );
+                }
+            }
+            else
+            {
+                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
+            }
+            
+        }
+        
+        void buildEnum( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable )
+        {
+            if( current.isReference() )
+            {
+                THROW_INVOCATION_EXCEPTION( "Cannot have reference in range invocation type path: " << m_solution.getID() );
+            }
+            
+            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( current.getConcrete() ) )
+            {
+                targetDerivation( prev.getConcrete(), pAction, pInstruction, pVariable );
+                
+                if( current.isTerminal() )
+                {
+                    buildOperation( prev, current, pInstruction, pVariable );
+                }
+                else 
+                {
+                    ASSERT( !current.getChildren().empty() );
+                    for( std::size_t index : current.getChildren() )
+                    {
+                        const Name& next = m_resolution.getNodes()[ index ];
+                        buildEnum( current, next, pInstruction, pVariable );
+                    }
+                }
+            }
+            else
+            {
+                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
+            }
+        }
+            
+        void buildPolymorphicCase( const Name& prev, const Name& current, 
+            Instruction* pInstruction, ReferenceVariable* pVariable )
+        {
+            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getConcrete() );
+            ASSERT( pType );
+            
+            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
+            {
+                PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
+                pInstruction->append( pCase );
+                pInstruction = pCase;
+            }
+            
+            {
+                EnumerationInstruction* pEnumeration = new EnumerationInstruction( pInstance );
+                pInstruction->append( pEnumeration );
+                pInstruction = pEnumeration;
+            }
+            
+            {
+                PruneInstruction* pPrune = new PruneInstruction;
+                pInstruction->append( pPrune );
+                pInstruction = pPrune;
+            }
+            
+            ASSERT( !current.getChildren().empty() );
+            for( std::size_t index : current.getChildren() )
+            {
+                const Name& next = m_resolution.getNodes()[ index ];
+                buildEnum( current, next, pInstruction, pInstance );
+            }
+        }
+        
+        void buildMonoDereference( const Name& prev, const Name& current,
+            Instruction* pInstruction, ReferenceVariable* pVariable )
+        {
+            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getConcrete() );
+            ASSERT( pType );
+            
+            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
+            {
+                MonomorphicReferenceInstruction* pMono = 
+                    new MonomorphicReferenceInstruction( pVariable, pInstance );
+                pInstruction->append( pMono );
+                pInstruction = pMono;
+            }
+            
+            {
+                EnumerationInstruction* pEnumeration = new EnumerationInstruction( pInstance );
+                pInstruction->append( pEnumeration );
+                pInstruction = pEnumeration;
+            }
+            
+            {
+                PruneInstruction* pPrune = new PruneInstruction;
+                pInstruction->append( pPrune );
+                pInstruction = pPrune;
+            }
+            
+            ASSERT( !current.getChildren().empty() );
+            for( std::size_t index : current.getChildren() )
+            {
+                const Name& next = m_resolution.getNodes()[ index ];
+                buildEnum( current, next, pInstruction, pInstance );
+            }
+        }
+        
+        void operator()( Instruction* pInstruction, ContextVariable* pVariable )
+        {
+            const std::vector< const concrete::Element* >& contextTypes = pVariable->getTypes();
+            if( contextTypes.size() > 1U )
+            {
+                PolymorphicReferenceBranchInstruction* pBranch = 
+                    new PolymorphicReferenceBranchInstruction( pVariable );
+                pInstruction->append( pBranch );
+                
+                //start the recursion
+                const Name& current = m_resolution.getNodes()[ 0U ];
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildPolymorphicCase( current, next, pBranch, pVariable );
+                }
+            }
+            else
+            {
+                const Name& current = m_resolution.getNodes()[ 0U ];
+                ASSERT( current.getChildren().size() == 1U );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildMonoDereference( current, next, pInstruction, pVariable );
+                }
+            }
+        }
+    };
+    
+    void InvocationSolution::analyseReturnTypes()
+    {
+        std::vector< const Operation* > operations;
+        m_pRoot->getOperations( operations );
+        
+        for( const Operation* pOperation : operations )
+        {
+            pOperation->getTargetAbstractTypes( m_returnTypes );
+        }
+        m_returnTypes = uniquify_without_reorder( m_returnTypes );
+        ASSERT( std::set< const interface::Element* >( m_returnTypes.begin(), m_returnTypes.end() ).size() == m_returnTypes.size() );
+        if( getOperation() == id_Range )
+        {
+            const int iMaxRanges = m_pRoot->setReturnTypes( m_returnTypes );
+            m_pRoot->setMaxRanges( iMaxRanges );
+        }
+        
+        std::vector< const interface::Dimension* > dimensions;
+        std::vector< const interface::Action* > actions;
+        for( const interface::Element* pReturnType : m_returnTypes )
+        {
+            if( const interface::Dimension* pDimension = dynamic_cast< const interface::Dimension* >( pReturnType ) )
+            {
+                dimensions.push_back( pDimension );
+            }
+            else if( const interface::Action* pAction = dynamic_cast< const interface::Action* >( pReturnType ) )
+            {
+                actions.push_back( pAction );
+            }
+        }
+        
+        if( dimensions.size() && actions.size() )
+        {
+            THROW_INVOCATION_EXCEPTION( "Mixed dimension and action invocation return types: " << m_invocationID );
+        }
+        else if( dimensions.size() )
+        {
+            m_bDimensions = true;
+            m_bHomogeneousDimensions = interface::Dimension::isHomogenous( dimensions );
+        }
+        else if( actions.size() )
+        {
+            m_bDimensions = false;
+        }
+        else
+        {
+            THROW_INVOCATION_EXCEPTION( "Invocation could not resolve target types: " << m_invocationID );
+        }
+    }
+    
+    void InvocationSolution::build( const DerivationAnalysis& analysis, const NameResolution& resolution )
+    {
+        ASSERT( !m_pRoot );
+        
+        std::vector< const concrete::Element* > types;
+        for( const ElementPair& element : m_context )
+        {
+            types.push_back( element.second );
+        }
+        ContextVariable* pContextVariable = new ContextVariable( types );
+        m_pRoot = new RootInstruction( pContextVariable );
+        
+        switch( getOperation() )
+        {
+            case id_Imp_NoParams        :
+            case id_Imp_Params          :
+            case id_Get                 :
+            case id_Update              :
+            case id_Old                 :
+            case id_Stop                :
+            case id_Pause               :
+            case id_Resume              :
+            case id_Defer               :
+                {
+                    GenericOperationVisitor builder( *this, resolution );
+                    builder( m_pRoot, pContextVariable );
+                }
+                break;
+            case id_Size                :
+            case id_Range               :
+                {
+                    EnumerationOperationVisitor builder( *this, resolution );
+                    builder( m_pRoot, pContextVariable );
+                }
+                break;
+            case HIGHEST_OPERATION_TYPE :
+                break;
+        }
+         
+        switch( m_pRoot->eliminate() )
+        {
+            case Instruction::eSuccess   :
+                analyseReturnTypes();
+                break;
+            case Instruction::eFailure   :
+                THROW_INVOCATION_EXCEPTION( "No possible derivation for: " << m_invocationID );
+            case Instruction::eAmbiguous :
+                {
+                    //if starter then accept explicit concrete action type over deriving
+                    if( isImplicitStarter() )
+                    {
+                        //get the operations
+                        std::vector< const Operation* > operations;
+                        m_pRoot->getOperations( operations );
+                        Context returnTypes;
+                        for( const Operation* pOperation : operations )
+                        {
+                            pOperation->getTargetAbstractTypes( returnTypes );
+                        }
+                        
+                        //determine if there are target elements that are concrete 
+                        //and have a corresponding concrete type
+                        ASSERT( !m_typePath.empty() );
+                        const ElementPairVector& last = m_typePath.back();
+                        ElementPairVector concreteTargets;
+                        for( const ElementPair& element : last )
+                        {
+                            const interface::Action* pInterfaceAction = 
+                                dynamic_cast< const interface::Action* >( element.first );
+                            ASSERT( pInterfaceAction );
+                            if( !pInterfaceAction->isAbstract() )
+                            {
+                                const concrete::Action* pConcreteAction = 
+                                    dynamic_cast< const concrete::Action* >( element.second );
+                                if( pConcreteAction->getAction() == pInterfaceAction )
+                                    concreteTargets.push_back( element );
+                            }
+                        }
+                        
+                        //if so use them and eliminate the others
+                        if( !concreteTargets.empty() )
+                        {
+                            std::vector< const Operation* > candidateOperations;
+                            for( const Operation* pOperation : operations )
+                            {
+                                const StartOperation* pStart = dynamic_cast< const StartOperation* >( pOperation );
+                                ASSERT( pStart );
+                                for( const ElementPair& element : concreteTargets )
+                                {
+                                    if( ( element.first     == pStart->getInterfaceType() ) && 
+                                        ( element.second    == pStart->getConcreteType() ) )
+                                    {
+                                        candidateOperations.push_back( pStart );
+                                    }
+                                }
+                            }
+                                
+                            if( !candidateOperations.empty() )
+                            {
+                                switch( m_pRoot->secondStageElimination( candidateOperations ) )
+                                {
+                                    case Instruction::eSuccess   :
+                                        analyseReturnTypes();
+                                        break;
+                                    case Instruction::eFailure   :
+                                        THROW_INVOCATION_EXCEPTION( "No possible derivation for: " << m_invocationID );
+                                    case Instruction::eAmbiguous :
+                                        THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for: " << m_invocationID );
+                                } 
+                            }
+                            else
+                            {
+                                THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for: " << m_invocationID );
+                            }
+                        }
+                        else
+                        {
+                            THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for: " << m_invocationID );
+                        }
+                    }
+                    else
+                    {
+                        THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for: " << m_invocationID );
+                    }
+                }
+                break;
+        }
+    }
+    
+    /*
+    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const
+    {
+        reference next = context;
+        
+        switch( pStep->type )
+        {
+            case DerivationStep::eParent      :
+                {
+                    const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance );
+                    ASSERT( pAction );
+                    next = reference{  context.instance / pStep->domain, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
+                    iPriority = 1;
+                }
+                break;
+            case DerivationStep::eTarget      :
+            case DerivationStep::eChild       :
+                {
+                    if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance ) )
+                    {
+                        next = reference{  context.instance, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
+                        iPriority = 1;
+                    }
+                    else if( const concrete::Dimension_User* pDimension =
+                                dynamic_cast< const concrete::Dimension_User* >( pStep->pInstance ) )
+                    {
+                        next = reference{  context.instance, static_cast< eg::TypeID >( pDimension->getIndex() ), 0 };
+                        iPriority = 1;
+                    }
+                    else
+                    {
+                        ASSERT( false );
+                    }
+                }
+                break;
+            case DerivationStep::eLink        :
+            case DerivationStep::eDeReference :
+                break;
+            case DerivationStep::eRoot        :
+                break;
+            case DerivationStep::eEnum        :
+            case DerivationStep::eFailed      :
+                break;
+        }
+        
+        for( const DerivationStep* pChildStep : pStep->next )
+        {
+            int priority = 0, best = -1;
+            reference candidate = evaluate( evaluator, next, pChildStep, priority );
+            if( priority == best )
+            {
+                //ambiguity
+            }
+            else if( priority > best )
+            {
+                next = candidate;
+                best = priority;
+            }
+        }
+        
+        return next;
+    }*/
+    
+    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context ) const
+    {
+        int priority = 0;
+        //return evaluate( evaluator, context, m_pRoot, priority );
+        reference r;
+        return r;
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////
+    
     std::vector< const interface::Element* > fromEGTypeID( const IndexedObject::Array& objects, 
         const Identifiers& identifiers, TypeID typeID, bool bForceDecl )
     {
@@ -204,816 +1150,131 @@ namespace eg
         return InvocationSolution::InvocationID( context, typePath, operationType );
     }
     
-    void InvocationSolution::load( Loader& loader )
+    const interface::Action* chooseMostDerived( const interface::Action* pConcreteAction,
+        const interface::Action* pFirst, const interface::Action* pSecond )
     {
-        loader.loadObjectVector( std::get< Context >( m_invocationID ) );
-        loader.loadObjectVectorVector( std::get< TypePath >( m_invocationID ) );
-        loader.load( std::get< OperationID >( m_invocationID ) );
-        loader.load( m_implicitTypePath );
-        loader.loadObjectVector( m_finalPathTypes );
-        loader.loadObjectVector( m_targetTypes );
-        loader.loadObjectVector( m_contextElements );
-        loader.loadObjectVectorVector( m_concreteTypePath );
+        ASSERT( pFirst != pSecond );
         
+        if( pConcreteAction == pFirst )
+            return pFirst;
+        else if( pConcreteAction == pSecond )
+            return pSecond;
+        else
         {
-            ASSERT( !m_pRoot );
-            ASTSerialiser astSerialiser;
-            m_pRoot = new RootInstruction;
-            m_pRoot->load( astSerialiser, loader );
+            const interface::Action* pResult = nullptr;
+            for( const interface::Action* pBase : pConcreteAction->getBaseActions() )
+            {
+                if( const interface::Action* p = chooseMostDerived( pBase, pFirst, pSecond ) )
+                {
+                    ASSERT( !pResult );
+                    pResult = p;
+                }
+            }
+            return pResult;
         }
-        
-    }
-    void InvocationSolution::store( Storer& storer ) const
-    {      
-        storer.storeObjectVector( std::get< Context >( m_invocationID ) );
-        storer.storeObjectVectorVector( std::get< TypePath >( m_invocationID ) );
-        storer.store( std::get< OperationID >( m_invocationID ) );
-        storer.store( m_implicitTypePath );
-        storer.storeObjectVector( m_finalPathTypes );
-        storer.storeObjectVector( m_targetTypes );
-        storer.storeObjectVector( m_contextElements );
-        storer.storeObjectVectorVector( m_concreteTypePath );
-        
-        {
-            ASSERT( m_pRoot );
-            ASTSerialiser astSerialiser;
-            m_pRoot->store( astSerialiser, storer );
-        }  
     }
     
-    class GenericOperationVisitor 
+    InvocationSolution::ElementPairVector InvocationSolution::getElementVector( const DerivationAnalysis& analysis, 
+        const std::vector< const interface::Element* >& interfaceElements, bool bIncludeInherited )
     {
-        InvocationSolution& m_solution;
-        const NameResolution& m_resolution;
+        ElementPairVector result;
         
-    public:
-        GenericOperationVisitor( InvocationSolution& solution, const NameResolution& resolution )
-            :   m_solution( solution ),
-                m_resolution( resolution )
+        for( const interface::Element* pInterfaceElement : interfaceElements )
         {
+            std::vector< const concrete::Element* > instances;
+            analysis.getInstances( pInterfaceElement, instances, bIncludeInherited );
             
-        }
-        
-        const concrete::Element* findCommonRoot( const concrete::Element* pLeft, const concrete::Element* pRight )
-        {
-            if( pLeft == pRight ) return pLeft;
-            
-            std::list< const concrete::Element* > left, right;
-            while( pLeft )
+            for( const concrete::Element* pConcreteElement : instances )
             {
-                left.push_front( pLeft );
-                pLeft = pLeft->getParent();
-            }
-            while( pRight )
-            {
-                right.push_front( pRight );
-                pRight = pRight->getParent();
-            }
-            const concrete::Element* pCommonRoot = nullptr;
-            for( std::list< const concrete::Element* >::iterator 
-                iLeft = left.begin(),
-                iRight = right.begin();
-                iLeft != left.end() && iRight != right.end() && *iLeft == *iRight; 
-                ++iLeft, ++iRight )
-                pCommonRoot = *iLeft;
-            return pCommonRoot;
-        }
-        
-        void commonRootDerivation( const concrete::Element* pFrom, const concrete::Element* pTo, 
-            Instruction*& pInstruction, InstanceVariable*& pVariable )
-        {
-            if( pFrom && pFrom != pTo )
-            {
-                const concrete::Element* pCommon = findCommonRoot( pFrom, pTo );
-                
-                while( pFrom != pCommon )
+                //only want each concrete element to occur once in the type path element
+                //so scan through existing
+                bool bFound = false;
+                for( ElementPairVector::iterator i = result.begin(),
+                    iEnd = result.end(); i!=iEnd; ++i )
                 {
-                    const concrete::Action* pParent = 
-                        dynamic_cast< const concrete::Action* >( pFrom->getParent() );
-                    ASSERT( pParent );
-                    //generate parent derivation instruction
-                    InstanceVariable* pInstanceVariable = 
-                        new InstanceVariable( pVariable, pParent );
-                    
-                    ParentDerivationInstruction* pParentDerivation = 
-                        new ParentDerivationInstruction( pVariable, pInstanceVariable );
-                    pInstruction->append( pParentDerivation );
-                    
-                    pVariable = pInstanceVariable;
-                    pInstruction = pParentDerivation;
-                    pFrom = pFrom->getParent();
-                }
-                
-                std::vector< const concrete::Element* > path;
-                while( pTo != pCommon )
-                {
-                    path.push_back( pTo );
-                    pTo = pTo->getParent();
-                }
-                std::reverse( path.begin(), path.end() );
-                
-                for( const concrete::Element* pIter : path )
-                {
-                    if( pIter->getLocalDomainSize() != 1 )
+                    if( i->second == pConcreteElement )
                     {
-                        FailureInstruction* pFailure = new FailureInstruction;
-                        pInstruction->append( pFailure );
-                        pInstruction = pFailure;
-                        return;
-                    }
-                    else
-                    {
-                        if( const concrete::Action* pAction = 
-                            dynamic_cast< const concrete::Action* >( pIter ) )
-                        {
-                            InstanceVariable* pInstanceVariable = 
-                                new InstanceVariable( pVariable, pAction );
-                            
-                            ChildDerivationInstruction* pChildDerivation = 
-                                new ChildDerivationInstruction( pVariable, pInstanceVariable );
-                            pInstruction->append( pChildDerivation );
-                            
-                            pVariable = pInstanceVariable;
-                            pInstruction = pChildDerivation;
-                        }
-                        else if( const concrete::Dimension_User* pUserDimension =
-                            dynamic_cast< const concrete::Dimension_User* >( pIter ) )
-                        {
-                            //just ignor this - always only want the parent instance variable..
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unreachable" );
-                        }
-                    }
-                }
-            }
-        }
-        
-        void buildOperation( const Name& prev, const Name& current, 
-            Instruction* pInstruction, InstanceVariable* pVariable )
-        {
-            const concrete::Element* pElement = current.getElement();
-            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
-            {
-                switch( m_solution.getOperation() )
-                {
-                    case id_Imp_NoParams        :
-                    case id_Imp_Params          :
-                        {
-                            //only derive the parent for the starter
-                            commonRootDerivation( prev.getElement(), current.getElement()->getParent(), 
-                                pInstruction, pVariable );
-                            StartOperation* pStart = new StartOperation( pVariable, pAction );
-                            pInstruction->append( pStart );
-                        }
-                        break;
-                    case id_Get                 :
-                        {
-                            commonRootDerivation( prev.getElement(), current.getElement(), 
-                                pInstruction, pVariable );
-                            GetActionOperation* pGetAction = new GetActionOperation( pVariable, pAction );
-                            pInstruction->append( pGetAction );
-                        }
-                        break;
-                    case id_Update              :
-                    case id_Old                 :
-                        THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on action: " << m_solution.getID() );
-                        break;
-                    case id_Stop                :
-                        {
-                            commonRootDerivation( prev.getElement(), current.getElement(), 
-                                pInstruction, pVariable );
-                            StopOperation* pStop = new StopOperation( pVariable, pAction );
-                            pInstruction->append( pStop );
-                        }
-                        break;
-                    case id_Pause               :
-                        {
-                            commonRootDerivation( prev.getElement(), current.getElement(), 
-                                pInstruction, pVariable );
-                            PauseOperation* pPause = new PauseOperation( pVariable, pAction );
-                            pInstruction->append( pPause );
-                        }
-                        break;
-                    case id_Resume              :
-                        {
-                            commonRootDerivation( prev.getElement(), current.getElement(), 
-                                pInstruction, pVariable );
-                            ResumeOperation* pResume = new ResumeOperation( pVariable, pAction );
-                            pInstruction->append( pResume );
-                        }
-                        break;
-                    case id_Defer               :
-                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
-                    default:
-                        THROW_RTE( "Unreachable" );
-                }
-            }
-            else if( const concrete::Dimension_User* pUserDimension = 
-                dynamic_cast< const concrete::Dimension_User* >( pElement ) )
-            {
-                commonRootDerivation( prev.getElement(), current.getElement(), pInstruction, pVariable );
-            
-                switch( m_solution.getOperation() )
-                {
-                    case id_Imp_NoParams        :
-                        {
-                            ReadOperation* pRead = new ReadOperation( pVariable, pUserDimension );
-                            pInstruction->append( pRead );
-                        }
-                        break;
-                    case id_Imp_Params          :
-                        {
-                            WriteOperation* pWrite = new WriteOperation( pVariable, pUserDimension );
-                            pInstruction->append( pWrite );
-                        }
-                        break;
-                    case id_Get                 :
-                    case id_Update              :
-                    case id_Old                 :
-                        break;
-                    case id_Stop                :
-                    case id_Pause               :
-                    case id_Resume              :
-                        THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension: " << m_solution.getID() );
-                    case id_Defer               :
-                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
-                    default:
-                        THROW_RTE( "Unreachable" );
-                }
-            }
-            else
-            {
-                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
-            }
-            
-        }
-            
-        void buildPolymorphicCase( const Name& prev, const Name& current, 
-            Instruction* pInstruction, ReferenceVariable* pVariable )
-        {
-            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getElement() );
-            ASSERT( pType );
-            
-            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
-            pInstruction->append( pCase );
-            pInstruction = pCase;
-            
-            if( current.isTerminal() )
-            {
-                buildOperation( prev, current, pInstruction, pInstance );
-            }
-            else
-            {
-                if( current.getChildren().size() > 1U )
-                {
-                    EliminationInstruction* pElim = new EliminationInstruction;
-                    pInstruction->append( pElim );
-                    pInstruction = pElim;
-                }
-                ASSERT( !current.getChildren().empty() );
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    buildGenerateName( current, next, pInstruction, pInstance );
-                }
-            }
-        }
-        
-        void buildMonoDereference( const Name& prev, const Name& current,
-            Instruction* pInstruction, ReferenceVariable* pVariable )
-        {
-            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getElement() );
-            ASSERT( pType );
-            
-            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            {
-                MonomorphicReferenceInstruction* pMono = 
-                    new MonomorphicReferenceInstruction( pVariable, pInstance );
-                pInstruction->append( pMono );
-                pInstruction = pMono;
-            }
-            
-            if( current.isTerminal() )
-            {
-                buildOperation( prev, current, pInstruction, pInstance );
-            }
-            else
-            {
-                if( current.getChildren().size() > 1U )
-                {
-                    EliminationInstruction* pElim = new EliminationInstruction;
-                    pInstruction->append( pElim );
-                    pInstruction = pElim;
-                }
-                ASSERT( !current.getChildren().empty() );
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    buildGenerateName( current, next, pInstruction, pInstance );
-                }
-            }
-        }
-        
-        void buildGenerateName( const Name& prev, const Name& current, 
-            Instruction* pInstruction, InstanceVariable* pVariable )
-        {
-            if( current.isTerminal() )
-            {
-                buildOperation( prev, current, pInstruction, pVariable );
-            }
-            else if( current.isReference() )
-            {
-                commonRootDerivation( prev.getElement(), current.getElement(), pInstruction, pVariable );
-                
-                std::vector< const concrete::Element* > types;
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    types.push_back( next.getElement() );
-                }
-                
-                DimensionReferenceVariable* pReferenceVariable = 
-                    new DimensionReferenceVariable( pVariable, types );
-                {
-                    const concrete::Dimension* pDimension = 
-                        dynamic_cast< const concrete::Dimension* >( current.getElement() );
-                    ASSERT( pDimension );
-                    DimensionReferenceReadInstruction* pDimensionRead = 
-                        new DimensionReferenceReadInstruction( 
-                            pVariable, pReferenceVariable, pDimension );
-                    pInstruction->append( pDimensionRead );
-                    pInstruction = pDimensionRead;
-                }
-                
-                if( types.size() > 1U )
-                {
-                    PolymorphicReferenceBranchInstruction* pBranch = 
-                        new PolymorphicReferenceBranchInstruction( pReferenceVariable );
-                    pInstruction->append( pBranch );
-                    
-                    for( std::size_t index : current.getChildren() )
-                    {
-                        const Name& next = m_resolution.getNodes()[ index ];
-                        buildPolymorphicCase( current, next, pBranch, pReferenceVariable );
-                    }
-                }
-                else
-                {
-                    ASSERT( !types.empty() );
-                    for( std::size_t index : current.getChildren() )
-                    {
-                        const Name& next = m_resolution.getNodes()[ index ];
-                        buildMonoDereference( current, next, pInstruction, pReferenceVariable );
-                    }
-                }
-            }
-            else
-            {
-                commonRootDerivation( prev.getElement(), current.getElement(), pInstruction, pVariable );
-                
-                if( current.getChildren().size() > 1U )
-                {
-                    EliminationInstruction* pElim = new EliminationInstruction;
-                    pInstruction->append( pElim );
-                    pInstruction = pElim;
-                }
-                
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    buildGenerateName( current, next, pInstruction, pVariable );
-                }
-            }
-        }
-        
-        void operator()( Instruction* pInstruction, ContextVariable* pVariable )
-        {
-            const std::vector< const concrete::Element* >& contextTypes = pVariable->getTypes();
-            if( contextTypes.size() > 1U )
-            {
-                PolymorphicReferenceBranchInstruction* pBranch = 
-                    new PolymorphicReferenceBranchInstruction( pVariable );
-                pInstruction->append( pBranch );
-                
-                //start the recursion
-                const Name& current = m_resolution.getNodes()[ 0U ];
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    buildPolymorphicCase( current, next, pBranch, pVariable );
-                }
-            }
-            else
-            {
-                const Name& current = m_resolution.getNodes()[ 0U ];
-                ASSERT( current.getChildren().size() == 1U );
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    buildMonoDereference( current, next, pInstruction, pVariable );
-                }
-            }
-        }
-    };
-    
-    
-    class EnumerationOperationVisitor 
-    {
-        InvocationSolution& m_solution;
-        const NameResolution& m_resolution;
-        
-    public:
-        EnumerationOperationVisitor( InvocationSolution& solution, const NameResolution& resolution )
-            :   m_solution( solution ),
-                m_resolution( resolution )
-        {
-            
-        }
-        
-        void targetDerivation( const concrete::Element* pContext, const concrete::Element* pTarget, 
-            Instruction*& pInstruction, InstanceVariable*& pVariable )
-        {
-            std::vector< const concrete::Element* > path;
-            while( pTarget && ( pTarget != pContext ) )
-            {
-                path.push_back( pTarget );
-                pTarget = pTarget->getParent();
-            }
-            
-            if( pTarget == pContext )
-            {
-                std::reverse( path.begin(), path.end() );
-                for( const concrete::Element* pIter : path )
-                {
-                    if( const concrete::Action* pAction = 
-                        dynamic_cast< const concrete::Action* >( pIter ) )
-                    {
-                        InstanceVariable* pInstanceVariable = 
-                            new InstanceVariable( pVariable, pAction );
+                        //choose which interface type to keep - choose the MOST deriving one
+                        const concrete::Action* pConcreteAction = 
+                            dynamic_cast< const concrete::Action* >( pConcreteElement );
+                        //the concrete element can only occur be an action if it has occured twice
+                        //because dimensions do not use inheritance
+                        ASSERT( pConcreteAction );
                         
-                        EnumDerivationInstruction* pEnumDerivation = 
-                            new EnumDerivationInstruction( pVariable, pInstanceVariable );
-                        pInstruction->append( pEnumDerivation );
+                        const interface::Action* pFirst = 
+                            dynamic_cast< const interface::Action* >( i->first );
+                        const interface::Action* pSecond = 
+                            dynamic_cast< const interface::Action* >( pInterfaceElement );
                         
-                        pVariable = pInstanceVariable;
-                        pInstruction = pEnumDerivation;
-                    }
-                    else
-                    {
-                        //failure
-                        FailureInstruction* pFailure = new FailureInstruction;
-                        pInstruction->append( pFailure );
-                        pInstruction = pFailure;
-                        return;
+                        i->first = chooseMostDerived( pConcreteAction->getAction(), pFirst, pSecond );
+                        ASSERT( i->first );
                         
+                        bFound = true;
                     }
                 }
-            }
-            else
-            {
-                //failure
-                FailureInstruction* pFailure = new FailureInstruction;
-                pInstruction->append( pFailure );
-                pInstruction = pFailure;
-                return;
-            }
-        }
-        
-        void buildOperation( const Name& prev, const Name& current, 
-            Instruction* pInstruction, InstanceVariable* pVariable )
-        {
-            const concrete::Element* pElement = current.getElement();
-            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
-            {
-                switch( m_solution.getOperation() )
-                {
-                    case id_Size                :
-                        {
-                        }
-                        break;
-                    case id_Range               :
-                        {
-                            RangeOperation* pRangeOp = new RangeOperation( pVariable, pAction );
-                            pInstruction->append( pRangeOp );
-                        }
-                        break;
-                    default:
-                        THROW_RTE( "Unreachable" );
-                }
-            }
-            else
-            {
-                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
-            }
-            
-        }
-        
-        void buildEnum( const Name& prev, const Name& current, 
-            Instruction* pInstruction, InstanceVariable* pVariable )
-        {
-            if( current.isReference() )
-            {
-                THROW_INVOCATION_EXCEPTION( "Cannot have reference in range invocation type path: " << m_solution.getID() );
-            }
-            
-            if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( current.getElement() ) )
-            {
-                targetDerivation( prev.getElement(), pAction, pInstruction, pVariable );
                 
-                if( current.isTerminal() )
+                if( !bFound )
                 {
-                    buildOperation( prev, current, pInstruction, pVariable );
+                    result.push_back( std::make_pair( pInterfaceElement, pConcreteElement ) );
                 }
-                else 
-                {
-                    ASSERT( !current.getChildren().empty() );
-                    for( std::size_t index : current.getChildren() )
-                    {
-                        const Name& next = m_resolution.getNodes()[ index ];
-                        buildEnum( current, next, pInstruction, pVariable );
-                    }
-                }
-            }
-            else
-            {
-                THROW_INVOCATION_EXCEPTION( "Invalid invocation target: " << m_solution.getID() );
-            }
-        }
-            
-        void buildPolymorphicCase( const Name& prev, const Name& current, 
-            Instruction* pInstruction, ReferenceVariable* pVariable )
-        {
-            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getElement() );
-            ASSERT( pType );
-            
-            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            {
-                PolymorphicCaseInstruction* pCase = new PolymorphicCaseInstruction( pVariable, pInstance );
-                pInstruction->append( pCase );
-                pInstruction = pCase;
-            }
-            
-            {
-                EnumerationInstruction* pEnumeration = new EnumerationInstruction( pInstance );
-                pInstruction->append( pEnumeration );
-                pInstruction = pEnumeration;
-            }
-            
-            {
-                PruneInstruction* pPrune = new PruneInstruction;
-                pInstruction->append( pPrune );
-                pInstruction = pPrune;
-            }
-            
-            ASSERT( !current.getChildren().empty() );
-            for( std::size_t index : current.getChildren() )
-            {
-                const Name& next = m_resolution.getNodes()[ index ];
-                buildEnum( current, next, pInstruction, pInstance );
             }
         }
         
-        void buildMonoDereference( const Name& prev, const Name& current,
-            Instruction* pInstruction, ReferenceVariable* pVariable )
-        {
-            const concrete::Action* pType = dynamic_cast< const concrete::Action* >( current.getElement() );
-            ASSERT( pType );
-            
-            InstanceVariable* pInstance = new InstanceVariable( pVariable, pType );
-            {
-                MonomorphicReferenceInstruction* pMono = 
-                    new MonomorphicReferenceInstruction( pVariable, pInstance );
-                pInstruction->append( pMono );
-                pInstruction = pMono;
-            }
-            
-            {
-                EnumerationInstruction* pEnumeration = new EnumerationInstruction( pInstance );
-                pInstruction->append( pEnumeration );
-                pInstruction = pEnumeration;
-            }
-            
-            {
-                PruneInstruction* pPrune = new PruneInstruction;
-                pInstruction->append( pPrune );
-                pInstruction = pPrune;
-            }
-            
-            ASSERT( !current.getChildren().empty() );
-            for( std::size_t index : current.getChildren() )
-            {
-                const Name& next = m_resolution.getNodes()[ index ];
-                buildEnum( current, next, pInstruction, pInstance );
-            }
-        }
-        
-        void operator()( Instruction* pInstruction, ContextVariable* pVariable )
-        {
-            const std::vector< const concrete::Element* >& contextTypes = pVariable->getTypes();
-            if( contextTypes.size() > 1U )
-            {
-                PolymorphicReferenceBranchInstruction* pBranch = 
-                    new PolymorphicReferenceBranchInstruction( pVariable );
-                pInstruction->append( pBranch );
-                
-                //start the recursion
-                const Name& current = m_resolution.getNodes()[ 0U ];
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    buildPolymorphicCase( current, next, pBranch, pVariable );
-                }
-            }
-            else
-            {
-                const Name& current = m_resolution.getNodes()[ 0U ];
-                ASSERT( current.getChildren().size() == 1U );
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    buildMonoDereference( current, next, pInstruction, pVariable );
-                }
-            }
-        }
-    };
-    
-    void InvocationSolution::build( const DerivationAnalysis& analysis, const NameResolution& resolution )
-    {
-        ASSERT( !m_pRoot );
-        ContextVariable* pContextVariable = new ContextVariable( m_contextElements );
-        m_pRoot = new RootInstruction( pContextVariable );
-        
-        switch( getOperation() )
-        {
-            case id_Imp_NoParams        :
-            case id_Imp_Params          :
-            case id_Get                 :
-            case id_Update              :
-            case id_Old                 :
-            case id_Stop                :
-            case id_Pause               :
-            case id_Resume              :
-            case id_Defer               :
-                {
-                    GenericOperationVisitor builder( *this, resolution );
-                    builder( m_pRoot, pContextVariable );
-                }
-                break;
-            case id_Size                :
-            case id_Range               :
-                {
-                    EnumerationOperationVisitor builder( *this, resolution );
-                    builder( m_pRoot, pContextVariable );
-                }
-                break;
-            case HIGHEST_OPERATION_TYPE :
-                break;
-        }
-         
-        switch( m_pRoot->eliminate() )
-        {
-            case Instruction::eSuccess   :
-                {
-                    std::vector< const Operation* > operations;
-                    m_pRoot->getOperations( operations );
-                    for( const Operation* pOperation : operations )
-                        pOperation->getTargetAbstractTypes( m_targetTypes );
-                    m_targetTypes = uniquify_without_reorder( m_targetTypes );
-                    if( getOperation() == id_Range )
-                    {
-                        const int iMaxRanges = m_pRoot->setReturnTypes( m_targetTypes );
-                        m_pRoot->setMaxRanges( iMaxRanges );
-                    }
-                }
-                break;
-            case Instruction::eFailure   :
-                THROW_INVOCATION_EXCEPTION( "No possible derivation for: " << m_invocationID );
-            case Instruction::eAmbiguous :
-                THROW_INVOCATION_EXCEPTION( "Ambiguous derivation for: " << m_invocationID );
-        }
+        return result;
     }
     
-    bool InvocationSolution::isImplicitStarter() const
+    InvocationSolution::ElementPairVector InvocationSolution::getElementVector( const DerivationAnalysis& analysis, 
+        const std::vector< interface::Action* >& interfaceElements, bool bIncludeInherited )
     {
-        for( const interface::Element* pTarget : m_targetTypes )
-        {
-            if( !dynamic_cast< const interface::Action* >( pTarget ) )
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-    /*
-    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const
-    {
-        reference next = context;
-        
-        switch( pStep->type )
-        {
-            case DerivationStep::eParent      :
-                {
-                    const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance );
-                    ASSERT( pAction );
-                    next = reference{  context.instance / pStep->domain, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
-                    iPriority = 1;
-                }
-                break;
-            case DerivationStep::eTarget      :
-            case DerivationStep::eChild       :
-                {
-                    if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance ) )
-                    {
-                        next = reference{  context.instance, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
-                        iPriority = 1;
-                    }
-                    else if( const concrete::Dimension_User* pDimension =
-                                dynamic_cast< const concrete::Dimension_User* >( pStep->pInstance ) )
-                    {
-                        next = reference{  context.instance, static_cast< eg::TypeID >( pDimension->getIndex() ), 0 };
-                        iPriority = 1;
-                    }
-                    else
-                    {
-                        ASSERT( false );
-                    }
-                }
-                break;
-            case DerivationStep::eLink        :
-            case DerivationStep::eDeReference :
-                break;
-            case DerivationStep::eRoot        :
-                break;
-            case DerivationStep::eEnum        :
-            case DerivationStep::eFailed      :
-                break;
-        }
-        
-        for( const DerivationStep* pChildStep : pStep->next )
-        {
-            int priority = 0, best = -1;
-            reference candidate = evaluate( evaluator, next, pChildStep, priority );
-            if( priority == best )
-            {
-                //ambiguity
-            }
-            else if( priority > best )
-            {
-                next = candidate;
-                best = priority;
-            }
-        }
-        
-        return next;
-    }*/
-    
-    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context ) const
-    {
-        int priority = 0;
-        //return evaluate( evaluator, context, m_pRoot, priority );
-        reference r;
-        return r;
+        std::vector< const interface::Element* > elements;
+        for( interface::Action* pAction : interfaceElements )
+            elements.push_back( pAction );
+        return getElementVector( analysis, elements, bIncludeInherited );
     }
     
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////
     InvocationSolution* InvocationSolutionMap::constructInvocation( 
         const InvocationSolution::InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath )
     {
         //construct new invocation
         InvocationSolution* pInvocation = 
             m_session.construct< InvocationSolution >( invocationID, implicitTypePath );
-        
-        //calcualate the concrete context
+            
+        //calculate the concrete context
         {
-            for( const interface::Element* pContext : std::get< InvocationSolution::Context >( invocationID ) )
+            pInvocation->m_context = InvocationSolution::getElementVector( 
+                m_analysis, std::get< InvocationSolution::Context >( invocationID ), true );
+            if( pInvocation->m_context.empty() )
             {
-                if( const interface::Action* pContextAction = dynamic_cast< const interface::Action* >( pContext ) )
-                    m_analysis.getInstances( pContextAction, pInvocation->m_contextElements, true );
+                THROW_NAMERESOLUTION_EXCEPTION( "Invalid context. " << invocationID );
             }
         }
         
-        //for range enumerations we want to enumerate all deriving types
-        //const bool bDerivingPathElements = true;//isOperationEnumeration( std::get< OperationID >( invocationID ) );
+        const bool bIsImplicit = isOperationImplicit( std::get< OperationID >( invocationID ) );
         
-        //calculate the concrete type path
         {
-            for( const std::vector< const interface::Element* >& typePathElement : 
-                std::get< InvocationSolution::TypePath >( invocationID ) )
+            const InvocationSolution::TypePath& typePath = std::get< InvocationSolution::TypePath >( invocationID );
+            for( InvocationSolution::TypePath::const_iterator 
+                i = typePath.begin(),
+                iLast = typePath.end() - 1U,
+                iEnd = typePath.end(); i!=iEnd; ++i )
             {
-                std::vector< const concrete::Element* > instances;
-                for( const interface::Element* pElement : typePathElement )
-                    m_analysis.getInstances( pElement, instances, true );
+                const std::vector< const interface::Element* >& typePathElement = *i;
                 
-                if( instances.empty() )
+                const bool bIncludeInherited = true;
+                
+                InvocationSolution::ElementPairVector elementVector = 
+                    InvocationSolution::getElementVector( 
+                        m_analysis, typePathElement, bIncludeInherited );
+                if( elementVector.empty() )
                 {
                     THROW_NAMERESOLUTION_EXCEPTION( "Invalid type path. " << invocationID );
                 }
-                
-                pInvocation->m_concreteTypePath.emplace_back( std::move( instances ) );
+                pInvocation->m_typePath.push_back( elementVector );
+            }
+            
+            if( pInvocation->m_typePath.empty() && bIsImplicit )
+            {
+                THROW_NAMERESOLUTION_EXCEPTION( "Empty type path for implicit invocation. " << invocationID );
             }
         }
         
@@ -1034,7 +1295,7 @@ namespace eg
         InvocationSolution* pInvocation = constructInvocation( invocationID, implicitTypePath );
         
         NameResolution nameResolution( m_analysis, invocationID, 
-            pInvocation->m_contextElements, pInvocation->m_concreteTypePath );
+            pInvocation->getContextElements(), pInvocation->getTypePathElements() );
         
         pInvocation->build( m_analysis, nameResolution );
         

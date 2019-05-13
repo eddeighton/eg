@@ -1110,125 +1110,48 @@ namespace eg
         }
     };
     
-    
-    void printType( std::ostream& os, const IndexedObject::Array& objects, const interface::Element* pElement )
+    void printActionType( std::ostream& os, const InvocationSolution::Context& returnTypes )
     {
-        std::vector< const interface::Element* > path = getPath( pElement );
-        for( const interface::Element* pNodeIter : path )
+        if( returnTypes.size() > 1 )
         {
-            if( pNodeIter != *path.begin())
-                os << "::";
-            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
-        }
-    }
-    
-    void printType( std::ostream& os, const IndexedObject::Array& objects, TypeID id )
-    {
-        const interface::Element* pElement = dynamic_cast< const interface::Element* >( objects[ id ] );
-        ASSERT( pElement );
-        printType( os, objects, pElement );
-    }
-    
-    bool areTargetTypesHomogeneous( const IndexedObject::Array& objects, const InvocationSolution& invocation )
-    {
-        bool bHomogeneousTypes = true;
-        {
-            std::vector< const interface::Dimension* > dimensions;
-            std::vector< const interface::Action* > actions;
-            const InvocationSolution::TargetTypes& targetTypes = invocation.getTargetTypes();
-            for( const interface::Element* pTarget : targetTypes )
+            os << EG_VARIANT_TYPE << "< ";
+            bool bFirst = true;
+            for( const interface::Element* pTarget : returnTypes )
             {
-                if( const interface::Dimension* pDimension = dynamic_cast< const interface::Dimension* >( pTarget ) )
-                {
-                    dimensions.push_back( pDimension );
-                }
-                else if( const interface::Action* pAction = dynamic_cast< const interface::Action* >( pTarget ) )
-                {
-                    actions.push_back( pAction );
-                }
+                if( !bFirst )
+                    os << ", ";
                 else
-                {
-                    bHomogeneousTypes = false;
-                    break;
-                }
+                    bFirst = false;
+                os << pTarget->getStaticType();
             }
-            if( actions.empty() )
-            {
-                if( bHomogeneousTypes )
-                    bHomogeneousTypes = interface::Dimension::isHomogenous( dimensions );
-            }
-            else if( dimensions.empty() )
-            {
-                if( actions.size() > 1U )
-                {
-                    for( const interface::Action* pIter : actions )
-                    {
-                        if( pIter != actions.front() )
-                        {
-                            bHomogeneousTypes = false;
-                            break;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                bHomogeneousTypes = false;
-            }
+            os << " >";
         }
-        return bHomogeneousTypes;
+        else if( !returnTypes.empty() )
+        {
+            os << returnTypes.front()->getStaticType();
+        }
+        else
+        {
+            os << "void";
+        }
     }
     
     void printReturnType( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
-        const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
-        const InvocationSolution::TargetTypes& finalTypes = invocation.getFinalPathTypes();
+        const InvocationSolution::Context& returnTypes = invocation.getReturnTypes();
         switch( invocation.getOperation() )
         {
             case id_Imp_NoParams   :
             case id_Imp_Params  :
                 if( invocation.isImplicitStarter() )
                 {
-                    if( targets.size() > 1 )
-                    {
-                        os << EG_VARIANT_TYPE << "< ";
-                        for( const interface::Element* pTarget : targets )
-                        {
-                            if( pTarget != targets.front() )
-                            {
-                                os << ", ";
-                            }
-                            printType( os, objects, pTarget );
-                        }
-                        os << " >";
-                    }
-                    else if( !targets.empty() )
-                    {
-                        printType( os, objects, targets.front() );
-                    }
-                    else
-                    {
-                        os << "void";
-                    }
+                    printActionType( os, returnTypes );
                 }
                 else if( invocation.getOperation() == id_Imp_NoParams )
                 {
-                    if( !targets.empty() )
-                    {
-                        if( areTargetTypesHomogeneous( objects, invocation ) )
-                        {
-                            printType( os, objects, targets.front() );
-                            os << "::Read";
-                        }
-                        else
-                        {
-                            THROW_RTE( "not implemented" );
-                        }
-                    }
-                    else
-                    {
-                        os << "void";
-                    }
+                    ASSERT( !returnTypes.empty() );
+                    ASSERT( invocation.isDimensionReturnTypeHomogeneous() );
+                    os << returnTypes.front()->getStaticType() << "::Read";
                 }
                 else if( invocation.getOperation() == id_Imp_Params )
                 {
@@ -1236,47 +1159,26 @@ namespace eg
                 }
                 break;
             case id_Get        :
-                if( !targets.empty() )
+                if( invocation.isReturnTypeDimensions() )
                 {
-                    if( areTargetTypesHomogeneous( objects, invocation ) )
-                    {
-                        if( const interface::Action* pAction = dynamic_cast< const interface::Action* >( targets.front() ) )
-                        {
-                            printType( os, objects, pAction );
-                        }
-                        else
-                        {
-                            printType( os, objects, targets.front() );
-                            os << "::Get";
-                        }
-                    }
-                    else
-                    {
-                        THROW_RTE( "not implemented" );
-                    }
+                    ASSERT( invocation.isDimensionReturnTypeHomogeneous() );
+                    os << returnTypes.front()->getStaticType() << "::Get";
                 }
                 else
+                {
+                    printActionType( os, returnTypes );
+                }
+                break;
+            case id_Update     :
                 {
                     os << "void";
                 }
                 break;
-            case id_Update     :
             case id_Old        : 
-                if( !targets.empty() )
                 {
-                    if( areTargetTypesHomogeneous( objects, invocation ) )
-                    {
-                        printType( os, objects, targets.front() );
-                        os << "::Read";
-                    }
-                    else
-                    {
-                        THROW_RTE( "not implemented" );
-                    }
-                }
-                else
-                {
-                    os << "void";
+                    ASSERT( invocation.isReturnTypeDimensions() );
+                    ASSERT( invocation.isDimensionReturnTypeHomogeneous() );
+                    os << returnTypes.front()->getStaticType() << "::Read";
                 }
                 break;
             case id_Stop       : 
@@ -1290,12 +1192,15 @@ namespace eg
                 os << "int";
                 break;
             case id_Range      : 
-                if( targets.size() == 1 )
+                if( returnTypes.size() == 1 )
                 {
-                    printType( os, objects, targets.front() );
-                    os << "::EGRangeType";
+                    os << returnTypes.front()->getStaticType() << "::EGRangeType";
                 }
-                else if( finalTypes.size() == 1 )
+                else
+                {
+                    THROW_RTE( "Not implemented" );
+                }
+                /*else if( finalTypes.size() == 1 )
                 {
                     os << EG_RANGE_TYPE << "< ";
                     os << EG_MULTI_ITERATOR_TYPE << "< ";
@@ -1320,7 +1225,7 @@ namespace eg
                     os << " >";
                     os << " >";
                 }
-                break;
+                break;*/
             default:
                 THROW_RTE( "Unknown operation type" );
                 break;
@@ -1329,129 +1234,76 @@ namespace eg
     
     void printParameterTypes( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
-        if( areTargetTypesHomogeneous( objects, invocation ) )
+        const InvocationSolution::Context& returnTypes = invocation.getReturnTypes();
+        switch( invocation.getOperation() )
         {
-            const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
-            switch( invocation.getOperation() )
-            {
-                case id_Imp_NoParams   :
-                case id_Imp_Params  :
-                    if( !targets.empty() )
-                    {
-                        if( invocation.isImplicitStarter() )
-                        {
-                        }
-                        else if( invocation.getOperation() == id_Imp_NoParams )
-                        {
-                        }
-                        else if( invocation.getOperation() == id_Imp_Params )
-                        {
-                            printType( os, objects, targets.front() );
-                            os << "::Write";
-                        }
-                    }
-                    break;
-                case id_Get        :
-                case id_Update     :
-                    if( !targets.empty() )
-                    {
-                        printType( os, objects, targets.front() );
-                        os << "::Write";
-                    }
-                    break;
-                case id_Old        : 
-                    break;
-                case id_Stop       : 
-                case id_Pause      : 
-                case id_Resume     : 
-                    break;
-                case id_Defer      : 
-                case id_Size      : 
-                case id_Range      : 
-                    break;
-                default:
-                    THROW_RTE( "Unknown operation type" );
-                    break;
-            }
-        }
-        else
-        {
-            THROW_RTE( "not implemented" );
+            case id_Imp_NoParams   :
+            case id_Imp_Params  :
+                if( invocation.isImplicitStarter() )
+                {
+                }
+                else if( invocation.getOperation() == id_Imp_NoParams )
+                {
+                }
+                else if( invocation.getOperation() == id_Imp_Params )
+                {
+                    os << returnTypes.front()->getStaticType() << "::Write";
+                }
+                break;
+            case id_Get        :
+            case id_Update     :
+            case id_Old        : 
+            case id_Stop       : 
+            case id_Pause      : 
+            case id_Resume     : 
+            case id_Defer      : 
+            case id_Size       : 
+            case id_Range      : 
+                break;
+            default:
+                THROW_RTE( "Unknown operation type" );
+                break;
         }
     }
     
     void printParameters( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
-        if( areTargetTypesHomogeneous( objects, invocation ) )
+        const InvocationSolution::Context& returnTypes = invocation.getReturnTypes();
+        ASSERT( !returnTypes.empty() );
+        switch( invocation.getOperation() )
         {
-            const InvocationSolution::TargetTypes& targets = invocation.getTargetTypes();
-            switch( invocation.getOperation() )
-            {
-                case id_Imp_NoParams   :
-                case id_Imp_Params  :
-                    if( !targets.empty() )
-                    {
-                        if( invocation.isImplicitStarter() )
-                        {
-                        }
-                        else if( invocation.getOperation() == id_Imp_NoParams )
-                        {
-                        }
-                        else if( invocation.getOperation() == id_Imp_Params )
-                        {
-                            printType( os, objects, targets.front() );
-                            os << "::Write value";
-                        }
-                    }
-                    break;
-                case id_Get        :
-                case id_Update     :
-                    if( !targets.empty() )
-                    {
-                        printType( os, objects, targets.front() );
-                        os << "::Write value";
-                    }
-                    break;
-                case id_Old        : 
-                    break;
-                case id_Stop       : 
-                case id_Pause      : 
-                case id_Resume     : 
-                    break;
-                case id_Defer      : 
-                case id_Size      : 
-                case id_Range      : 
-                    break;
-                default:
-                    THROW_RTE( "Unknown operation type" );
-                    break;
-            }
-        }
-        else
-        {
-            THROW_RTE( "not implemented" );
+            case id_Imp_NoParams   :
+            case id_Imp_Params  :
+                if( invocation.isImplicitStarter() )
+                {
+                }
+                else if( invocation.getOperation() == id_Imp_NoParams )
+                {
+                }
+                else if( invocation.getOperation() == id_Imp_Params )
+                {
+                    os << returnTypes.front()->getStaticType() << "::Write value";
+                }
+                break;
+            case id_Get        :
+            case id_Update     :
+            case id_Old        : 
+            case id_Stop       : 
+            case id_Pause      : 
+            case id_Resume     : 
+            case id_Defer      : 
+            case id_Size       : 
+            case id_Range      : 
+                break;
+            default:
+                THROW_RTE( "Unknown operation type" );
+                break;
         }
     }
     
     void printContextType( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
-        const InvocationSolution::Context& context = invocation.getContext();
-        if( context.size() == 1U )
-        {
-            printType( os, objects, context.front() );
-        }
-        else
-        {
-            os << EG_VARIANT_TYPE << "< ";
-            for( const interface::Element* pElement : context )
-            {
-                if( pElement != *context.begin())
-                    os << ",";
-                
-                printType( os, objects, pElement );
-            }
-            os << ">";
-        }
+        printActionType( os, invocation.getContext() );
     }
     
     void printTypePathType( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
@@ -1488,7 +1340,9 @@ namespace eg
             }
             else
             {
-                printType( os, objects, id );
+                ASSERT( id < objects.size() );
+                const interface::Element* pElement = dynamic_cast< const interface::Element* >( objects[ id ] );
+                os << pElement->getStaticType();
             }
         }
         os << " >";
@@ -1556,10 +1410,13 @@ namespace eg
         
         os << "    {\n";
         
+        //std::ostringstream osDefaultReturn;
+        //printReturnType( osDefaultReturn, objects, invocation );
+        
         CodeGenerator codeGenerator( layout, 2, "eg::Event()" );
         invocation.getRoot()->generate( codeGenerator, os );
         
-        switch( invocation.getOperation() )
+        /*switch( invocation.getOperation() )
         {
             case id_Imp_NoParams   :
             case id_Imp_Params  :
@@ -1586,7 +1443,7 @@ namespace eg
             case TOTAL_OPERATION_TYPES : 
             default:
                 THROW_RTE( "Unknown operation type" );
-        }
+        }*/
         
         os << "    }\n";
         os << "};\n";
@@ -1932,11 +1789,16 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "\n";
         
         os << "\n\n//invocation implementations\n";
-        //os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType, typename... Args >\n";
-        //os << "ResultType " << EG_INVOKE_IMPL_TYPE << "( ContextType context, Args... args );\n";
         
         os << "template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType >\n";
-        os << "struct " << EG_INVOKE_IMPL_TYPE << "{};\n";
+        os << "struct " << EG_INVOKE_IMPL_TYPE;
+        os << "{\n";
+        os << "    template< typename... Args >\n";
+        os << "    ResultType operator()( ContextType, Args... )\n";
+        os << "    {\n";
+        os << "        static_assert( 0, \"Critical error: Invocation system failed to match implementation\" );\n";
+        os << "    }\n";
+        os << "};\n";
         
         os << "\n";
         os << "template< typename ReferenceType >\n";

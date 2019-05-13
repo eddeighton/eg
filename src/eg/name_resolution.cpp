@@ -23,10 +23,10 @@
 namespace eg
 {
 
-    Name* NameResolution::add( std::size_t iParent, const concrete::Element* pElement, bool bIsMember, bool bIsReference )
+    Name* NameResolution::add( std::size_t iParent, InvocationSolution::ElementPair element, bool bIsMember, bool bIsReference )
     {
         ASSERT( iParent < m_nodes.size() );
-        m_nodes.emplace_back( Name( pElement, bIsMember, bIsReference ) );
+        m_nodes.emplace_back( Name( element, bIsMember, bIsReference ) );
         Name* pNewNode = &m_nodes.back();
         m_nodes[ iParent ].m_children.push_back( m_nodes.size() - 1U );
         return pNewNode;
@@ -47,23 +47,18 @@ namespace eg
                 if( node.getChildren().empty() )
                 {
                     if( const concrete::Dimension_User* pUserDim = 
-                        dynamic_cast< const concrete::Dimension_User* >( node.getElement() ) )
+                        dynamic_cast< const concrete::Dimension_User* >( node.getConcrete() ) )
                     {
                         if( pUserDim->isEGType() )
                         {
                             node.m_bIsReference = true;
                             bContinue = true;
                             
-                            for( const interface::Action* pAction : pUserDim->getActionTypes() )
-                            {
-                                std::vector< const concrete::Element* > instances;
-                                m_analysis.getInstances( pAction, instances, true );
-                                
-                                for( const concrete::Element* pElement : instances )
-                                {
-                                    add( iNodeID, pElement, false, false );
-                                }
-                            }
+                            InvocationSolution::ElementPairVector elements =
+                                InvocationSolution::getElementVector( m_analysis, pUserDim->getActionTypes(), true );
+                            
+                            for( const InvocationSolution::ElementPair& element : elements )
+                                add( iNodeID, element, false, false );
                         }
                     }
                 }
@@ -71,7 +66,7 @@ namespace eg
         }
     }
     
-    void NameResolution::addType( const std::vector< const concrete::Element* >& instances )
+    void NameResolution::addType( const InvocationSolution::ElementPairVector& pathElement )
     {
         const std::size_t szSize = m_nodes.size();
         for( std::size_t iNodeID = 0U; iNodeID < szSize; ++iNodeID )
@@ -81,34 +76,35 @@ namespace eg
             //is node a leaf node?
             if( node.m_children.empty() )
             {
-                const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( node.getElement() );
+                const concrete::Action* pAction = 
+                    dynamic_cast< const concrete::Action* >( node.getConcrete() );
                 if( !pAction )
                 {
                     THROW_NAMERESOLUTION_EXCEPTION( 
                         "Cannot resolve futher element in type path after a dimension. " << m_invocationID );
                 }
                 
-                std::set< const concrete::Element* > results;
-                for( const concrete::Element* pInstance : instances )
+                std::set< InvocationSolution::ElementPair > results;
+                for( const InvocationSolution::ElementPair& element : pathElement )
                 {
-                    if( pAction->isMember( pInstance ) )
+                    if( pAction->isMember( element.second ) )
                     {
-                        results.insert( pInstance );
+                        results.insert( element );
                     }
                 }
                 
                 if( !results.empty() )
                 {
-                    for( const concrete::Element* pResult : results )
+                    for( const InvocationSolution::ElementPair& element : results )
                     {
-                        add( iNodeID, pResult, true, false );
+                        add( iNodeID, element, true, false );
                     }
                 }
                 else
                 {
-                    for( const concrete::Element* pInstance : instances )
+                    for( const InvocationSolution::ElementPair& element : pathElement )
                     {
-                        add( iNodeID, pInstance, false, false );
+                        add( iNodeID, element, false, false );
                     }
                 }
             }
@@ -158,21 +154,21 @@ namespace eg
     }
     
     void NameResolution::resolve( 
-        const std::vector< const concrete::Element* >& contextInstances,
-        const std::vector< std::vector< const concrete::Element* > >& typePathInstances )
+                const InvocationSolution::ElementPairVector& context,
+                const InvocationSolution::ElementPairVectorVector& typePath  )
     {
-        m_nodes.emplace_back( Name( (const concrete::Element*)nullptr, false, true ) );
+        m_nodes.emplace_back( Name( false, true ) );
         
-        for( const concrete::Element* pRoot : contextInstances )
+        for( const InvocationSolution::ElementPair& element : context )
         {
-            add( 0, pRoot, false, false );
+            add( 0, element, false, false );
         }
         
-        for( const std::vector< const concrete::Element* >& instances : typePathInstances )
+        for( const InvocationSolution::ElementPairVector& pathElement : typePath )
         {
             expandReferences();
             
-            addType( instances );
+            addType( pathElement );
             
             pruneBranches( &m_nodes[ 0 ] );
         }
@@ -180,17 +176,17 @@ namespace eg
     
     NameResolution::NameResolution( const DerivationAnalysis& analysis, 
                 const InvocationSolution::InvocationID& invocationID,
-                std::vector< const concrete::Element* >& contextElements,
-                std::vector< std::vector< const concrete::Element* > >& concreteTypePath  ) 
+                const InvocationSolution::ElementPairVector& context,
+                const InvocationSolution::ElementPairVectorVector& typePath  ) 
         :   m_analysis( analysis ),
             m_invocationID( invocationID )
     {
-        if( contextElements.empty() )
+        if( context.empty() )
         {
             THROW_NAMERESOLUTION_EXCEPTION( "no invocation context. " << m_invocationID );
         }
         
-        resolve( contextElements, concreteTypePath );
+        resolve( context, typePath );
     }
 
 }

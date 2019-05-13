@@ -125,7 +125,7 @@ namespace eg
             const InvocationSolution* pInvocation = m_invocations.getInvocation( invocationID, implicitTypePath );
             ASSERT( pInvocation );
             
-            const InvocationSolution::TargetTypes& targets = pInvocation->getTargetTypes();
+            //const InvocationSolution::TargetTypes& targets = pInvocation->getTargetTypes();
             
             const reference target = pInvocation->evaluate( *this, ref );
             

@@ -54,6 +54,11 @@ namespace eg
 
     static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();
     
+    inline bool isOperationImplicit( OperationID operationType )
+    {
+        return ( operationType == id_Imp_NoParams ) || ( operationType == id_Imp_Params );
+    }
+    
     inline bool isOperationType( TypeID id )
     {
         return id < HIGHEST_OPERATION_TYPE;

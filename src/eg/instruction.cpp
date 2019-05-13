@@ -309,6 +309,129 @@ namespace eg
         return elimination;
     }
     
+    Instruction::Elimination Instruction::secondStageElimination( const std::vector< const Operation* >& candidateOperations )
+    {
+        Elimination elimination = eSuccess;
+        
+        if( Operation* pOperation = dynamic_cast< Operation* >( this ) )
+        {
+            std::vector< const Operation* >::const_iterator iFind = 
+                std::find( candidateOperations.begin(), candidateOperations.end(), pOperation );
+            if( iFind == candidateOperations.end() )
+            {
+                return eFailure;
+            }
+        }
+        
+        for( std::size_t sz = 0U; sz != m_children.size(); ++sz )
+        {
+            Instruction* pChild = m_children[ sz ];
+            
+            if( EliminationInstruction* pElimination = 
+                dynamic_cast< EliminationInstruction* >( pChild ) )
+            {
+                Vector success, failure, ambiguous;
+                
+                Vector& nested = pElimination->m_children;
+                for( Instruction* pNested : nested )
+                {
+                    VERIFY_RTE( !dynamic_cast< EliminationInstruction* >( pNested ) );
+                    const Elimination nestedResult = pNested->secondStageElimination( candidateOperations );
+                    switch( nestedResult )
+                    {
+                        case eSuccess:   success.push_back( pNested );    break;
+                        case eFailure:   failure.push_back( pNested );    break;
+                        case eAmbiguous: ambiguous.push_back( pNested );  break;
+                    }
+                }
+                
+                nested.clear();
+                
+                for( Instruction* pFailure : failure )
+                    delete pFailure;
+                
+                if( !ambiguous.empty() || ( success.size() > 1U ) )
+                {
+                    nested = std::move( ambiguous );
+                    std::copy( success.begin(), success.end(), 
+                        std::back_inserter( nested ) );
+                    elimination = eAmbiguous;
+                }
+                else if( success.size() == 1U )
+                {
+                    //successful
+                    m_children[ sz ] = success.front();
+                    delete pElimination;
+                }
+                else if( success.empty() )
+                {
+                    if( elimination != eAmbiguous )
+                        elimination = eFailure;
+                }
+            }
+            else if( FailureInstruction* pFailure = 
+                dynamic_cast< FailureInstruction* >( pChild ) )
+            {
+                if( elimination != eAmbiguous )
+                    elimination = eFailure;
+            }
+            else if( PruneInstruction* pPrune = 
+                dynamic_cast< PruneInstruction* >( pChild ) )
+            {
+                Vector success, failure;
+                
+                Vector& nested = pPrune->m_children;
+                for( Instruction* pNested : nested )
+                {
+                    VERIFY_RTE( !dynamic_cast< PruneInstruction* >( pNested ) );
+                    const Elimination nestedResult = pNested->secondStageElimination( candidateOperations );
+                    switch( nestedResult )
+                    {
+                        case eSuccess:   success.push_back( pNested );    break;
+                        case eFailure:   failure.push_back( pNested );    break;
+                        case eAmbiguous: THROW_RTE( "Unreachable" );
+                    }
+                }
+                
+                nested.clear();
+                
+                for( Instruction* pFailure : failure )
+                    delete pFailure;
+                
+                if( !success.empty() )
+                {
+                    //successful
+                    VERIFY_RTE( m_children.size() == 1 );
+                    m_children = std::move( success );
+                    delete pPrune;
+                    break;
+                }
+                else if( success.empty() )
+                {
+                    elimination = eFailure;
+                }
+            }
+            else
+            {
+                const Elimination nestedResult = pChild->secondStageElimination( candidateOperations );
+                switch( nestedResult )
+                {
+                    case eSuccess:
+                        break;
+                    case eFailure:  
+                        if( elimination != eAmbiguous )
+                            elimination = eFailure;
+                        break;
+                    case eAmbiguous: 
+                        elimination = eAmbiguous;
+                        break;
+                }
+            }
+        }
+        
+        return elimination;
+    }
+    
     void Instruction::getOperations( std::vector< const Operation* >& operations ) const
     {
         for( const Instruction* pChild : m_children )
@@ -734,17 +857,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void StartOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void StartOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getAction() );
+        abstractTypes.push_back( m_pInterface );
     }
     void StartOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -756,17 +881,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void StopOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void StopOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getAction() );
+        abstractTypes.push_back( m_pInterface );
     }
     void StopOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -778,17 +905,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void PauseOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void PauseOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getAction() );
+        abstractTypes.push_back( m_pInterface );
     }
     void PauseOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -801,17 +930,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void ResumeOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void ResumeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getAction() );
+        abstractTypes.push_back( m_pInterface );
     }
     void ResumeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -824,17 +955,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void GetActionOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void GetActionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getAction() );
+        abstractTypes.push_back( m_pInterface );
     }
     void GetActionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -855,17 +988,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Dimension >();
         m_pTarget = loader.loadObjectRef< concrete::Dimension_User >();
     }
     void ReadOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void ReadOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getDimension() );
+        abstractTypes.push_back( m_pInterface );
     }
     void ReadOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -877,17 +1012,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Dimension >();
         m_pTarget = loader.loadObjectRef< concrete::Dimension_User >();
     }
     void WriteOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void WriteOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getDimension() );
+        abstractTypes.push_back( m_pInterface );
     }
     void WriteOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -900,17 +1037,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void SizeOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void SizeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getAction() );
+        abstractTypes.push_back( m_pInterface );
     }
     void SizeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
@@ -921,17 +1060,19 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void RangeOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
     void RangeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pTarget->getAction() );
+        abstractTypes.push_back( m_pInterface );
     }
     void RangeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {

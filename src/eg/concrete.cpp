@@ -72,6 +72,16 @@ namespace concrete
         storer.storeObjectVector( m_actions );
         storer.storeObjectVector( m_dimensions );
     }
+    /*
+    const interface::Element* Inheritance_Node::chooseMostDerived( const interface::Element* pFirst, const interface::Element* pSecond ) const
+    {
+        const interface::Element* pMostDerived = nullptr;
+        
+        
+        
+        ASSERT( pMostDerived );
+        return pMostDerived;
+    }*/
     
     void Element::load( Loader& loader )
     {

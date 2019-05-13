@@ -66,21 +66,27 @@ namespace eg
         static const ObjectType Type = eInvocationSolution;
         using Context = std::vector< const interface::Element* >;
         using TypePath = std::vector< std::vector< const interface::Element* > >;
-        using TargetTypes = std::vector< const interface::Element* >;
         using InvocationID = std::tuple< Context, TypePath, OperationID >;
         using InvocationMap = std::map< InvocationID, InvocationSolution* >;
+        
+        using ElementPair = std::pair< const interface::Element*, const concrete::Element* >;
+        using ElementPairVector = std::vector< ElementPair >;
+        using ElementPairVectorVector = std::vector< ElementPairVector >;
+        
     protected:
         InvocationSolution( const IndexedObject& object )
-            :   IndexedObject( object )
+            :   IndexedObject( object ),
+                m_bDimensions( false ),
+                m_bHomogeneousDimensions( false )
         {
         }
         InvocationSolution( const IndexedObject& object, const InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath )
             :   IndexedObject( object ),
                 m_invocationID( invocationID ),
-                m_implicitTypePath( implicitTypePath )
+                m_implicitTypePath( implicitTypePath ),
+                m_bDimensions( false ),
+                m_bHomogeneousDimensions( false )
         {
-            if( !std::get< InvocationSolution::TypePath >( m_invocationID ).empty() )
-                m_finalPathTypes = std::get< InvocationSolution::TypePath >( m_invocationID ).back();
         }
         
     public:
@@ -94,25 +100,30 @@ namespace eg
             const TypeID runtimeContextType, 
             const std::vector< TypeID >& implicitTypePath, bool bHasParameters );
         
+        static ElementPairVector getElementVector( const DerivationAnalysis& analysis, 
+            const std::vector< const interface::Element* >& interfaceElements, bool bIncludeInherited );
+            
+        static ElementPairVector getElementVector( const DerivationAnalysis& analysis, 
+            const std::vector< interface::Action* >& interfaceElements, bool bIncludeInherited );
+            
     private:
         void build( const DerivationAnalysis& analysis, const NameResolution& resolution );
+        void analyseReturnTypes();
         
     public:
-        bool isImplicitStarter() const;
-        
         reference evaluate( RuntimeEvaluator& evaluator, const reference& context ) const;
    
     public:
         const InvocationID& getID() const { return m_invocationID; }
         OperationID getOperation() const { return std::get< OperationID >( m_invocationID ); }
-        const Context& getContext() const { return std::get< Context >( m_invocationID ); }
-        const TargetTypes& getTargetTypes() const { return m_targetTypes; }
-        const TargetTypes& getFinalPathTypes() const { return m_finalPathTypes; }
         const TypeIDVector& getImplicitTypePath() const { return m_implicitTypePath; }
-        
-        const std::vector< const concrete::Element* >& getConcreteContext() const { return m_contextElements; }
-        const std::vector< std::vector< const concrete::Element* > >& getConcreteTypePath() const { return m_concreteTypePath; }
-        
+        const ElementPairVector& getContextElements() const { return m_context; }
+        const ElementPairVectorVector& getTypePathElements() const { return m_typePath; }
+        const Context& getContext() const { return std::get< Context >( m_invocationID ); }
+        const Context& getReturnTypes() const { return m_returnTypes; }
+        bool isImplicitStarter() const { return !m_bDimensions; }
+        bool isReturnTypeDimensions() const { return m_bDimensions; }
+        bool isDimensionReturnTypeHomogeneous() const { return m_bHomogeneousDimensions; }
         const RootInstruction* getRoot() const { return m_pRoot; }
     protected:
      
@@ -121,11 +132,13 @@ namespace eg
      
         InvocationID m_invocationID;
         TypeIDVector m_implicitTypePath;
-        TargetTypes m_finalPathTypes;
         
-        TargetTypes m_targetTypes;
-        std::vector< const concrete::Element* > m_contextElements;
-        std::vector< std::vector< const concrete::Element* > > m_concreteTypePath;
+        ElementPairVector m_context;
+        ElementPairVectorVector m_typePath;
+        
+        Context m_returnTypes;
+        bool m_bDimensions;
+        bool m_bHomogeneousDimensions;
         
         RootInstruction* m_pRoot = nullptr;
     };

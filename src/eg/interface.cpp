@@ -172,6 +172,20 @@ namespace interface
         return os.str();
     }
     
+    std::string Element::getStaticType() const
+    {
+        std::ostringstream os;
+        std::vector< const ::eg::interface::Element* > path = 
+            ::eg::interface::getPath( this );
+        for( const interface::Element* pNodeIter : path )
+        {
+            if( pNodeIter != *path.begin())
+                os << "::";
+            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
+        }
+        return os.str();
+    }
+    
     
     Opaque::Opaque( const IndexedObject& indexedObject )
         :   Element( indexedObject, nullptr, nullptr )
@@ -261,6 +275,11 @@ namespace interface
         }
         return true;
     }
+    /*
+    std::string Dimension::getStaticType() const
+    {
+        
+    }*/
 
     
     Include::Include( const IndexedObject& indexedObject )
@@ -412,20 +431,6 @@ namespace interface
     {
         return ( m_size == 1U ) ? true : false;
     }
-    std::string Action::getStaticType() const
-    {
-        std::ostringstream os;
-        std::vector< const ::eg::interface::Element* > path = 
-            ::eg::interface::getPath( this );
-        for( const interface::Element* pNodeIter : path )
-        {
-            if( pNodeIter != *path.begin())
-                os << "::";
-            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
-        }
-        return os.str();
-    }
-    
     
     Root::Root( const IndexedObject& indexedObject )
         :   Action( indexedObject )

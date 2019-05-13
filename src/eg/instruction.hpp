@@ -237,6 +237,7 @@ public:
         eAmbiguous
     };
     Elimination eliminate();
+    Elimination secondStageElimination( const std::vector< const Operation* >& candidateOperations );
     void getOperations( std::vector< const Operation* >& operations ) const;
     virtual int setReturnTypes( const std::vector< const interface::Element* >& targets );
     virtual void setMaxRanges( int iMaxRanges );
@@ -491,8 +492,9 @@ class StartOperation : public Operation
 {
 public:
     StartOperation(){}
-    StartOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+    StartOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -502,8 +504,12 @@ protected:
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+public:
+    const interface::Action* getInterfaceType() const { return m_pInterface; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -511,8 +517,9 @@ class StopOperation : public Operation
 {
 public:
     StopOperation(){}
-    StopOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+    StopOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -524,6 +531,7 @@ protected:
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -531,8 +539,9 @@ class PauseOperation : public Operation
 {
 public:
     PauseOperation(){}
-    PauseOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+    PauseOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -544,6 +553,7 @@ protected:
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -551,8 +561,9 @@ class ResumeOperation : public Operation
 {
 public:
     ResumeOperation(){}
-    ResumeOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+    ResumeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -564,6 +575,7 @@ protected:
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -571,8 +583,9 @@ class GetActionOperation : public Operation
 {
 public:
     GetActionOperation(){}
-    GetActionOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+    GetActionOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -584,6 +597,7 @@ protected:
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -591,8 +605,9 @@ class ReadOperation : public Operation
 {
 public:
     ReadOperation(){}
-    ReadOperation( InstanceVariable* pInstance, const concrete::Dimension_User* pTarget )
+    ReadOperation( InstanceVariable* pInstance, const interface::Dimension* pInterface, const concrete::Dimension_User* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -604,6 +619,7 @@ protected:
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Dimension* m_pInterface = nullptr;
     const concrete::Dimension_User* m_pTarget = nullptr;
 };
 
@@ -611,8 +627,9 @@ class WriteOperation : public Operation
 {
 public:
     WriteOperation(){}
-    WriteOperation( InstanceVariable* pInstance, const concrete::Dimension_User* pTarget )
+    WriteOperation( InstanceVariable* pInstance, const interface::Dimension* pInterface, const concrete::Dimension_User* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -624,6 +641,7 @@ protected:
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Dimension* m_pInterface = nullptr;
     const concrete::Dimension_User* m_pTarget = nullptr;
 
 };
@@ -632,8 +650,9 @@ class SizeOperation : public Operation
 {
 public:
     SizeOperation(){}
-    SizeOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+    SizeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -645,6 +664,7 @@ protected:
     virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 
 };
@@ -653,8 +673,9 @@ class RangeOperation : public Operation
 {
 public:
     RangeOperation(){}
-    RangeOperation( InstanceVariable* pInstance, const concrete::Action* pTarget )
+    RangeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
             m_pTarget( pTarget )
     {
     }
@@ -669,6 +690,7 @@ public:
     const concrete::Action* getTarget() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 
 };
