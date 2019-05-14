@@ -559,7 +559,7 @@ namespace eg
             
         }
         
-        void targetDerivation( const concrete::Element* pContext, const concrete::Element* pTarget, 
+        bool targetDerivation( const concrete::Element* pContext, const concrete::Element* pTarget, 
             Instruction*& pInstruction, InstanceVariable*& pVariable )
         {
             std::vector< const concrete::Element* > path;
@@ -593,7 +593,7 @@ namespace eg
                         FailureInstruction* pFailure = new FailureInstruction;
                         pInstruction->append( pFailure );
                         pInstruction = pFailure;
-                        return;
+                        return false;
                         
                     }
                 }
@@ -604,8 +604,9 @@ namespace eg
                 FailureInstruction* pFailure = new FailureInstruction;
                 pInstruction->append( pFailure );
                 pInstruction = pFailure;
-                return;
+                return false;
             }
+            return true;
         }
         
         void buildOperation( const Name& prev, const Name& current, 
@@ -649,20 +650,25 @@ namespace eg
             
             if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( current.getConcrete() ) )
             {
-                targetDerivation( prev.getConcrete(), pAction, pInstruction, pVariable );
-                
-                if( current.isTerminal() )
+                if( targetDerivation( prev.getConcrete(), pAction, pInstruction, pVariable ) )
                 {
-                    buildOperation( prev, current, pInstruction, pVariable );
-                }
-                else 
-                {
-                    ASSERT( !current.getChildren().empty() );
-                    for( std::size_t index : current.getChildren() )
+                    if( current.isTerminal() )
                     {
-                        const Name& next = m_resolution.getNodes()[ index ];
-                        buildEnum( current, next, pInstruction, pVariable );
+                        buildOperation( prev, current, pInstruction, pVariable );
                     }
+                    else 
+                    {
+                        ASSERT( !current.getChildren().empty() );
+                        for( std::size_t index : current.getChildren() )
+                        {
+                            const Name& next = m_resolution.getNodes()[ index ];
+                            buildEnum( current, next, pInstruction, pVariable );
+                        }
+                    }
+                }
+                else
+                {
+                    THROW_INVOCATION_EXCEPTION( "Enumeration has no derivation: " << m_solution.getID() );
                 }
             }
             else

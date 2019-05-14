@@ -814,28 +814,34 @@ namespace eg
     void FailureInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Instruction::load( serialiser, loader );
+        THROW_RTE( "Unreachable" );
     }
     void FailureInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Instruction::store( serialiser, storer );
+        THROW_RTE( "Unreachable" );
     }
     
     void EliminationInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Instruction::load( serialiser, loader );
+        THROW_RTE( "Unreachable" );
     }
     void EliminationInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Instruction::store( serialiser, storer );
+        THROW_RTE( "Unreachable" );
     }
     
     void PruneInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Instruction::load( serialiser, loader );
+        THROW_RTE( "Unreachable" );
     }
     void PruneInstruction::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
         Instruction::store( serialiser, storer );
+        THROW_RTE( "Unreachable" );
     }
     
     void DimensionReferenceReadInstruction::load( ASTSerialiser& serialiser, Loader& loader )

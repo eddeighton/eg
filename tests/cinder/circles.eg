@@ -64,7 +64,8 @@ action Spiral
     while( true )
     {
         int numCircles = 0;
-        for( Circle c : Circle.Range() )
+        root r = root.Get();
+        for( Circle c : r.Circle.Range() )
         {
             ++numCircles;
         }
@@ -72,7 +73,7 @@ action Spiral
         int index = 0;
         const vec2 center = getWindowCenter();
         float radius = 1.0f;
-        for( Circle circle : Circle.Range() )
+        for( Circle circle : r.Circle.Range() )
         {
             float rel = ( clock::ct() / 10 ) + ( index / (float)numCircles );
             float angle = rel * M_PI * 10;
