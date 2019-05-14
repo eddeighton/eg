@@ -794,33 +794,21 @@ namespace eg
             std::string strActionInterfaceType = getInterfaceType( pNode->getIdentifier() );
             
             const interface::Action* pNodeAction = dynamic_cast< const interface::Action* >( pNode );
-            //const concrete::Action* pInstanceAction = nullptr;
-            //for( const concrete::Action* pInstance : instances )
-            //{
-            //    if( pInstance->getAction() == pNodeAction )
-            //    {
-            //        pInstanceAction = pInstance;
-            //        break;
-            //    }
-            //}
             
             std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
             std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
             {
                 for( const concrete::Inheritance_Node* pINode : iNodes )
                 {
-                    //if( !pInstanceAction || ( pINode != pInstanceAction->getInheritance() ) )
+                    if( pINode->getAbstractAction() == pNodeAction )
                     {
-                        if( pINode->getAbstractAction() == pNodeAction )
+                        for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
                         {
-                            for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
-                            {
-                                staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
-                                dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
-                            }
-                            pINode->getStaticDerived( staticCompatibleTypes );
-                            pINode->getDynamicDerived( dynamicCompatibleTypes );
+                            staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
+                            dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
                         }
+                        pINode->getStaticDerived( staticCompatibleTypes );
+                        pINode->getDynamicDerived( dynamicCompatibleTypes );
                     }
                 }
             }
@@ -857,7 +845,7 @@ namespace eg
             os << "  {\n";
             for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
             {
-            os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
+            os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             }
             os << "         data = from.data;\n";
             os << "         break;\n";
@@ -884,7 +872,7 @@ namespace eg
             os << "  {\n";
             for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
             {
-            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
+            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             }
             os << "         data = from.data;\n";
             os << "         break;\n";
@@ -915,7 +903,7 @@ namespace eg
             for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
             {
                 const DataMember* pEventIterator = layout.getDataMember( pCompatible->getEventIterator() );
-            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
+            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             os << "         pIterator = &" << Printer( pEventIterator, "data.instance" ) << ";\n";
             os << "         break;\n";
             }
@@ -959,7 +947,7 @@ namespace eg
             for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
             {
                 const DataMember* pRunning = layout.getDataMember( pCompatible->getRunningTimestamp() );
-            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getIdentifier() << "\n";
+            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             os << "         return " << Printer( pRunning, "instance" ) << ";\n";
             }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
@@ -1196,6 +1184,28 @@ namespace eg
                 {
                     os << returnTypes.front()->getStaticType() << "::EGRangeType";
                 }
+                else if( invocation.getRoot()->getMaxRanges() == 1 )
+                {
+                    std::ostringstream osType;
+                    {
+                        osType << EG_VARIANT_TYPE << "< ";
+                        for( const interface::Element* pElement : returnTypes )
+                        {
+                            const interface::Action* pReturnType = 
+                                dynamic_cast< const interface::Action* >( pElement );
+                            ASSERT( pReturnType );
+                            if( pElement != *returnTypes.begin())
+                                osType << ", ";
+                            osType << pReturnType->getStaticType();
+                        }
+                        osType << " >";
+                    }
+                    std::ostringstream osIterType;
+                    {
+                        osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >";
+                    }
+                    os << EG_RANGE_TYPE << "< " << osIterType.str() << " >";
+                }
                 else
                 {
                     THROW_RTE( "Not implemented" );
@@ -1226,6 +1236,7 @@ namespace eg
                     os << " >";
                 }
                 break;*/
+                break;
             default:
                 THROW_RTE( "Unknown operation type" );
                 break;
@@ -1829,6 +1840,65 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "}\n";
         os << "\n";
         
+        std::vector< const concrete::Inheritance_Node* > iNodes = 
+            many_cst< const concrete::Inheritance_Node >( objects );
+            
+        //generate variant getTimestamp functions
+        std::set< InvocationSolution::Context > variantTypes;
+        for( const InvocationSolution* pInvocation : invocations )
+        {
+            const InvocationSolution::Context& returnTypes = pInvocation->getReturnTypes();
+            if( returnTypes.size() > 1U )
+            {
+                if( variantTypes.count( returnTypes ) == 0U )
+                {
+                    variantTypes.insert( returnTypes );
+                    
+                    //std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
+                    std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
+                    {
+                        for( const concrete::Inheritance_Node* pINode : iNodes )
+                        {
+                            if( std::find( returnTypes.begin(), returnTypes.end(), pINode->getAbstractAction() ) != returnTypes.end() )
+                            //if( pINode->getAbstractAction() == pNodeAction )
+                            {
+                                for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
+                                {
+                                    //staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
+                                    dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
+                                }
+                                //pINode->getStaticDerived( staticCompatibleTypes );
+                                pINode->getDynamicDerived( dynamicCompatibleTypes );
+                            }
+                        }
+                    }
+                    ASSERT( !dynamicCompatibleTypes.empty() );
+                    if( !dynamicCompatibleTypes.empty() )
+                    {
+        os << "template<>\n";
+        os << "inline " << EG_TIME_STAMP << " getTimestamp< ";
+        printActionType( os, returnTypes );
+        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
+        os << "{\n";
+        os << "    switch( type )\n";
+        os << "    {\n";
+        
+        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
+        {
+            const DataMember* pRunning = layout.getDataMember( pConcreteAction->getRunningTimestamp() );
+        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
+        os << "            return " << Printer( pRunning, "instance" ) << ";\n";
+        }
+        os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
+        
+        os << "    }\n";
+        os << "}\n";
+                    
+                    }
+                }
+            }
+        }
+        
         os << "template< class ReferenceType >\n";
         os << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >& " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator++()\n";
         os << "{\n";
@@ -1847,8 +1917,6 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "}\n";
         os << "\n";
         
-        std::vector< const concrete::Inheritance_Node* > iNodes = 
-            many_cst< const concrete::Inheritance_Node >( objects );
         
         {
             SpecialMemberFunctionVisitor visitor( os, actions, iNodes, layout );

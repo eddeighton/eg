@@ -831,7 +831,7 @@ namespace eg
         generator.setVarExpr( m_pTo, osExpr.str() );
         
         const concrete::Action* pType = m_pTo->getConcreteType();
-        os << generator.getIndent() << "case " << pType->getIndex() << ":\n";
+        os << generator.getIndent() << "case " << pType->getIndex() << ": //" << pType->getFriendlyName() << "\n";
         os << generator.getIndent() << "{\n";
         generator.pushIndent();
         for( const Instruction* pChild : m_children )

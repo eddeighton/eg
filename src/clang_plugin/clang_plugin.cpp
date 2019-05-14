@@ -340,8 +340,8 @@ namespace eg
         return false;
     }
     
-    void buildActionReturnType( const InvocationSolution::Context& returnTypes, 
-        clang::DeclContext* pDeclContext, clang::SourceLocation loc, clang::QualType& resultType )
+    std::optional< clang::QualType > buildActionReturnType( const InvocationSolution::Context& returnTypes, 
+        clang::DeclContext* pDeclContext, clang::SourceLocation loc )
     {
         if( returnTypes.size() == 1U )
         {
@@ -352,7 +352,7 @@ namespace eg
             {
                 if( pElementElement == path.back() )
                 {
-                    resultType = clang::getType( g_pASTContext, g_pSema, 
+                    return clang::getType( g_pASTContext, g_pSema, 
                         getInterfaceType( pElementElement->getIdentifier() ), "void", 
                         pDeclContextIter, loc, true );
                 }
@@ -392,9 +392,10 @@ namespace eg
             }
             //construct the variant result type
             clang::SourceLocation loc;
-            resultType = clang::getVariantType( g_pASTContext, g_pSema, 
+            return clang::getVariantType( g_pASTContext, g_pSema, 
                 g_pASTContext->getTranslationUnitDecl(), loc, types );
         }
+        return std::optional< clang::QualType >();
     }
     
     void calculateReturnType( const InvocationSolution* pSolution, clang::QualType& resultType )
@@ -413,7 +414,11 @@ namespace eg
                 {
                     if( pSolution->isImplicitStarter() )
                     {
-                        buildActionReturnType( returnTypes, pDeclContext, loc, resultType );
+                        if( std::optional< clang::QualType > resultOpt = 
+                                buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                        {
+                            resultType = resultOpt.value();
+                        }
                     }
                     else if( operationTypeID == id_Imp_NoParams )
                     {
@@ -460,7 +465,11 @@ namespace eg
                     }
                     else
                     {
-                        buildActionReturnType( returnTypes, pDeclContext, loc, resultType );
+                        if( std::optional< clang::QualType > resultOpt = 
+                                buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                        {
+                            resultType = resultOpt.value();
+                        }
                     }
                 }
                 break;
@@ -530,6 +539,17 @@ namespace eg
                             }
                             if( pDeclContextIter )
                                 resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "EGRangeType" );
+                        }
+                        else if( pSolution->getRoot()->getMaxRanges() == 1 )
+                        {
+                            if( std::optional< clang::QualType > resultOpt = 
+                                    buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                            {
+                                //construct the variant result type
+                                resultType = clang::getIteratorType( g_pASTContext, g_pSema, 
+                                    g_pASTContext->getTranslationUnitDecl(), 
+                                    loc, resultOpt.value() );
+                            }                            
                         }
                         /*else if( finalPathTypes.size() == 1 )
                         {

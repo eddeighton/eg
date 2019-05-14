@@ -54,6 +54,9 @@ namespace clang
     QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
         const std::vector< QualType >& typeParameters );
         
+    QualType getIteratorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
+        const clang::QualType& iteratorType );
+        
     QualType getMultiIteratorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
         const clang::QualType& iteratorType, std::size_t szTargetTypes );
     

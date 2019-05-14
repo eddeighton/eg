@@ -112,7 +112,6 @@ namespace concrete
         const ::eg::interface::Element* getAbstractElement() const { return m_pElement; }
         const std::vector< Element* >& getChildren() const { return m_children; }
     
-        virtual const std::string& getIdentifier() const = 0;
         virtual void print( std::ostream& os, std::string& strIndent ) const = 0;
         virtual int getLocalDomainSize() const = 0;
         virtual int getTotalDomainSize() const = 0;
@@ -186,7 +185,6 @@ namespace concrete
         virtual void store( Storer& storer ) const;
         
     public:
-        const std::string& getIdentifier() const { return getDimension()->getIdentifier(); }
         virtual void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
         
@@ -247,7 +245,6 @@ namespace concrete
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
-        const std::string& getIdentifier() const;
         virtual void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
         
@@ -317,7 +314,7 @@ namespace concrete
         virtual int getLocalDomainSize() const;
         virtual int getTotalDomainSize() const;
         
-        const std::string& getIdentifier() const { return getAction()->getIdentifier(); }
+        std::string getFriendlyName() const { return getAction()->getFriendlyName(); }
         void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
         

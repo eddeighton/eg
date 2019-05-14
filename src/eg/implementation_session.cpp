@@ -57,7 +57,7 @@ namespace eg
         for( const concrete::Element* pIter : path )
         {
             if( pIter->getParent() )
-                os << "_" << pIter->getIdentifier();
+                os << "_" << pIter->getAbstractElement()->getIdentifier();
         }
         return os.str();
     }
@@ -69,7 +69,7 @@ namespace eg
         std::vector< const concrete::Element* > path = concrete::getPath( pElement, pFrom );
         for( const concrete::Element* pIter : path )
         {
-            os << "_" << pIter->getIdentifier();
+            os << "_" << pIter->getAbstractElement()->getIdentifier();
         }
         return os.str();
     }

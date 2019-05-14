@@ -72,16 +72,6 @@ namespace concrete
         storer.storeObjectVector( m_actions );
         storer.storeObjectVector( m_dimensions );
     }
-    /*
-    const interface::Element* Inheritance_Node::chooseMostDerived( const interface::Element* pFirst, const interface::Element* pSecond ) const
-    {
-        const interface::Element* pMostDerived = nullptr;
-        
-        
-        
-        ASSERT( pMostDerived );
-        return pMostDerived;
-    }*/
     
     void Element::load( Loader& loader )
     {
@@ -209,38 +199,11 @@ namespace concrete
         storer.storeObjectRef( m_pDependency );
     }
     
-    const std::string& Dimension_Generated::getIdentifier() const
-    {
-        /*switch( m_type )
-        {
-            case eDimensionTimestamp :
-                break;
-            case eActionRunning      :
-                break;
-            case eActionPaused       :
-                break;
-            case eActionCoroutine    :
-                break;
-            case eActionEventIter    :
-                break;
-            case eActionObject       :
-                break;
-            case eActionReference    :
-                break;
-            case eActionAllocatorData:
-                break;
-            case eActionAllocatorHead:
-                break;
-            case eActionStopTimestamp:
-                break;
-        }*/
-        THROW_RTE( "Unknown generated dimension type" );
-    }
-    
     void Dimension_Generated::print( std::ostream& os, std::string& strIndent ) const
     {
-        //os << strIndent << "gen dim( " << getIndex() << ")\n";
+        THROW_RTE( "Unreachable" );
     }
+    
     void Dimension_Generated::printType( std::ostream& os ) const
     {
         switch( m_type )
@@ -269,7 +232,6 @@ namespace concrete
                     os << pAction->getBaseType();
                     
                     os << " >::PtrType";
-                    
                 }
                 break;
             case eActionReference    :
