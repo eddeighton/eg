@@ -1,0 +1,21 @@
+
+
+action A
+{
+    action Test[ 4 ]
+    {
+    }
+}
+
+action B
+{
+    action Test[ 5 ]
+    {
+    }
+}
+
+Var< A, B > v;
+
+v.Test.Range();
+
+

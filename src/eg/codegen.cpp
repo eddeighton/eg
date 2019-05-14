@@ -1180,62 +1180,62 @@ namespace eg
                 os << "int";
                 break;
             case id_Range      : 
-                if( returnTypes.size() == 1 )
+                if( invocation.getRoot()->getMaxRanges() == 1 )
                 {
-                    os << returnTypes.front()->getStaticType() << "::EGRangeType";
-                }
-                else if( invocation.getRoot()->getMaxRanges() == 1 )
-                {
-                    std::ostringstream osType;
+                    if( returnTypes.size() == 1 )
                     {
-                        osType << EG_VARIANT_TYPE << "< ";
-                        for( const interface::Element* pElement : returnTypes )
+                        os << returnTypes.front()->getStaticType() << "::EGRangeType";
+                    }
+                    else
+                    {
+                        std::ostringstream osType;
                         {
-                            const interface::Action* pReturnType = 
-                                dynamic_cast< const interface::Action* >( pElement );
-                            ASSERT( pReturnType );
-                            if( pElement != *returnTypes.begin())
-                                osType << ", ";
-                            osType << pReturnType->getStaticType();
+                            osType << EG_VARIANT_TYPE << "< ";
+                            for( const interface::Element* pElement : returnTypes )
+                            {
+                                const interface::Action* pReturnType = 
+                                    dynamic_cast< const interface::Action* >( pElement );
+                                ASSERT( pReturnType );
+                                if( pElement != *returnTypes.begin())
+                                    osType << ", ";
+                                osType << pReturnType->getStaticType();
+                            }
+                            osType << " >";
                         }
-                        osType << " >";
+                        std::ostringstream osIterType;
+                        {
+                            osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >";
+                        }
+                        os << EG_RANGE_TYPE << "< " << osIterType.str() << " >";
                     }
-                    std::ostringstream osIterType;
-                    {
-                        osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >";
-                    }
-                    os << EG_RANGE_TYPE << "< " << osIterType.str() << " >";
                 }
                 else
                 {
-                    THROW_RTE( "Not implemented" );
-                }
-                /*else if( finalTypes.size() == 1 )
-                {
-                    os << EG_RANGE_TYPE << "< ";
-                    os << EG_MULTI_ITERATOR_TYPE << "< ";
-                    printType( os, objects, finalTypes.front() );
-                    os << ", " << targets.size() << " > >";
-                }
-                else
-                {
-                    os << EG_RANGE_TYPE << "< ";
-                    os << EG_REFERENCE_ITERATOR_TYPE << "< ";
-                    os << EG_VARIANT_TYPE << "< ";
-                    for( const interface::Element* pElement : targets )
+                    if( returnTypes.size() == 1 )
                     {
-                        const interface::Action* pReturnType = 
-                            dynamic_cast< const interface::Action* >( pElement );
-                        ASSERT( pReturnType );
-                        if( pElement != *targets.begin())
-                            os << ", ";
-                        os << pReturnType->getStaticType();
+                        os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
+                            returnTypes.front()->getStaticType() << ", " << invocation.getRoot()->getMaxRanges() << "U > >";
                     }
-                    os << " >";
-                    os << " >";
-                    os << " >";
+                    else
+                    {
+                        std::ostringstream osType;
+                        {
+                            osType << EG_VARIANT_TYPE << "< ";
+                            for( const interface::Element* pElement : returnTypes )
+                            {
+                                const interface::Action* pReturnType = 
+                                    dynamic_cast< const interface::Action* >( pElement );
+                                ASSERT( pReturnType );
+                                if( pElement != *returnTypes.begin())
+                                    osType << ", ";
+                                osType << pReturnType->getStaticType();
+                            }
+                            osType << " >";
+                        }
+                        os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
+                            osType.str() << ", " << invocation.getRoot()->getMaxRanges() << "U > >";
+                    }
                 }
-                break;*/
                 break;
             default:
                 THROW_RTE( "Unknown operation type" );
@@ -1328,7 +1328,7 @@ namespace eg
             if( bFirst)
                 bFirst = false;
             else
-                os << ",";
+                os << ", ";
             if( isOperationType( id ) )
             {
                 os << getOperationString( static_cast< OperationID >( id ) );
@@ -1381,7 +1381,7 @@ namespace eg
         os << "    "; printReturnType( os, objects, invocation ); os << ",\n";
         os << "    "; printContextType( os, objects, invocation ); os << ",\n";
         os << "    "; printTypePathType( os, objects, invocation ); os << ",\n";
-        os << "    " << getOperationString( static_cast< OperationID >( invocation.getOperation() ) );
+        os << "    " << getOperationString( static_cast< OperationID >( invocation.getOperation() ) ) << "\n";
         os << ">\n";
         os << "{\n";
         //os << "    template< typename... Args >\n";
@@ -1807,14 +1807,10 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "    template< typename... Args >\n";
         os << "    ResultType operator()( ContextType, Args... )\n";
         os << "    {\n";
-        os << "        static_assert( 0, \"Critical error: Invocation system failed to match implementation\" );\n";
+        os << "        static_assert( 0 && typeid( ResultType ).name() && typeid( ContextType ).name() && typeid( TypePathType ).name(), " << 
+            "\"Critical error: Invocation system failed to match implementation\" );\n";
         os << "    }\n";
         os << "};\n";
-        
-        os << "\n";
-        os << "template< typename ReferenceType >\n";
-        os << "inline " << EG_TIME_STAMP << " getTimestamp( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance );\n";
-        os << "\n";
         
         std::vector< const InvocationSolution* > invocations;
         program.getInvocations( szTranslationUnitID, invocations );
@@ -1898,25 +1894,6 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
                 }
             }
         }
-        
-        os << "template< class ReferenceType >\n";
-        os << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >& " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator++()\n";
-        os << "{\n";
-        os << "    while( true )\n";
-        os << "    {\n";
-        os << "        ++instance;\n";
-        os << "        if( ( instance == sentinal ) || ( getTimestamp< ReferenceType >( type, instance ) <= clock::subcycle() ) )\n";
-        os << "            break;\n";
-        os << "    }\n";
-        os << "    return *this;\n";
-        os << "}\n";
-        os << "template< class ReferenceType >\n";
-        os << "const ReferenceType " << EG_REFERENCE_ITERATOR_TYPE << "< ReferenceType >::operator*()\n";
-        os << "{\n";
-        os << "    return ReferenceType( " << EG_REFERENCE_TYPE << "{ instance, type, getTimestamp< ReferenceType >( type, instance ) } );\n";
-        os << "}\n";
-        os << "\n";
-        
         
         {
             SpecialMemberFunctionVisitor visitor( os, actions, iNodes, layout );

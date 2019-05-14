@@ -24,7 +24,7 @@ for( A a : b.A.Range() )
 }
 TEST_MSG( iCounter == 1, "iCounter should be 1: " << iCounter );
 
-//A aFromB = eg::one< A >( b.A.Range() );
+A aFromB = eg::one< A >( b.A.Range() );
 
 TEST_MSG( a == aFromB, a << " : " << aFromB );
 TEST( a == eg::one< A >( b.A.Range() ) );

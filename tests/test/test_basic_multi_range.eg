@@ -1,0 +1,23 @@
+
+
+action A[ 4 ]
+{
+}
+
+action B[ 5 ] : A
+{
+
+}
+
+action C[ 6 ] : A
+{
+    action D[ 5 ] : A
+    {
+
+    }
+}
+
+
+A.Range();
+
+C.A.Range();

@@ -637,7 +637,7 @@ namespace eg
         
         const concrete::Action* pEnumerationAction = m_pContext->getConcreteType();
         
-        if( operations.size() == 1U )
+        if( m_iMaxRanges == 1U )
         {
             const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( operations.front() );
             ASSERT( pRangeOp );
@@ -698,8 +698,114 @@ namespace eg
         }
         else
         {
-            //multi range
-            os << generator.getIndent() << "//TODO multi range support\n";
+            std::ostringstream osReturnType;
+            std::ostringstream osIterType;
+            if( m_returnTypes.size() == 1U )
+            {
+                const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
+                ASSERT( pReturnType );
+                osReturnType << pReturnType->getStaticType();
+                osIterType << "typename " << osReturnType.str() << "::Iterator";
+            }
+            else
+            {
+                osReturnType << EG_VARIANT_TYPE << "< ";
+                for( const interface::Element* pElement : m_returnTypes )
+                {
+                    const interface::Action* pReturnType = 
+                        dynamic_cast< const interface::Action* >( pElement );
+                    ASSERT( pReturnType );
+                    if( pElement != *m_returnTypes.begin())
+                        osReturnType << ", ";
+                    osReturnType << pReturnType->getStaticType();
+                }
+                osReturnType << " >";
+                
+                osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osReturnType.str() << " >";
+            }
+            
+            
+            os << generator.getIndent() << "using IterType = " << osIterType.str() << ";\n";
+            os << generator.getIndent() << "using MultiIterType = " << EG_MULTI_ITERATOR_TYPE << "< " << 
+                osReturnType.str() << ", " << m_iMaxRanges << " >;\n";
+            
+            //begin iterators
+            os << generator.getIndent() << "MultiIterType::IteratorArray iterators_begin = \n";
+            os << generator.getIndent() << "{\n";
+            
+            for( const Operation* pOperation : operations )
+            {
+                const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( pOperation );
+                ASSERT( pRangeOp );
+                const concrete::Action* pTarget = pRangeOp->getTarget();
+                std::size_t szDomainMultiplier = 1U;
+                
+                const concrete::Action* pIter = pTarget;
+                for( ; pIter != pEnumerationAction; 
+                    pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
+                {
+                    ASSERT( pIter );
+                    szDomainMultiplier *= pIter->getLocalDomainSize();
+                }
+                ASSERT( pIter == pEnumerationAction );
+                
+                os << generator.getIndent() << "    IterType( " << 
+                    "( " << generator.getVarExpr( m_pContext ) << " * " << szDomainMultiplier << " ) - 1U" <<
+                    ", ( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
+                    ", static_cast< eg::TypeID >( " << pTarget->getIndex() << " ) ), //" << pTarget->getFriendlyName() << "\n";
+            }
+            
+            //add addition empty ranges up to m_iMaxRanges
+            for( std::size_t sz = operations.size(); sz != m_iMaxRanges; ++sz )
+            {
+                os << generator.getIndent() << "    IterType( 0, 0, 0 ) ),\n";
+            }
+            
+            os << generator.getIndent() << "};\n";
+            
+            std::size_t szIndex = 0U;
+            for( const Operation* pOperation : operations )
+            {
+            os << generator.getIndent() << "++iterators_begin[ " << szIndex++ << " ];\n";
+            }
+            
+            
+            //end iterators
+            os << generator.getIndent() << "MultiIterType::IteratorArray iterators_end = \n";
+            os << generator.getIndent() << "{\n";
+            
+            for( const Operation* pOperation : operations )
+            {
+                const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( pOperation );
+                ASSERT( pRangeOp );
+                const concrete::Action* pTarget = pRangeOp->getTarget();
+                std::size_t szDomainMultiplier = 1U;
+                
+                const concrete::Action* pIter = pTarget;
+                for( ; pIter != pEnumerationAction; 
+                    pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
+                {
+                    ASSERT( pIter );
+                    szDomainMultiplier *= pIter->getLocalDomainSize();
+                }
+                ASSERT( pIter == pEnumerationAction );
+                
+                os << generator.getIndent() << "    IterType( " << 
+                    "( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
+                    ", ( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
+                    ", static_cast< eg::TypeID >( " << pTarget->getIndex() << " ) ),\n";
+            }
+            
+            //add addition empty ranges up to m_iMaxRanges
+            for( std::size_t sz = operations.size(); sz != m_iMaxRanges; ++sz )
+            {
+                os << generator.getIndent() << "    IterType( 0, 0, 0 ) ),\n";
+            }
+            
+            os << generator.getIndent() << "};\n";
+            
+            os << generator.getIndent() << "return " << EG_RANGE_TYPE << 
+                "< MultiIterType >( MultiIterType( iterators_begin ), MultiIterType( iterators_end ) );\n";
         }
     }
     

@@ -522,65 +522,26 @@ namespace eg
                 }
                 break;
             case id_Range      : 
+                if( !returnTypes.empty() )
                 {
-                    if( !returnTypes.empty() )
+                    if( pSolution->getRoot()->getMaxRanges() == 1 )
                     {
-                        if( returnTypes.size() == 1 )
+                        if( std::optional< clang::QualType > resultOpt = 
+                                buildActionReturnType( returnTypes, pDeclContext, loc ) )
                         {
-                            const interface::Element* pTarget = returnTypes.front();
-                            clang::DeclContext* pDeclContextIter = pDeclContext;
-                            const std::vector< const interface::Element* > path = getPath( pTarget );
-                            for( const interface::Element* pElementElement : path )
-                            {
-                                clang::getType( g_pASTContext, g_pSema, 
-                                    getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                    pDeclContextIter, loc, false );
-                                if( !pDeclContextIter ) break;
-                            }
-                            if( pDeclContextIter )
-                                resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "EGRangeType" );
+                            resultType = clang::getIteratorType( g_pASTContext, g_pSema, 
+                                g_pASTContext->getTranslationUnitDecl(), 
+                                loc, resultOpt.value() );
                         }
-                        else if( pSolution->getRoot()->getMaxRanges() == 1 )
+                    }
+                    else
+                    {
+                        if( std::optional< clang::QualType > resultOpt = 
+                                buildActionReturnType( returnTypes, pDeclContext, loc ) )
                         {
-                            if( std::optional< clang::QualType > resultOpt = 
-                                    buildActionReturnType( returnTypes, pDeclContext, loc ) )
-                            {
-                                //construct the variant result type
-                                resultType = clang::getIteratorType( g_pASTContext, g_pSema, 
-                                    g_pASTContext->getTranslationUnitDecl(), 
-                                    loc, resultOpt.value() );
-                            }                            
-                        }
-                        /*else if( finalPathTypes.size() == 1 )
-                        {
-                            const interface::Element* pIteratorType = finalPathTypes.front();
-                            {
-                                clang::SourceLocation loc;
-                                clang::DeclContext* pDeclContextIter = g_pASTContext->getTranslationUnitDecl();
-                                const std::vector< const interface::Element* > path = getPath( pIteratorType );
-                                std::optional< clang::QualType > iteratorType;
-                                for( const interface::Element* pElementElement : path )
-                                {
-                                    iteratorType = clang::getType( g_pASTContext, g_pSema, 
-                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                        pDeclContextIter, loc, false );
-                                    if( !pDeclContextIter ) break;
-                                }
-                                if( pDeclContextIter && iteratorType )
-                                {
-                                    //construct the variant result type
-                                    resultType = clang::getMultiIteratorType( g_pASTContext, g_pSema, 
-                                        g_pASTContext->getTranslationUnitDecl(), 
-                                        loc, iteratorType.value(), pSolution->getRoot()->getMaxRanges() );
-                                }
-                            }
-                        }*/
-                        else
-                        {
-                            THROW_RTE( "Not implemented" );
-                            
-                            
-                            
+                            resultType = clang::getMultiIteratorType( g_pASTContext, g_pSema, 
+                                g_pASTContext->getTranslationUnitDecl(), 
+                                loc, resultOpt.value(), pSolution->getRoot()->getMaxRanges() );
                         }
                     }
                 }

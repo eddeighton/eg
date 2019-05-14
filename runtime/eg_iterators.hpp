@@ -22,6 +22,7 @@
 #define EG_ITERATORS_02_05_2019
 
 #include "eg_common.hpp"
+#include "eg_include.hpp" //clock
 
 #include <array>
 
@@ -50,6 +51,9 @@ namespace eg
     };
 }
 
+template< typename ReferenceType >
+inline eg::TimeStamp getTimestamp( eg::TypeID type, eg::Instance instance );
+
 template< class ReferenceType >
 class __eg_ReferenceIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
 {
@@ -60,14 +64,26 @@ public:
     eg::TypeID type;
     inline __eg_ReferenceIterator( eg::Instance instance, eg::Instance sentinal, eg::TypeID type ) : instance( instance ), sentinal( sentinal ), type( type ) {}
     inline __eg_ReferenceIterator( const __eg_ReferenceIterator& from ) : instance( from.instance ), sentinal( from.sentinal ), type( from.type ) {}
-    __eg_ReferenceIterator& operator++();
+    inline __eg_ReferenceIterator& operator++()
+    {
+        while( true )
+        {
+            ++instance;
+            if( ( instance == sentinal ) || ( getTimestamp< ReferenceType >( type, instance ) <= clock::subcycle() ) )
+                break;
+        }
+        return *this;
+    }
     inline __eg_ReferenceIterator operator++(int) {__eg_ReferenceIterator tmp(*this); operator++(); return tmp;}
     inline bool operator==(const __eg_ReferenceIterator& rhs) const {return (instance==rhs.instance) && (type==rhs.type);}
     inline bool operator!=(const __eg_ReferenceIterator& rhs) const {return !(rhs==*this);}
-    const value_type operator*();
+    inline const value_type operator*()
+    {
+        return ReferenceType( eg::reference{ instance, type, getTimestamp< ReferenceType >( type, instance ) } );
+    }
 };
 
-template< class ReferenceType, int SIZE >
+template< class ReferenceType, std::size_t SIZE >
 class __eg_MultiIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
 {
 public:
@@ -78,21 +94,23 @@ private:
     IteratorArray iterators;
     std::size_t szIndex = 0U;
 public:
+
     inline __eg_MultiIterator()
         :   iterators( { ReferenceType{ 0, 0, 0 }, ReferenceType{ 0, 0, 0 } } ),
             szIndex( 2U )
     {
     }
     
-    //inline __eg_MultiIterator( const __eg_MultiIterator& cpy )
-    //    :   iterators( cpy.iterators ),
-    //        szIndex( cpy.szIndex )
-    //{
-    //    
-    //}
+    inline __eg_MultiIterator( const __eg_MultiIterator& cpy )
+        :   iterators( cpy.iterators ),
+            szIndex( cpy.szIndex )
+    {
+        
+    }
     
     inline __eg_MultiIterator( const IteratorArray& iters ) 
-        :   iterators( iters )
+        :   iterators( iters ),
+            szIndex( 0U )
     {
         while( szIndex != SIZE )
         {
@@ -140,9 +158,9 @@ struct __eg_Range
 {
     using iterator_type = Iterator;
     Iterator _begin, _end;
-    inline __eg_Range( Iterator _begin, Iterator _end ) : _begin( _begin ), _end( _end ) {}
-    inline Iterator begin() const { return _begin; }
-    inline Iterator end() const { return _end; }
+    __eg_Range( Iterator _begin, Iterator _end ) : _begin( _begin ), _end( _end ) {}
+    Iterator begin() const { return _begin; }
+    Iterator end() const { return _end; }
 }; 
     
 namespace eg

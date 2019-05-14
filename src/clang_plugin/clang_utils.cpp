@@ -442,17 +442,7 @@ namespace clang
                         TemplateArgumentLoc( 
                             TemplateArgument( iteratorType ), 
                             pASTContext->getTrivialTypeSourceInfo( iteratorType, loc ) ) );
-                }
-                /*{
-                    const llvm::APInt actualValue( 8U * 4U, static_cast< uint64_t >( szTargetTypes ), true );
-                    const llvm::APSInt compileTimeIntValue( actualValue );
-                    
-                    TemplateArgumentLocInfo tali;
-                    TemplateArgs.addArgument( 
-                        TemplateArgumentLoc( 
-                            TemplateArgument( *pASTContext, compileTimeIntValue, getIntType( pASTContext ) ), tali ) );
-                }*/
-                
+                }                
                 
                 TemplateName templateName( pDecl );
                 QualType IteratorType = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
@@ -502,19 +492,18 @@ namespace clang
                             pASTContext->getTrivialTypeSourceInfo( iteratorType, loc ) ) );
                 }
                 {
-                    const llvm::APInt actualValue( 8U * 4U, static_cast< uint64_t >( szTargetTypes ), true );
+                    const llvm::APInt actualValue( 8U * 4U, static_cast< uint64_t >( szTargetTypes ), false );
                     const llvm::APSInt compileTimeIntValue( actualValue );
                     
                     TemplateArgumentLocInfo tali;
                     TemplateArgs.addArgument( 
                         TemplateArgumentLoc( 
-                            TemplateArgument( *pASTContext, compileTimeIntValue, getIntType( pASTContext ) ), tali ) );
+                            TemplateArgument( *pASTContext, compileTimeIntValue, getUIntType( pASTContext ) ), tali ) );
                 }
                 
                 
                 TemplateName templateName( pDecl );
                 QualType multiIteratorType = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
-                
                 
                 SourceLocation rangeLoc;
                 IdentifierInfo& rangeIdentifierInfo = pASTContext->Idents.get( eg::EG_RANGE_TYPE );
@@ -551,6 +540,10 @@ namespace clang
     QualType getIntType( ASTContext* pASTContext )
     {
         return pASTContext->IntTy;
+    }
+    QualType getUIntType( ASTContext* pASTContext )
+    {
+        return pASTContext->UnsignedIntTy;
     }
     
     QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc, const std::string& strTypeName )
