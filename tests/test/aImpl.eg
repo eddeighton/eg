@@ -1,0 +1,7 @@
+
+
+action A::Function1
+{
+    action Nested;
+    
+}
