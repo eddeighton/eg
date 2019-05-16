@@ -665,7 +665,7 @@ namespace eg
                 const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
                 ASSERT( pReturnType );
                 
-                os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " );\n";
+                os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
                 os << generator.getIndent() << "++begin;\n";
                 os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
                 os << generator.getIndent() << "return " << pReturnType->getStaticType() << "::EGRangeType( begin, end );\n";
@@ -690,7 +690,7 @@ namespace eg
                 {
                     osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >";
                 }
-                os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " );\n";
+                os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
                 os << generator.getIndent() << "++begin;\n";
                 os << generator.getIndent() << osIterType.str() << " end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
                 os << generator.getIndent() << "return " << EG_RANGE_TYPE << "< " << osIterType.str() << " >( begin, end );\n";
@@ -795,7 +795,7 @@ namespace eg
                 os << generator.getIndent() << "    IterType( " << 
                     "( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
                     ", ( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
-                    ", static_cast< eg::TypeID >( " << pTarget->getIndex() << " ) ),\n";
+                    ", static_cast< eg::TypeID >( " << pTarget->getIndex() << " ) ), //" << pTarget->getFriendlyName() << "\n";
             }
             
             //add addition empty ranges up to m_iMaxRanges

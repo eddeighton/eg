@@ -6,7 +6,7 @@ action A[ 100 ]
 
 include( <vector> );
 
-TEST( A.Size() == 0U );
+TEST( Done() );
 
 std::vector< A > as;
 

@@ -23,7 +23,7 @@ action A[ 2 ] : Base
 {
     dim std::string theStr;
     
-    while( TestA.Size() || TestB.Size() )
+    while( !Done() )
     {
         SLEEP;
     }
@@ -33,7 +33,7 @@ action B[ 2 ] : Base
 {
     dim std::string theStr;
     
-    while( TestA.Size() || TestB.Size() )
+    while( !Done() )
     {
         SLEEP;
     }
@@ -48,7 +48,7 @@ baseB.theStr( std::string( "B" ) );
 baseA.TestA();
 baseB.TestB();
 
-while( A.Size() || B.Size() )
+while( !Done() )
 {
     SLEEP;
 }

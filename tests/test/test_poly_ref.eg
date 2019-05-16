@@ -15,7 +15,7 @@ action B[ 4 ] : A
             SLEEP;
         }
     }
-    while( Counter.Size() )
+    while( !Done() )
         SLEEP;
 }
 
@@ -30,7 +30,7 @@ action D[ 4 ] : A
             SLEEP;
         }
     }
-    while( Counter.Size() )
+    while( !Done() )
         SLEEP;
 }
 
@@ -45,14 +45,12 @@ action C[ 4 ]
 
 C c = C();
 {
-    A b = B();
-    c.a1( b );
+    c.a1( B() );
     Var< B::Counter, D::Counter > v = c.a1.Counter();
     TEST( v.x() == 0 );
 }
 {
-    A d = D();
-    c.a2( d );
+    c.a2( D() );
     c.a2.Counter();
 }
 

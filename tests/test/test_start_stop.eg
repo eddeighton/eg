@@ -18,10 +18,10 @@ action A[ 4 ]
                 SLEEP_S( 0.2 );
                 counter( counter() + 1 );
             }
-            while( F.Size() )
+            while( !Done() )
                 SLEEP;
         }
-        while( D.Size() )
+        while( !Done() )
             SLEEP;
     }
     
@@ -35,11 +35,11 @@ action A[ 4 ]
             SLEEP_S( 0.2 );
             counter( counter() + 1 );
         }
-        while( E.Size() )
+        while( !Done() )
             SLEEP;
     }
     
-    while( B.Size() || C.Size() )
+    while( !Done() )
         SLEEP;
 }
 

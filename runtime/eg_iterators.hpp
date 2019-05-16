@@ -165,10 +165,10 @@ struct __eg_Range
     
 namespace eg
 {
-    template< typename Result, typename __eg_Range >
-    inline Result one( const __eg_Range& range )
+    template< typename Result, typename RangeType >
+    inline Result one( const RangeType& range )
     {
-        for( typename __eg_Range::iterator_type 
+        for( typename RangeType::iterator_type 
             i = range.begin(), iEnd = range.end();
             i!=iEnd;  )
         {
@@ -177,6 +177,11 @@ namespace eg
         return Result();
     }
     
+    template< typename RangeType >
+    inline std::size_t count( const RangeType& range )
+    {
+        return std::distance( range.begin(), range.end() );
+    }
                
 
 } //namespace eg
