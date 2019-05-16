@@ -309,6 +309,7 @@ namespace concrete
             VERIFY_RTE( iFind != m_allocators.end() );
             return iFind->second;
         }
+        const IteratorMap& getAllocators() const { return m_allocators; }
     
         virtual int getDataSize() const;
         virtual int getLocalDomainSize() const;

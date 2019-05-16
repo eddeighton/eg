@@ -1162,6 +1162,9 @@ namespace eg
             case id_Resume     : 
                 os << "void";
                 break;
+            case id_Done       :
+                os << "bool";
+                break;
             case id_Range      : 
                 if( invocation.getRoot()->getMaxRanges() == 1 )
                 {
@@ -1248,6 +1251,7 @@ namespace eg
             case id_Stop       : 
             case id_Pause      : 
             case id_Resume     : 
+            case id_Done       :
             case id_Range      : 
                 break;
             default:
@@ -1279,6 +1283,7 @@ namespace eg
             case id_Stop       : 
             case id_Pause      : 
             case id_Resume     : 
+            case id_Done       :
             case id_Range      : 
                 break;
             default:
@@ -1384,6 +1389,7 @@ namespace eg
             case id_Stop                 :  os << " )\n";   break;
             case id_Pause                :  os << " )\n";   break;
             case id_Resume               :  os << " )\n";   break;
+            case id_Done                 :  os << " )\n";   break;
             case id_Range                :  os << " )\n";   break;
             case TOTAL_OPERATION_TYPES : 
             default:
@@ -1553,7 +1559,7 @@ namespace eg
         os << "         {\n";
         os << "              iter = " << EG_ITERATOR_TYPE << "( " << Printer( pIteratorData, "_parent_id" ) << ".load() );\n";
         os << "              if( iter.protection )\n";
-        os << "                  break;\n";
+        os << "                  continue;\n";
         os << "              expected = iter;\n";
         os << "              " << EG_INSTANCE << " freeCellIndex = static_cast< " << EG_INSTANCE << " >( iter.tail );\n";
         os << "              //if buffer is full then set the protection bit while freeing\n";

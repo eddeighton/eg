@@ -54,11 +54,11 @@ enum ASTElementType //for serialisation
     eStopOperation,
     ePauseOperation,
     eResumeOperation,
+    eDoneOperation,
     eGetActionOperation,
     eGetDimensionOperation,
     eReadOperation,
     eWriteOperation,
-    eSizeOperation,
     eRangeOperation,
     
     TOTAL_AST_TYPES
@@ -580,6 +580,29 @@ private:
     const concrete::Action* m_pTarget = nullptr;
 };
 
+class DoneOperation : public Operation
+{
+public:
+    DoneOperation(){}
+    DoneOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
+            m_pTarget( pTarget )
+    {
+    }
+    virtual ASTElementType getType() const { return eDoneOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
+    const concrete::Action* m_pTarget = nullptr;
+
+};
+
 class GetActionOperation : public Operation
 {
 public:
@@ -666,29 +689,6 @@ private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Dimension* m_pInterface = nullptr;
     const concrete::Dimension_User* m_pTarget = nullptr;
-
-};
-
-class SizeOperation : public Operation
-{
-public:
-    SizeOperation(){}
-    SizeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
-        :   m_pInstance( pInstance ),
-            m_pInterface( pInterface ),
-            m_pTarget( pTarget )
-    {
-    }
-    virtual ASTElementType getType() const { return eSizeOperation; }
-protected:
-    virtual void load( ASTSerialiser& serialiser, Loader& loader );
-    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
-private:
-    InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
-    const concrete::Action* m_pTarget = nullptr;
 
 };
 

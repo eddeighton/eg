@@ -164,6 +164,9 @@ namespace eg
                 case id_Resume :
                     m_hostAccessor.doResume( target );
                     break;
+                case id_Done   :
+                    m_hostAccessor.doDone( target );
+                    break;
                 case id_Range  :
                     break;  
             }

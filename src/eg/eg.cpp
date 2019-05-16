@@ -30,7 +30,8 @@ namespace eg
         std::string( "Stop"),               //3    id_Stop         
         std::string( "Pause"),              //4    id_Pause        
         std::string( "Resume"),             //5    id_Resume       
-        std::string( "Range"),              //6    id_Range        
+        std::string( "Done"),               //6    id_Done    
+        std::string( "Range"),              //7    id_Range        
     };
     const std::string& getOperationString( OperationID op )
     {

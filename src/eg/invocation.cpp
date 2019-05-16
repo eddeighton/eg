@@ -323,6 +323,13 @@ namespace eg
                             pInstruction->append( pResume );
                         }
                         break;
+                    case id_Done                :
+                        {
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                            DoneOperation* pDone = new DoneOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pDone );
+                        }
+                        break;
                     default:
                         THROW_RTE( "Unreachable" );
                 }
@@ -358,6 +365,7 @@ namespace eg
                     case id_Stop                :
                     case id_Pause               :
                     case id_Resume              :
+                    case id_Done                :
                         THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension: " << m_solution.getID() );
                     default:
                         THROW_RTE( "Unreachable" );
@@ -834,6 +842,7 @@ namespace eg
             case id_Stop                :
             case id_Pause               :
             case id_Resume              :
+            case id_Done                :
                 {
                     GenericOperationVisitor builder( *this, resolution );
                     builder( m_pRoot, pContextVariable );

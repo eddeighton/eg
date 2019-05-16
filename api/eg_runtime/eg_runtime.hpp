@@ -45,6 +45,7 @@ namespace eg
         virtual void doStop(    const reference& reference ) = 0;
         virtual void doPause(   const reference& reference ) = 0;
         virtual void doResume(  const reference& reference ) = 0;
+        virtual void doDone(    const reference& reference ) = 0;
         
         virtual reference getReference( const reference& dimension ) = 0;
         

@@ -488,6 +488,11 @@ namespace eg
                     resultType = clang::getVoidType( g_pASTContext );
                 }
                 break;
+            case id_Done     : 
+                {
+                    resultType = clang::getBooleanType( g_pASTContext );
+                }
+                break;
             case id_Range      : 
                 if( !returnTypes.empty() )
                 {

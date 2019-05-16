@@ -233,6 +233,9 @@ public:
     virtual void doResume(  const eg::reference& reference )
     {
     }
+    virtual void doDone(  const eg::reference& reference )
+    {
+    }
     
     virtual eg::reference getReference( const eg::reference& dimension )
     {

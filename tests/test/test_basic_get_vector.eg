@@ -1,0 +1,11 @@
+
+dim std::vector< int > ints;
+
+std::vector< int >& theInts = ints.Get();
+
+theInts.push_back( 123 );
+
+TEST( ints().size() == 1U );
+TEST( ints.Get().size() == 1U );
+TEST( ints().back() == 123 );
+TEST( ints.Get().back() == 123 );

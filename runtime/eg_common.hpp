@@ -44,8 +44,9 @@ namespace eg
         id_Stop                     , //id_Stop         (-2147483645)
         id_Pause                    , //id_Pause        (-2147483644)
         id_Resume                   , //id_Resume       (-2147483643)
-        id_Range                    , //id_Range        (-2147483632)
-        HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483631)
+        id_Done                     , //id_Done         (-2147483642)
+        id_Range                    , //id_Range        (-2147483631)
+        HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483630)
     };
 
     static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();

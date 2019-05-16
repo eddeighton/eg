@@ -15,8 +15,6 @@ for( int i = 0; i < A::SIZE; ++i )
     as.push_back( A() );
 }
 
-TEST( A.Size() == 100U );
-
 //even though the size is now 100 the range will be empty until next cycle
 int iCounter = 0;
 for( A a : A.Range() )
@@ -40,7 +38,5 @@ for( A a : A.Range() )
 {
     iTotal += a.x();
 }
-
-TEST( A.Size() == 100U );
 
 TEST_MSG( iTotal == 200, "Total should be 200 but is: " << iTotal );

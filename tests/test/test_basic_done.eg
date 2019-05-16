@@ -1,0 +1,23 @@
+
+action A
+{
+    
+}
+
+action B
+{
+
+}
+
+TEST( Done() );
+
+A();
+B();
+
+TEST( !Done() );
+
+SLEEP;
+SLEEP;
+SLEEP;
+
+TEST( Done() );

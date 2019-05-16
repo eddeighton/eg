@@ -26,7 +26,8 @@ struct [[clang::eg_type( eg::id_Imp_Params      )]] __eg_ImpParams;     //id_Imp
 struct [[clang::eg_type( eg::id_Get             )]] Get;                //id_Get           
 struct [[clang::eg_type( eg::id_Stop            )]] Stop;               //id_Stop         
 struct [[clang::eg_type( eg::id_Pause           )]] Pause;              //id_Pause        
-struct [[clang::eg_type( eg::id_Resume          )]] Resume;             //id_Resume        
+struct [[clang::eg_type( eg::id_Resume          )]] Resume;             //id_Resume     
+struct [[clang::eg_type( eg::id_Done            )]] Done;               //id_Done          
 struct [[clang::eg_type( eg::id_Range           )]] Range;              //id_Range        
 
 #endif //EG_OPERATION_TYPES
