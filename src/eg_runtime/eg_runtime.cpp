@@ -70,11 +70,47 @@ namespace eg
         {
         }
         //RuntimeEvaluator
-        virtual reference getReference( const reference& dimension )
+        virtual reference dereferenceDimension( const reference& action, const TypeID& dimensionType )
         {
-            return dimension;
+            return action;
         }
-        
+        virtual void doRead(    const reference& reference, TypeID dimensionType )
+        {
+            m_hostAccessor.doRead( reference, dimensionType );
+        }
+        virtual void doWrite(   const reference& reference, TypeID dimensionType )
+        {
+            m_hostAccessor.doWrite( reference, dimensionType );
+        }
+        virtual void doStart(   const reference& reference, TypeID dimensionType )
+        {
+            m_hostAccessor.doStart( reference, dimensionType );
+        }
+        virtual void doStop(    const reference& reference )
+        {
+            m_hostAccessor.doStop( reference );
+        }
+        virtual void doPause(   const reference& reference )
+        {
+            m_hostAccessor.doPause( reference );
+        }
+        virtual void doResume(  const reference& reference )
+        {
+            m_hostAccessor.doResume( reference );
+        }
+        virtual void doDone(    const reference& reference )
+        {
+            m_hostAccessor.doDone( reference );
+        }
+        virtual void doGetAction(    const reference& reference )
+        {
+            m_hostAccessor.doGetAction( reference );
+        }
+        virtual void doGetDimension(    const reference& reference, TypeID dimensionType )
+        {
+            m_hostAccessor.doGetDimension( reference, dimensionType );
+        }
+            
         //EGRuntime
         virtual void getIdentities( std::vector< const char* >& identities )
         {
@@ -125,51 +161,7 @@ namespace eg
             const InvocationSolution* pInvocation = m_invocations.getInvocation( invocationID, implicitTypePath );
             ASSERT( pInvocation );
             
-            //const InvocationSolution::TargetTypes& targets = pInvocation->getTargetTypes();
-            
-            const reference target = pInvocation->evaluate( *this, ref );
-            
-            switch( pInvocation->getOperation() )
-            {
-                case id_Imp_NoParams   :
-                case id_Imp_Params  :
-                    {
-                        if( pInvocation->isImplicitStarter() )
-                        {
-                            m_hostAccessor.doStart( target );
-                        }
-                        else if( pInvocation->getOperation() == id_Imp_NoParams )
-                        {
-                            m_hostAccessor.doRead( target );
-                        }
-                        else if( pInvocation->getOperation() == id_Imp_Params )
-                        {
-                            m_hostAccessor.doWrite( target );
-                        }
-                        else
-                        {
-                            //error
-                        }
-                    }
-                    break;
-                case id_Get    :
-                    m_hostAccessor.doRead( target );
-                    break;
-                case id_Stop   :
-                    m_hostAccessor.doStop( target );
-                    break;
-                case id_Pause  :
-                    m_hostAccessor.doPause(target );
-                    break;
-                case id_Resume :
-                    m_hostAccessor.doResume( target );
-                    break;
-                case id_Done   :
-                    m_hostAccessor.doDone( target );
-                    break;
-                case id_Range  :
-                    break;  
-            }
+            pInvocation->evaluate( *this, ref );
         }
         
     private:

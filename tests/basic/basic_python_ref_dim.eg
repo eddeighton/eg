@@ -1,0 +1,27 @@
+
+
+action A
+{
+    dim int x;
+    SLEEP;
+    SLEEP;
+}
+
+dim A aRef;
+
+TEST( !aRef() );
+
+while( !aRef() )
+    if( clock::ct() > 3 )
+        break;
+    else
+        SLEEP;
+    
+TEST( aRef() == A.Get() );
+TEST( aRef.x() == 123 );
+
+TEST( !Done() );
+aRef.Stop();
+TEST( Done() );
+
+

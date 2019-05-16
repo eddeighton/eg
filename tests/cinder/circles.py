@@ -12,5 +12,5 @@ for i in range( 2048 ):
     cc = c.ColorChanger()
 
 sp = r.Spiral()
-sp.curve( 0.025 )
-sp.speed( 8.0 )
+sp.curve( 0.05 )
+sp.speed( 10.0 )

@@ -445,6 +445,52 @@ namespace eg
             }
         }
         
+        void buildDimensionReference( const Name& prev, const Name& current, 
+            Instruction* pInstruction, InstanceVariable* pVariable)
+        {
+            std::vector< const concrete::Element* > types;
+            for( std::size_t index : current.getChildren() )
+            {
+                const Name& next = m_resolution.getNodes()[ index ];
+                types.push_back( next.getConcrete() );
+            }
+            
+            DimensionReferenceVariable* pReferenceVariable = 
+                new DimensionReferenceVariable( pVariable, types );
+            {
+                const concrete::Dimension* pDimension = 
+                    dynamic_cast< const concrete::Dimension* >( current.getConcrete() );
+                ASSERT( pDimension );
+                DimensionReferenceReadInstruction* pDimensionRead = 
+                    new DimensionReferenceReadInstruction( 
+                        pVariable, pReferenceVariable, pDimension );
+                pInstruction->append( pDimensionRead );
+                pInstruction = pDimensionRead;
+            }
+            
+            if( types.size() > 1U )
+            {
+                PolymorphicReferenceBranchInstruction* pBranch = 
+                    new PolymorphicReferenceBranchInstruction( pReferenceVariable );
+                pInstruction->append( pBranch );
+                
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildPolymorphicCase( current, next, pBranch, pReferenceVariable );
+                }
+            }
+            else
+            {
+                ASSERT( !types.empty() );
+                for( std::size_t index : current.getChildren() )
+                {
+                    const Name& next = m_resolution.getNodes()[ index ];
+                    buildMonoDereference( current, next, pInstruction, pReferenceVariable );
+                }
+            }
+        }
+        
         void buildGenerateName( const Name& prev, const Name& current, 
             Instruction* pInstruction, InstanceVariable* pVariable )
         {
@@ -455,48 +501,7 @@ namespace eg
             else if( current.isReference() )
             {
                 commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                
-                std::vector< const concrete::Element* > types;
-                for( std::size_t index : current.getChildren() )
-                {
-                    const Name& next = m_resolution.getNodes()[ index ];
-                    types.push_back( next.getConcrete() );
-                }
-                
-                DimensionReferenceVariable* pReferenceVariable = 
-                    new DimensionReferenceVariable( pVariable, types );
-                {
-                    const concrete::Dimension* pDimension = 
-                        dynamic_cast< const concrete::Dimension* >( current.getConcrete() );
-                    ASSERT( pDimension );
-                    DimensionReferenceReadInstruction* pDimensionRead = 
-                        new DimensionReferenceReadInstruction( 
-                            pVariable, pReferenceVariable, pDimension );
-                    pInstruction->append( pDimensionRead );
-                    pInstruction = pDimensionRead;
-                }
-                
-                if( types.size() > 1U )
-                {
-                    PolymorphicReferenceBranchInstruction* pBranch = 
-                        new PolymorphicReferenceBranchInstruction( pReferenceVariable );
-                    pInstruction->append( pBranch );
-                    
-                    for( std::size_t index : current.getChildren() )
-                    {
-                        const Name& next = m_resolution.getNodes()[ index ];
-                        buildPolymorphicCase( current, next, pBranch, pReferenceVariable );
-                    }
-                }
-                else
-                {
-                    ASSERT( !types.empty() );
-                    for( std::size_t index : current.getChildren() )
-                    {
-                        const Name& next = m_resolution.getNodes()[ index ];
-                        buildMonoDereference( current, next, pInstruction, pReferenceVariable );
-                    }
-                }
+                buildDimensionReference( prev, current, pInstruction, pVariable );
             }
             else
             {
@@ -948,75 +953,11 @@ namespace eg
         }
     }
     
-    /*
-    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context, const DerivationStep* pStep, int& iPriority ) const
+    void InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context ) const
     {
-        reference next = context;
-        
-        switch( pStep->type )
-        {
-            case DerivationStep::eParent      :
-                {
-                    const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance );
-                    ASSERT( pAction );
-                    next = reference{  context.instance / pStep->domain, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
-                    iPriority = 1;
-                }
-                break;
-            case DerivationStep::eTarget      :
-            case DerivationStep::eChild       :
-                {
-                    if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pStep->pInstance ) )
-                    {
-                        next = reference{  context.instance, static_cast< eg::TypeID >( pAction->getIndex() ), 0 };
-                        iPriority = 1;
-                    }
-                    else if( const concrete::Dimension_User* pDimension =
-                                dynamic_cast< const concrete::Dimension_User* >( pStep->pInstance ) )
-                    {
-                        next = reference{  context.instance, static_cast< eg::TypeID >( pDimension->getIndex() ), 0 };
-                        iPriority = 1;
-                    }
-                    else
-                    {
-                        ASSERT( false );
-                    }
-                }
-                break;
-            case DerivationStep::eLink        :
-            case DerivationStep::eDeReference :
-                break;
-            case DerivationStep::eRoot        :
-                break;
-            case DerivationStep::eEnum        :
-            case DerivationStep::eFailed      :
-                break;
-        }
-        
-        for( const DerivationStep* pChildStep : pStep->next )
-        {
-            int priority = 0, best = -1;
-            reference candidate = evaluate( evaluator, next, pChildStep, priority );
-            if( priority == best )
-            {
-                //ambiguity
-            }
-            else if( priority > best )
-            {
-                next = candidate;
-                best = priority;
-            }
-        }
-        
-        return next;
-    }*/
-    
-    reference InvocationSolution::evaluate( RuntimeEvaluator& evaluator, const reference& context ) const
-    {
-        int priority = 0;
-        //return evaluate( evaluator, context, m_pRoot, priority );
-        reference r;
-        return r;
+        evaluator.initialise();
+        evaluator.setVarValue( m_pRoot->getContextVariable(), context );
+        m_pRoot->evaluate( evaluator );
     }
     
     //////////////////////////////////////////////////////////////////////////////////////////

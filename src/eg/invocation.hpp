@@ -26,12 +26,6 @@
 
 namespace eg
 {
-    class RuntimeEvaluator
-    {
-    public:
-        virtual ~RuntimeEvaluator(){}
-        virtual reference getReference( const reference& dimension ) = 0;
-    };
     
     class EGRuntimeImpl;
     
@@ -111,7 +105,7 @@ namespace eg
         void analyseReturnTypes();
         
     public:
-        reference evaluate( RuntimeEvaluator& evaluator, const reference& context ) const;
+        void evaluate( RuntimeEvaluator& evaluator, const reference& context ) const;
    
     public:
         const InvocationID& getID() const { return m_invocationID; }

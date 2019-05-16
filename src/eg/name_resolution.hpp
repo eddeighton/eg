@@ -105,7 +105,8 @@ namespace eg
         void pruneBranches( Name* pNode );
         
         void resolve( const InvocationSolution::ElementPairVector& context,
-                    const InvocationSolution::ElementPairVectorVector& typePath );
+                    const InvocationSolution::ElementPairVectorVector& typePath,
+                    bool bExpandFinalReferences );
     };
 
 

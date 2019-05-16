@@ -519,6 +519,12 @@ namespace eg
             pChild->generate( generator, os );
         }
     }
+    void RootInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        ASSERT( m_children.size() == 1U );
+        m_children.front()->evaluate( evaluator );
+    }
+    
     void RootInstruction::setMaxRanges( int iMaxRanges )
     {
         Instruction::setMaxRanges( iMaxRanges );
@@ -560,6 +566,18 @@ namespace eg
             pChild->generate( generator, os );
         }
     }
+    void ParentDerivationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        ASSERT( m_children.size() == 1U );
+        const reference& from = evaluator.getVarValue( m_pFrom );
+        
+        const reference to{ from.instance / m_pFrom->getConcreteType()->getLocalDomainSize(), 
+            static_cast< eg::TypeID >( m_pTo->getConcreteType()->getIndex() ), from.timestamp };
+        
+        evaluator.setVarValue( m_pTo, to );
+        
+        m_children.front()->evaluate( evaluator );
+    }
     
     void ChildDerivationInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -582,6 +600,17 @@ namespace eg
             pChild->generate( generator, os );
         }
     }
+    void ChildDerivationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        ASSERT( m_children.size() == 1U );
+        const reference& from = evaluator.getVarValue( m_pFrom );
+        
+        const reference to{ from.instance, static_cast< eg::TypeID >( m_pTo->getConcreteType()->getIndex() ), from.timestamp };
+        
+        evaluator.setVarValue( m_pTo, to );
+        
+        m_children.front()->evaluate( evaluator );
+    }
     
     void EnumDerivationInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -603,6 +632,10 @@ namespace eg
         {
             pChild->generate( generator, os );
         }
+    }
+    void EnumDerivationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        THROW_RTE( "Unreachable" );
     }
     
     void EnumerationInstruction::load( ASTSerialiser& serialiser, Loader& loader )
@@ -810,6 +843,10 @@ namespace eg
                 "< MultiIterType >( MultiIterType( iterators_begin ), MultiIterType( iterators_end ) );\n";
         }
     }
+    void EnumerationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        THROW_RTE( "TODO" );
+    }
     
     
     
@@ -872,6 +909,17 @@ namespace eg
             pChild->generate( generator, os );
         }
     }
+    void DimensionReferenceReadInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        const reference& actionRef = evaluator.getVarValue( m_pInstance );
+        
+        const reference deref = evaluator.dereferenceDimension( actionRef, m_pDimension->getIndex() );
+        
+        evaluator.setVarValue( m_pReference, deref );
+        
+        ASSERT( m_children.size() == 1U );
+        m_children.front()->evaluate( evaluator );
+    }
     
     void MonomorphicReferenceInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -899,6 +947,13 @@ namespace eg
             pChild->generate( generator, os );
         }
     }
+    void MonomorphicReferenceInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        const reference& ref = evaluator.getVarValue( m_pFrom );
+        evaluator.setVarValue( m_pInstance, ref );
+        ASSERT( m_children.size() == 1U );
+        m_children.front()->evaluate( evaluator );
+    }
     
     void PolymorphicReferenceBranchInstruction::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -922,6 +977,29 @@ namespace eg
         //os << generator.getIndent() << "default: return " << generator.getFailureReturnType() << ";\n";
         generator.popIndent();
         os << generator.getIndent() << "}\n";
+    }
+    void PolymorphicReferenceBranchInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        const reference& ref = evaluator.getVarValue( m_pFrom );
+        
+        bool bFound = false;
+        for( const Instruction* pChild : m_children )
+        {
+            const PolymorphicCaseInstruction* pCase = 
+                dynamic_cast< const PolymorphicCaseInstruction* >( pChild );
+            ASSERT( pCase );
+            
+            if( pCase->getTarget()->getConcreteType()->getIndex() == ref.type )
+            {
+                pChild->evaluate( evaluator );
+                bFound = true;
+                break;
+            }
+        }
+        if( !bFound )
+        {
+            THROW_RTE( "Error handling needed here..." );
+        }
     }
     
     void PolymorphicCaseInstruction::load( ASTSerialiser& serialiser, Loader& loader )
@@ -954,6 +1032,13 @@ namespace eg
         }
         generator.popIndent();
         os << generator.getIndent() << "}\n";
+    }
+    void PolymorphicCaseInstruction::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        const reference& ref = evaluator.getVarValue( m_pReference );
+        evaluator.setVarValue( m_pTo, ref );
+        ASSERT( m_children.size() == 1U );
+        m_children.front()->evaluate( evaluator );
     }
     
     ///////////////////////////////////////////////////////////////
@@ -990,6 +1075,10 @@ namespace eg
         os << generator.getIndent() << "return " << m_pTarget->getName() << 
             "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
     }
+    void StartOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doStart( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
+    }
     
     void StopOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -1013,6 +1102,10 @@ namespace eg
     {
         os << generator.getIndent() << "return " << m_pTarget->getName() << 
             "_stopper( " << generator.getVarExpr( m_pInstance ) << " );\n";
+    }
+    void StopOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doStop( evaluator.getVarValue( m_pInstance ) );
     }
     
     void PauseOperation::load( ASTSerialiser& serialiser, Loader& loader )
@@ -1039,6 +1132,10 @@ namespace eg
             generator.getDimension( m_pTarget->getPauseTimestamp(), generator.getVarExpr( m_pInstance ) ) << 
                 " = " << EG_INVALID_TIMESTAMP << ";\n";
     }
+    void PauseOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doPause( evaluator.getVarValue( m_pInstance ) );
+    }
     
     void ResumeOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -1063,6 +1160,10 @@ namespace eg
         os << generator.getIndent() << 
             generator.getDimension( m_pTarget->getPauseTimestamp(), generator.getVarExpr( m_pInstance ) ) << 
                 " = clock::subcycle() + 1;\n";
+    }
+    void ResumeOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doResume( evaluator.getVarValue( m_pInstance ) );
     }
     
     
@@ -1100,6 +1201,10 @@ namespace eg
         
         os << generator.getIndent() << "return true;\n";
     }
+    void DoneOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doDone( evaluator.getVarValue( m_pInstance ) );
+    }
     
     void GetActionOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -1133,6 +1238,10 @@ namespace eg
         //os << generator.getIndent() << "    return " <<
         
     }
+    void GetActionOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doGetAction( evaluator.getVarValue( m_pInstance ) );
+    }
     
     void GetDimensionOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -1156,6 +1265,10 @@ namespace eg
     {
         os << generator.getIndent() << "return " << 
             generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << ";\n";
+    }
+    void GetDimensionOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doGetDimension( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
     }
     
     void ReadOperation::load( ASTSerialiser& serialiser, Loader& loader )
@@ -1181,6 +1294,10 @@ namespace eg
         os << generator.getIndent() << "return " << 
             generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << ";\n";
     }
+    void ReadOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doRead( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
+    }
     
     void WriteOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -1205,6 +1322,10 @@ namespace eg
         os << generator.getIndent() << 
             generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << " = value;\n";
     }
+    void WriteOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doWrite( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
+    }
     
     void RangeOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
@@ -1226,5 +1347,9 @@ namespace eg
     }
     void RangeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
+    }
+    void RangeOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        THROW_RTE( "Unreachable" );
     }
 }

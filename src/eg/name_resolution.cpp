@@ -155,7 +155,8 @@ namespace eg
     
     void NameResolution::resolve( 
                 const InvocationSolution::ElementPairVector& context,
-                const InvocationSolution::ElementPairVectorVector& typePath  )
+                const InvocationSolution::ElementPairVectorVector& typePath,
+                bool bExpandFinalReferences )
     {
         m_nodes.emplace_back( Name( false, true ) );
         
@@ -172,6 +173,12 @@ namespace eg
             
             pruneBranches( &m_nodes[ 0 ] );
         }
+        
+        if( bExpandFinalReferences )
+        {
+            expandReferences();
+            pruneBranches( &m_nodes[ 0 ] );
+        }
     }
     
     NameResolution::NameResolution( const DerivationAnalysis& analysis, 
@@ -186,7 +193,29 @@ namespace eg
             THROW_NAMERESOLUTION_EXCEPTION( "no invocation context. " << m_invocationID );
         }
         
-        resolve( context, typePath );
+        bool bExpandFinalReferences = false;
+        switch( std::get< OperationID >( invocationID ) )
+        {
+            case id_Imp_NoParams          :
+            case id_Imp_Params            :
+                break;
+            case id_Get                   :
+                break;
+            case id_Stop                  :
+            case id_Pause                 :
+            case id_Resume                :
+            case id_Done                  :
+                bExpandFinalReferences = true;
+                break;
+            case id_Range                 :
+                break;
+            case HIGHEST_OPERATION_TYPE   :
+            default                       :
+                THROW_RTE( "Invalid operation type" );
+        }
+            
+        
+        resolve( context, typePath, bExpandFinalReferences );
     }
 
 }
