@@ -55,6 +55,7 @@ enum ASTElementType //for serialisation
     ePauseOperation,
     eResumeOperation,
     eGetActionOperation,
+    eGetDimensionOperation,
     eReadOperation,
     eWriteOperation,
     eSizeOperation,
@@ -599,6 +600,28 @@ private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
+};
+
+class GetDimensionOperation : public Operation
+{
+public:
+    GetDimensionOperation(){}
+    GetDimensionOperation( InstanceVariable* pInstance, const interface::Dimension* pInterface, const concrete::Dimension_User* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
+            m_pTarget( pTarget )
+    {
+    }
+    virtual ASTElementType getType() const { return eGetDimensionOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const interface::Dimension* m_pInterface = nullptr;
+    const concrete::Dimension_User* m_pTarget = nullptr;
 };
 
 class ReadOperation : public Operation

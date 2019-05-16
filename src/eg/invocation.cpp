@@ -356,6 +356,11 @@ namespace eg
                         }
                         break;
                     case id_Get                 :
+                        {
+                            GetDimensionOperation* pGetAction = new GetDimensionOperation( pVariable, pInterfaceDimension, pUserDimension );
+                            pInstruction->append( pGetAction );
+                        }
+                        break;
                     case id_Update              :
                     case id_Old                 :
                         break;

@@ -73,6 +73,7 @@ namespace eg
                     case ePauseOperation:                       pNewElement = new PauseOperation; break;
                     case eResumeOperation:                      pNewElement = new ResumeOperation; break;
                     case eGetActionOperation:                   pNewElement = new GetActionOperation; break;
+                    case eGetDimensionOperation:                pNewElement = new GetDimensionOperation; break;
                     case eReadOperation:                        pNewElement = new ReadOperation; break;
                     case eWriteOperation:                       pNewElement = new WriteOperation; break;
                     case eSizeOperation:                        pNewElement = new SizeOperation; break;
@@ -463,6 +464,7 @@ namespace eg
                 case ePauseOperation                     :
                 case eResumeOperation                    :
                 case eGetActionOperation                 :
+                case eGetDimensionOperation              :
                 case eReadOperation                      :
                 case eWriteOperation                     :
                 case eSizeOperation                      :
@@ -1094,6 +1096,30 @@ namespace eg
         
         //os << generator.getIndent() << "    return " <<
         
+    }
+    
+    void GetDimensionOperation::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Operation::load( serialiser, loader );
+        serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Dimension >();
+        m_pTarget = loader.loadObjectRef< concrete::Dimension_User >();
+    }
+    void GetDimensionOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Operation::store( serialiser, storer );
+        serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
+        storer.storeObjectRef( m_pTarget );
+    }
+    void GetDimensionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pInterface );
+    }
+    void GetDimensionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
+        os << generator.getIndent() << "return " << 
+            generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << ";\n";
     }
     
     void ReadOperation::load( ASTSerialiser& serialiser, Loader& loader )
