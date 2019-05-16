@@ -1157,27 +1157,10 @@ namespace eg
                     printActionType( os, returnTypes );
                 }
                 break;
-            case id_Update     :
-                {
-                    os << "void";
-                }
-                break;
-            case id_Old        : 
-                {
-                    ASSERT( invocation.isReturnTypeDimensions() );
-                    ASSERT( invocation.isDimensionReturnTypeHomogeneous() );
-                    os << returnTypes.front()->getStaticType() << "::Read";
-                }
-                break;
             case id_Stop       : 
             case id_Pause      : 
             case id_Resume     : 
                 os << "void";
-                break;
-            case id_Defer      : 
-                break;
-            case id_Size      : 
-                os << "int";
                 break;
             case id_Range      : 
                 if( invocation.getRoot()->getMaxRanges() == 1 )
@@ -1262,13 +1245,9 @@ namespace eg
                 }
                 break;
             case id_Get        :
-            case id_Update     :
-            case id_Old        : 
             case id_Stop       : 
             case id_Pause      : 
             case id_Resume     : 
-            case id_Defer      : 
-            case id_Size       : 
             case id_Range      : 
                 break;
             default:
@@ -1297,13 +1276,9 @@ namespace eg
                 }
                 break;
             case id_Get        :
-            case id_Update     :
-            case id_Old        : 
             case id_Stop       : 
             case id_Pause      : 
             case id_Resume     : 
-            case id_Defer      : 
-            case id_Size       : 
             case id_Range      : 
                 break;
             default:
@@ -1406,13 +1381,9 @@ namespace eg
                 }
                 break;
             case id_Get                  :  os << " )\n";   break;
-            case id_Update               :  break;
-            case id_Old                  :  os << " )\n";   break;
             case id_Stop                 :  os << " )\n";   break;
             case id_Pause                :  os << " )\n";   break;
             case id_Resume               :  os << " )\n";   break;
-            case id_Defer                :  break;
-            case id_Size                 :  os << " )\n";   break;
             case id_Range                :  os << " )\n";   break;
             case TOTAL_OPERATION_TYPES : 
             default:
@@ -1421,40 +1392,8 @@ namespace eg
         
         os << "    {\n";
         
-        //std::ostringstream osDefaultReturn;
-        //printReturnType( osDefaultReturn, objects, invocation );
-        
         CodeGenerator codeGenerator( layout, 2, "eg::Event()" );
         invocation.getRoot()->generate( codeGenerator, os );
-        
-        /*switch( invocation.getOperation() )
-        {
-            case id_Imp_NoParams   :
-            case id_Imp_Params  :
-                if( invocation.isImplicitStarter() )
-                {
-                }
-                else if( invocation.getOperation() == id_Imp_NoParams )
-                {
-                }
-                else if( invocation.getOperation() == id_Imp_Params )
-                {
-                }
-                break;
-            case id_Get                  :  
-            case id_Update               :  
-            case id_Old                  :  
-            case id_Stop                 :  
-            case id_Pause                :  
-            case id_Resume               :  
-            case id_Defer                :  
-            case id_Size                 :  
-            case id_Range                :  
-                break;
-            case TOTAL_OPERATION_TYPES : 
-            default:
-                THROW_RTE( "Unknown operation type" );
-        }*/
         
         os << "    }\n";
         os << "};\n";

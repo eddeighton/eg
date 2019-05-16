@@ -473,30 +473,6 @@ namespace eg
                     }
                 }
                 break;
-            case id_Update     :
-                {
-                    resultType = clang::getVoidType( g_pASTContext );
-                }
-                break;
-            case id_Old        : 
-                {
-                    if( returnTypes.size() == 1 )
-                    {
-                        const interface::Element* pTarget = returnTypes.front();
-                        clang::DeclContext* pDeclContextIter = pDeclContext;
-                        const std::vector< const interface::Element* > path = getPath( pTarget );
-                        for( const interface::Element* pElementElement : path )
-                        {
-                            clang::getType( g_pASTContext, g_pSema, 
-                                getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                                pDeclContextIter, loc, false );
-                            if( !pDeclContextIter ) break;
-                        }
-                        if( pDeclContextIter )
-                            resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "Read" );
-                    }
-                }
-                break;
             case id_Stop       : 
                 {
                     resultType = clang::getVoidType( g_pASTContext );
@@ -510,15 +486,6 @@ namespace eg
             case id_Resume     : 
                 {
                     resultType = clang::getVoidType( g_pASTContext );
-                }
-                break;
-            case id_Defer      : 
-                {
-                }
-                break;
-            case id_Size      : 
-                {
-                    resultType = clang::getIntType( g_pASTContext );
                 }
                 break;
             case id_Range      : 

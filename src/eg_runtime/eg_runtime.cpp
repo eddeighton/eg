@@ -155,11 +155,6 @@ namespace eg
                 case id_Get    :
                     m_hostAccessor.doRead( target );
                     break;
-                case id_Update :
-                    break;
-                case id_Old    :
-                    m_hostAccessor.doRead( target );
-                    break;
                 case id_Stop   :
                     m_hostAccessor.doStop( target );
                     break;
@@ -168,11 +163,6 @@ namespace eg
                     break;
                 case id_Resume :
                     m_hostAccessor.doResume( target );
-                    break;
-                case id_Defer  :
-                    break;
-                case id_Size  :
-                    m_hostAccessor.doSize( target );
                     break;
                 case id_Range  :
                     break;  

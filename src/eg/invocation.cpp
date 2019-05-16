@@ -302,10 +302,6 @@ namespace eg
                             pInstruction->append( pGetAction );
                         }
                         break;
-                    case id_Update              :
-                    case id_Old                 :
-                        THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on action: " << m_solution.getID() );
-                        break;
                     case id_Stop                :
                         {
                             commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
@@ -327,8 +323,6 @@ namespace eg
                             pInstruction->append( pResume );
                         }
                         break;
-                    case id_Defer               :
-                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
                     default:
                         THROW_RTE( "Unreachable" );
                 }
@@ -361,15 +355,10 @@ namespace eg
                             pInstruction->append( pGetAction );
                         }
                         break;
-                    case id_Update              :
-                    case id_Old                 :
-                        break;
                     case id_Stop                :
                     case id_Pause               :
                     case id_Resume              :
                         THROW_INVOCATION_EXCEPTION( "Invalid invocation operation on dimension: " << m_solution.getID() );
-                    case id_Defer               :
-                        THROW_INVOCATION_EXCEPTION( "Defer not supported: " << m_solution.getID() );
                     default:
                         THROW_RTE( "Unreachable" );
                 }
@@ -624,10 +613,6 @@ namespace eg
                     dynamic_cast< const interface::Action* >( current.getInterface() );
                 switch( m_solution.getOperation() )
                 {
-                    case id_Size                :
-                        {
-                        }
-                        break;
                     case id_Range               :
                         {
                             RangeOperation* pRangeOp = new RangeOperation( pVariable, pInterfaceAction, pAction );
@@ -846,18 +831,14 @@ namespace eg
             case id_Imp_NoParams        :
             case id_Imp_Params          :
             case id_Get                 :
-            case id_Update              :
-            case id_Old                 :
             case id_Stop                :
             case id_Pause               :
             case id_Resume              :
-            case id_Defer               :
                 {
                     GenericOperationVisitor builder( *this, resolution );
                     builder( m_pRoot, pContextVariable );
                 }
                 break;
-            case id_Size                :
             case id_Range               :
                 {
                     EnumerationOperationVisitor builder( *this, resolution );
