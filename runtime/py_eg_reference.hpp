@@ -80,7 +80,7 @@ private:
     std::vector< const char* > m_identities;
 };
 
-class PythonIterator : public std::iterator< std::forward_iterator_tag, PyObject* >
+class PythonIterator : public std::iterator< std::forward_iterator_tag, pybind11::object >
 {
     PythonEGReferenceType& m_pythonType;
     EGRangeDescriptionPtr m_pRange;
@@ -96,8 +96,9 @@ public:
         {
             m_subRange = m_pRange->getSize();
         }
-        else
+        else if( m_subRange != m_pRange->getSize() )
         {
+            m_position = m_pRange->getBegin( m_subRange );
             scanToNextOrEnd();
         }
     }
@@ -105,7 +106,8 @@ public:
     inline PythonIterator( const PythonIterator& from ) : 
         m_pythonType( from.m_pythonType ), 
         m_pRange( from.m_pRange ),
-        m_position( from.m_position )
+        m_position( from.m_position ),
+        m_subRange( from.m_subRange )
     {
     }
     
@@ -113,12 +115,8 @@ public:
     {
         while( true )
         {
-            //at end of all sub ranges then exit
-            if( m_subRange == m_pRange->getSize() )
-                break;
-            
             //if at end of current range and remaining subranges increment subrange
-            while( ( m_position == m_pRange->getEnd( m_subRange ) ) && ( m_subRange != m_pRange->getSize() ) )
+            while( ( m_subRange != m_pRange->getSize() ) && ( m_position == m_pRange->getEnd( m_subRange ) ) )
             {
                 ++m_subRange;
                 if( m_subRange == m_pRange->getSize() )
@@ -142,11 +140,8 @@ public:
     inline PythonIterator& operator++()
     {
         ASSERT( m_subRange != m_pRange->getSize() );
-        if( m_position != m_pRange->getEnd( m_subRange ) )
-        {
-            ++m_position;
-            scanToNextOrEnd();
-        }
+        ++m_position;
+        scanToNextOrEnd();
         return *this;
     }
     
@@ -171,11 +166,19 @@ public:
     
     inline bool operator!=(const PythonIterator& rhs) const { return !(rhs==*this); }
     
-    inline PyObject* operator*()
+    inline pybind11::object operator*()
     {
-        const TypeID typeID = m_pRange->getType( m_subRange );
-        ::eg::reference ref{ m_position, typeID, getTimestamp( typeID, m_position ) };
-        return m_pythonType.create( ref );
+        if( m_subRange == m_pRange->getSize() )
+        {
+            Py_INCREF( Py_None );
+            return pybind11::reinterpret_borrow< pybind11::object >( Py_None );
+        }
+        else
+        {
+            const TypeID typeID = m_pRange->getType( m_subRange );
+            ::eg::reference ref{ m_position, typeID, getTimestamp( typeID, m_position ) };
+            return pybind11::reinterpret_borrow< pybind11::object >( m_pythonType.create( ref ) );
+        }
     }
 };
 

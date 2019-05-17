@@ -867,56 +867,16 @@ namespace eg
             }
             ASSERT( pIter == pEnumerationAction );
             
-            //os << generator.getIndent() << "const " << EG_INSTANCE << " iBegin = " <<
-            //    generator.getVarExpr( m_pContext ) << " * " << szDomainMultiplier << ";\n";
-            //os << generator.getIndent() << "const " << EG_INSTANCE << " iEnd = ( " <<
-            //    generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier << ";\n";
-                
-            if( m_returnTypes.size() == 1U )
-            {
-                const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
-                ASSERT( pReturnType );
-                
-                //PythonIterator begin, end
-                
-                RangeDescription rangeDescription;
-                
-                evaluator.doRange( rangeDescription );
-                
-                //os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
-                //os << generator.getIndent() << "++begin;\n";
-                //os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
-                //os << generator.getIndent() << "return " << pReturnType->getStaticType() << "::EGRangeType( begin, end );\n";
-            }
-            else
-            {
-                //std::ostringstream osType;
-                //{
-                //    osType << EG_VARIANT_TYPE << "< ";
-                //    for( const interface::Element* pElement : m_returnTypes )
-                //    {
-                //        const interface::Action* pReturnType = 
-                //            dynamic_cast< const interface::Action* >( pElement );
-                //        ASSERT( pReturnType );
-                //        if( pElement != *m_returnTypes.begin())
-                //            osType << ", ";
-                //        osType << pReturnType->getStaticType();
-                //    }
-                //    osType << " >";
-                //}
-                //std::ostringstream osIterType;
-                //{
-                //    osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >";
-                //}
-                //os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
-                //os << generator.getIndent() << "++begin;\n";
-                //os << generator.getIndent() << osIterType.str() << " end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
-                //os << generator.getIndent() << "return " << EG_RANGE_TYPE << "< " << osIterType.str() << " >( begin, end );\n";
-                
-                RangeDescription rangeDescription;
-                
-                evaluator.doRange( rangeDescription );
-            }
+            RangeDescription rangeDescription;
+            rangeDescription.ranges.push_back(
+                RangeDescription::SubRange
+                { 
+                    static_cast< TypeID >( pTarget->getIndex() ), 
+                    evaluator.getVarValue( m_pContext ).instance * szDomainMultiplier, 
+                    ( evaluator.getVarValue( m_pContext ).instance + 1 ) * szDomainMultiplier 
+                } );
+            
+            evaluator.doRange( rangeDescription );
         }
         else
         {

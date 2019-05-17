@@ -2,6 +2,8 @@
 action A[ 64 ]
 {
     dim int x;
+    
+    SLEEP_S( 1 );
 }
 
 A();
