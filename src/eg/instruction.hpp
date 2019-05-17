@@ -22,6 +22,10 @@
 
 #include "concrete.hpp"
 
+#include "runtime/eg_common.hpp"
+
+#include "eg_runtime/eg_runtime.hpp"
+
 #include "io/indexed_object.hpp"
 
 #include <map>
@@ -29,6 +33,16 @@
 namespace eg
 {
 class Variable;
+
+struct RangeDescription
+{
+    struct SubRange
+    {
+        TypeID runtimeType;
+        Instance begin, end;
+    };
+    std::vector< SubRange > ranges;
+};
 
 class RuntimeEvaluator
 {
@@ -66,6 +80,7 @@ public:
     virtual void doDone(    const reference& reference ) = 0;
     virtual void doGetAction(    const reference& reference ) = 0;
     virtual void doGetDimension(    const reference& reference, TypeID dimensionType ) = 0;
+    virtual void doRange( const RangeDescription& range ) = 0;
     
 private:
     VariableValueMap m_variables;

@@ -23,9 +23,13 @@
 
 #include "eg_common.hpp"
 
+#include "eg_runtime/eg_runtime.hpp"
+
 #include <pybind11/embed.h> // everything needed for embedding
 
 #include <vector>
+
+extern eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
 
 namespace eg
 {
@@ -74,6 +78,105 @@ private:
     PyTypeObject* m_pTypeObject;
     std::vector< PyGetSetDef > m_pythonAttributesData;
     std::vector< const char* > m_identities;
+};
+
+class PythonIterator : public std::iterator< std::forward_iterator_tag, PyObject* >
+{
+    PythonEGReferenceType& m_pythonType;
+    EGRangeDescriptionPtr m_pRange;
+    Instance m_position, m_subRange;
+public:
+    inline PythonIterator( PythonEGReferenceType& pythonType, EGRangeDescriptionPtr pRange, bool bEnd ) 
+        :   m_pythonType( pythonType ), 
+            m_pRange( pRange ),
+            m_position( 0U ),
+            m_subRange( 0U )
+    {
+        if( bEnd )
+        {
+            m_subRange = m_pRange->getSize();
+        }
+        else
+        {
+            scanToNextOrEnd();
+        }
+    }
+    
+    inline PythonIterator( const PythonIterator& from ) : 
+        m_pythonType( from.m_pythonType ), 
+        m_pRange( from.m_pRange ),
+        m_position( from.m_position )
+    {
+    }
+    
+    inline void scanToNextOrEnd()
+    {
+        while( true )
+        {
+            //at end of all sub ranges then exit
+            if( m_subRange == m_pRange->getSize() )
+                break;
+            
+            //if at end of current range and remaining subranges increment subrange
+            while( ( m_position == m_pRange->getEnd( m_subRange ) ) && ( m_subRange != m_pRange->getSize() ) )
+            {
+                ++m_subRange;
+                if( m_subRange == m_pRange->getSize() )
+                    break;
+                m_position = m_pRange->getBegin( m_subRange );
+            }
+            
+            //at end of all sub ranges then exit
+            if( m_subRange == m_pRange->getSize() )
+                break;
+            
+            //now actually see if the current position is valid
+            if( ::getTimestamp( m_pRange->getType( m_subRange ), m_position ) <= clock::subcycle() )
+                break;
+            
+            //skip to next and continue scanning
+            ++m_position;
+        }
+    }
+    
+    inline PythonIterator& operator++()
+    {
+        ASSERT( m_subRange != m_pRange->getSize() );
+        if( m_position != m_pRange->getEnd( m_subRange ) )
+        {
+            ++m_position;
+            scanToNextOrEnd();
+        }
+        return *this;
+    }
+    
+    inline PythonIterator operator++(int) 
+    {
+        PythonIterator tmp( *this ); 
+        operator++(); 
+        return tmp;
+    }
+    
+    inline bool operator==(const PythonIterator& rhs) const 
+    {
+        if( ( m_pRange == rhs.m_pRange ) && ( m_subRange == rhs.m_subRange ) )
+        {
+            if( m_subRange == m_pRange->getSize() )
+                return true;
+            else
+                return m_position == rhs.m_position;
+        }
+        return false;
+    }
+    
+    inline bool operator!=(const PythonIterator& rhs) const { return !(rhs==*this); }
+    
+    inline PyObject* operator*()
+    {
+        const TypeID typeID = m_pRange->getType( m_subRange );
+        ::eg::reference ref{ m_position, typeID, getTimestamp( typeID, m_position ) };
+        return m_pythonType.create( ref );
+    }
 };
 
 }

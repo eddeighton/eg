@@ -30,10 +30,23 @@
 #include "runtime/eg_common.hpp"
 
 #include <vector>
+#include <memory>
 
 //EG Runtime Interface
 namespace eg
 {
+    
+    struct EGRT_EXPORT EGRangeDescription
+    {
+        virtual ~EGRangeDescription();
+        
+        virtual std::size_t getSize() = 0;
+        virtual TypeID getType( std::size_t szIndex ) = 0;
+        virtual Instance getBegin( std::size_t szIndex ) = 0;
+        virtual Instance getEnd( std::size_t szIndex ) = 0;
+    };
+    
+    using EGRangeDescriptionPtr = std::shared_ptr< EGRangeDescription >;
     
     struct EGRT_EXPORT HostFunctionAccessor
     {
@@ -49,6 +62,7 @@ namespace eg
         virtual void doDone(    const reference& reference ) = 0;
         virtual void doGetAction(    const reference& reference ) = 0;
         virtual void doGetDimension(    const reference& reference, TypeID dimensionType ) = 0;
+        virtual void doRange( EGRangeDescriptionPtr pRange ) = 0;
         
     };
 

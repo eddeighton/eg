@@ -1,0 +1,10 @@
+
+action A[ 64 ]
+{
+    dim int x;
+}
+
+A();
+
+while( !Done() )
+    SLEEP;

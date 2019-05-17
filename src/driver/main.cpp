@@ -208,6 +208,11 @@ int main( int argc, const char* argv[] )
             //collate the host settings
             if( !strHost.empty() )
                 config.loadHostConfig( strHost );
+            else
+            {
+                std::cout << "Missing host specification" << std::endl;
+                return 0;
+            }
             
             const boost::filesystem::path configFilePath = 
                 boost::filesystem::edsCannonicalise(

@@ -31,8 +31,13 @@
 
 namespace eg
 {
- 
+    
     HostFunctionAccessor::~HostFunctionAccessor()
+    {
+        
+    }
+    
+    EGRangeDescription::~EGRangeDescription()
     {
         
     }
@@ -54,6 +59,33 @@ namespace eg
         } 
         return std::make_shared< eg::ReadSession >( databaseFilePath );
     }
+    
+    class EGRange : public EGRangeDescription
+    {
+        const RangeDescription range;
+    public:
+        EGRange( const RangeDescription& range )
+            :    range( range )
+        {
+        }
+        
+        virtual std::size_t getSize()
+        {
+            return range.ranges.size();
+        }
+        virtual TypeID getType( std::size_t szIndex )
+        {
+            return range.ranges[ szIndex ].runtimeType;
+        }
+        virtual Instance getBegin( std::size_t szIndex )
+        {
+            return range.ranges[ szIndex ].begin;
+        }
+        virtual Instance getEnd( std::size_t szIndex )
+        {
+            return range.ranges[ szIndex ].end;
+        }
+    };
     
     class EGRuntimeImpl : public EGRuntime, public RuntimeEvaluator, public CreatingSession
     {
@@ -109,6 +141,10 @@ namespace eg
         virtual void doGetDimension(    const reference& reference, TypeID dimensionType )
         {
             m_hostAccessor.doGetDimension( reference, dimensionType );
+        }
+        virtual void doRange( const RangeDescription& range )
+        {
+            m_hostAccessor.doRange( std::make_shared< EGRange >( range ) );
         }
             
         //EGRuntime

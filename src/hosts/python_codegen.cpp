@@ -116,12 +116,30 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "\n";
     os << "//Python Interface\n";
     
+    if( !actions.empty() )
+    {
+    os << "eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance )\n";
+    os << "{\n";
+    os << "    switch( typeID )\n";
+    os << "    {\n";
+    for( const eg::concrete::Action* pAction : actions )
+    {
+        if( pAction->getParent() )
+        {
+    os << "        case " << pAction->getIndex() << ": return " << 
+        eg::Printer( layout.getDataMember( pAction->getRunningTimestamp() ), "instance" ) << ";\n";
+        }
+    }
+    os << "        default: return eg::INVALID_TIMESTAMP;\n";
+    os << "    }\n";
+    os << "}\n";
+    }
     
     os << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void > get_root()\n";
     os << "{\n";
     os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
     os << "    return  " << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void >( " << 
-        eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", 0 } );\n";
+        eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", getTimestamp( 0, " << pInstanceRoot->getIndex() << " ) } );\n";
     os << "}\n";
     os << "\n";
     
@@ -496,6 +514,14 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "        }\n";
     os << "    }\n";
     
+    os << "    virtual void doRange( eg::EGRangeDescriptionPtr pRange )\n";
+    os << "    {\n";
+    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        {\n";
+    os << "            pStack->m_result = pybind11::make_iterator( eg::PythonIterator( *g_pEGRefType, pRange, false ), eg::PythonIterator( *g_pEGRefType, pRange, true ) );\n";
+    
+    os << "        }\n";
+    os << "    }\n";
     
     
     

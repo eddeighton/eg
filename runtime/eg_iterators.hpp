@@ -97,7 +97,7 @@ public:
 
     inline __eg_MultiIterator()
         :   iterators( { ReferenceType{ 0, 0, 0 }, ReferenceType{ 0, 0, 0 } } ),
-            szIndex( 2U )
+            szIndex( SIZE )
     {
     }
     
