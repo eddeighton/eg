@@ -120,7 +120,6 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     {
     os << "eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance )\n";
     os << "{\n";
-    os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
     os << "    switch( typeID )\n";
     os << "    {\n";
     for( const eg::concrete::Action* pAction : actions )
@@ -138,16 +137,70 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     
     os << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void > get_root()\n";
     os << "{\n";
-    os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
     os << "    return  " << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void >( " << 
         eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", getTimestamp( 0, " << pInstanceRoot->getIndex() << " ) } );\n";
     os << "}\n";
     os << "\n";
     
-    //sleep
-    //sleep seconds
+    os << "void sleep()\n";
+    os << "{\n";
+    os << "    g_resumptionCriteria.bTerminate = false;\n";
+    os << "    g_resumptionCriteria.bSubCycle = false;\n";
+    os << "    g_resumptionCriteria.bCycle = true;\n";
+    os << "    g_resumptionCriteria.fTimeout = 0.0f;\n";
+    os << "    g_resumptionCriteria.events.clear();\n";
+    os << "    g_pythonResumption = false;\n";
+    os << "    {\n";
+    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
+    os << "        g_runSimulation = true;\n";
+    os << "    }\n";
+    os << "    g_simulationConditionVar.notify_one();\n";
+    os << "    {\n";
+    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
+    os << "        g_simulationConditionVar.wait( lk, []{ return g_pythonResumption; } );\n";
+    os << "    }\n";
+    os << "}\n";
+    
+    os << "void sleep_seconds( float fTimeout )\n";
+    os << "{\n";
+    os << "    g_resumptionCriteria.bTerminate = false;\n";
+    os << "    g_resumptionCriteria.bSubCycle = false;\n";
+    os << "    g_resumptionCriteria.bCycle = false;\n";
+    os << "    g_resumptionCriteria.fTimeout = clock::ct() + fTimeout;\n";
+    os << "    g_resumptionCriteria.events.clear();\n";
+    os << "    g_pythonResumption = false;\n";
+    os << "    {\n";
+    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
+    os << "        g_runSimulation = true;\n";
+    os << "    }\n";
+    os << "    g_simulationConditionVar.notify_one();\n";
+    os << "    {\n";
+    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
+    os << "        g_simulationConditionVar.wait( lk, []{ return g_pythonResumption; } );\n";
+    os << "    }\n";
+    os << "}\n";
+    
     //sleep until
-    //wait
+    
+    os << "void wait()\n";
+    os << "{\n";
+    os << "    g_resumptionCriteria.bTerminate = false;\n";
+    os << "    g_resumptionCriteria.bSubCycle = true;\n";
+    os << "    g_resumptionCriteria.bCycle = false;\n";
+    os << "    g_resumptionCriteria.fTimeout = 0.0f;\n";
+    os << "    g_resumptionCriteria.events.clear();\n";
+    os << "    g_pythonResumption = false;\n";
+    os << "    {\n";
+    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
+    os << "        g_runSimulation = true;\n";
+    os << "    }\n";
+    os << "    g_simulationConditionVar.notify_one();\n";
+    os << "    {\n";
+    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
+    os << "        g_simulationConditionVar.wait( lk, []{ return g_pythonResumption; } );\n";
+    os << "    }\n";
+    os << "}\n";
+    
     //wait until
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
@@ -160,12 +213,10 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
                 pDimension->printType( os );
                 os << " " << getFuncName( pDataMember, "read" ) << "( " << eg::EG_INSTANCE << " instance )\n";
                 os << "{\n";
-                os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
                 os << "    return " << eg::Printer( pDataMember, "instance" ) << ";\n";
                 os << "}\n";
                 os << "void " << getFuncName( pDataMember, "write" ) << "( " << eg::EG_INSTANCE << " instance, pybind11::tuple args )\n";
                 os << "{\n";
-                os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
                 os << "    " << eg::Printer( pDataMember, "instance" ) << " = pybind11::cast< "; pDimension->printType( os ); os << " >( args[ 0 ] );\n";
                 os << "}\n";
             }
@@ -179,31 +230,26 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
             pAction->printType( os );
             os << " " << getFuncName( pAction, "start" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
-            os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
             os << "    return " << pAction->getName() << "_starter( instance );\n";
             os << "}\n";
             
             os << "void " << getFuncName( pAction, "stop" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
-            os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
             os << "    " << pAction->getName() << "_stopper( instance );\n";
             os << "}\n";
             
             os << "void " << getFuncName( pAction, "pause" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
-            os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
             os << "    " << eg::Printer( layout.getDataMember( pAction->getPauseTimestamp() ), "instance" ) << " = " << eg::EG_INVALID_TIMESTAMP << ";\n";
             os << "}\n";
             
             os << "void " << getFuncName( pAction, "resume" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
-            os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
             os << "    " << eg::Printer( layout.getDataMember( pAction->getPauseTimestamp() ), "instance" ) << " = clock::subcycle() + 1;\n";
             os << "}\n";
             
             os << "bool " << getFuncName( pAction, "done" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
-            os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
             
             const eg::concrete::Action::IteratorMap& iterators = pAction->getAllocators();
             os << "    " << eg::EG_ITERATOR_TYPE << " iter;\n";
@@ -225,6 +271,11 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "PYBIND11_EMBEDDED_MODULE( pyeg, module ) \n";
     os << "{\n";
     os << "    module.def( \"get_root\", get_root );\n";
+    
+    os << "    module.def( \"sleep\", sleep );\n";
+    os << "    module.def( \"sleep_seconds\", sleep_seconds );\n";
+    os << "    module.def( \"wait\", wait );\n";
+    
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
         for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
@@ -566,24 +617,4 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "};\n";
     os << "\n";
     
-    os << "void runPython( const std::string& strDatabaseFile, const std::string& strScript )\n";
-    os << "{\n";
-    os << "    pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive\n";
-    os << "\n";
-    os << "    try\n";
-    os << "    {\n";
-    os << "        pybind11::module pyeg_module = pybind11::module::import( \"pyeg\" );\n";
-    os << "\n";
-    os << "        HostFunctions hostFunctions( strDatabaseFile, pyeg_module );\n";
-    os << "\n";
-    os << "        g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );\n";
-    os << "\n";
-    os << "        pybind11::exec( strScript );\n";
-    os << "    }\n";
-    os << "    catch( std::exception& e )\n";
-    os << "    {\n";
-    os << "        std::cout << e.what() << std::endl;\n";
-    os << "    }\n";
-    os << "}\n";
-    os << "\n";
 }

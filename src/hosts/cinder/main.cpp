@@ -237,11 +237,23 @@ public:
     }
     
     os << "\n\n";
-    os << "std::shared_ptr< std::mutex > g_pSimulationMutex;\n";
+    
+    os << "struct ResumptionCriteria\n";
+    os << "{\n";
+    os << "    bool bTerminate;\n";
+    os << "    bool bSubCycle;\n";
+    os << "    bool bCycle;\n";
+    os << "    float fTimeout;\n";
+    os << "    std::vector< eg::reference > events;\n";
+    os << "}g_resumptionCriteria;\n";
+    
+    os << "bool g_runSimulation = false;\n";
+    os << "bool g_pythonResumption = false;\n";
+    os << "std::mutex g_simulationMutex;\n";
+    os << "std::condition_variable g_simulationConditionVar;\n";
     
     os << "bool executeSchedule()\n";
     os << "{\n";
-    os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
     os << "    bool bWaited = false;\n";
     for( const eg::concrete::Action* pAction : actions )
     {
@@ -251,6 +263,7 @@ public:
     os << "    return bWaited;\n";
     os << "}\n";
     
+    //////Generate the python bindings
     os << "\n";
     generate_python( os, session );
     os << "\n";
@@ -298,6 +311,36 @@ public:
 using namespace ci;
 using namespace ci::app;
 
+void runPython( const std::string& strDatabaseFile, const std::string& strScript )
+{
+    pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
+
+    try
+    {
+        pybind11::module pyeg_module = pybind11::module::import( "pyeg" );
+
+        HostFunctions hostFunctions( strDatabaseFile, pyeg_module );
+
+        g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
+
+        pybind11::exec( strScript );
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
+    
+    //signal the application to terminate
+    g_resumptionCriteria.bTerminate = true;
+    g_resumptionCriteria.bSubCycle = false;
+    g_resumptionCriteria.bCycle = false;
+    g_resumptionCriteria.fTimeout = 0.0f;
+    g_resumptionCriteria.events.clear();
+    {
+        std::unique_lock< std::mutex > lk( g_simulationMutex );
+        g_runSimulation = true;
+    }
+}
 
 // We'll create a new Cinder Application by deriving from the App class.
 class BasicApp : public App 
@@ -326,6 +369,7 @@ public:
     static std::string g_strPythonScript;
     static std::string g_strDatabase;
 
+    void RunCycle();
 private:
     HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
     HostClock theClock;
@@ -343,8 +387,6 @@ BasicApp::BasicApp()
     allocate_buffers();
     
     initialise( &dependencies );
-    
-    g_pSimulationMutex = std::make_shared< std::mutex >();
     
     root_starter( 0 );
 }
@@ -432,7 +474,21 @@ void BasicApp::keyUp( KeyEvent event )
     inputEvents.events.push_back( e );
 }
 
-void BasicApp::draw()
+//struct ResumptionCriteria
+//{
+//    bool bTerminate;
+//    bool bSubCycle;
+//    bool bCycle;
+//    float fTimeout;
+//    std::vector< eg::reference > events;
+//}g_resumptionCriteria;
+//
+//bool g_runSimulation = false;
+//bool g_pythonResumption = false;
+//std::mutex g_simulationMutex;
+//std::condition_variable g_simulationConditionVar;
+    
+void BasicApp::RunCycle()
 {
     const HostClock::Tick cycleStart = theClock.nextCycle();
     if( g_root[ 0 ].g_root_timestamp_paused <= clock::subcycle() )
@@ -445,7 +501,79 @@ void BasicApp::draw()
             theClock.nextSubCycle();
             if( !bWasThereAWait && !theEventLog.updateAndWasEvent() )
                 bMoreSubCycles = false;
+        } 
+    }
+}
+    
+void BasicApp::draw()
+{
+    //wait for python to allow us to run
+    {
+        std::unique_lock< std::mutex > lk( g_simulationMutex );
+        g_simulationConditionVar.wait( lk, []{ return g_runSimulation; } );
+        g_runSimulation = false;
+    }
+    
+    if( g_resumptionCriteria.bTerminate )
+    {
+        quit();
+        return;
+    }
+    
+    //why have we been allowed to run?
+    if( g_resumptionCriteria.bSubCycle )
+    {
+        //run a single sub cycle and return control to python
+        executeSchedule();
+        theClock.nextSubCycle();
+        
+        {
+            std::unique_lock< std::mutex > lk( g_simulationMutex );
+            g_pythonResumption = true;
         }
+        g_simulationConditionVar.notify_one();
+    }
+    else if( g_resumptionCriteria.bCycle )
+    {
+        //run entire cycle and then return control to python
+        RunCycle();
+        
+        {
+            std::unique_lock< std::mutex > lk( g_simulationMutex );
+            g_pythonResumption = true;
+        }
+        g_simulationConditionVar.notify_one();
+    }
+    else if( g_resumptionCriteria.fTimeout > 0.0f )
+    {
+        //run until timeout has elapsed
+        RunCycle();
+        
+        if( clock::ct() > g_resumptionCriteria.fTimeout )
+        {
+            {
+                std::unique_lock< std::mutex > lk( g_simulationMutex );
+                g_pythonResumption = true;
+            }
+            g_simulationConditionVar.notify_one();
+        }
+        else
+        {
+            g_runSimulation = true;
+        }
+    }
+    else if( !g_resumptionCriteria.events.empty() )
+    {
+        //run until event occurs
+        
+        //run until timeout has elapsed
+        RunCycle();
+    }
+    else
+    {
+        //no criteria so just run forever
+        RunCycle();
+        g_runSimulation = true;
     }
 }
 

@@ -27,7 +27,6 @@ action Camera
     }
 }
 
-
 action Cube[ 16 ]
 {
     dim vec3 position;
@@ -45,16 +44,25 @@ Camera::Orbit orbit = cam.Orbit();
 orbit.rate( 0.1f );
 orbit.radius( 8.0f );
 
-for( int x = -1; x < 2; ++x )
+
+dim int x;
+dim int y;
+x( -1 );
+y( -1 );
+
+action CreateCube
 {
-    for( int y = -1; y < 2; ++y )
+    Cube c = Cube();
+    c.size( vec3( 3, 3, 3 ) );
+    c.position( vec3( x() * 4, y() * 4, 0 ) );
+    
+    x( x() + 1 );
+    if( x() == 2 )
     {
-        Cube c = Cube();
-        c.size( vec3( 3, 3, 3 ) );
-        c.position( vec3( x * 4, y * 4, 0 ) );
+        x( -1 );
+        y( y() + 1 );
     }
 }
-
 
 while( !Done() )
 {
