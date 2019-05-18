@@ -1,0 +1,67 @@
+
+action Camera
+{
+    dim CameraPersp perspective;
+    dim vec3 eye;
+    
+    eye( vec3( 8, 8, 2 ) );
+    
+    action Orbit
+    {
+        dim float rate;
+        dim float radius;
+        
+        while( true )
+        {
+            float fAngle = clock::ct() * rate() * M_PI * 2.0f;
+            vec2 v( sin( fAngle ), cos( fAngle ) );
+            eye( vec3( v.x, v.y, 2 ) * radius() );
+            SLEEP;
+        }
+    }
+    
+    while( true )
+    {
+        perspective.Get().lookAt( eye(), vec3( 0 ) );
+        SLEEP;
+    }
+}
+
+
+action Cube[ 16 ]
+{
+    dim vec3 position;
+    dim vec3 size;
+    
+    while( true )
+    {
+        gl::drawColorCube( position(), size() );
+        SLEEP;
+    }
+}
+
+Camera cam = Camera();
+Camera::Orbit orbit = cam.Orbit();
+orbit.rate( 0.1f );
+orbit.radius( 8.0f );
+
+for( int x = -1; x < 2; ++x )
+{
+    for( int y = -1; y < 2; ++y )
+    {
+        Cube c = Cube();
+        c.size( vec3( 3, 3, 3 ) );
+        c.position( vec3( x * 4, y * 4, 0 ) );
+    }
+}
+
+
+while( !Done() )
+{
+    gl::clear();
+    gl::enableDepthRead();
+    gl::enableDepthWrite();
+    gl::setMatrices( perspective() );
+
+    SLEEP;
+}

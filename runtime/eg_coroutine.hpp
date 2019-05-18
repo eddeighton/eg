@@ -126,7 +126,7 @@ struct Coroutine
         auto v = ( variable );\
         while( !bFound )\
         {\
-            while( Event e = get_next_event() )\
+            while( eg::Event e = get_next_event() )\
             {\
                 if( v == e )\
                 {\

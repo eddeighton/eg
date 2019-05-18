@@ -10,10 +10,10 @@ action Circle[ 4096 ]
     dim float max_size;
     dim float max_lifetime;
     
-    max_size( 20.0f );
-    max_lifetime( 4.0f );
+    max_size( 80.0f );
+    max_lifetime( 8.0f );
     
-    size( max_size() );
+    size( max_size() / 2.0f );
     starttime( clock::ct() );
     lifetime( clock::ct() + max_lifetime() );
     
@@ -27,27 +27,55 @@ action Circle[ 4096 ]
     
     action Shrink
     {
+        dim float start;
+        start( clock::ct() );
         while( true )
         {
-            size( ( max_size() / 2.0f ) - ( lifetime() - clock::ct() ) * max_size() / 2.0f );
+            float fRatio = ( clock::ct() - start() ) / ( max_lifetime() / 16.0f );
+            if( fRatio > 1.0f ) break;
+            size( max_size() * ( 1.0f - fRatio ) );
             SLEEP;
         }
     }
     action Grow
     {
+        dim float start;
+        start( clock::ct() );
         while( true )
         {
-            size( ( max_size() / 2.0f ) + ( clock::ct() - starttime() ) * max_size() / 2.0f );
+            float fRatio = ( clock::ct() - start() ) / ( max_lifetime() / 16.0f );
+            if( fRatio > 1.0f ) break;
+            size( max_size() * fRatio );
             SLEEP;
         }
+    }
+    
+    action ShrinkGrow
+    {
+       while( true )
+       {
+           SLEEP_UNTIL( Shrink() );
+           SLEEP_UNTIL( Grow() );
+       }
     }
     
     action Move
     {
         dim vec2 direction;
+        dim float speed;
         while( true )
         {
-            position( position() + direction() * clock::dt() );
+            position( position() + ( direction() * clock::dt() ) * speed() );
+            SLEEP;
+        }
+    }
+    
+    action ColourChanger
+    {
+        dim float offset;
+        while( true )
+        {
+            color( Color( CM_HSV, fmod( clock::ct() + offset(), 1.0f ), 1, 1 ) );
             SLEEP;
         }
     }
@@ -68,7 +96,7 @@ action EventListener
     }
 }
 
-EventListener();
+//EventListener();
 
 bool bContinue = true;
 while( bContinue )
@@ -135,11 +163,50 @@ while( bContinue )
                 {
                     bContinue = false;
                 }
+                else if( e.keyEvent.getChar() == 'c' )
+                {
+                    float fCounter = 0.0f;
+                    for( Circle c : Circle.Range() )
+                    {
+                        c.ColourChanger();
+                        c.ColourChanger.offset( fCounter );
+                        fCounter += 0.01;
+                    }
+                }
                 else if( e.keyEvent.getChar() == 'g' )
                 {
                     for( Circle c : Circle.Range() )
                     {
-                        c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                        c.Shrink.Stop();
+                        c.Grow();
+                    }
+                }
+                else if( e.keyEvent.getChar() == 's' )
+                {
+                    for( Circle c : Circle.Range() )
+                    {
+                        c.Grow.Stop();
+                        c.Shrink();
+                    }
+                }
+                else if( e.keyEvent.getChar() == 'o' )
+                {
+                    for( Circle c : Circle.Range() )
+                    {
+                        c.Grow.Stop();
+                        c.Shrink.Stop();
+                        c.ShrinkGrow();
+                    }
+                }
+                else if( e.keyEvent.getChar() == 'm' )
+                {
+                    const float numCircles = eg::count( Circle.Range() );
+                    float index = 0;
+                    for( Circle c : Circle.Range() )
+                    {
+                        const float angle = ( ++index / numCircles ) * M_PI * 2.0f;
+                        c.Move().direction( vec2( cos( angle ), sin( angle ) ) );
+                        c.Move.speed( 100.0f );
                     }
                 }
                 break;

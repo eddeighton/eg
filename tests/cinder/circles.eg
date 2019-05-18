@@ -1,16 +1,7 @@
 
-include( <iostream> );
+include( "py_glm.hpp" );
 
-action MsgTest
-{
-    while( true )
-    {
-        std::cout << "cout is working" << std::endl;
-        SLEEP_S( 1 );
-    }
-}
-
-action Circle[ 2048 ]
+abstract Shape
 {
     dim vec2 position;
     dim Color color;
@@ -21,13 +12,6 @@ action Circle[ 2048 ]
         color( Color( CM_HSV, 0.5f, 1, 1 ) );
         position( getWindowCenter() );
         size( 25.0f );
-    }
-    
-    while( true )
-    {
-        gl::color( color() ); // red
-        gl::drawSolidCircle( position(), size() );
-        SLEEP;
     }
     
     action ColorChanger
@@ -56,19 +40,37 @@ action Circle[ 2048 ]
     }
 }
 
+
+action StrokedCircle[ 2048 ] : Shape
+{
+    while( true )
+    {
+        gl::color( color() ); // red
+        gl::drawStrokedCircle( position(), size() );
+        SLEEP;
+    }
+}
+
+action Circle[ 2048 ] : Shape
+{
+    while( true )
+    {
+        gl::color( color() ); 
+        gl::drawSolidCircle( position(), size() );
+        SLEEP;
+    }
+}
+
 action Spiral
 {
     dim float speed;
     dim float curve;
     
+    root r = root.Get();
+        
     while( true )
     {
-        int numCircles = 0;
-        root r = root.Get();
-        for( Circle c : r.Circle.Range() )
-        {
-            ++numCircles;
-        }
+        const int numCircles = eg::count( r.Circle.Range() );
         
         int index = 0;
         const vec2 center = getWindowCenter();

@@ -120,6 +120,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     {
     os << "eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance )\n";
     os << "{\n";
+    os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
     os << "    switch( typeID )\n";
     os << "    {\n";
     for( const eg::concrete::Action* pAction : actions )
@@ -142,6 +143,12 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
         eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", getTimestamp( 0, " << pInstanceRoot->getIndex() << " ) } );\n";
     os << "}\n";
     os << "\n";
+    
+    //sleep
+    //sleep seconds
+    //sleep until
+    //wait
+    //wait until
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
