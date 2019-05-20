@@ -27,7 +27,7 @@ action Camera
     }
 }
 
-action Cube[ 16 ]
+action Cube[ 9 ]
 {
     dim vec3 position;
     dim vec3 size;
@@ -61,6 +61,8 @@ action CreateCube
     {
         x( -1 );
         y( y() + 1 );
+        if( y() == 2 )
+            y( -1 );
     }
 }
 
