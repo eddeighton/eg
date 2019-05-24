@@ -69,7 +69,7 @@ public:
         while( true )
         {
             ++instance;
-            if( ( instance == sentinal ) || ( getTimestamp< ReferenceType >( type, instance ) <= clock::subcycle() ) )
+            if( ( instance == sentinal ) || ( getTimestamp< ReferenceType >( type, instance ) <= clock::cycle() ) )
                 break;
         }
         return *this;

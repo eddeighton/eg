@@ -167,52 +167,10 @@ int main( int argc, const char* argv[] )
         {
     os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
     os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
-    //os << "extern bool " << pAction->getName() << "_executor();\n";
     
-    ////executor
-    os << "bool " << pAction->getName() << "_executor()\n";
-    os << "{\n";
-    
-    const eg::DataMember* pRunningTimestamp = layout.getDataMember( pAction->getRunningTimestamp() );
-    const eg::DataMember* pPauseTimestamp   = layout.getDataMember( pAction->getPauseTimestamp()   );
-    const eg::DataMember* pCoroutine        = layout.getDataMember( pAction->getCoroutine()        );
-    
-    os << "    const " << eg::EG_TIME_STAMP << " subcycle = clock::subcycle();\n";
-    os << "    for( " << eg::EG_INSTANCE << " i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
-    os << "    {\n";
-    os << "        if( " << eg::Printer( pRunningTimestamp, "i" ) << " <= subcycle )\n";
-    os << "        {\n";
-    os << "             if( " << eg::Printer( pPauseTimestamp, "i" ) << " <= subcycle )\n";
-    os << "             {\n";
-    os << "                 if( " << eg::Printer( pCoroutine, "i" ) << ".done() )\n";
-    os << "                 {\n";
-    os << "                     " << pAction->getName() << "_stopper( i );\n";
-    os << "                 }\n";
-    os << "                 else\n";
-    os << "                 {\n";
-    os << "                     " << eg::Printer( pCoroutine, "i" ) << ".resume();\n";
-    os << "                 }\n";
-    os << "             }\n";
-    os << "        }\n";
-    os << "    }\n";
-    os << "    return false;\n";
-    os << "}\n";
-    os << "\n";
-        
         }
     }
-    
-    os << "bool executeSchedule()\n";
-    os << "{\n";
-    os << "    bool bWaited = false;\n";
-    for( const eg::concrete::Action* pAction : actions )
-    {
-        if( pAction->getParent() )
-    os << "    bWaited = " << pAction->getName() << "_executor() || bWaited;\n";
-    }
-    os << "    return bWaited;\n";
-    os << "}\n";
-    
+        
     os << "//Dependency Provider Implementation\n";
     os << "struct BasicHost_EGDependencyProvider : public " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "\n";
     os << "{\n";
@@ -271,33 +229,6 @@ int main( int argc, const char* argv[] )
         
         //start the root
         root_starter( 0 );
-        
-        while( g_root[ 0 ].g_root_timestamp_runnning <= clock::subcycle() )
-        {
-            const HostClock::Tick cycleStart = theClock.nextCycle();
-            
-            if( g_root[ 0 ].g_root_timestamp_paused <= clock::subcycle() )
-            {
-                //run the subcycle
-                bool bMoreSubCycles = true;
-                while( bMoreSubCycles )
-                {
-                    const bool bWasThereAWait = executeSchedule();
-                    theClock.nextSubCycle();
-                    if( !bWasThereAWait && !theEventLog.updateAndWasEvent() )
-                        bMoreSubCycles = false;
-                }
-            }
-            
-            //actually sleep...
-            {
-                const HostClock::TickDuration elapsed = theClock.actual() - cycleStart;
-                if( elapsed < sleepDuration )
-                {
-                    std::this_thread::sleep_for( sleepDuration - elapsed );
-                }
-            }
-        }
     }
     catch( std::exception& e )
     {

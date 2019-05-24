@@ -133,28 +133,22 @@ namespace eg
                             //    }
                                 break;
                                 
-                            case concrete::Dimension_Generated::eActionRunning   :
+                            case concrete::Dimension_Generated::eActionCycle   :
                                 {
                                     pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_timestamp_runnning";
+                                    pDimensionInstance->name = pBuffer->variable + "_cycle";
                                 }
                                 break;
-                            case concrete::Dimension_Generated::eActionPaused    :
+                            case concrete::Dimension_Generated::eActionState    :
                                 {
                                     pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_timestamp_paused";
+                                    pDimensionInstance->name = pBuffer->variable + "_state";
                                 }
                                 break;
-                            case concrete::Dimension_Generated::eActionCoroutine :
+                            case concrete::Dimension_Generated::eActionFiber :
                                 {
                                     pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_coroutine";
-                                }
-                                break;
-                            case concrete::Dimension_Generated::eActionEventIter :
-                                {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_event_iter";
+                                    pDimensionInstance->name = pBuffer->variable + "_fiber";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionObject    :
@@ -186,12 +180,6 @@ namespace eg
                                     
                                     pDimensionInstance->name = pBuffer->variable + 
                                         pAllocatedAction->getAbstractElement()->getIdentifier() + "_alloc_iter";
-                                }
-                                break;
-                            case concrete::Dimension_Generated::eActionStopTimestamp    :
-                                {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_timestamp_stopped";
                                 }
                                 break;
                             default:

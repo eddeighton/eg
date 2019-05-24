@@ -225,15 +225,13 @@ namespace concrete
         enum DimensionType
         {
             eDimensionTimestamp,
-            eActionRunning,
-            eActionPaused,
-            eActionCoroutine,
-            eActionEventIter,
+            eActionCycle,
+            eActionState,
+            eActionFiber,
             eActionObject,
             eActionReference,
             eActionAllocatorData,
-            eActionAllocatorHead,
-            eActionStopTimestamp
+            eActionAllocatorHead
         };
         
     protected:
@@ -294,14 +292,12 @@ namespace concrete
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
         const std::string& getName() const { return m_strName; }
         
-        const Dimension_Generated* getRunningTimestamp () const { return m_pRunningTimestamp ; }
-        const Dimension_Generated* getPauseTimestamp   () const { return m_pPauseTimestamp   ; }
-        const Dimension_Generated* getCoroutine        () const { return m_pCoroutine        ; }
-        const Dimension_Generated* getEventIterator    () const { return m_pEventIterator    ; }
-        const Dimension_Generated* getMappedObject     () const { return m_pMappedObject     ; }
-        const Dimension_Generated* getReference        () const { return m_pReference        ; }
-        const Dimension_Generated* getAllocatorData    () const { return m_pAllocatorData    ; }
-        const Dimension_Generated* getStopTimestamp    () const { return m_pStopTimestamp    ; }
+        const Dimension_Generated* getCycle        () const { return m_pCycle         ; } //timestamp when stopped
+        const Dimension_Generated* getState        () const { return m_pState         ; }
+        const Dimension_Generated* getFiber        () const { return m_pFiber         ; }
+        const Dimension_Generated* getMappedObject () const { return m_pMappedObject  ; }
+        const Dimension_Generated* getReference    () const { return m_pReference     ; }
+        const Dimension_Generated* getAllocatorData() const { return m_pAllocatorData ; }
     
         const Dimension_Generated* getIterator( const Action* pAction ) const 
         {
@@ -324,14 +320,12 @@ namespace concrete
         std::string m_strName;
         mutable int m_totalDomainSize = 0;
         
-        Dimension_Generated* m_pRunningTimestamp   = nullptr;
-        Dimension_Generated* m_pPauseTimestamp     = nullptr;
-        Dimension_Generated* m_pCoroutine          = nullptr;
-        Dimension_Generated* m_pEventIterator      = nullptr;
-        Dimension_Generated* m_pMappedObject       = nullptr;
-        Dimension_Generated* m_pReference          = nullptr;
-        Dimension_Generated* m_pAllocatorData      = nullptr;
-        Dimension_Generated* m_pStopTimestamp      = nullptr;
+        Dimension_Generated* m_pCycle         = nullptr;
+        Dimension_Generated* m_pState         = nullptr;
+        Dimension_Generated* m_pFiber         = nullptr;
+        Dimension_Generated* m_pMappedObject  = nullptr;
+        Dimension_Generated* m_pReference     = nullptr;
+        Dimension_Generated* m_pAllocatorData = nullptr;
         
         IteratorMap m_allocators;
         Action* m_pDependencyProvider = nullptr;

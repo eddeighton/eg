@@ -170,25 +170,20 @@ namespace eg
                 
                 actionInstances.insert( std::make_pair( pChildAction, pChildInstance ) );
                 
-                pChildInstance->m_pRunningTimestamp             = construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pRunningTimestamp->m_type     = concrete::Dimension_Generated::eActionRunning;
-                pChildInstance->m_pRunningTimestamp->m_pAction  = pChildInstance;
-                pChildInstance->m_children.push_back( pChildInstance->m_pRunningTimestamp );
+                pChildInstance->m_pCycle             = construct< concrete::Dimension_Generated >();
+                pChildInstance->m_pCycle->m_type     = concrete::Dimension_Generated::eActionCycle;
+                pChildInstance->m_pCycle->m_pAction  = pChildInstance;
+                pChildInstance->m_children.push_back( pChildInstance->m_pCycle );
                 
-                pChildInstance->m_pPauseTimestamp               = construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pPauseTimestamp->m_type       = concrete::Dimension_Generated::eActionPaused;
-                pChildInstance->m_pPauseTimestamp->m_pAction    = pChildInstance;
-                pChildInstance->m_children.push_back( pChildInstance->m_pPauseTimestamp );
+                pChildInstance->m_pState             = construct< concrete::Dimension_Generated >();
+                pChildInstance->m_pState->m_type     = concrete::Dimension_Generated::eActionState;
+                pChildInstance->m_pState->m_pAction  = pChildInstance;
+                pChildInstance->m_children.push_back( pChildInstance->m_pState );
                 
-                pChildInstance->m_pCoroutine                    = construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pCoroutine->m_type            = concrete::Dimension_Generated::eActionCoroutine;
-                pChildInstance->m_pCoroutine->m_pAction         = pChildInstance;
-                pChildInstance->m_children.push_back( pChildInstance->m_pCoroutine );
-                
-                pChildInstance->m_pEventIterator                = construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pEventIterator->m_type        = concrete::Dimension_Generated::eActionEventIter;
-                pChildInstance->m_pEventIterator->m_pAction     = pChildInstance;
-                pChildInstance->m_children.push_back( pChildInstance->m_pEventIterator );
+                pChildInstance->m_pFiber             = construct< concrete::Dimension_Generated >();
+                pChildInstance->m_pFiber->m_type     = concrete::Dimension_Generated::eActionFiber;
+                pChildInstance->m_pFiber->m_pAction  = pChildInstance;
+                pChildInstance->m_children.push_back( pChildInstance->m_pFiber );
                 
                 //does the action have an object mapping?
                 if( !pChildAction->getBaseType().empty() )
@@ -203,12 +198,6 @@ namespace eg
                 pChildInstance->m_pReference->m_type            = concrete::Dimension_Generated::eActionReference;
                 pChildInstance->m_pReference->m_pAction         = pChildInstance;
                 pChildInstance->m_children.push_back( pChildInstance->m_pReference );
-                
-                
-                pChildInstance->m_pStopTimestamp                = construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pStopTimestamp->m_type       = concrete::Dimension_Generated::eActionStopTimestamp;
-                pChildInstance->m_pStopTimestamp->m_pAction    = pChildInstance;
-                pChildInstance->m_children.push_back( pChildInstance->m_pStopTimestamp );
                 
             }
             else

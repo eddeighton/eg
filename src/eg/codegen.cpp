@@ -226,10 +226,10 @@ namespace eg
             os << strIndent << "template< typename TypePath, typename Operation, typename... Args >\n";
             os << strIndent << "typename " << EG_RESULT_TYPE << "< " << 
                 getInterfaceInstantiationType( strName, depth ) <<
-                ", TypePath, Operation >::Type " << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args );\n";
+                ", TypePath, Operation >::Type " << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args ) const;\n";
             
             //event access
-            os << strIndent << EG_EVENT_TYPE << " get_next_event() const;\n";
+            //os << strIndent << EG_EVENT_TYPE << " get_next_event() const;\n";
             
             //void* operator
             os << strIndent << "operator const void*() const\n";
@@ -266,7 +266,7 @@ namespace eg
             os << strIndent << "}\n";
             
             //operation
-            os << strIndent << EG_COROUTINE_TYPE << " operator()();\n";
+            os << strIndent << "void operator()() const;\n";
             
             //iterator type
             os << strIndent << "using Iterator = " << EG_REFERENCE_ITERATOR_TYPE << "< " << strActionInterfaceType << " >;\n";
@@ -598,13 +598,13 @@ namespace eg
             }
             
             //just generate an explicit template specialisation
-            os << strIndent << EG_COROUTINE_TYPE << " ";
+            os << strIndent << "void ";
             {
                 for( const interface::Element* pNodeIter : path )
                 {
                     os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
                 }
-                os << "operator()()\n";
+                os << "operator()() const\n";
             }
             
             //generate the function body
@@ -621,7 +621,6 @@ namespace eg
                 }
             }
             
-            os << "\n" << strIndent << "co_return;\n";
             strIndent.pop_back();
             strIndent.pop_back();
             os << strIndent << "}\n";
@@ -888,52 +887,6 @@ namespace eg
             os << "  return *this;\n";
             os << "}\n";
             
-            //get_next_event
-            os << osTemplateArgLists.str();
-            os << EG_EVENT_TYPE << " " << osTypeName.str() << "::get_next_event() const\n";
-            os << "{\n";
-            os << "    " << EG_EVENT_TYPE << " ev;\n";
-            os << "    " << EG_EVENT_LOG_EVENT_TYPE << " _event;\n";
-            os << "    " << EG_EVENT_ITERATOR << "* pIterator = nullptr;\n";
-            
-            if( dynamicCompatibleTypes.size() > 1 )
-            {
-            os << "  switch( data.type )\n";
-            os << "  {\n";
-            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
-            {
-                const DataMember* pEventIterator = layout.getDataMember( pCompatible->getEventIterator() );
-            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         pIterator = &" << Printer( pEventIterator, "data.instance" ) << ";\n";
-            os << "         break;\n";
-            }
-            os << "     default:\n";
-            os << "         break;\n";
-            os << "  }\n";
-            }
-            else if( dynamicCompatibleTypes.size() == 1 )
-            {
-                const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
-                const DataMember* pEventIterator = layout.getDataMember( pCompatible->getEventIterator() );
-            os << "    pIterator = &" << Printer( pEventIterator, "data.instance" ) << ";\n";
-            }
-            if( !dynamicCompatibleTypes.empty() )
-            {
-            os << "    if( pIterator )\n";
-            os << "    {\n";
-            os << "         while( g_eg_event_log->GetEvent( *pIterator, _event ) )\n";
-            os << "         {\n";   
-            os << "              if( 0 == strcmp( _event.type, \"stop\" ) )\n";
-            os << "              {\n";
-            os << "                  ev.data = *reinterpret_cast< const " << EG_REFERENCE_TYPE << "* >( _event.value );\n";
-            os << "                  break;\n";
-            os << "              }\n"; 
-            os << "         }\n";
-            os << "    }\n";
-            }
-            os << "    return ev;\n";
-            os << "}\n";
-            
             //getTimestamp
             if( !dynamicCompatibleTypes.empty() )
             {
@@ -946,9 +899,9 @@ namespace eg
             os << "    {\n";
             for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
             {
-                const DataMember* pRunning = layout.getDataMember( pCompatible->getRunningTimestamp() );
+                const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         return " << Printer( pRunning, "instance" ) << ";\n";
+            os << "         return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
             }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
             os << "    }\n";
@@ -956,8 +909,8 @@ namespace eg
             else //if( dynamicCompatibleTypes.size() == 1 )
             {
                 const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
-                const DataMember* pRunning = layout.getDataMember( pCompatible->getRunningTimestamp() );
-            os << "    return " << Printer( pRunning, "instance" ) << ";\n";
+                const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
+            os << "    return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
             }
             os << "}\n";
             os << "\n";
@@ -1066,7 +1019,7 @@ namespace eg
             }
             
             //generate the invoke member function name
-            os << osTypeName.str() << "::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args )\n";
+            os << osTypeName.str() << "::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args ) const\n";
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
@@ -1414,7 +1367,7 @@ namespace eg
     
     void generateActionInstanceFunctions( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
     {
-        if( pAction->getRunningTimestamp() && pAction->getPauseTimestamp() && pAction->getCoroutine() )
+        if( pAction->getCycle() && pAction->getState() && pAction->getFiber() )
         {
             if( pAction->getParent() && pAction->getParent()->getParent() )
             {
@@ -1429,12 +1382,10 @@ namespace eg
                 
                 const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
                 const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
-                const DataMember* pRunningData = layout.getDataMember( pAction->getRunningTimestamp() );
-                const DataMember* pPausedData = layout.getDataMember( pAction->getPauseTimestamp() );
-                const DataMember* pCoroutineData = layout.getDataMember( pAction->getCoroutine() );
+                const DataMember* pCycleData = layout.getDataMember( pAction->getCycle() );
+                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
                 const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-                const DataMember* pEventIterator = layout.getDataMember( pAction->getEventIterator() );
-                const DataMember* pStoppedTimestamp = layout.getDataMember( pAction->getStopTimestamp() );
                 const DataMember* pObject = pAction->getMappedObject() ? 
                     layout.getDataMember( pAction->getMappedObject() ) : nullptr;
                 
@@ -1467,27 +1418,28 @@ namespace eg
         std::ostringstream osNextIndex;
         osNextIndex << "_gid * " << pAction->getLocalDomainSize() << " + nextCellIndex";
         os << "         " << EG_INSTANCE << " nextInstance = " << Printer( pAllocatorData, osNextIndex.str().c_str() ) << ";\n";
-        os << "         if( " << Printer( pStoppedTimestamp, "nextInstance" ) << " <= clock::subcycle() )\n";
+        os << "         if( " << Printer( pCycleData, "nextInstance" ) << " < clock::cycle() )\n";
         os << "         {\n";
         os << "             //attempt to set the atomic\n";
         os << "             if( " << Printer( pIteratorData, "_gid" ) << ".compare_exchange_weak( expected.data, iter.data ) )\n";
         os << "             {\n";
         os << "                 //successfully claimed index so get the actual instance from the ring buffer\n";
-        os << "                 const " << EG_INSTANCE << " startSubCycle = clock::subcycle() + 1;\n";
+        os << "                 const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
         os << "                 "; pAction->printType( os ); os << "& reference = " << 
                                 Printer( pReferenceData, "nextInstance" ) << ";\n";
-        os << "                 reference.data.timestamp = startSubCycle;\n";
-        os << "                 " << Printer( pRunningData, "nextInstance" ) << " = startSubCycle;\n";
-        os << "                 " << Printer( pPausedData, "nextInstance" ) << " = startSubCycle;\n";
-        os << "                 " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startSubCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
+        os << "                 reference.data.timestamp = startCycle;\n";
+        os << "                 " << Printer( pStateData, "nextInstance" ) << " = " << getActionState( action_running ) << ";\n";
+        os << "                 " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "                 g_eg_event_log->PutEvent( ev );\n";
-        os << "                 " << Printer( pEventIterator, "nextInstance" ) << " = g_eg_event_log->GetEventIterator();\n";
                 //if there is an object mapping then start it
                 if( pObject )
                 {
                     pObject->printStart( os, "nextInstance" );
                 }
-        os << "                 " << Printer( pCoroutineData, "nextInstance" ) << " = reference();\n";
+        os << "                 " << Printer( pFiberData, "nextInstance" ) << " = " << EG_FIBER_TYPE << 
+            "( [ reference ](){ try{ reference(); } catch( eg::termination_exception& ){} " << 
+            pAction->getName() << "_stopper( reference.data.instance ); } );\n";
+            
         os << "                 return reference;\n";
         os << "             }\n";
         os << "         }\n";
@@ -1506,23 +1458,23 @@ namespace eg
             else
             {
                 //simple starter for root
-                const DataMember* pRunningData = layout.getDataMember( pAction->getRunningTimestamp() );
-                const DataMember* pPausedData = layout.getDataMember( pAction->getPauseTimestamp()   );
-                const DataMember* pCoroutineData = layout.getDataMember( pAction->getCoroutine() );
+                const DataMember* pCycleData = layout.getDataMember( pAction->getCycle() );
+                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
                 const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-                const DataMember* pEventIterator = layout.getDataMember( pAction->getEventIterator() );
                         
         pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid )\n";
         os << "{\n";
-        os << "    const " << EG_INSTANCE << " startSubCycle = clock::subcycle();\n";
+        os << "    const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
         os << "    "; pAction->printType( os ); os << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
-        os << "    reference.data.timestamp = startSubCycle;\n";
-        os << "    " << Printer( pRunningData, "0" ) << " = startSubCycle;\n";
-        os << "    " << Printer( pPausedData, "0" ) << " = startSubCycle;\n";
-        os << "    " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startSubCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
+        os << "    reference.data.timestamp = startCycle;\n";
+        os << "    " << Printer( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
+        os << "    " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "    g_eg_event_log->PutEvent( ev );\n";
-        os << "    " << Printer( pEventIterator, "0" ) << " = g_eg_event_log->GetEventIterator();\n";
-        os << "    " << Printer( pCoroutineData, "0" ) << " = reference();\n";
+        os << "    " << Printer( pFiberData, "0" ) << " = " << EG_FIBER_TYPE << 
+            "( [ reference ](){ try{ reference(); } catch( eg::termination_exception& ){} " << 
+            pAction->getName() << "_stopper( reference.data.instance ); } );\n";
+            
         os << "    return reference;\n";
         os << "}\n";
         os << "\n";
@@ -1542,16 +1494,14 @@ namespace eg
                 
                 const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
                 const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
-                const DataMember* pRunningData = layout.getDataMember( pAction->getRunningTimestamp() );
-                const DataMember* pPausedData = layout.getDataMember( pAction->getPauseTimestamp() );
-                const DataMember* pCoroutineData = layout.getDataMember( pAction->getCoroutine() );
+                const DataMember* pCycleData = layout.getDataMember( pAction->getCycle() );
+                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
                 const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-                const DataMember* pStoppedTimestamp = layout.getDataMember( pAction->getStopTimestamp() );
                 const DataMember* pObject = pAction->getMappedObject() ? 
                     layout.getDataMember( pAction->getMappedObject() ) : nullptr;
                 
-        os << "     if( " << pRunningData->getBuffer()->getVariableName() << "[ _gid ]." << 
-            pRunningData->getName() << " != " << EG_INVALID_TIMESTAMP << " )\n";
+        os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
                 
         os << "         " << EG_ITERATOR_TYPE << " iter, expected;\n";
@@ -1607,11 +1557,10 @@ namespace eg
                     }
                 }
         
-        os << "         " << Printer( pRunningData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
-        os << "         " << Printer( pPausedData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
-        os << "         " << Printer( pStoppedTimestamp, "_gid" ) << " = clock::subcycle() + 2U;\n";
-        os << "         " << Printer( pCoroutineData, "_gid" ) << ".destroy();\n";
-        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::subcycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
+        os << "         " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+        os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
+        os << "         " << Printer( pFiberData, "_gid" ) << ".detach();\n";
+        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "         g_eg_event_log->PutEvent( ev );\n";
                 //if there is an object mapping then start it
                 if( pObject )
@@ -1623,12 +1572,12 @@ namespace eg
             }
             else
             {
-                const DataMember* pRunningData = layout.getDataMember( pAction->getRunningTimestamp() );
-                const DataMember* pPausedData = layout.getDataMember( pAction->getPauseTimestamp()   );
-                const DataMember* pCoroutineData = layout.getDataMember( pAction->getCoroutine() );
+                const DataMember* pCycleData = layout.getDataMember( pAction->getCycle() );
+                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
                 const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
                 
-        os << "     if( " << Printer( pRunningData, "_gid" ) << " != " << EG_INVALID_TIMESTAMP << " )\n";
+        os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
                         //stop the subtree
                 for( const concrete::Element* pChild : pAction->getChildren() )
@@ -1642,10 +1591,10 @@ namespace eg
         os << "         }\n";
                     }
                 }
-        os << "         " << Printer( pRunningData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
-        os << "         " << Printer( pPausedData, "_gid" ) << " = " << EG_INVALID_TIMESTAMP << ";\n";
-        os << "         " << Printer( pCoroutineData, "_gid" ) << ".destroy();\n";
-        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::subcycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
+        os << "         " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+        os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
+        os << "         " << Printer( pFiberData, "_gid" ) << ".detach();\n";
+        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "         g_eg_event_log->PutEvent( ev );\n";
         os << "     }\n";
             }
@@ -1698,7 +1647,6 @@ static eg::_clock* g_eg_clock;
 
 //clock impl\n";
 eg::TimeStamp clock::cycle()    { return g_eg_clock->cycle(); }
-eg::TimeStamp clock::subcycle() { return g_eg_clock->subcycle(); }
 float clock::ct()               { return g_eg_clock->ct(); }
 float clock::dt()               { return g_eg_clock->dt(); }
 
@@ -1826,9 +1774,9 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         
         for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
         {
-            const DataMember* pRunning = layout.getDataMember( pConcreteAction->getRunningTimestamp() );
+            const DataMember* pReference = layout.getDataMember( pConcreteAction->getReference() );
         os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
-        os << "            return " << Printer( pRunning, "instance" ) << ";\n";
+        os << "            return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
         }
         os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
         

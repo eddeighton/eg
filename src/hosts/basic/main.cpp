@@ -177,55 +177,9 @@ int main( int argc, const char* argv[] )
         {
     os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
     os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
-    //os << "extern bool " << pAction->getName() << "_executor();\n";
-    
-    ////executor
-    os << "bool " << pAction->getName() << "_executor()\n";
-    os << "{\n";
-    
-    const eg::DataMember* pRunningTimestamp = layout.getDataMember( pAction->getRunningTimestamp() );
-    const eg::DataMember* pPauseTimestamp   = layout.getDataMember( pAction->getPauseTimestamp()   );
-    const eg::DataMember* pCoroutine        = layout.getDataMember( pAction->getCoroutine()        );
-    
-    os << "    const " << eg::EG_TIME_STAMP << " subcycle = clock::subcycle();\n";
-    os << "    for( " << eg::EG_INSTANCE << " i = 0; i != " << pAction->getTotalDomainSize() << "; ++i )\n";
-    os << "    {\n";
-    os << "        if( " << eg::Printer( pRunningTimestamp, "i" ) << " <= subcycle )\n";
-    os << "        {\n";
-    os << "             if( " << eg::Printer( pPauseTimestamp, "i" ) << " <= subcycle )\n";
-    os << "             {\n";
-    os << "                 if( " << eg::Printer( pCoroutine, "i" ) << ".done() )\n";
-    os << "                 {\n";
-    os << "                     " << pAction->getName() << "_stopper( i );\n";
-    os << "                 }\n";
-    os << "                 else\n";
-    os << "                 {\n";
-    os << "                     " << eg::Printer( pCoroutine, "i" ) << ".resume();\n";
-    os << "                 }\n";
-    os << "             }\n";
-    os << "        }\n";
-    os << "    }\n";
-    os << "    return false;\n";
-    os << "}\n";
-    os << "\n";
-        
         }
     }
     
-    os << "\n\n";
-    os << "std::shared_ptr< std::mutex > g_pSimulationMutex;\n";
-    
-    os << "bool executeSchedule()\n";
-    os << "{\n";
-    os << "    std::lock_guard< std::mutex > guard( *g_pSimulationMutex );\n";
-    os << "    bool bWaited = false;\n";
-    for( const eg::concrete::Action* pAction : actions )
-    {
-        if( pAction->getParent() )
-    os << "    bWaited = " << pAction->getName() << "_executor() || bWaited;\n";
-    }
-    os << "    return bWaited;\n";
-    os << "}\n";
     
     os << "\n";
     generate_python( os, session );
@@ -269,9 +223,9 @@ int main( int argc, const char* argv[] )
     
 int main( int argc, const char* argv[] )
 {
-    std::string strPythonFile;
     std::string strDatabaseFile;
-    
+    std::vector< std::string > scripts;
+    int iMilliseconds = 16;
     {
         bool bDebug = false;
         namespace po = boost::program_options;
@@ -285,8 +239,9 @@ int main( int argc, const char* argv[] )
                 //options
                 ("debug",       po::value< bool >( &bDebug )->implicit_value( true ), 
                     "Wait at startup to allow attaching a debugger" )
-                ("python",      po::value< std::string >( &strPythonFile ), "Python file to run" )
                 ("database",    po::value< std::string >( &strDatabaseFile ), "Program Database" )
+                ("python",      po::value< std::vector< std::string > >( &scripts ), "Python scripts" )
+                ("rate",        po::value< int >( &iMilliseconds ), "Simulation rate in milliseconds" )
             ;
 
             po::positional_options_description p;
@@ -321,9 +276,11 @@ int main( int argc, const char* argv[] )
         }
     }
     
+    
     try
     {
-        HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 1000 / 60 );
+        const HostClock::TickDuration sleepDuration = 
+            std::chrono::milliseconds( iMilliseconds );
         
         //allocate everything
         allocate_buffers();
@@ -335,24 +292,19 @@ int main( int argc, const char* argv[] )
         BasicHost_EGDependencyProvider dependencies( &theClock, &theEventLog );
         initialise( &dependencies );
         
+        //be sure to initialise the clock before the scheduler
+        boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
+    
         //start the root
         root_starter( 0 );
         
-        g_pSimulationMutex = std::make_shared< std::mutex >();
-        std::unique_ptr< std::thread > pPythonThread;
-        if( !strPythonFile.empty() && !strDatabaseFile.empty() )
+        if( !scripts.empty() )
         {
-            std::string strScript;
-            const boost::filesystem::path pythonFilePath = 
-                boost::filesystem::edsCannonicalise(
-                    boost::filesystem::absolute( strPythonFile ) );
-            if( !boost::filesystem::exists( pythonFilePath ) )
+            if( strDatabaseFile.empty() )
             {
-                std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
+                std::cout << "Missing database file path" << std::endl;
                 return 0;
-            } 
-            boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
-            
+            }
             const boost::filesystem::path databaseFilePath = 
                 boost::filesystem::edsCannonicalise(
                     boost::filesystem::absolute( strDatabaseFile ) );
@@ -361,39 +313,50 @@ int main( int argc, const char* argv[] )
                 std::cout << "Cannot locate file: " << databaseFilePath.string() << std::endl;
                 return 0;
             } 
-            pPythonThread = std::make_unique< std::thread >( 
-                std::bind( &runPython, strDatabaseFile, strScript ) );
-        }
-        
-        while( g_root[ 0 ].g_root_timestamp_runnning <= clock::subcycle() )
-        {
-            const HostClock::Tick cycleStart = theClock.nextCycle();
-            
-            if( g_root[ 0 ].g_root_timestamp_paused <= clock::subcycle() )
+                
+            for( const std::string& strPythonScript : scripts )
             {
-                //run the subcycle
-                bool bMoreSubCycles = true;
-                while( bMoreSubCycles )
+                std::string strScript;
+                const boost::filesystem::path pythonFilePath = 
+                    boost::filesystem::edsCannonicalise(
+                        boost::filesystem::absolute( strPythonScript ) );
+                if( !boost::filesystem::exists( pythonFilePath ) )
                 {
-                    const bool bWasThereAWait = executeSchedule();
-                    theClock.nextSubCycle();
-                    if( !bWasThereAWait && !theEventLog.updateAndWasEvent() )
-                        bMoreSubCycles = false;
-                }
-            }
-            
-            //actually sleep...
-            {
-                const HostClock::TickDuration elapsed = theClock.actual() - cycleStart;
-                if( elapsed < sleepDuration )
-                {
-                    std::this_thread::sleep_for( sleepDuration - elapsed );
-                }
+                    std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
+                    return 0;
+                } 
+                boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
+                
+                //start python fiber
             }
         }
         
-        if( pPythonThread ) pPythonThread->join();
+        boost::fibers::fiber timeKeeperFiber
+        (
+            [ sleepDuration, &theClock ]()
+            {
+                boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
+                boost::this_fiber::yield();
+                
+                HostClock::Tick cycleStart = theClock.actual();
+                while( g_root[ 0 ].g_root_state != eg::action_stopped )
+                {
+                    const HostClock::TickDuration elapsed = theClock.actual() - cycleStart;
+                    if( elapsed < sleepDuration )
+                    {
+                        eg::sleep( sleepDuration - elapsed );
+                    }
+                    theClock.nextCycle();
+                    cycleStart = theClock.actual();
+                    std::cout << "tick: " << theClock.cycle() << " : " << theClock.ct() << "s" << std::endl;
+                    eg::wait();
+                }
+            }
+        );
         
+        timeKeeperFiber.join();
+        
+        deallocate_buffers();
     }
     catch( std::exception& e )
     {

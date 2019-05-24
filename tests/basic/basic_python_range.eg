@@ -1,12 +1,21 @@
 
+std::cout << "Root starting" << std::endl;
+    
 action A[ 64 ]
 {
     dim int x;
     
-    SLEEP_S( 1 );
+    std::cout << "A starting" << std::endl;
+    
+    eg::sleep( 1s );
+    
+    std::cout << "A stopping" << std::endl;
 }
 
 A();
+A();
 
 while( !Done() )
-    SLEEP;
+    eg::sleep();
+    
+std::cout << "Root stopping" << std::endl;

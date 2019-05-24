@@ -40,6 +40,7 @@ namespace eg
     static const char* EG_INSTANCE = "eg::Instance";
     static const char* EG_TYPE_ID = "eg::TypeID";
     static const char* EG_TIME_STAMP = "eg::TimeStamp";
+    static const char* EG_ACTION_STATE = "eg::ActionState";
     static const char* EG_INVALID_TIMESTAMP = "eg::INVALID_TIMESTAMP";
     static const char* EG_OBJECT_TRAITS = "eg::ObjectTraits";
     static const char* EG_DIMENSION_TRAITS = "eg::DimensionTraits";
@@ -53,7 +54,7 @@ namespace eg
     static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
     static const char* EG_RANGE_TYPE = "__eg_Range";
     static const char* EG_RESULT_TYPE = "eg::result_type";
-    static const char* EG_COROUTINE_TYPE = "eg::Coroutine";
+    static const char* EG_FIBER_TYPE = "boost::fibers::fiber";
     static const char* EG_TYPE_PATH_CANNON_TYPE = "eg::CanonicaliseTypePath";
     static const char* EG_ITERATOR_TYPE = "eg::Iterator";
     static const char* EG_REFERENCE_TYPE = "eg::reference";

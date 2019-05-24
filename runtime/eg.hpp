@@ -30,6 +30,7 @@
 #include "eg_event.hpp"
 #include "eg_operations.hpp"
 #include "eg_iterators.hpp"
+#include "eg_scheduler.hpp"
 #include "eg_include.hpp"
 
 #endif //EG_STANDARD_STUFF

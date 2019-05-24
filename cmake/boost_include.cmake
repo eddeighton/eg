@@ -20,6 +20,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package( Boost 1.70.0 REQUIRED QUIET COMPONENTS 
     program_options
     date_time
+    fiber
     random
     filesystem
     system

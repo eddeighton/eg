@@ -129,7 +129,7 @@ public:
                 break;
             
             //now actually see if the current position is valid
-            if( ::getTimestamp( m_pRange->getType( m_subRange ), m_position ) <= clock::subcycle() )
+            if( ::getTimestamp( m_pRange->getType( m_subRange ), m_position ) <= clock::cycle() )
                 break;
             
             //skip to next and continue scanning

@@ -118,7 +118,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     
     if( !actions.empty() )
     {
-    os << "eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance )\n";
+    os << "eg::TimeStamp getTimestamp( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
     os << "{\n";
     os << "    switch( typeID )\n";
     os << "    {\n";
@@ -127,10 +127,58 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
         if( pAction->getParent() )
         {
     os << "        case " << pAction->getIndex() << ": return " << 
-        eg::Printer( layout.getDataMember( pAction->getRunningTimestamp() ), "instance" ) << ";\n";
+        eg::Printer( layout.getDataMember( pAction->getReference() ), "instance" ) << ".data.timestamp;\n";
         }
     }
-    os << "        default: return eg::INVALID_TIMESTAMP;\n";
+    os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
+    os << "    }\n";
+    os << "}\n";
+    
+    os << eg::EG_ACTION_STATE << " getState( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
+    os << "{\n";
+    os << "    switch( typeID )\n";
+    os << "    {\n";
+    for( const eg::concrete::Action* pAction : actions )
+    {
+        if( pAction->getParent() )
+        {
+    os << "        case " << pAction->getIndex() << ": return " << 
+        eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << ";\n";
+        }
+    }
+    os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
+    os << "    }\n";
+    os << "}\n";
+    
+    os << eg::EG_FIBER_TYPE << "& getFiber( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
+    os << "{\n";
+    os << "    switch( typeID )\n";
+    os << "    {\n";
+    for( const eg::concrete::Action* pAction : actions )
+    {
+        if( pAction->getParent() )
+        {
+    os << "        case " << pAction->getIndex() << ": return " << 
+        eg::Printer( layout.getDataMember( pAction->getFiber() ), "instance" ) << ";\n";
+        }
+    }
+    os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
+    os << "    }\n";
+    os << "}\n";
+    
+    os << eg::EG_TIME_STAMP << " getCycle( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
+    os << "{\n";
+    os << "    switch( typeID )\n";
+    os << "    {\n";
+    for( const eg::concrete::Action* pAction : actions )
+    {
+        if( pAction->getParent() )
+        {
+    os << "        case " << pAction->getIndex() << ": return " << 
+        eg::Printer( layout.getDataMember( pAction->getCycle() ), "instance" ) << ";\n";
+        }
+    }
+    os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
     os << "    }\n";
     os << "}\n";
     }
@@ -142,66 +190,6 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "}\n";
     os << "\n";
     
-    os << "void sleep()\n";
-    os << "{\n";
-    os << "    g_resumptionCriteria.bTerminate = false;\n";
-    os << "    g_resumptionCriteria.bSubCycle = false;\n";
-    os << "    g_resumptionCriteria.bCycle = true;\n";
-    os << "    g_resumptionCriteria.fTimeout = 0.0f;\n";
-    os << "    g_resumptionCriteria.events.clear();\n";
-    os << "    g_pythonResumption = false;\n";
-    os << "    {\n";
-    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
-    os << "        g_runSimulation = true;\n";
-    os << "    }\n";
-    os << "    g_simulationConditionVar.notify_one();\n";
-    os << "    {\n";
-    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
-    os << "        g_simulationConditionVar.wait( lk, []{ return g_pythonResumption; } );\n";
-    os << "    }\n";
-    os << "}\n";
-    
-    os << "void sleep_seconds( float fTimeout )\n";
-    os << "{\n";
-    os << "    g_resumptionCriteria.bTerminate = false;\n";
-    os << "    g_resumptionCriteria.bSubCycle = false;\n";
-    os << "    g_resumptionCriteria.bCycle = false;\n";
-    os << "    g_resumptionCriteria.fTimeout = clock::ct() + fTimeout;\n";
-    os << "    g_resumptionCriteria.events.clear();\n";
-    os << "    g_pythonResumption = false;\n";
-    os << "    {\n";
-    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
-    os << "        g_runSimulation = true;\n";
-    os << "    }\n";
-    os << "    g_simulationConditionVar.notify_one();\n";
-    os << "    {\n";
-    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
-    os << "        g_simulationConditionVar.wait( lk, []{ return g_pythonResumption; } );\n";
-    os << "    }\n";
-    os << "}\n";
-    
-    //sleep until
-    
-    os << "void wait()\n";
-    os << "{\n";
-    os << "    g_resumptionCriteria.bTerminate = false;\n";
-    os << "    g_resumptionCriteria.bSubCycle = true;\n";
-    os << "    g_resumptionCriteria.bCycle = false;\n";
-    os << "    g_resumptionCriteria.fTimeout = 0.0f;\n";
-    os << "    g_resumptionCriteria.events.clear();\n";
-    os << "    g_pythonResumption = false;\n";
-    os << "    {\n";
-    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
-    os << "        g_runSimulation = true;\n";
-    os << "    }\n";
-    os << "    g_simulationConditionVar.notify_one();\n";
-    os << "    {\n";
-    os << "        std::unique_lock< std::mutex > lk( g_simulationMutex );\n";
-    os << "        g_simulationConditionVar.wait( lk, []{ return g_pythonResumption; } );\n";
-    os << "    }\n";
-    os << "}\n";
-    
-    //wait until
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
@@ -240,12 +228,14 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
             
             os << "void " << getFuncName( pAction, "pause" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
-            os << "    " << eg::Printer( layout.getDataMember( pAction->getPauseTimestamp() ), "instance" ) << " = " << eg::EG_INVALID_TIMESTAMP << ";\n";
+            os << "    if( " << eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << " == " << eg::getActionState( eg::action_running ) << " )\n";
+            os << "        " << eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << " = " << eg::getActionState( eg::action_paused ) << ";\n";
             os << "}\n";
             
             os << "void " << getFuncName( pAction, "resume" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
-            os << "    " << eg::Printer( layout.getDataMember( pAction->getPauseTimestamp() ), "instance" ) << " = clock::subcycle() + 1;\n";
+            os << "    if( " << eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << " == " << eg::getActionState( eg::action_paused ) << " )\n";
+            os << "        " << eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << " = " << eg::getActionState( eg::action_running ) << ";\n";
             os << "}\n";
             
             os << "bool " << getFuncName( pAction, "done" ) << "( " << eg::EG_INSTANCE << " instance )\n";
@@ -272,9 +262,9 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "{\n";
     os << "    module.def( \"get_root\", get_root );\n";
     
-    os << "    module.def( \"sleep\", sleep );\n";
-    os << "    module.def( \"sleep_seconds\", sleep_seconds );\n";
-    os << "    module.def( \"wait\", wait );\n";
+    //os << "    module.def( \"sleep\", sleep );\n";
+    //os << "    module.def( \"sleep_seconds\", sleep_seconds );\n";
+    //os << "    module.def( \"wait\", wait );\n";
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {

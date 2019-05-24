@@ -32,7 +32,7 @@ public:
     HostClock()
     {
         m_lastTick = m_startTick = ClockType::now();
-        m_cycle = m_subcycle = m_cycleSubCycle = 0;
+        m_cycle = 1U;
         m_ct = m_dt = 0.0f;
     }
     
@@ -41,35 +41,19 @@ public:
         const Tick nowTick = ClockType::now();
         m_dt = FloatTickDuration( nowTick - m_lastTick  ).count();
         m_ct = FloatTickDuration( nowTick - m_startTick ).count();
-        
         m_lastTick = nowTick;
-        
-        nextSubCycle();
-        m_cycleSubCycle = m_subcycle;
-        
         ++m_cycle;
-        
         return nowTick;
     }
     
-    inline void nextSubCycle()
-    {
-        ++m_subcycle;
-    }
-    
-    inline std::size_t cycleSubCycles() const { return m_cycleSubCycle; }
-    
     Tick actual() const { return ClockType::now(); }
-    
-    //interface
-    virtual eg::TimeStamp cycle()    const { return m_cycle; }
-    virtual eg::TimeStamp subcycle() const { return m_subcycle; }
-    virtual float ct()     const { return m_ct; }
-    virtual float dt()     const { return m_dt; }
+    virtual eg::TimeStamp cycle()   const { return m_cycle; }
+    virtual float ct()              const { return m_ct; }
+    virtual float dt()              const { return m_dt; }
     
 private:
     Tick m_lastTick, m_startTick;
-    eg::TimeStamp m_cycle, m_subcycle, m_cycleSubCycle;
+    eg::TimeStamp m_cycle;
     float m_ct, m_dt;
 };
 

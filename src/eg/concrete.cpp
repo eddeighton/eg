@@ -211,15 +211,14 @@ namespace concrete
             case eDimensionTimestamp :
                 os << EG_TIME_STAMP;
                 break;
-            case eActionRunning      :
-            case eActionPaused       :
+            case eActionCycle        :
                 os << EG_TIME_STAMP;
                 break;
-            case eActionCoroutine    :
-                os << EG_COROUTINE_TYPE;
+            case eActionState        :
+                os << EG_ACTION_STATE;
                 break;
-            case eActionEventIter    :
-                os << EG_EVENT_ITERATOR;
+            case eActionFiber        :
+                os << EG_FIBER_TYPE;
                 break;
             case eActionObject       :
                 //use the type traits in the interface
@@ -247,9 +246,6 @@ namespace concrete
             case eActionAllocatorHead:
                 os << "std::atomic< std::uint64_t >";
                 break;
-            case eActionStopTimestamp:
-                os << EG_TIME_STAMP;
-                break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -260,13 +256,13 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp :
-            case eActionRunning      :
-            case eActionPaused       :
                 return 4;
-            case eActionCoroutine    :
-                return 8;
-            case eActionEventIter    :
-                return 8;
+            case eActionCycle        :
+                return 4;
+            case eActionState        :
+                return 4;
+            case eActionFiber        :
+                return 4;
             case eActionObject       :
                 //use the type traits in the interface
                 //TODO - need to report this in link analysis
@@ -277,8 +273,6 @@ namespace concrete
                 return 4;
             case eActionAllocatorHead:
                 return 8;
-            case eActionStopTimestamp:
-                return 4;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -291,17 +285,27 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp :
-            case eActionRunning      :
-            case eActionPaused       :
                 {
                     os << strIndent; 
                     printer.printVariableAccess( os, strIndex ); 
                     os << " = " << EG_INVALID_TIMESTAMP << ";\n";
                 }
                 break;
-            case eActionCoroutine       : 
+            case eActionCycle      :
+                {
+                    os << strIndent; 
+                    printer.printVariableAccess( os, strIndex ); 
+                    os << " = " << EG_INVALID_TIMESTAMP << ";\n";
+                }
                 break;
-            case eActionEventIter       : 
+            case eActionState       :
+                {
+                    os << strIndent; 
+                    printer.printVariableAccess( os, strIndex ); 
+                    os << " = " << getActionState( action_stopped ) << ";\n";
+                }
+                break;
+            case eActionFiber       : 
                 break;
             case eActionObject          : 
                 //use the type traits in the interface
@@ -336,7 +340,6 @@ namespace concrete
                 break;
             case eActionAllocatorData   : os << strIndent; printer.printVariableAccess( os, strIndex ); os << " = i;\n";   break;
             case eActionAllocatorHead   : os << strIndent; printer.printVariableAccess( os, strIndex ); os << " = 0UL;\n"; break;
-            case eActionStopTimestamp   : os << strIndent; printer.printVariableAccess( os, strIndex ); os << " = 0U;\n"; break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -348,12 +351,10 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp :
-            case eActionRunning      :
-            case eActionPaused       :
+            case eActionCycle      :
+            case eActionState       :
                 break;
-            case eActionCoroutine       : 
-                break;
-            case eActionEventIter       : 
+            case eActionFiber       : 
                 break;
             case eActionObject          : 
                 //use the type traits in the interface
@@ -379,7 +380,6 @@ namespace concrete
             case eActionReference       : break;
             case eActionAllocatorData   : break;
             case eActionAllocatorHead   : break;
-            case eActionStopTimestamp   : break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -391,10 +391,9 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp    :
-            case eActionRunning         :
-            case eActionPaused          :
-            case eActionCoroutine       : 
-            case eActionEventIter       : 
+            case eActionCycle           :
+            case eActionState           :
+            case eActionFiber           : 
                 break;
             case eActionObject          : 
                 //use the type traits in the interface
@@ -422,7 +421,6 @@ namespace concrete
             case eActionReference       : break;
             case eActionAllocatorData   : break;
             case eActionAllocatorHead   : break;
-            case eActionStopTimestamp   : break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -433,10 +431,9 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp    :
-            case eActionRunning         :
-            case eActionPaused          :
-            case eActionCoroutine       : 
-            case eActionEventIter       : 
+            case eActionCycle           :
+            case eActionState           :
+            case eActionFiber           : 
                 break;
             case eActionObject          : 
                 //use the type traits in the interface
@@ -464,7 +461,6 @@ namespace concrete
             case eActionReference       : break;
             case eActionAllocatorData   : break;
             case eActionAllocatorHead   : break;
-            case eActionStopTimestamp   : break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -477,14 +473,12 @@ namespace concrete
         m_inheritance = loader.loadObjectRef< Inheritance_Node >();
         loader.load( m_strName );
         loader.load( m_totalDomainSize );
-        m_pRunningTimestamp = loader.loadObjectRef< Dimension_Generated >();
-        m_pPauseTimestamp   = loader.loadObjectRef< Dimension_Generated >();
-        m_pCoroutine        = loader.loadObjectRef< Dimension_Generated >();
-        m_pEventIterator    = loader.loadObjectRef< Dimension_Generated >();
+        m_pCycle            = loader.loadObjectRef< Dimension_Generated >();
+        m_pState            = loader.loadObjectRef< Dimension_Generated >();
+        m_pFiber            = loader.loadObjectRef< Dimension_Generated >();
         m_pMappedObject     = loader.loadObjectRef< Dimension_Generated >();
         m_pReference        = loader.loadObjectRef< Dimension_Generated >();
         m_pAllocatorData    = loader.loadObjectRef< Dimension_Generated >();
-        m_pStopTimestamp    = loader.loadObjectRef< Dimension_Generated >();
         loader.loadObjectMap( m_allocators );
         m_pDependencyProvider    = loader.loadObjectRef< Action >();
     }
@@ -495,14 +489,12 @@ namespace concrete
         storer.storeObjectRef( m_inheritance );
         storer.store( m_strName );
         storer.store( m_totalDomainSize );
-        storer.storeObjectRef( m_pRunningTimestamp );
-        storer.storeObjectRef( m_pPauseTimestamp   );
-        storer.storeObjectRef( m_pCoroutine        );
-        storer.storeObjectRef( m_pEventIterator    );
-        storer.storeObjectRef( m_pMappedObject     );
-        storer.storeObjectRef( m_pReference        );
-        storer.storeObjectRef( m_pAllocatorData    );
-        storer.storeObjectRef( m_pStopTimestamp    );
+        storer.storeObjectRef( m_pCycle         );
+        storer.storeObjectRef( m_pState         );
+        storer.storeObjectRef( m_pFiber         );
+        storer.storeObjectRef( m_pMappedObject  );
+        storer.storeObjectRef( m_pReference     );
+        storer.storeObjectRef( m_pAllocatorData );
         storer.storeObjectMap( m_allocators );
         storer.storeObjectRef( m_pDependencyProvider );
     }

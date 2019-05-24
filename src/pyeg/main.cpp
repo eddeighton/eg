@@ -17,23 +17,19 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-#include "eg/implementation_session.hpp"
-
-#include "runtime/py_eg_reference.hpp"
-#include "eg_runtime/eg_runtime.hpp"
+//#include "runtime/eg_coroutine.hpp"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
 #include <boost/program_options.hpp>
+#include <boost/fiber/all.hpp>
+#include <boost/bind.hpp>
 
-#include "cinder/include/glm/glm.hpp"
-
-#include <pybind11/embed.h>
-#include <pybind11/numpy.h>
-#include <pybind11/stl.h>
-#include <pybind11/stl_bind.h>
+#include "pybind11/embed.h"
+#include "pybind11/numpy.h"
+#include "pybind11/stl.h"
+#include "pybind11/stl_bind.h"
 
 #include <iostream>
 #include <memory>
@@ -41,283 +37,356 @@
 #include <thread>
 #include <chrono>
 #include <functional>
+#include <chrono>
 
-//export PYTHONHOME=/c/Anaconda3/
-//ipython console --existing kernel-6600.json
 
-struct Modules
+
+int m_currentCycle = 0;
+
+void incrementCycle()
 {
-    pybind11::module module_eg;
-    std::shared_ptr< eg::EGRuntime > pRuntime;
-    std::shared_ptr< eg::PythonEGReferenceType > pEGRefType;
-};
-std::unique_ptr< Modules > g_pModules;
-
-
-struct RootReferenceCPPType
-{
-    eg::reference instance;
-};
-
-namespace pybind11 
-{ 
-    namespace detail 
-    {
-        template <> struct type_caster< RootReferenceCPPType > 
-        {
-        public:
-            PYBIND11_TYPE_CASTER( RootReferenceCPPType, _("pyeg.reference"));
-
-            bool load( handle src, bool ) 
-            {
-                const eg::PythonEGReference* pEGReference = 
-                    eg::PythonEGReferenceType::getReference( src.ptr() );
-                value.instance = pEGReference->getEGReference();
-                return !PyErr_Occurred();
-            }
-            
-            static handle cast( RootReferenceCPPType src, return_value_policy /* policy */, handle /* parent */) 
-            {
-                return g_pModules->pEGRefType->create( src.instance );
-                
-                //return PyLong_FromLong(src.long_value);
-            }
-        };
-    }   //namespace detail
-} // namespace pybind11
-
-
-
-
-
-
-
-
-//PYBIND11_MAKE_OPAQUE( StuffArray );
-
-
-struct Stuff
-{
-    //glm::vec3 v3;
-    float x = 0.0f,
-        y = 0.0f,
-        z = 0.0f;
-    int thing = 0;
-};
-using StuffArray = std::array< Stuff, 16 >;
-
-StuffArray m_buffer;
-
-
-float read_x( eg::Instance instance )
-{
-    return m_buffer[ instance ].x;
-}
-void write_x( eg::Instance instance, pybind11::tuple args )
-{
-    m_buffer[ instance ].x = pybind11::cast< float >( args[ 0 ] );
-}
-/*
-glm::vec3 read_v3( eg::Instance instance )
-{
-    return m_buffer[ instance ].v3;
-}
-void write_v3( eg::Instance instance, glm::vec3 v3 )
-{
-    m_buffer[ instance ].v3 = v3;
-}
-*/
-
-std::string testHostFunction( RootReferenceCPPType instance )
-{
-    std::ostringstream os;
-    os << "instance is: " << instance.instance.instance;
-    return os.str();
+    ++m_currentCycle;
 }
 
-RootReferenceCPPType root()
+class eg_props : public boost::fibers::fiber_properties 
 {
-    //g_pModules->module_eg
-    //eg::reference egReference = { 0,0,0 };
-    //return g_pModules->pEGRefType->create( egReference );
-    
-    RootReferenceCPPType root;
-    root.instance = eg::reference{ 0, 4, 0 };
-    return root;
-}
-
-PYBIND11_EMBEDDED_MODULE( pyeg, module ) 
-{
-    //PYBIND11_NUMPY_DTYPE( glm::vec3, x, y, z );
-    
-    // `m` is a `py::module` which is used to bind functions and classes
-    module.def( "testHostFunction", testHostFunction );
-    module.def( "root", root );
-    
-    module.def( "read_x", read_x );
-    module.def( "write_x", write_x );
-    
-    //module.def( "read_v3", read_v3 );
-    //module.def( "write_v3", write_v3 );
-}
-
-struct HostFunctions : public eg::HostFunctionAccessor, public eg::HostEvaluator
-{
-private:
-    
-    struct Stack
-    {
-        PyObject *args;
-        PyObject *kwargs;
-        pybind11::object m_result;
-        
-        Stack( PyObject *args, PyObject *kwargs )
-            :   args( args ), kwargs( kwargs )
-        {
-        }
-        using WeakPtr = std::weak_ptr< Stack >;
-        using SharedPtr = std::shared_ptr< Stack >;
-    };
 public:
-    HostFunctions( const std::string& strDatabaseFile, pybind11::module module_eg )
-        :   m_pRuntime( std::shared_ptr< eg::EGRuntime >( 
-                eg::constructRuntime( *this, strDatabaseFile.c_str() ) ) ),
-            m_module_eg( module_eg )
+    eg_props( boost::fibers::context* pContext )
+        :   fiber_properties( pContext ),
+            m_cycle( m_currentCycle ) ,
+            m_terminate( false )
     {
     }
-        
-    //HostFunctionAccessor
-    virtual void doRead(    const eg::reference& reference )
+
+    int getCycle() const 
     {
-        if( Stack::SharedPtr pStack = m_pStack.lock() )
+        return m_cycle;
+    }
+
+    // Call this method to alter priority, because we must notify
+    // priority_scheduler of any change.
+    void setCycle( int iCycle ) 
+    { 
+        if( m_cycle != iCycle )
         {
-            switch( reference.type )
-            {
-                case 5:
-                    {
-                        pStack->m_result = m_module_eg.attr( "read_x" )( reference.instance );
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        
-    }   
-    virtual void doWrite(   const eg::reference& reference )
-    {
-        if( Stack::SharedPtr pStack = m_pStack.lock() )
-        {
-            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
-            switch( reference.type )
-            {
-                case 5:
-                    {
-                        pStack->m_result = m_module_eg.attr( "write_x" )( reference.instance, args );
-                    }
-                    break;
-                default:
-                    break;
-            }
+            m_cycle = iCycle;
+            //notify();
         }
     }
-    virtual void doStart(   const eg::reference& reference )
-    {
-    }
-    virtual void doStop(    const eg::reference& reference )
-    {
-    }
-    virtual void doPause(   const eg::reference& reference )
-    {
-    }
-    virtual void doResume(  const eg::reference& reference )
-    {
-    }
-    virtual void doDone(  const eg::reference& reference )
-    {
-    }
+    bool isTerminated() const { return m_terminate; }
     
-    virtual eg::reference getReference( const eg::reference& dimension )
+    void terminate()
     {
-        return dimension;
-    }
-    
-    //HostEvaluator
-    virtual void getIdentities( std::vector< const char* >& identities )
-    {
-        m_pRuntime->getIdentities( identities );
-    }
-    
-    virtual eg::TypeID getTypeID( const char* pszIdentity )
-    {
-        return m_pRuntime->getTypeID( pszIdentity );
-    }
-    
-    virtual PyObject* invoke( const eg::reference& reference, const std::vector< eg::TypeID >& typePath, PyObject *args, PyObject *kwargs )
-    {
-        Stack::SharedPtr pStack = std::make_shared< Stack >( args, kwargs );
-        m_pStack = pStack;
-        
-        pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );
-        
-        m_pRuntime->invoke( reference, typePath, pyArgs.size() != 0 );
-        
-        if( pStack->m_result )
+        if( !m_terminate )
         {
-            pybind11::handle h = pStack->m_result;
-            h.inc_ref();
-            return h.ptr();
+            m_terminate = true;
+            //notify();
+        }
+    }
+    
+    std::string strName;
+    
+private:
+    int m_cycle;
+    bool m_terminate;
+};
+
+std::set< boost::fibers::fiber::id > blockedWaitingFibers;
+    
+struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< eg_props >
+{
+    typedef boost::fibers::scheduler::ready_queue_type rqueue_t;
+    
+    rqueue_t m_queue;
+    
+    std::mutex                  mtx_{};
+    std::condition_variable     cnd_{};
+    bool                        flag_{ false };
+    
+
+    eg_algorithm() 
+        :   m_queue()
+    {
+    }
+    
+    ~eg_algorithm()
+    {
+    }
+    
+    const eg_props& getContextProps( const boost::fibers::context* pContext ) const noexcept
+    {
+        return const_cast< eg_algorithm* >( this )->properties( 
+            const_cast< boost::fibers::context* >( pContext ) );
+    }
+
+    virtual void awakened( boost::fibers::context* pContext, eg_props& props ) noexcept
+    {
+        if( !getContextProps( pContext ).strName.empty() )
+        {
+            blockedWaitingFibers.erase( pContext->get_id() );
+            std::cout << "awakened: " << getContextProps( pContext ).strName << std::endl;
+        }
+        m_queue.push_back( *pContext );
+    }
+
+    virtual boost::fibers::context* pick_next() noexcept
+    {
+        rqueue_t::iterator iTimeKeeperIter = m_queue.end();
+        
+        for( rqueue_t::iterator 
+            i = m_queue.begin(),
+            iEnd = m_queue.end(); i!=iEnd; ++i )
+        {
+            boost::fibers::context* pContext( &*i );
+            if( properties( pContext ).getCycle() <= m_currentCycle )
+            {
+                if( getContextProps( pContext ).strName == "timeKeeper" )
+                {
+                    iTimeKeeperIter = i;
+                }
+                else
+                {
+                    m_queue.erase( i );
+                    if( !getContextProps( pContext ).strName.empty() )
+                        std::cout << "pick_next: " << getContextProps( pContext ).strName << std::endl;
+                    return pContext;
+                }
+            }
+        }
+        if( iTimeKeeperIter != m_queue.end() )
+        {
+            if( !blockedWaitingFibers.empty() )
+            {
+                //error
+                std::cout << "error waiting fibers are blocked but not fibers can be resumed" << std::endl;
+            }
+            boost::fibers::context* pContext( &*iTimeKeeperIter );
+            m_queue.erase( iTimeKeeperIter );
+            return pContext;
         }
         else
         {
-            Py_INCREF( Py_None );
-            return Py_None;
+            return nullptr;
         }
     }
+
+    virtual bool has_ready_fibers() const noexcept
+    {
+        for( rqueue_t::const_iterator 
+            i = m_queue.begin(),
+            iEnd = m_queue.end(); i!=iEnd; ++i )
+        {
+            const boost::fibers::context* pContext( &*i );
+            
+            if( getContextProps( pContext ).getCycle() <= m_currentCycle )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     
-private:
-    pybind11::module m_module_eg;
-    Stack::WeakPtr m_pStack;
-    
-    std::shared_ptr< eg::EGRuntime > m_pRuntime;
-    
+    virtual void property_change( boost::fibers::context * ctx, eg_props & props ) noexcept 
+    {
+        // Although our priority_props class defines multiple properties, only
+        // one of them (priority) actually calls notify() when changed. The
+        // point of a property_change() override is to reshuffle the ready
+        // queue according to the updated priority value.
+//<-
+        //std::cout << "property_change(" << props.name << '(' << props.get_priority()
+        //          << ")): ";
+//->
+
+        // 'ctx' might not be in our queue at all, if caller is changing the
+        // priority of (say) the running fiber. If it's not there, no need to
+        // move it: we'll handle it next time it hits awakened().
+        if ( !ctx->ready_is_linked() ) 
+        { /*<
+            Your `property_change()` override must be able to
+            handle the case in which the passed `ctx` is not in
+            your ready queue. It might be running, or it might be
+            blocked. >*/
+//<-
+            // hopefully user will distinguish this case by noticing that
+            // the fiber with which we were called does not appear in the
+            // ready queue at all
+            //describe_ready_queue();
+//->
+            return;
+        }
+
+        // Found ctx: unlink it
+        ctx->ready_unlink();
+
+        // Here we know that ctx was in our ready queue, but we've unlinked
+        // it. We happen to have a method that will (re-)add a context* to the
+        // right place in the ready queue.
+        awakened( ctx, props);
+    }
+
+    virtual void suspend_until( std::chrono::steady_clock::time_point const& timePoint ) noexcept
+    {
+        //VERIFY_RTE( !has_ready_fibers() );
+        if ( (std::chrono::steady_clock::time_point::max)() == timePoint ) 
+        {
+            std::unique_lock< std::mutex > lk( mtx_ );
+            cnd_.wait( lk, [this](){ return flag_; } );
+            flag_ = false;
+            std::cout << ".";
+        } 
+        else 
+        {
+            std::unique_lock< std::mutex > lk( mtx_ );
+            cnd_.wait_until( lk, timePoint, [this](){ return flag_; } );
+            
+            //using namespace std::chrono_literals;
+            //cnd_.wait_until( lk, std::chrono::steady_clock::now() + 1s, [this](){ return flag_; } );
+            
+            flag_ = false;
+            //std::cout << "suspend_until: " << m_currentCycle << std::endl;
+        }
+    }
+
+    virtual void notify() noexcept
+    {
+        //std::cout << "notify called: " << m_currentCycle << std::endl;
+        
+        std::unique_lock< std::mutex > lk( mtx_ );
+        flag_ = true;
+        lk.unlock();
+        cnd_.notify_all();
+    }
 };
 
-void runPython( const std::string& strDatabaseFile, const std::string& strScript )
+void timeKeeper()
 {
-    pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
+    using namespace std::chrono_literals;
+    
+    for( int i = 0; i < 5; ++i )
+    {
+        boost::this_fiber::sleep_until( std::chrono::steady_clock::now() + 100ms );
+        incrementCycle();
+        blockedWaitingFibers.clear();
+        std::cout << "cycle: " << m_currentCycle << std::endl;
+    }
+    
+}
 
-    try
+boost::fibers::fiber fiberOne, fiberTwo, fiberThree, fiberTerminated;
+
+void wait()
+{
+    std::cout << "wait: " << boost::this_fiber::properties< eg_props >().strName << std::endl;
+    boost::this_fiber::yield();
+}
+/*
+void wait( boost::fibers::fiber& fiber )
+{
+    std::cout << "wait: " << boost::this_fiber::properties< eg_props >().strName << std::endl;
+    blockedWaitingFibers.insert( boost::this_fiber::get_id() );
+    fiber.join();
+}*/
+
+void sleep()
+{
+    std::cout << "sleep: " << boost::this_fiber::properties< eg_props >().strName << std::endl;
+    boost::this_fiber::properties< eg_props >().setCycle( m_currentCycle + 1 );
+    boost::this_fiber::yield();
+}
+/*
+void sleep( boost::fibers::fiber& fiber )
+{
+    std::cout << "sleep: " << boost::this_fiber::properties< eg_props >().strName << std::endl;
+    boost::this_fiber::properties< eg_props >().setCycle( m_currentCycle + 1 );
+    fiber.join();
+}*/
+
+
+PYBIND11_EMBEDDED_MODULE( pyeg, module ) 
+{
+    module.def( "sleep", sleep );
+    module.def( "wait", wait );
+}
+
+
+void runPython( const std::string& strScriptFile )
+{
+    if( !strScriptFile.empty() )
     {
-        g_pModules = std::make_unique< Modules >();
-        
-        g_pModules->module_eg = pybind11::module::import( "pyeg" );
-        
-        //g_pModules->module_eg = pybind11::module::import( "IPython" );
-        //pybind11::print("Starting IPython Kernel"); 
-        
-        HostFunctions hostFunctions( strDatabaseFile, g_pModules->module_eg );
-        
-        g_pModules->pEGRefType
-            = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
-        
-        pybind11::exec( strScript );
-        
-        g_pModules.reset();
-        
+        std::string strScriptText;
+        {
+            const boost::filesystem::path pythonFilePath = 
+                boost::filesystem::edsCannonicalise(
+                    boost::filesystem::absolute( strScriptFile ) );
+            if( !boost::filesystem::exists( pythonFilePath ) )
+            {
+                std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
+                return;
+            } 
+            boost::filesystem::loadAsciiFile( pythonFilePath, strScriptText );
+        }
+        if( !strScriptText.empty() )
+        {
+
+            try
+            {
+                pybind11::module pyeg_module = pybind11::module::import( "pyeg" );
+
+                pybind11::exec( strScriptText );
+            }
+            catch( std::exception& e )
+            {
+                std::cout << e.what() << std::endl;
+            }
+        }
     }
-    catch( std::exception& e )
+}
+
+
+void fiberCount( int count )
+{
+    for( int i = 0; i < count; ++i )
     {
-        std::cout << e.what() << std::endl;
-        g_pModules.reset();
+        wait();
+        
+        sleep();
     }
+}
+
+void fiberWait( boost::fibers::fiber& fiberToWaitOn )
+{
+    sleep();
+    
+    sleep();
+        
+    //wait( fiberToWaitOn );
+    
+    sleep();
+}
+
+void fiberTerminate()
+{
+    sleep();
+    
+    sleep();
+    
+    boost::this_fiber::properties< eg_props >().terminate();
+    
+    wait();
+    
+    if( boost::this_fiber::properties< eg_props >().isTerminated() )
+        return;
+    
+    sleep();
+    
+    sleep();
+
 }
 
 int main( int argc, const char* argv[] )
 {
     bool bDebug = false;
-    std::string strPythonFile;
-    std::string strDatabaseFile;
+    std::vector< std::string > scripts;
     
     {
         namespace po = boost::program_options;
@@ -331,12 +400,11 @@ int main( int argc, const char* argv[] )
                 //options
                 ("debug",       po::value< bool >( &bDebug )->implicit_value( true ), 
                     "Wait at startup to allow attaching a debugger" )
-                ("python",      po::value< std::string >( &strPythonFile ), "Python file to run" )
-                ("database",    po::value< std::string >( &strDatabaseFile ), "Python file to run" )
+                ("script",      po::value<  std::vector< std::string > >( &scripts ), "Python scripts" )
             ;
 
             po::positional_options_description p;
-            p.add( "python", -1 );
+            p.add( "script", -1 );
 
             po::store( po::command_line_parser( argc, argv).
                         options( desc ).
@@ -363,39 +431,68 @@ int main( int argc, const char* argv[] )
         std::cin >> c;
     }
     
-    if( strPythonFile.empty() )
-    {
-        std::cout << "Missing python file" << std::endl;
-        return 0;
-    }
-    
-    if( strDatabaseFile.empty() )
-    {
-        std::cout << "Missing database file" << std::endl;
-        return 0;
-    }
+    std::cout << sizeof( boost::fibers::fiber ) << std::endl;
     
     
-    std::string strScript;
+    //std::cout << "Setting up" << std::endl;
+    boost::fibers::use_scheduling_algorithm< eg_algorithm >();
+    
+    boost::this_fiber::properties< eg_props >().strName = "main";
+    
+    pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
+    
+    //load python fibers
     {
-        const boost::filesystem::path pythonFilePath = 
-            boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( strPythonFile ) );
-        if( !boost::filesystem::exists( pythonFilePath ) )
+        std::size_t szCount = 0;
+        for( const std::string& strScript : scripts )
         {
-            std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
-            return 0;
-        } 
-        boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
+            boost::fibers::fiber pythonFiber( boost::bind( &runPython, strScript ) );
+            std::ostringstream os;
+            os << "pythonFiber_" << szCount;
+            ++szCount;
+            pythonFiber.properties< eg_props >().strName = os.str();
+            pythonFiber.detach();
+        }
     }
-
-    std::thread pythonThread( std::bind( &runPython, strDatabaseFile, strScript ) );
     
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for( 10s );
+    fiberOne = boost::fibers::fiber( boost::bind( &fiberCount, 2 ) );
+    fiberOne.properties< eg_props >().strName = "fiberOne";
     
-    //PyImport_AppendInittab( "eg", &PyInit_eg );
+    //fiberTwo = boost::fibers::fiber( boost::bind( &fiberCount, 4 ) );
+    //fiberTwo.properties< eg_props >().strName = "fiberTwo";
     
+    fiberThree = boost::fibers::fiber( boost::bind( &fiberWait, boost::ref( fiberOne ) ) );
+    fiberThree.properties< eg_props >().strName = "fiberWait";
     
+    //fiberTwo = boost::fibers::fiber( boost::bind( &fiberWait, 1 ) );
+    //fiberThree = boost::fibers::fiber( boost::bind( &fiberWait, 2 ) );
+    //
+    //fiberTerminated = boost::fibers::fiber( fiberTerminate );
+    //
+    boost::fibers::fiber fTimeKeeper( timeKeeper );
+    fTimeKeeper.properties< eg_props >().strName = "timeKeeper";
+    
+    fTimeKeeper.join();
+    
+    if( fiberOne.joinable() )
+        fiberOne.detach();
+    
+    if( fiberTwo.joinable() )
+        fiberTwo.detach();
+    
+    if( fiberThree.joinable() )
+        fiberThree.detach();
+    
+    //if( fiberTerminated.joinable() )
+    //    fiberTerminated.detach();
+    
+    /*for( int i = 0; i != 5; ++i )
+    {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for( 1s );
+    }*/
+    
+    //std::cout << "terminating" << std::endl;
+    return 0;
 }
 

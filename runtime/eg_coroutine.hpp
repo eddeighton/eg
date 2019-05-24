@@ -23,14 +23,14 @@
 
 #include "eg_common.hpp"
 
-#include "frame.hpp"
+//#include "frame.hpp"
 
 //#include <experimental/coroutine>
 //#include <coroutine>
 
 namespace eg
 {
-    
+    /*
 struct Coroutine
 {
     struct promise_type
@@ -141,7 +141,7 @@ struct Coroutine
         }\
     )
     
-    
+    */
 }
 
 #endif //EG_COROUTINE

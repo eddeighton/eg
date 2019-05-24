@@ -154,6 +154,10 @@ namespace boost
         THROW_RTE( "Boost called abort with: " << expr << " : " << function << " : " << file << ":" << line << " : " << msg ); 
         //::abort();
     }
+    void throw_exception(class std::exception const & e)
+    {
+        throw e;
+    }
 }
 
 #else //_DEBUG
@@ -190,6 +194,10 @@ namespace boost
     {
         THROW_RTE( "Boost called abort with: " << expr << " : " << function << " : " << file << ":" << line << " : " << msg ); 
         //::abort();
+    }
+    void throw_exception(class std::exception const & e)
+    {
+        throw e;
     }
 }
 

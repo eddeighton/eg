@@ -32,7 +32,27 @@ namespace eg
     using TypeID      = std::int32_t;
     using TimeStamp   = std::uint32_t;
     
-    static const TimeStamp INVALID_TIMESTAMP = std::numeric_limits< TimeStamp >::max();
+    enum ActionState
+    {
+        action_running,
+        action_paused,
+        action_stopped,
+        TOTAL_ACTION_STATES
+    };
+    
+    inline const char* getActionState( ActionState state )
+    {
+        switch( state )
+        {
+            case action_running  : return "::eg::action_running"; 
+            case action_paused   : return "::eg::action_paused";  
+            case action_stopped  : return "::eg::action_stopped";
+            case TOTAL_ACTION_STATES :
+            default:               return "";
+        }
+    }
+    
+    static const TimeStamp INVALID_TIMESTAMP = 0U;//std::numeric_limits< TimeStamp >::max();
 
     using event_iterator = std::uint64_t;
 
@@ -80,9 +100,9 @@ namespace eg
 
     struct reference
     {
-        Instance  instance;
-        TypeID    type;
-        TimeStamp timestamp;
+        Instance  instance  = 0U;
+        TypeID    type      = 0;
+        TimeStamp timestamp = 0U;
         
         inline bool operator==( const reference& cmp ) const
         {

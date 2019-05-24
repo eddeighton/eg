@@ -1158,9 +1158,12 @@ namespace eg
     }
     void PauseOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
+        os << generator.getIndent() << "if( " << 
+            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) <<
+                " == " << getActionState( action_running ) << " )\n";
         os << generator.getIndent() << 
-            generator.getDimension( m_pTarget->getPauseTimestamp(), generator.getVarExpr( m_pInstance ) ) << 
-                " = " << EG_INVALID_TIMESTAMP << ";\n";
+            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) << 
+                " = " << getActionState( action_paused ) << ";\n";
     }
     void PauseOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1187,9 +1190,12 @@ namespace eg
     }
     void ResumeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        os << generator.getIndent() << 
-            generator.getDimension( m_pTarget->getPauseTimestamp(), generator.getVarExpr( m_pInstance ) ) << 
-                " = clock::subcycle() + 1;\n";
+        os << generator.getIndent() << "if( " << 
+            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) <<
+                " == " << getActionState( action_paused ) << " )\n";
+        os << generator.getIndent() << "    " <<
+            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) << 
+                " = " << getActionState( action_running ) << ";\n";
     }
     void ResumeOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1256,16 +1262,8 @@ namespace eg
     }
     void GetActionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        //os << generator.getIndent() << "if( " <<
-        //    generator.getDimension( m_pTarget->getRunningTimestamp(), generator.getVarExpr( m_pInstance ) ) <<
-        //    " <= clock::subcycle() )\n";
-        
         os << generator.getIndent() << "return " <<
             generator.getDimension( m_pTarget->getReference(), generator.getVarExpr( m_pInstance ) ) << ";\n";
-            
-        //os << generator.getIndent() << "else\n";
-        
-        //os << generator.getIndent() << "    return " <<
         
     }
     void GetActionOperation::evaluate( RuntimeEvaluator& evaluator ) const

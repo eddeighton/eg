@@ -35,7 +35,6 @@ namespace eg
     struct _clock
     {
         virtual TimeStamp cycle()       const = 0;
-        virtual TimeStamp subcycle()    const = 0;
         virtual float ct()              const = 0;
         virtual float dt()              const = 0;
     };
@@ -59,7 +58,6 @@ namespace eg
 struct clock
 {
     static eg::TimeStamp cycle();
-    static eg::TimeStamp subcycle();
     static float ct();
     static float dt();
 };
@@ -74,12 +72,12 @@ struct events
         std::ostringstream os;\
         os << __msg;\
         std::string __str = os.str();\
-        events::put( "log", clock::subcycle(), __str.data(), __str.size() + 1 );\
+        events::put( "log", clock::cycle(), __str.data(), __str.size() + 1 );\
         )
         
 #define ERROR( __msg )\
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        events::put( "error", clock::subcycle(), __msg, strlen( __msg ) + 1 );\
+        events::put( "error", clock::cycle(), __msg, strlen( __msg ) + 1 );\
         )
         
 #define TEST( __expr )\
@@ -87,11 +85,11 @@ struct events
         std::string __str = #__expr;\
         if( !( __expr ) )\
         {\
-            events::put( "fail", clock::subcycle(), __str.data(), __str.size() + 1 );\
+            events::put( "fail", clock::cycle(), __str.data(), __str.size() + 1 );\
         }\
         else\
         {\
-            events::put( "pass", clock::subcycle(), __str.data(), __str.size() + 1 );\
+            events::put( "pass", clock::cycle(), __str.data(), __str.size() + 1 );\
         }\
     )
         
@@ -102,11 +100,11 @@ struct events
         std::string __str = os.str();\
         if( !( __expr ) )\
         {\
-            events::put( "fail", clock::subcycle(), __str.data(), __str.size() + 1 );\
+            events::put( "fail", clock::cycle(), __str.data(), __str.size() + 1 );\
         }\
         else\
         {\
-            events::put( "pass", clock::subcycle(), __str.data(), __str.size() + 1 );\
+            events::put( "pass", clock::cycle(), __str.data(), __str.size() + 1 );\
         }\
     )
     
