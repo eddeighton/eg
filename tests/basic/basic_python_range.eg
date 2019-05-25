@@ -11,11 +11,5 @@ action A[ 64 ]
     
     std::cout << "A stopping" << std::endl;
 }
-
-A();
-A();
-
-while( !Done() )
-    eg::sleep();
     
 std::cout << "Root stopping" << std::endl;

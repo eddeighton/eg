@@ -230,11 +230,14 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     {
         if( pAction->getParent() )
         {
-            pAction->printType( os );
-            os << " " << getFuncName( pAction, "start" ) << "( " << eg::EG_INSTANCE << " instance )\n";
-            os << "{\n";
-            os << "    return " << pAction->getName() << "_starter( instance );\n";
-            os << "}\n";
+            if( pAction->getParent()->getParent() )
+            {
+                pAction->printType( os );
+                os << " " << getFuncName( pAction, "start" ) << "( " << eg::EG_INSTANCE << " instance )\n";
+                os << "{\n";
+                os << "    return " << pAction->getName() << "_starter( instance );\n";
+                os << "}\n";
+            }
             
             os << "void " << getFuncName( pAction, "stop" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
@@ -280,7 +283,7 @@ void python_sleep_cycle()
 }
 void python_sleep_duration( float seconds )
 {
-    eg::sleep( std::chrono::milliseconds( static_cast< int >( seconds / 1000.0f ) ) );
+    eg::sleep( std::chrono::milliseconds( static_cast< int >( seconds * 1000.0f ) ) );
 }
     
 )";
@@ -310,9 +313,12 @@ void python_sleep_duration( float seconds )
     
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getParent() && pAction->getParent()->getParent() )
         {
     os << "    module.def( \"" << getFuncName( pAction, "start" )   << "\", " << getFuncName( pAction, "start" )    << ");\n";
+        }
+        if( pAction->getParent() )
+        {
     os << "    module.def( \"" << getFuncName( pAction, "stop" )    << "\", " << getFuncName( pAction, "stop" )     << ");\n";
     os << "    module.def( \"" << getFuncName( pAction, "pause" )   << "\", " << getFuncName( pAction, "pause" )    << ");\n";
     os << "    module.def( \"" << getFuncName( pAction, "resume" )  << "\", " << getFuncName( pAction, "resume" )   << ");\n";
@@ -461,7 +467,7 @@ void python_sleep_duration( float seconds )
     os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getParent() && pAction->getParent()->getParent() )
         {
     os << "                case " << pAction->getIndex() << ":\n";
     os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pAction, "start" ) << "\" )( reference.instance );\n";
@@ -600,8 +606,6 @@ void python_sleep_duration( float seconds )
     os << "        }\n";
     os << "    }\n";
     
-    
-    
     os << "    //HostEvaluator\n";
     os << "    virtual void getIdentities( std::vector< const char* >& identities )\n";
     os << "    {\n";
@@ -613,21 +617,25 @@ void python_sleep_duration( float seconds )
     os << "    }\n";
     os << "    virtual PyObject* invoke( const " << eg::EG_REFERENCE_TYPE << "& reference, const std::vector< " << eg::EG_TYPE_ID << " >& typePath, PyObject *args, PyObject *kwargs )\n";
     os << "    {\n";
-    os << "        Stack::SharedPtr pStack = std::make_shared< Stack >( args, kwargs );\n";
-    os << "        m_pStack = pStack;\n";
-    os << "        pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );\n";
-    os << "        m_pRuntime->invoke( reference, typePath, pyArgs.size() != 0 );\n";
-    os << "        if( pStack->m_result )\n";
+    os << "        if( getState( reference.type, reference.instance ) != eg::action_stopped )\n";
     os << "        {\n";
-    os << "            pybind11::handle h = pStack->m_result;\n";
-    os << "            h.inc_ref();\n";
-    os << "            return h.ptr();\n";
+    os << "            Stack::SharedPtr pStack = std::make_shared< Stack >( args, kwargs );\n";
+    os << "            m_pStack = pStack;\n";
+    os << "            pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );\n";
+    os << "            m_pRuntime->invoke( reference, typePath, pyArgs.size() != 0 );\n";
+    os << "            if( pStack->m_result )\n";
+    os << "            {\n";
+    os << "                pybind11::handle h = pStack->m_result;\n";
+    os << "                h.inc_ref();\n";
+    os << "                return h.ptr();\n";
+    os << "            }\n";
     os << "        }\n";
     os << "        else\n";
     os << "        {\n";
-    os << "            Py_INCREF( Py_None );\n";
-    os << "            return Py_None;\n";
+    os << "            throw std::runtime_error( \"Invalid reference used in invocation\" );\n";
     os << "        }\n";
+    os << "        Py_INCREF( Py_None );\n";
+    os << "        return Py_None;\n";
     os << "    }\n";
     os << "private:\n";
     os << "    pybind11::module m_module_eg;\n";

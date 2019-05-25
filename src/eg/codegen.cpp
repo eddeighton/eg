@@ -1492,7 +1492,7 @@ namespace eg
                 const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
                 const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
                         
-        pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid )\n";
+        pAction->printType( os ); os << " " << pAction->getName() << "_starter( std::vector< std::function< void() > >& functions )\n";
         os << "{\n";
         os << "    const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
         os << "    "; pAction->printType( os ); os << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
@@ -1500,10 +1500,44 @@ namespace eg
         os << "    " << Printer( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
         os << "    " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
         os << "    g_eg_event_log->PutEvent( ev );\n";
-        os << "    " << Printer( pFiberData, "0" ) << " = " << EG_FIBER_TYPE << 
-            "( [ reference ](){ try{ reference(); } catch( eg::termination_exception& ){} " << 
-            pAction->getName() << "_stopper( reference.data.instance ); } );\n";
-            
+        
+        os << "    " << Printer( pFiberData, "0" ) << " = " << EG_FIBER_TYPE << "\n";
+        os << "    (                                                                                       \n";
+        os << "        [ reference, &functions ]()                                                         \n";
+        os << "        {                                                                                   \n";
+        os << "            std::shared_ptr< boost::fibers::barrier > barrier(                              \n";
+        os << "                std::make_shared< boost::fibers::barrier >( functions.size() + 1U ) );      \n";
+        os << "                                                                                            \n";
+        os << "            for( auto& fn : functions )                                                     \n";
+        os << "            {                                                                               \n";
+        os << "                boost::fibers::fiber                                                        \n";
+        os << "                (                                                                           \n";
+        os << "                    std::bind(                                                              \n";
+        os << "                        []( std::function< void() >& fn,                                    \n";
+        os << "                            std::shared_ptr< boost::fibers::barrier >& barrier ) mutable    \n";
+        os << "                        {                                                                   \n";
+        os << "                            fn();                                                           \n";
+        os << "                            barrier->wait();                                                \n";
+        os << "                        },                                                                  \n";
+        os << "                        fn,                                                                 \n";
+        os << "                        barrier                                                             \n";
+        os << "                    )                                                                       \n";
+        os << "                ).detach();                                                                 \n";
+        os << "            }                                                                               \n";
+        os << "                                                                                            \n";
+        os << "            try                                                                             \n";
+        os << "            {                                                                               \n";
+        os << "                reference();                                                                \n";
+        os << "            }                                                                               \n";
+        os << "            catch( eg::termination_exception& )                                             \n";
+        os << "            {                                                                               \n";
+        os << "            }                                                                               \n";
+        os << "            //wait for all fibers to complete                                               \n";
+        os << "            barrier->wait();                                                                \n";
+        os << "            //run the stopper                                                               \n";
+        os << "            " << pAction->getName() << "_stopper( reference.data.instance );                \n";
+        os << "        }                                                                                   \n";
+        os << "    );\n";
         os << "    return reference;\n";
         os << "}\n";
         os << "\n";

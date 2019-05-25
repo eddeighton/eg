@@ -34,9 +34,9 @@ namespace eg
     
     enum ActionState
     {
+        action_stopped = 0,
         action_running,
         action_paused,
-        action_stopped,
         TOTAL_ACTION_STATES
     };
     

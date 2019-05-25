@@ -101,7 +101,6 @@ int main( int argc, const char* argv[] )
     
     std::ostream& os = *pIncludesFileStream;
     
-    
     const eg::interface::Root* pRoot = session.getTreeRoot();
     
     const eg::DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
@@ -169,17 +168,20 @@ int main( int argc, const char* argv[] )
     os << "\n";
     
     os << "//Action functions\n";
+    os << "extern __eg_root< void > root_starter( std::vector< std::function< void() > >& );\n";
     std::vector< const eg::concrete::Action* > actions = 
         eg::many_cst< eg::concrete::Action >( objects );
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getParent() && pAction->getParent()->getParent() )
         {
     os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
+        }
+        if( pAction->getParent() )
+        {
     os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
         }
     }
-    
     
     os << "\n";
     generate_python( os, session );
@@ -338,8 +340,7 @@ int main( int argc, const char* argv[] )
         pybind11::scoped_interpreter guard{}; // start the python interpreter
         
         //start the root
-        root_starter( 0 );
-        
+        std::vector< std::function< void() > > pythonFunctions;
         if( !scripts.empty() )
         {
             if( strDatabaseFile.empty() )
@@ -358,11 +359,11 @@ int main( int argc, const char* argv[] )
                 
             for( const std::string& strPythonScript : scripts )
             {
-                boost::fibers::fiber pythonFiber( 
-                    std::bind( &runPythonScript, strPythonScript, strDatabaseFile ) );
-                pythonFiber.detach();
+                pythonFunctions.push_back( std::bind( &runPythonScript, strPythonScript, strDatabaseFile ) );
             }
         }
+        
+        root_starter( pythonFunctions );
         
         boost::fibers::fiber timeKeeperFiber
         (
