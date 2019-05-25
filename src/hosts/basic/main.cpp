@@ -185,6 +185,46 @@ int main( int argc, const char* argv[] )
     generate_python( os, session );
     os << "\n";
     
+const char* pszPythonRun = R"(
+
+void runPythonScript( const std::string& strPythonFile, const std::string& strDatabaseFile )
+{
+    try
+    {
+        std::string strScript;
+        {
+            const boost::filesystem::path pythonFilePath = 
+                boost::filesystem::edsCannonicalise(
+                    boost::filesystem::absolute( strPythonFile ) );
+            if( !boost::filesystem::exists( pythonFilePath ) )
+            {
+                std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
+                return;
+            } 
+            boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
+        }
+
+        if( !strScript.empty() )
+        {
+            pybind11::module pyeg_module = pybind11::module::import( "pyeg" );
+
+            HostFunctions hostFunctions( strDatabaseFile, pyeg_module );
+            
+            if( !g_pEGRefType )
+                g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
+
+            pybind11::exec( strScript );
+        }
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
+}
+
+)";
+    os << pszPythonRun;
+    
     os << "//Dependency Provider Implementation\n";
     os << "struct BasicHost_EGDependencyProvider : public " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "\n";
     os << "{\n";
@@ -295,6 +335,8 @@ int main( int argc, const char* argv[] )
         //be sure to initialise the clock before the scheduler
         boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
+        pybind11::scoped_interpreter guard{}; // start the python interpreter
+        
         //start the root
         root_starter( 0 );
         
@@ -316,18 +358,9 @@ int main( int argc, const char* argv[] )
                 
             for( const std::string& strPythonScript : scripts )
             {
-                std::string strScript;
-                const boost::filesystem::path pythonFilePath = 
-                    boost::filesystem::edsCannonicalise(
-                        boost::filesystem::absolute( strPythonScript ) );
-                if( !boost::filesystem::exists( pythonFilePath ) )
-                {
-                    std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
-                    return 0;
-                } 
-                boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
-                
-                //start python fiber
+                boost::fibers::fiber pythonFiber( 
+                    std::bind( &runPythonScript, strPythonScript, strDatabaseFile ) );
+                pythonFiber.detach();
             }
         }
         

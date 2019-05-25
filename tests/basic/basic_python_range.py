@@ -1,6 +1,11 @@
 
 import pyeg
-import time
+
+print( "python started" )
+
+pyeg.sleep() 
+
+print( "python resumed" )
 
 r = pyeg.get_root()
 
@@ -8,7 +13,7 @@ r.A();
 r.A();
 r.A();
 
-time.sleep( 0.5 ) 
+pyeg.sleep() 
 
 for a in r.A.Range():
     print( "got", a )

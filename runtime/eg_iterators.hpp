@@ -54,6 +54,9 @@ namespace eg
 template< typename ReferenceType >
 inline eg::TimeStamp getTimestamp( eg::TypeID type, eg::Instance instance );
 
+template< typename ReferenceType >
+inline eg::ActionState getState( eg::TypeID type, eg::Instance instance );
+
 template< class ReferenceType >
 class __eg_ReferenceIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
 {
@@ -69,7 +72,7 @@ public:
         while( true )
         {
             ++instance;
-            if( ( instance == sentinal ) || ( getTimestamp< ReferenceType >( type, instance ) <= clock::cycle() ) )
+            if( ( instance == sentinal ) || ( getState< ReferenceType >( type, instance ) != eg::action_stopped ) )
                 break;
         }
         return *this;

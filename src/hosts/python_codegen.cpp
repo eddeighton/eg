@@ -42,7 +42,22 @@ inline std::string getFuncName( const eg::DataMember* pDataMember, const char* p
 void generate_python( std::ostream& os, eg::ReadSession& session )
 {
     const eg::interface::Root* pRoot = session.getTreeRoot();
-    const eg::concrete::Action* pInstanceRoot = session.getInstanceRoot();
+    const eg::concrete::Action* pInstanceRoot = nullptr;
+    {
+        std::vector< const eg::concrete::Action* > roots;
+        for( const eg::concrete::Element* pChild : session.getInstanceRoot()->getChildren() )
+        {
+            if( const eg::concrete::Action* pAction = 
+                dynamic_cast< const eg::concrete::Action* >( pChild ) )
+            {
+                roots.push_back( pAction );
+            }
+        }
+        ASSERT( !roots.empty() );
+        ASSERT( roots.size() == 1U );
+        pInstanceRoot = roots.front();
+    }
+    
     const eg::DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
     const eg::Layout& layout = session.getLayout();
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
@@ -186,7 +201,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void > get_root()\n";
     os << "{\n";
     os << "    return  " << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void >( " << 
-        eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", getTimestamp( 0, " << pInstanceRoot->getIndex() << " ) } );\n";
+        eg::EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", getTimestamp( " << pInstanceRoot->getIndex() << ", 0 ) } );\n";
     os << "}\n";
     os << "\n";
     
@@ -257,14 +272,28 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
         }
     }
     
+const char* pszSleepUtils = R"(
+
+void python_sleep_cycle()
+{
+    eg::sleep();
+}
+void python_sleep_duration( float seconds )
+{
+    eg::sleep( std::chrono::milliseconds( static_cast< int >( seconds / 1000.0f ) ) );
+}
+    
+)";
+    os << pszSleepUtils;
+    
     os << "\n//Embedded Python Module\n";
     os << "PYBIND11_EMBEDDED_MODULE( pyeg, module ) \n";
     os << "{\n";
     os << "    module.def( \"get_root\", get_root );\n";
     
-    //os << "    module.def( \"sleep\", sleep );\n";
-    //os << "    module.def( \"sleep_seconds\", sleep_seconds );\n";
-    //os << "    module.def( \"wait\", wait );\n";
+    os << "    module.def( \"sleep\", python_sleep_cycle );\n";
+    os << "    module.def( \"sleep\", python_sleep_duration );\n";
+    os << "    module.def( \"wait\", eg::wait );\n";
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {

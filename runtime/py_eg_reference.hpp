@@ -30,6 +30,7 @@
 #include <vector>
 
 extern eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
+extern eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );
 
 namespace eg
 {
@@ -129,7 +130,7 @@ public:
                 break;
             
             //now actually see if the current position is valid
-            if( ::getTimestamp( m_pRange->getType( m_subRange ), m_position ) <= clock::cycle() )
+            if( ::getState( m_pRange->getType( m_subRange ), m_position ) != action_stopped )
                 break;
             
             //skip to next and continue scanning

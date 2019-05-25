@@ -915,6 +915,35 @@ namespace eg
             os << "}\n";
             os << "\n";
             }
+            
+            //getState
+            if( !dynamicCompatibleTypes.empty() )
+            {
+            os << "template<>\n";
+            os << "inline " << EG_ACTION_STATE << " getState< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
+            os << "{\n";
+            if( dynamicCompatibleTypes.size() > 1 )
+            {
+            os << "    switch( type )\n";
+            os << "    {\n";
+            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            {
+                const DataMember* pState = layout.getDataMember( pCompatible->getState() );
+            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
+            os << "         return " << Printer( pState, "instance" ) << ";\n";
+            }
+            os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
+            os << "    }\n";
+            }
+            else //if( dynamicCompatibleTypes.size() == 1 )
+            {
+                const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
+                const DataMember* pState = layout.getDataMember( pCompatible->getState() );
+            os << "    return " << Printer( pState, "instance" ) << ";\n";
+            }
+            os << "}\n";
+            os << "\n";
+            }
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
@@ -1300,7 +1329,7 @@ namespace eg
     
     inline std::ostream& operator<<( std::ostream& os, const Printer& printer )
     {
-        printer.m_pDataMember->printVariableAccess( os, printer.pszIndex );;
+        printer.m_pDataMember->printVariableAccess( os, printer.pszIndex );
         return os;
     }
     
@@ -1609,7 +1638,6 @@ namespace eg
             std::size_t szTranslationUnitID, const std::vector< std::string >& dependencies )
     {
         const interface::Root* pRoot = program.getTreeRoot();
-        const concrete::Action* pInstanceRoot = program.getInstanceRoot();
         
         const DerivationAnalysis& derivationAnalysis = program.getDerivationAnalysis();
         const Layout& layout = program.getLayout();
@@ -1783,6 +1811,24 @@ void events::put( const char* type, eg::TimeStamp timestamp, const void* value, 
         os << "    }\n";
         os << "}\n";
                     
+        os << "template<>\n";
+        os << "inline " << EG_ACTION_STATE << " getState< ";
+        printActionType( os, returnTypes );
+        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
+        os << "{\n";
+        os << "    switch( type )\n";
+        os << "    {\n";
+        
+        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
+        {
+            const DataMember* pState = layout.getDataMember( pConcreteAction->getState() );
+        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
+        os << "            return " << Printer( pState, "instance" ) << ";\n";
+        }
+        os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
+        
+        os << "    }\n";
+        os << "}\n";
                     }
                 }
             }
