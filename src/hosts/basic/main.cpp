@@ -124,7 +124,6 @@ int main( int argc, const char* argv[] )
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
         os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << ";\n";
-        //os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
     }
     
     os << "void allocate_buffers()\n";
@@ -186,46 +185,6 @@ int main( int argc, const char* argv[] )
     os << "\n";
     generate_python( os, session );
     os << "\n";
-    
-const char* pszPythonRun = R"(
-
-void runPythonScript( const std::string& strPythonFile, const std::string& strDatabaseFile )
-{
-    try
-    {
-        std::string strScript;
-        {
-            const boost::filesystem::path pythonFilePath = 
-                boost::filesystem::edsCannonicalise(
-                    boost::filesystem::absolute( strPythonFile ) );
-            if( !boost::filesystem::exists( pythonFilePath ) )
-            {
-                std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
-                return;
-            } 
-            boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
-        }
-
-        if( !strScript.empty() )
-        {
-            pybind11::module pyeg_module = pybind11::module::import( "pyeg" );
-
-            HostFunctions hostFunctions( strDatabaseFile, pyeg_module );
-            
-            if( !g_pEGRefType )
-                g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
-
-            pybind11::exec( strScript );
-        }
-    }
-    catch( std::exception& e )
-    {
-        std::cout << e.what() << std::endl;
-    }
-}
-
-)";
-    os << pszPythonRun;
     
     os << "//Dependency Provider Implementation\n";
     os << "struct BasicHost_EGDependencyProvider : public " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "\n";
@@ -340,28 +299,8 @@ int main( int argc, const char* argv[] )
         pybind11::scoped_interpreter guard{}; // start the python interpreter
         
         //start the root
-        std::vector< std::function< void() > > pythonFunctions;
-        if( !scripts.empty() )
-        {
-            if( strDatabaseFile.empty() )
-            {
-                std::cout << "Missing database file path" << std::endl;
-                return 0;
-            }
-            const boost::filesystem::path databaseFilePath = 
-                boost::filesystem::edsCannonicalise(
-                    boost::filesystem::absolute( strDatabaseFile ) );
-            if( !boost::filesystem::exists( databaseFilePath ) )
-            {
-                std::cout << "Cannot locate file: " << databaseFilePath.string() << std::endl;
-                return 0;
-            } 
-                
-            for( const std::string& strPythonScript : scripts )
-            {
-                pythonFunctions.push_back( std::bind( &runPythonScript, strPythonScript, strDatabaseFile ) );
-            }
-        }
+        std::vector< std::function< void() > > pythonFunctions = 
+            loadPythonScripts( scripts, strDatabaseFile );
         
         root_starter( pythonFunctions );
         
@@ -373,7 +312,7 @@ int main( int argc, const char* argv[] )
                 boost::this_fiber::yield();
                 
                 HostClock::Tick cycleStart = theClock.actual();
-                while( g_root[ 0 ].g_root_state != eg::action_stopped )
+                while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
                 {
                     const HostClock::TickDuration elapsed = theClock.actual() - cycleStart;
                     if( elapsed < sleepDuration )
@@ -387,7 +326,6 @@ int main( int argc, const char* argv[] )
                 }
             }
         );
-        
         timeKeeperFiber.join();
         
         deallocate_buffers();

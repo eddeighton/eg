@@ -32,8 +32,6 @@ for( int i = 0; i < 10; ++i )
 
 }
 
-SLEEP;
-
 //Base.Range actually only means root.D.Range - because D is a child of root it hides the other Bases
 const std::size_t szBases = eg::count( Base.Range() );
 TEST_MSG( szBases == 0, "Total bases should be 0: " << szBases );
@@ -49,4 +47,3 @@ TEST_MSG( szBBases == 1000, "Total bases should be 1000: " << szBBases );
 const std::size_t szC = eg::count( C.Range() );
 TEST_MSG( szC == 1000, "Total bases should be 1000: " << szC );
 
-SLEEP;

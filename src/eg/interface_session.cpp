@@ -170,10 +170,10 @@ namespace eg
                 
                 actionInstances.insert( std::make_pair( pChildAction, pChildInstance ) );
                 
-                pChildInstance->m_pCycle             = construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pCycle->m_type     = concrete::Dimension_Generated::eActionCycle;
-                pChildInstance->m_pCycle->m_pAction  = pChildInstance;
-                pChildInstance->m_children.push_back( pChildInstance->m_pCycle );
+                pChildInstance->m_pStopCycle             = construct< concrete::Dimension_Generated >();
+                pChildInstance->m_pStopCycle->m_type     = concrete::Dimension_Generated::eActionStopCycle;
+                pChildInstance->m_pStopCycle->m_pAction  = pChildInstance;
+                pChildInstance->m_children.push_back( pChildInstance->m_pStopCycle );
                 
                 pChildInstance->m_pState             = construct< concrete::Dimension_Generated >();
                 pChildInstance->m_pState->m_type     = concrete::Dimension_Generated::eActionState;

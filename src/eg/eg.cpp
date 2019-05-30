@@ -24,14 +24,16 @@ namespace eg
 {
     static const OperationIDStringArray g_pszOperationStrings = 
     {
-        std::string( "__eg_ImpNoParams"),   //0    id_Imp_NoParams 
-        std::string( "__eg_ImpParams"),     //1    id_Imp_Params   
-        std::string( "Get"),                //2    id_Get          
-        std::string( "Stop"),               //3    id_Stop         
-        std::string( "Pause"),              //4    id_Pause        
-        std::string( "Resume"),             //5    id_Resume       
-        std::string( "Done"),               //6    id_Done    
-        std::string( "Range"),              //7    id_Range        
+        std::string( "__eg_ImpNoParams"),   //id_Imp_NoParams (-2147483648)
+        std::string( "__eg_ImpParams"),     //id_Imp_Params   (-2147483647)
+        std::string( "Start"),              //id_Start        (-2147483646)
+        std::string( "Stop"),               //id_Stop         (-2147483645)
+        std::string( "Pause"),              //id_Pause        (-2147483644)
+        std::string( "Resume"),             //id_Resume       (-2147483643)
+        std::string( "Wait"),               //id_Wait         (-2147483642)
+        std::string( "Get"),                //id_Get          (-2147483641) 
+        std::string( "Done"),               //id_Done         (-2147483640)
+        std::string( "Range"),              //id_Range        (-2147483639)
     };
     const std::string& getOperationString( OperationID op )
     {

@@ -401,7 +401,6 @@ namespace eg
     void calculateReturnType( const InvocationSolution* pSolution, clang::QualType& resultType )
     {
         //establish the return type
-        
         clang::DeclContext* pDeclContext = g_pASTContext->getTranslationUnitDecl();
         const InvocationSolution::Context& returnTypes = pSolution->getReturnTypes();
         
@@ -412,7 +411,7 @@ namespace eg
             case id_Imp_NoParams    :
             case id_Imp_Params      : 
                 {
-                    if( pSolution->isImplicitStarter() )
+                    if( !pSolution->isReturnTypeDimensions() )
                     {
                         if( std::optional< clang::QualType > resultOpt = 
                                 buildActionReturnType( returnTypes, pDeclContext, loc ) )
@@ -445,6 +444,62 @@ namespace eg
                     }
                 }
                 break;
+            case id_Start        :
+                {
+                    if( std::optional< clang::QualType > resultOpt = 
+                            buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                    {
+                        resultType = resultOpt.value();
+                    }
+                    else
+                    {
+                        //error
+                    }
+                }
+                break;
+            case id_Stop       : 
+                {
+                    resultType = clang::getVoidType( g_pASTContext );
+                }
+                break;
+            case id_Pause      : 
+                {
+                    resultType = clang::getVoidType( g_pASTContext );
+                }
+                break;
+            case id_Resume     : 
+                {
+                    resultType = clang::getVoidType( g_pASTContext );
+                }
+                break;
+            case id_Wait       : 
+                {
+                    if( pSolution->isReturnTypeDimensions() )
+                    {
+                        ASSERT( returnTypes.size() == 1 );
+                        const interface::Element* pTarget = returnTypes.front();
+                        clang::DeclContext* pDeclContextIter = pDeclContext;
+                        const std::vector< const interface::Element* > path = getPath( pTarget );
+                        for( const interface::Element* pElementElement : path )
+                        {
+                            clang::getType( g_pASTContext, g_pSema, 
+                                getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                pDeclContextIter, loc, false );
+                            if( !pDeclContextIter ) break;
+                        }
+                        if( pDeclContextIter )
+                            resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "Read" );
+                    }
+                    else
+                    {
+                        if( std::optional< clang::QualType > resultOpt = 
+                                buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                        {
+                            resultType = resultOpt.value();
+                        }
+                    }
+                }
+                break;
             case id_Get        :
                 {
                     if( pSolution->isReturnTypeDimensions() )
@@ -471,21 +526,6 @@ namespace eg
                             resultType = resultOpt.value();
                         }
                     }
-                }
-                break;
-            case id_Stop       : 
-                {
-                    resultType = clang::getVoidType( g_pASTContext );
-                }
-                break;
-            case id_Pause      : 
-                {
-                    resultType = clang::getVoidType( g_pASTContext );
-                }
-                break;
-            case id_Resume     : 
-                {
-                    resultType = clang::getVoidType( g_pASTContext );
                 }
                 break;
             case id_Done     : 

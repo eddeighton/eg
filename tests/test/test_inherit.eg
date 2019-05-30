@@ -22,9 +22,6 @@ A a1 = A();
 A a2 = B();
 A a3 = C();
 
-SLEEP; //suspend this cycle
-SLEEP; //wait another cycle for a,b,c actions to run
-
 TEST_MSG( a1.x() == 1, "x should be 1: " << a1.x() );
 TEST_MSG( a2.x() == 2, "x should be 2: " << a2.x() );
 TEST_MSG( a3.x() == 3, "x should be 3: " << a3.x() );

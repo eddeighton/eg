@@ -22,7 +22,7 @@ action Circle[ 4096 ]
     {
         gl::color( color() ); // red
         gl::drawSolidCircle( position(), size() );
-        SLEEP;
+        eg::sleep();
     }
     
     action Shrink
@@ -34,7 +34,7 @@ action Circle[ 4096 ]
             float fRatio = ( clock::ct() - start() ) / ( max_lifetime() / 16.0f );
             if( fRatio > 1.0f ) break;
             size( max_size() * ( 1.0f - fRatio ) );
-            SLEEP;
+            eg::sleep();
         }
     }
     action Grow
@@ -46,17 +46,8 @@ action Circle[ 4096 ]
             float fRatio = ( clock::ct() - start() ) / ( max_lifetime() / 16.0f );
             if( fRatio > 1.0f ) break;
             size( max_size() * fRatio );
-            SLEEP;
+            eg::sleep();
         }
-    }
-    
-    action ShrinkGrow
-    {
-       while( true )
-       {
-           SLEEP_UNTIL( Shrink() );
-           SLEEP_UNTIL( Grow() );
-       }
     }
     
     action Move
@@ -66,7 +57,7 @@ action Circle[ 4096 ]
         while( true )
         {
             position( position() + ( direction() * clock::dt() ) * speed() );
-            SLEEP;
+            eg::sleep();
         }
     }
     
@@ -76,27 +67,10 @@ action Circle[ 4096 ]
         while( true )
         {
             color( Color( CM_HSV, fmod( clock::ct() + offset(), 1.0f ), 1, 1 ) );
-            SLEEP;
+            eg::sleep();
         }
     }
 }
-
-action EventListener
-{
-    while( true )
-    {
-        while( eg::Event e = get_next_event() )
-        {
-            if( Circle c = e )
-            {
-                LOG( "Circle died at pos: " << c.position() << " and time: " << clock::ct() );
-            }
-        }
-        SLEEP;
-    }
-}
-
-//EventListener();
 
 bool bContinue = true;
 while( bContinue )
@@ -113,7 +87,7 @@ while( bContinue )
             case InputEvent::eMouseDown:
                 {
                     lastPos( std::optional< vec2 >( e.mouseEvent.getPos() ) );
-                    if( Circle c = Circle() )
+                    if( Circle c = Circle.Start() )
                     {
                         c.position( lastPos().value() );
                         c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
@@ -133,10 +107,10 @@ while( bContinue )
                     const vec2 mousePos( e.mouseEvent.getPos() );
                     
                     const vec2 dir = mousePos - lastPos().value();
-                    const float fSteps = glm::length( dir ) * 0.1f;
+                    const float fSteps = glm::length( dir ) * 0.02f;
                     for( float i = 0.0f; i < fSteps; ++i )
                     {
-                        if( Circle c = Circle() )
+                        if( Circle c = Circle.Start() )
                         {
                             c.position( lastPos().value() + ( dir * ( i / fSteps ) ) );
                             c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
@@ -145,7 +119,7 @@ while( bContinue )
                     lastPos( std::optional< vec2 >( mousePos ) );
                     
                     //try to start a circle
-                    if( Circle c = Circle() )
+                    if( Circle c = Circle.Start() )
                     {
                         c.position( lastPos().value() );
                         c.color( Color( CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
@@ -161,6 +135,7 @@ while( bContinue )
             case InputEvent::eKeyDown:
                 if( e.keyEvent.getChar() == ' ' )
                 {
+                    Stop();
                     bContinue = false;
                 }
                 else if( e.keyEvent.getChar() == 'c' )
@@ -168,7 +143,7 @@ while( bContinue )
                     float fCounter = 0.0f;
                     for( Circle c : Circle.Range() )
                     {
-                        c.ColourChanger();
+                        c.ColourChanger.Start();
                         c.ColourChanger.offset( fCounter );
                         fCounter += 0.01;
                     }
@@ -178,7 +153,7 @@ while( bContinue )
                     for( Circle c : Circle.Range() )
                     {
                         c.Shrink.Stop();
-                        c.Grow();
+                        c.Grow.Start();
                     }
                 }
                 else if( e.keyEvent.getChar() == 's' )
@@ -186,16 +161,7 @@ while( bContinue )
                     for( Circle c : Circle.Range() )
                     {
                         c.Grow.Stop();
-                        c.Shrink();
-                    }
-                }
-                else if( e.keyEvent.getChar() == 'o' )
-                {
-                    for( Circle c : Circle.Range() )
-                    {
-                        c.Grow.Stop();
-                        c.Shrink.Stop();
-                        c.ShrinkGrow();
+                        c.Shrink.Start();
                     }
                 }
                 else if( e.keyEvent.getChar() == 'm' )
@@ -205,7 +171,7 @@ while( bContinue )
                     for( Circle c : Circle.Range() )
                     {
                         const float angle = ( ++index / numCircles ) * M_PI * 2.0f;
-                        c.Move().direction( vec2( cos( angle ), sin( angle ) ) );
+                        c.Move.Start().direction( vec2( cos( angle ), sin( angle ) ) );
                         c.Move.speed( 100.0f );
                     }
                 }
@@ -215,5 +181,5 @@ while( bContinue )
         }
     }
     
-    SLEEP;
+    eg::sleep();
 }

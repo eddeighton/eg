@@ -40,8 +40,6 @@ action A
     TEST( B.x() == 5 );
     root.B.x( 6 );
     TEST( root.B.x() == 6 );
-    
-    SLEEP_UNTIL( B() );
 }
 
 x( 0 );
@@ -56,5 +54,3 @@ A.x( 3 );
 TEST( A.x() == 3 );
 A.B.x( 4 );
 TEST( A.B.x() == 4 );
-
-SLEEP_UNTIL( A() );

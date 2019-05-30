@@ -21,13 +21,15 @@
 #ifndef EG_OPERATION_TYPES
 #define EG_OPERATION_TYPES
 
-struct [[clang::eg_type( eg::id_Imp_NoParams    )]] __eg_ImpNoParams;   //id_Imp_NoParams   
-struct [[clang::eg_type( eg::id_Imp_Params      )]] __eg_ImpParams;     //id_Imp_Params   
-struct [[clang::eg_type( eg::id_Get             )]] Get;                //id_Get           
-struct [[clang::eg_type( eg::id_Stop            )]] Stop;               //id_Stop         
-struct [[clang::eg_type( eg::id_Pause           )]] Pause;              //id_Pause        
-struct [[clang::eg_type( eg::id_Resume          )]] Resume;             //id_Resume     
-struct [[clang::eg_type( eg::id_Done            )]] Done;               //id_Done          
-struct [[clang::eg_type( eg::id_Range           )]] Range;              //id_Range        
+struct [[clang::eg_type( eg::id_Imp_NoParams    )]] __eg_ImpNoParams;   //id_Imp_NoParams (-2147483648)
+struct [[clang::eg_type( eg::id_Imp_Params      )]] __eg_ImpParams;     //id_Imp_Params   (-2147483647)
+struct [[clang::eg_type( eg::id_Start           )]] Start;              //id_Start        (-2147483646)
+struct [[clang::eg_type( eg::id_Stop            )]] Stop;               //id_Stop         (-2147483645)
+struct [[clang::eg_type( eg::id_Pause           )]] Pause;              //id_Pause        (-2147483644)
+struct [[clang::eg_type( eg::id_Resume          )]] Resume;             //id_Resume       (-2147483643)
+struct [[clang::eg_type( eg::id_Wait            )]] Wait;               //id_Wait         (-2147483642)
+struct [[clang::eg_type( eg::id_Get             )]] Get;                //id_Get          (-2147483641)
+struct [[clang::eg_type( eg::id_Done            )]] Done;               //id_Done         (-2147483640)
+struct [[clang::eg_type( eg::id_Range           )]] Range;              //id_Range        (-2147483639)
 
 #endif //EG_OPERATION_TYPES

@@ -73,11 +73,14 @@ public:
     virtual reference dereferenceDimension( const reference& action, const TypeID& dimensionType ) = 0;
     virtual void doRead(    const reference& reference, TypeID dimensionType ) = 0;
     virtual void doWrite(   const reference& reference, TypeID dimensionType ) = 0;
+    virtual void doCall(   const reference& reference, TypeID dimensionType ) = 0;
     virtual void doStart(   const reference& reference, TypeID dimensionType ) = 0;
     virtual void doStop(    const reference& reference ) = 0;
     virtual void doPause(   const reference& reference ) = 0;
     virtual void doResume(  const reference& reference ) = 0;
     virtual void doDone(    const reference& reference ) = 0;
+    virtual void doWaitAction(    const reference& reference ) = 0;
+    virtual void doWaitDimension(    const reference& reference, TypeID dimensionType ) = 0;
     virtual void doGetAction(    const reference& reference ) = 0;
     virtual void doGetDimension(    const reference& reference, TypeID dimensionType ) = 0;
     virtual void doRange( const RangeDescription& range ) = 0;
@@ -106,11 +109,14 @@ enum ASTElementType //for serialisation
     ePolyReferenceInstruction,
     ePolyCaseInstruction,
     
+    eCallOperation,
     eStartOperation,
     eStopOperation,
     ePauseOperation,
     eResumeOperation,
     eDoneOperation,
+    eWaitActionOperation,
+    eWaitDimensionOperation,
     eGetActionOperation,
     eGetDimensionOperation,
     eReadOperation,
@@ -561,6 +567,32 @@ public:
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const = 0;
 };
 
+class CallOperation : public Operation
+{
+public:
+    CallOperation(){}
+    CallOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
+            m_pTarget( pTarget )
+    {
+    }
+    virtual ASTElementType getType() const { return eCallOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+    virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    const interface::Action* getInterfaceType() const { return m_pInterface; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
+    const concrete::Action* m_pTarget = nullptr;
+};
+
 class StartOperation : public Operation
 {
 public:
@@ -678,6 +710,52 @@ private:
     const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 
+};
+
+class WaitActionOperation : public Operation
+{
+public:
+    WaitActionOperation(){}
+    WaitActionOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
+            m_pTarget( pTarget )
+    {
+    }
+    virtual ASTElementType getType() const { return eWaitActionOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+    virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const interface::Action* m_pInterface = nullptr;
+    const concrete::Action* m_pTarget = nullptr;
+};
+
+class WaitDimensionOperation : public Operation
+{
+public:
+    WaitDimensionOperation(){}
+    WaitDimensionOperation( InstanceVariable* pInstance, const interface::Dimension* pInterface, const concrete::Dimension_User* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
+            m_pTarget( pTarget )
+    {
+    }
+    virtual ASTElementType getType() const { return eWaitDimensionOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
+    virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const interface::Dimension* m_pInterface = nullptr;
+    const concrete::Dimension_User* m_pTarget = nullptr;
 };
 
 class GetActionOperation : public Operation

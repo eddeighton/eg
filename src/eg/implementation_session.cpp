@@ -133,7 +133,7 @@ namespace eg
                             //    }
                                 break;
                                 
-                            case concrete::Dimension_Generated::eActionCycle   :
+                            case concrete::Dimension_Generated::eActionStopCycle :
                                 {
                                     pDimensionInstance = construct< DataMember >();
                                     pDimensionInstance->name = pBuffer->variable + "_cycle";

@@ -225,7 +225,7 @@ namespace concrete
         enum DimensionType
         {
             eDimensionTimestamp,
-            eActionCycle,
+            eActionStopCycle,
             eActionState,
             eActionFiber,
             eActionObject,
@@ -292,7 +292,7 @@ namespace concrete
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
         const std::string& getName() const { return m_strName; }
         
-        const Dimension_Generated* getCycle        () const { return m_pCycle         ; } //timestamp when stopped
+        const Dimension_Generated* getStopCycle    () const { return m_pStopCycle     ; } //timestamp when stopped
         const Dimension_Generated* getState        () const { return m_pState         ; }
         const Dimension_Generated* getFiber        () const { return m_pFiber         ; }
         const Dimension_Generated* getMappedObject () const { return m_pMappedObject  ; }
@@ -320,7 +320,7 @@ namespace concrete
         std::string m_strName;
         mutable int m_totalDomainSize = 0;
         
-        Dimension_Generated* m_pCycle         = nullptr;
+        Dimension_Generated* m_pStopCycle     = nullptr;
         Dimension_Generated* m_pState         = nullptr;
         Dimension_Generated* m_pFiber         = nullptr;
         Dimension_Generated* m_pMappedObject  = nullptr;

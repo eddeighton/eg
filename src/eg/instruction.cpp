@@ -68,11 +68,14 @@ namespace eg
                     case ePolyReferenceInstruction:             pNewElement = new PolymorphicReferenceBranchInstruction; break;
                     case ePolyCaseInstruction:                  pNewElement = new PolymorphicCaseInstruction; break;
                             
+                    case eCallOperation:                        pNewElement = new CallOperation; break;
                     case eStartOperation:                       pNewElement = new StartOperation; break;
                     case eStopOperation:                        pNewElement = new StopOperation; break;
                     case ePauseOperation:                       pNewElement = new PauseOperation; break;
                     case eResumeOperation:                      pNewElement = new ResumeOperation; break;
                     case eDoneOperation:                        pNewElement = new DoneOperation; break;
+                    case eWaitActionOperation:                  pNewElement = new WaitActionOperation; break;
+                    case eWaitDimensionOperation:               pNewElement = new WaitDimensionOperation; break;
                     case eGetActionOperation:                   pNewElement = new GetActionOperation; break;
                     case eGetDimensionOperation:                pNewElement = new GetDimensionOperation; break;
                     case eReadOperation:                        pNewElement = new ReadOperation; break;
@@ -459,11 +462,14 @@ namespace eg
                     pChild->getOperations( operations );
                     break;
                 
+                case eCallOperation                      :
                 case eStartOperation                     :
                 case eStopOperation                      :
                 case ePauseOperation                     :
                 case eResumeOperation                    :
                 case eDoneOperation                      :
+                case eWaitActionOperation                :
+                case eWaitDimensionOperation             :
                 case eGetActionOperation                 :
                 case eGetDimensionOperation              :
                 case eReadOperation                      :
@@ -1082,6 +1088,40 @@ namespace eg
         Instruction::store( serialiser, storer );
     }
     
+    void CallOperation::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Operation::load( serialiser, loader );
+        serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pTarget = loader.loadObjectRef< concrete::Action >();
+    }
+    void CallOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Operation::store( serialiser, storer );
+        serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
+        storer.storeObjectRef( m_pTarget );
+    }
+    void CallOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pInterface );
+    }
+    void CallOperation::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
+        os << generator.getIndent() << m_pInterface->getStaticType() << " ref = " << m_pTarget->getName() << 
+            "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
+        os << generator.getIndent() << "if( ref )\n";
+        os << generator.getIndent() << "{\n";
+        os << generator.getIndent() << "    ref( args... );\n";
+        os << generator.getIndent() << "    " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
+        os << generator.getIndent() << "}\n";
+        os << generator.getIndent() << "return ref;\n";
+    }
+    void CallOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doCall( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
+    }
+    
     void StartOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Operation::load( serialiser, loader );
@@ -1102,8 +1142,32 @@ namespace eg
     }
     void StartOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        os << generator.getIndent() << "return " << m_pTarget->getName() << 
+        os << generator.getIndent() << m_pInterface->getStaticType() << " ref = " << m_pTarget->getName() << 
             "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
+            
+        const DataMember* pFiberData = generator.getLayout().getDataMember( m_pTarget->getFiber() );
+            
+        os << generator.getIndent() << "if( ref )\n";
+        os << generator.getIndent() << "{\n";
+        os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << " = " << EG_FIBER_TYPE << "\n";
+        os << generator.getIndent() << "    (\n";
+        os << generator.getIndent() << "        [ = ]()\n";
+        os << generator.getIndent() << "        {\n";
+        os << generator.getIndent() << "            try\n";
+        os << generator.getIndent() << "            {\n";
+        os << generator.getIndent() << "                ref( args... );\n"; 
+        os << generator.getIndent() << "            }\n";
+        os << generator.getIndent() << "            catch( eg::termination_exception )\n";
+        os << generator.getIndent() << "            {\n";
+        os << generator.getIndent() << "            }\n";
+        os << generator.getIndent() << "            " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
+        os << generator.getIndent() << "        }\n";
+        os << generator.getIndent() << "    );\n";
+        os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << 
+            ".properties< eg::fiber_props >().setReference( ref.data );\n";
+        os << generator.getIndent() << "}\n";
+        os << generator.getIndent() << "return ref;\n";
+            
     }
     void StartOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1240,6 +1304,63 @@ namespace eg
     void DoneOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doDone( evaluator.getVarValue( m_pInstance ) );
+    }
+    
+    void WaitActionOperation::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Operation::load( serialiser, loader );
+        serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pTarget = loader.loadObjectRef< concrete::Action >();
+    }
+    void WaitActionOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Operation::store( serialiser, storer );
+        serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
+        storer.storeObjectRef( m_pTarget );
+    }
+    void WaitActionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pInterface );
+    }
+    void WaitActionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
+        os << generator.getIndent() << "return " <<
+            generator.getDimension( m_pTarget->getReference(), generator.getVarExpr( m_pInstance ) ) << ";\n";
+        
+    }
+    void WaitActionOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doWaitAction( evaluator.getVarValue( m_pInstance ) );
+    }
+    
+    void WaitDimensionOperation::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Operation::load( serialiser, loader );
+        serialiser.load( loader, m_pInstance );
+        m_pInterface = loader.loadObjectRef< interface::Dimension >();
+        m_pTarget = loader.loadObjectRef< concrete::Dimension_User >();
+    }
+    void WaitDimensionOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Operation::store( serialiser, storer );
+        serialiser.store( storer, m_pInstance );
+        storer.storeObjectRef( m_pInterface );
+        storer.storeObjectRef( m_pTarget );
+    }
+    void WaitDimensionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pInterface );
+    }
+    void WaitDimensionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
+    {
+        os << generator.getIndent() << "return " << 
+            generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << ";\n";
+    }
+    void WaitDimensionOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+        evaluator.doWaitDimension( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
     }
     
     void GetActionOperation::load( ASTSerialiser& serialiser, Loader& loader )

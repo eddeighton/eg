@@ -211,7 +211,7 @@ namespace concrete
             case eDimensionTimestamp :
                 os << EG_TIME_STAMP;
                 break;
-            case eActionCycle        :
+            case eActionStopCycle    :
                 os << EG_TIME_STAMP;
                 break;
             case eActionState        :
@@ -257,7 +257,7 @@ namespace concrete
         {
             case eDimensionTimestamp :
                 return 4;
-            case eActionCycle        :
+            case eActionStopCycle    :
                 return 4;
             case eActionState        :
                 return 4;
@@ -291,7 +291,7 @@ namespace concrete
                     os << " = " << EG_INVALID_TIMESTAMP << ";\n";
                 }
                 break;
-            case eActionCycle      :
+            case eActionStopCycle   :
                 {
                     os << strIndent; 
                     printer.printVariableAccess( os, strIndex ); 
@@ -351,8 +351,8 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp :
-            case eActionCycle      :
-            case eActionState       :
+            case eActionStopCycle    :
+            case eActionState        :
                 break;
             case eActionFiber       : 
                 break;
@@ -391,7 +391,7 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp    :
-            case eActionCycle           :
+            case eActionStopCycle       :
             case eActionState           :
             case eActionFiber           : 
                 break;
@@ -431,7 +431,7 @@ namespace concrete
         switch( m_type )
         {
             case eDimensionTimestamp    :
-            case eActionCycle           :
+            case eActionStopCycle       :
             case eActionState           :
             case eActionFiber           : 
                 break;
@@ -473,7 +473,7 @@ namespace concrete
         m_inheritance = loader.loadObjectRef< Inheritance_Node >();
         loader.load( m_strName );
         loader.load( m_totalDomainSize );
-        m_pCycle            = loader.loadObjectRef< Dimension_Generated >();
+        m_pStopCycle        = loader.loadObjectRef< Dimension_Generated >();
         m_pState            = loader.loadObjectRef< Dimension_Generated >();
         m_pFiber            = loader.loadObjectRef< Dimension_Generated >();
         m_pMappedObject     = loader.loadObjectRef< Dimension_Generated >();
@@ -489,7 +489,7 @@ namespace concrete
         storer.storeObjectRef( m_inheritance );
         storer.store( m_strName );
         storer.store( m_totalDomainSize );
-        storer.storeObjectRef( m_pCycle         );
+        storer.storeObjectRef( m_pStopCycle     );
         storer.storeObjectRef( m_pState         );
         storer.storeObjectRef( m_pFiber         );
         storer.storeObjectRef( m_pMappedObject  );

@@ -114,6 +114,10 @@ namespace eg
         {
             m_hostAccessor.doWrite( reference, dimensionType );
         }
+        virtual void doCall(   const reference& reference, TypeID dimensionType )
+        {
+            m_hostAccessor.doCall( reference, dimensionType );
+        }
         virtual void doStart(   const reference& reference, TypeID dimensionType )
         {
             m_hostAccessor.doStart( reference, dimensionType );
@@ -133,6 +137,14 @@ namespace eg
         virtual void doDone(    const reference& reference )
         {
             m_hostAccessor.doDone( reference );
+        }
+        virtual void doWaitAction(    const reference& reference )
+        {
+            m_hostAccessor.doWaitAction( reference );
+        }
+        virtual void doWaitDimension(    const reference& reference, TypeID dimensionType )
+        {
+            m_hostAccessor.doWaitDimension( reference, dimensionType );
         }
         virtual void doGetAction(    const reference& reference )
         {

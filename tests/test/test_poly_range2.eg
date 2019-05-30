@@ -18,9 +18,6 @@ action C[ 2 ] : A
 B();
 C();
 
-SLEEP;
-SLEEP;
-
 int iACounter = 0;
 int iBCounter = 0;
 int iCCounter = 0;

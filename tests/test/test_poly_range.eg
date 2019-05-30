@@ -5,37 +5,40 @@ abstract A
 
 }
 
-action B[ 2 ] : A
+action B[ 3 ] : A
 {
 
 }
 
 B();
+B();
 
-SLEEP;
-SLEEP;
-
-int iCounter = 0;
+int iCountAFromAs = 0;
 for( A iter : A.Range() )
 {
-    ++iCounter;
+    ++iCountAFromAs;
 }
+TEST_MSG( iCountAFromAs == 2, "Counter should be 2: " << iCountAFromAs );
 
+int iCountBFromAs = 0;
 for( B iter : A.Range() )
 {
-    ++iCounter;
+    ++iCountBFromAs;
 }
+TEST_MSG( iCountBFromAs == 2, "Counter should be 2: " << iCountBFromAs );
 
+int iCountAFromBs = 0;
 for( A iter : B.Range() )
 {
-    ++iCounter;
+    ++iCountAFromBs;
 }
+TEST_MSG( iCountAFromBs == 2, "Counter should be 2: " << iCountAFromBs );
 
+int iCountBFromBs = 0;
 for( B iter : B.Range() )
 {
-    ++iCounter;
+    ++iCountBFromBs;
 }
-
-TEST_MSG( iCounter == 4, "Counter should be 4: " << iCounter );
+TEST_MSG( iCountBFromBs == 2, "Counter should be 2: " << iCountBFromBs );
 
 

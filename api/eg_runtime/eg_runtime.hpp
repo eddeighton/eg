@@ -55,11 +55,14 @@ namespace eg
         virtual reference dereferenceDimension( const reference& action, const TypeID& dimensionType ) = 0;
         virtual void doRead(    const reference& reference, TypeID dimensionType ) = 0;
         virtual void doWrite(   const reference& reference, TypeID dimensionType ) = 0;
+        virtual void doCall(   const reference& reference, TypeID dimensionType ) = 0;
         virtual void doStart(   const reference& reference, TypeID dimensionType ) = 0;
         virtual void doStop(    const reference& reference ) = 0;
         virtual void doPause(   const reference& reference ) = 0;
         virtual void doResume(  const reference& reference ) = 0;
         virtual void doDone(    const reference& reference ) = 0;
+        virtual void doWaitAction(    const reference& reference ) = 0;
+        virtual void doWaitDimension(    const reference& reference, TypeID dimensionType ) = 0;
         virtual void doGetAction(    const reference& reference ) = 0;
         virtual void doGetDimension(    const reference& reference, TypeID dimensionType ) = 0;
         virtual void doRange( EGRangeDescriptionPtr pRange ) = 0;

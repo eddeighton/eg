@@ -52,21 +52,23 @@ namespace eg
         }
     }
     
-    static const TimeStamp INVALID_TIMESTAMP = 0U;//std::numeric_limits< TimeStamp >::max();
+    static const TimeStamp INVALID_TIMESTAMP = 0U;
 
     using event_iterator = std::uint64_t;
 
     enum OperationID : TypeID
     {
-        id_Imp_NoParams             = std::numeric_limits< TypeID >::min(),//id_Imp_NoParams (-2147483648)
-        id_Imp_Params               , //id_Imp_Params   (-2147483647)
-        id_Get                      , //id_Get          (-2147483646)
-        id_Stop                     , //id_Stop         (-2147483645)
-        id_Pause                    , //id_Pause        (-2147483644)
-        id_Resume                   , //id_Resume       (-2147483643)
-        id_Done                     , //id_Done         (-2147483642)
-        id_Range                    , //id_Range        (-2147483631)
-        HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483630)
+        id_Imp_NoParams             = std::numeric_limits< TypeID >::min(), //id_Imp_NoParams (-2147483648)
+        id_Imp_Params               ,                                       //id_Imp_Params   (-2147483647)
+        id_Start                    ,                                       //id_Start        (-2147483646)
+        id_Stop                     ,                                       //id_Stop         (-2147483645)
+        id_Pause                    ,                                       //id_Pause        (-2147483644)
+        id_Resume                   ,                                       //id_Resume       (-2147483643)
+        id_Wait                     ,                                       //id_Wait         (-2147483642)
+        id_Get                      ,                                       //id_Get          (-2147483641)
+        id_Done                     ,                                       //id_Done         (-2147483640)
+        id_Range                    ,                                       //id_Range        (-2147483639)
+        HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483638)
     };
 
     static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();
@@ -102,7 +104,7 @@ namespace eg
     {
         Instance  instance  = 0U;
         TypeID    type      = 0;
-        TimeStamp timestamp = 0U;
+        TimeStamp timestamp = INVALID_TIMESTAMP;
         
         inline bool operator==( const reference& cmp ) const
         {
@@ -124,6 +126,11 @@ namespace eg
                     ( timestamp != cmp.timestamp ) ?    ( timestamp < cmp.timestamp ) : 
                     false;
         }
+        
+        /*inline operator const void*() const
+        {
+            return ( type != 0U ) ? this : nullptr;
+        }*/
     };
 }
 

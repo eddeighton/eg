@@ -5,42 +5,28 @@ action A[ 4 ]
 {
     action B[ 4 ]
     {
-        SLEEP_S( 0.2 );
         counter( counter() + 1 );
         
         action D[ 4 ]
         {
-            SLEEP_S( 0.2 );
             counter( counter() + 1 );
             
             action F[ 4 ]
             {
-                SLEEP_S( 0.2 );
                 counter( counter() + 1 );
             }
-            while( !Done() )
-                SLEEP;
         }
-        while( !Done() )
-            SLEEP;
     }
     
     action C[ 4 ]
     {
-        SLEEP_S( 0.2 );
         counter( counter() + 1 );
         
         action E[ 4 ]
         {
-            SLEEP_S( 0.2 );
             counter( counter() + 1 );
         }
-        while( !Done() )
-            SLEEP;
     }
-    
-    while( !Done() )
-        SLEEP;
 }
 
 counter( 0 );
@@ -52,8 +38,6 @@ d.F();
 
 A::C c = a.C();
 A::C::E e = c.E();
-
-SLEEP_UNTIL( a );
 
 TEST( counter() == 5 );
 

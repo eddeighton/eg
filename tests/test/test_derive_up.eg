@@ -14,8 +14,7 @@ A a = A();
 A::B b = a.B();
 A::B::C c = b.C();
 
-SLEEP;
-
+eg::sleep();
 
 A parentA = b.A.Get();
 TEST( parentA == a );

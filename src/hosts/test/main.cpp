@@ -115,7 +115,6 @@ int main( int argc, const char* argv[] )
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
         os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << ";\n";
-        //os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
     }
     
     os << "void allocate_buffers()\n";
@@ -158,16 +157,35 @@ int main( int argc, const char* argv[] )
     
     os << "\n";
     
-    os << "//Action functions\n";
     std::vector< const eg::concrete::Action* > actions = 
         eg::many_cst< eg::concrete::Action >( objects );
+    os << eg::EG_ACTION_STATE << " getState( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
+    os << "{\n";
+    os << "    switch( typeID )\n";
+    os << "    {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() )
         {
-    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
-    os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
+    os << "        case " << pAction->getIndex() << ": return " << 
+        eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << ";\n";
+        }
+    }
+    os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
+    os << "    }\n";
+    os << "}\n";
     
+    os << "//Action functions\n";
+    os << "extern __eg_root< void > root_starter( std::vector< std::function< void() > >& );\n";
+    for( const eg::concrete::Action* pAction : actions )
+    {
+        if( pAction->getParent() && pAction->getParent()->getParent() )
+        {
+    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
+        }
+        if( pAction->getParent() )
+        {
+    os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
         }
     }
         
@@ -227,8 +245,37 @@ int main( int argc, const char* argv[] )
         BasicHost_EGDependencyProvider dependencies( &theClock, &theEventLog );
         initialise( &dependencies );
         
+        //be sure to initialise the clock before the scheduler
+        boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
+        
         //start the root
-        root_starter( 0 );
+        std::vector< std::function< void() > > pythonFunctions =  {};
+        root_starter( pythonFunctions );
+        
+        boost::fibers::fiber timeKeeperFiber
+        (
+            [ sleepDuration, &theClock ]()
+            {
+                boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
+                boost::this_fiber::yield();
+                
+                HostClock::Tick cycleStart = theClock.actual();
+                while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
+                {
+                    const HostClock::TickDuration elapsed = theClock.actual() - cycleStart;
+                    if( elapsed < sleepDuration )
+                    {
+                        eg::sleep( sleepDuration - elapsed );
+                    }
+                    theClock.nextCycle();
+                    cycleStart = theClock.actual();
+                    std::cout << "tick: " << theClock.cycle() << " : " << theClock.ct() << "s" << std::endl;
+                    eg::wait();
+                }
+            }
+        );
+        timeKeeperFiber.join();
+        
     }
     catch( std::exception& e )
     {

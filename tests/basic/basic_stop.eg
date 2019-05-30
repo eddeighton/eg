@@ -1,0 +1,18 @@
+
+std::cout << "Root starting" << std::endl;
+
+action A[ 4 ]
+{
+    std::cout << "A started" << std::endl;
+    eg::sleep();
+    std::cout << "A finished" << std::endl;
+}
+
+A a = A();
+
+a.Stop();
+
+eg::sleep();
+eg::sleep();
+    
+std::cout << "Root stopping" << std::endl;

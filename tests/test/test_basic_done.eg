@@ -1,23 +1,14 @@
 
 action A
 {
-    
-}
-
-action B
-{
-
 }
 
 TEST( Done() );
 
-A();
-B();
+A.Start();
 
 TEST( !Done() );
 
-SLEEP;
-SLEEP;
-SLEEP;
+eg::wait();
 
 TEST( Done() );

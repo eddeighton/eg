@@ -6,7 +6,7 @@ action A
     while( true )
     {
         x( x() + 1 );
-        SLEEP;
+        eg::sleep();
     }
 }
 
@@ -15,19 +15,18 @@ action B
     dim A a;
     
     TEST_MSG( a.x() == 1, "A.x is: " << a.x() );
-    SLEEP;
+    eg::sleep();
     TEST_MSG( a.x() == 2, "A.x is: " << a.x() );
-    SLEEP;
+    eg::sleep();
     TEST_MSG( a.x() == 3, "A.x is: " << a.x() );
-    SLEEP;
+    eg::sleep();
 }
 
-A a = A();
+A a = A.Start();
 
-B b = B();
+B b = B.Start();
 b.a( a );
 
-SLEEP;
-SLEEP;
-SLEEP;
-
+eg::sleep();
+eg::sleep();
+eg::sleep();

@@ -87,6 +87,7 @@ namespace eg
         std::size_t getSize() const { return size; }
         std::size_t getStride() const { return stride; }
         const std::vector< const DataMember* >& getDimensions() const { return m_dimensions; }
+        const concrete::Action* getAction() const { return m_pAction; }
     private:
         const concrete::Action* m_pAction = nullptr;
         std::vector< const DataMember* > m_dimensions;

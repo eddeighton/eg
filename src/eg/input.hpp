@@ -122,6 +122,7 @@ namespace eg
         public:
             const std::vector< Element* >& getElements() const { return m_elements; }
             const Opaque* getSize() const { return m_pSize; }
+            const Opaque* getParams() const { return m_pParams; }
             const std::string& getIdentifier() const { return m_strIdentifier; }
             const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
             bool isLink() const { return m_bLink; }
@@ -136,6 +137,7 @@ namespace eg
         protected:
             std::vector< Element* > m_elements;
             Opaque* m_pSize;
+            Opaque* m_pParams;
             bool m_bDefined = false;
             bool m_bIsTemplate = false;
             std::string m_strIdentifier;

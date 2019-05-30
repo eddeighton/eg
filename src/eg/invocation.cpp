@@ -291,15 +291,15 @@ namespace eg
                         {
                             //only derive the parent for the starter
                             commonRootDerivation( prev.getConcrete(), current.getConcrete()->getParent(), pInstruction, pVariable );
-                            StartOperation* pStart = new StartOperation( pVariable, pInterfaceAction, pAction );
-                            pInstruction->append( pStart );
+                            CallOperation* pCall = new CallOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pCall );
                         }
                         break;
-                    case id_Get                 :
+                    case id_Start                :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                            GetActionOperation* pGetAction = new GetActionOperation( pVariable, pInterfaceAction, pAction );
-                            pInstruction->append( pGetAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete()->getParent(), pInstruction, pVariable );
+                            StartOperation* pStart = new StartOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pStart );
                         }
                         break;
                     case id_Stop                :
@@ -321,6 +321,20 @@ namespace eg
                             commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
                             ResumeOperation* pResume = new ResumeOperation( pVariable, pInterfaceAction, pAction );
                             pInstruction->append( pResume );
+                        }
+                        break;
+                    case id_Wait                 :
+                        {
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                            WaitActionOperation* pWaitAction = new WaitActionOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pWaitAction );
+                        }
+                        break;
+                    case id_Get                 :
+                        {
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                            GetActionOperation* pGetAction = new GetActionOperation( pVariable, pInterfaceAction, pAction );
+                            pInstruction->append( pGetAction );
                         }
                         break;
                     case id_Done                :
@@ -362,6 +376,13 @@ namespace eg
                             pInstruction->append( pGetAction );
                         }
                         break;
+                    case id_Wait                 :
+                        {
+                            WaitDimensionOperation* pWaitAction = new WaitDimensionOperation( pVariable, pInterfaceDimension, pUserDimension );
+                            pInstruction->append( pWaitAction );
+                        }
+                        break;
+                    case id_Start               :
                     case id_Stop                :
                     case id_Pause               :
                     case id_Resume              :
@@ -843,10 +864,12 @@ namespace eg
         {
             case id_Imp_NoParams        :
             case id_Imp_Params          :
-            case id_Get                 :
+            case id_Start               :
             case id_Stop                :
             case id_Pause               :
             case id_Resume              :
+            case id_Wait                :
+            case id_Get                 :
             case id_Done                :
                 {
                     GenericOperationVisitor builder( *this, resolution );
@@ -873,7 +896,7 @@ namespace eg
             case Instruction::eAmbiguous :
                 {
                     //if starter then accept explicit concrete action type over deriving
-                    if( isImplicitStarter() )
+                    if( !isReturnTypeDimensions() )
                     {
                         //get the operations
                         std::vector< const Operation* > operations;
@@ -909,15 +932,31 @@ namespace eg
                             std::vector< const Operation* > candidateOperations;
                             for( const Operation* pOperation : operations )
                             {
-                                const StartOperation* pStart = dynamic_cast< const StartOperation* >( pOperation );
-                                ASSERT( pStart );
-                                for( const ElementPair& element : concreteTargets )
+                                if( const CallOperation* pCall = dynamic_cast< const CallOperation* >( pOperation ) )
                                 {
-                                    if( ( element.first     == pStart->getInterfaceType() ) && 
-                                        ( element.second    == pStart->getConcreteType() ) )
+                                    for( const ElementPair& element : concreteTargets )
                                     {
-                                        candidateOperations.push_back( pStart );
+                                        if( ( element.first     == pCall->getInterfaceType() ) && 
+                                            ( element.second    == pCall->getConcreteType() ) )
+                                        {
+                                            candidateOperations.push_back( pCall );
+                                        }
+                                    } 
+                                }
+                                else if( const StartOperation* pStart = dynamic_cast< const StartOperation* >( pOperation ) )
+                                {
+                                    for( const ElementPair& element : concreteTargets )
+                                    {
+                                        if( ( element.first     == pStart->getInterfaceType() ) && 
+                                            ( element.second    == pStart->getConcreteType() ) )
+                                        {
+                                            candidateOperations.push_back( pStart );
+                                        }
                                     }
+                                }
+                                else
+                                {
+                                    ASSERT( false );
                                 }
                             }
                                 
@@ -1195,23 +1234,26 @@ namespace eg
         
         {
             const InvocationSolution::TypePath& typePath = std::get< InvocationSolution::TypePath >( invocationID );
-            for( InvocationSolution::TypePath::const_iterator 
-                i = typePath.begin(),
-                iLast = typePath.end() - 1U,
-                iEnd = typePath.end(); i!=iEnd; ++i )
+            if( !typePath.empty() )
             {
-                const std::vector< const interface::Element* >& typePathElement = *i;
-                
-                const bool bIncludeInherited = true;
-                
-                InvocationSolution::ElementPairVector elementVector = 
-                    InvocationSolution::getElementVector( 
-                        m_analysis, typePathElement, bIncludeInherited );
-                if( elementVector.empty() )
+                for( InvocationSolution::TypePath::const_iterator 
+                    i = typePath.begin(),
+                    iLast = typePath.end() - 1U,
+                    iEnd = typePath.end(); i!=iEnd; ++i )
                 {
-                    THROW_NAMERESOLUTION_EXCEPTION( "Invalid type path. " << invocationID );
+                    const std::vector< const interface::Element* >& typePathElement = *i;
+                    
+                    const bool bIncludeInherited = true;
+                    
+                    InvocationSolution::ElementPairVector elementVector = 
+                        InvocationSolution::getElementVector( 
+                            m_analysis, typePathElement, bIncludeInherited );
+                    if( elementVector.empty() )
+                    {
+                        THROW_NAMERESOLUTION_EXCEPTION( "Invalid type path. " << invocationID );
+                    }
+                    pInvocation->m_typePath.push_back( elementVector );
                 }
-                pInvocation->m_typePath.push_back( elementVector );
             }
             
             if( pInvocation->m_typePath.empty() && bIsImplicit )

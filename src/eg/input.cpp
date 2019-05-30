@@ -139,7 +139,8 @@ namespace input
     
     Action::Action( const IndexedObject& object )
         :   Element( object ),
-            m_pSize( nullptr )
+            m_pSize( nullptr ),
+            m_pParams( nullptr )
     {
 
     }
@@ -148,6 +149,7 @@ namespace input
     {
         loader.loadObjectVector( m_elements );
         m_pSize = loader.loadObjectRef< Opaque >();
+        m_pParams = loader.loadObjectRef< Opaque >();
         loader.load( m_bDefined );
         loader.load( m_strIdentifier );
         loader.load( m_bAbstract );
@@ -159,6 +161,7 @@ namespace input
     {
         storer.storeObjectVector( m_elements );
         storer.storeObjectRef( m_pSize );
+        storer.storeObjectRef( m_pParams );
         storer.store( m_bDefined );
         storer.store( m_strIdentifier );
         storer.store( m_bAbstract );

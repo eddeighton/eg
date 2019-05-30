@@ -1,0 +1,23 @@
+
+action A[ 4 ]( int x, const int& foobar )
+{
+    std::cout << "A got: " << x << " " << foobar << std::endl;
+}
+
+std::cout << "root start" << std::endl;
+
+int iSomeValue = 123;
+
+A sync = A( 1, iSomeValue );
+
+A async = A.Start( 2, iSomeValue );
+
+//async.Wait();
+
+//TEST( a == a2 );
+
+
+while( !Done() )
+    eg::sleep();
+    
+std::cout << "root end" << std::endl;

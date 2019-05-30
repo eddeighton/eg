@@ -71,7 +71,7 @@ public:
 
     PythonEGReferenceType( HostEvaluator& evaluator );
     
-    PyObject* create( reference szInstanceID );
+    PyObject* create( reference ref );
     
     HostEvaluator& getEvaluator() const { return m_evaluator; }
 private:
@@ -130,7 +130,8 @@ public:
                 break;
             
             //now actually see if the current position is valid
-            if( ::getState( m_pRange->getType( m_subRange ), m_position ) != action_stopped )
+            if( ( ::getState( m_pRange->getType( m_subRange ), m_position ) != action_stopped ) || 
+                ( ::getStopCycle( m_pRange->getType( m_subRange ), m_position ) >= clock::cycle() ) )
                 break;
             
             //skip to next and continue scanning

@@ -42,6 +42,7 @@ namespace eg
     static const char* EG_TIME_STAMP = "eg::TimeStamp";
     static const char* EG_ACTION_STATE = "eg::ActionState";
     static const char* EG_INVALID_TIMESTAMP = "eg::INVALID_TIMESTAMP";
+    static const char* EG_INVALID_STATE = "eg::TOTAL_ACTION_STATES";
     static const char* EG_OBJECT_TRAITS = "eg::ObjectTraits";
     static const char* EG_DIMENSION_TRAITS = "eg::DimensionTraits";
     static const char* EG_TYPE_PATH = "__eg_type_path";
@@ -139,6 +140,7 @@ namespace eg
         
         std::string getFailureReturnType() const { return m_strFailureType; }
         
+        const Layout& getLayout() const { return m_layout; }
     private:
         VariableExprMap m_variables;
         std::string m_strIndent;

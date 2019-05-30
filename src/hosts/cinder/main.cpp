@@ -123,7 +123,6 @@ int main( int argc, const char* argv[] )
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
         os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << ";\n";
-        //os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
     }
     
     os << "\n";
@@ -194,15 +193,18 @@ public:
     os << "\n";
     
     os << "//Action functions\n";
+    os << "extern __eg_root< void > root_starter( std::vector< std::function< void() > >& );\n";
     std::vector< const eg::concrete::Action* > actions = 
         eg::many_cst< eg::concrete::Action >( objects );
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getParent() && pAction->getParent()->getParent() )
         {
     os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
+        }
+        if( pAction->getParent() )
+        {
     os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
-    
         }
     }
     
@@ -256,27 +258,6 @@ public:
 using namespace ci;
 using namespace ci::app;
 
-void runPython( const std::string& strDatabaseFile, const std::string& strScript )
-{
-    pybind11::scoped_interpreter guard{}; // start the interpreter and keep it alive
-
-    try
-    {
-        pybind11::module pyeg_module = pybind11::module::import( "pyeg" );
-
-        HostFunctions hostFunctions( strDatabaseFile, pyeg_module );
-
-        g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
-
-        pybind11::exec( strScript );
-    }
-    catch( std::exception& e )
-    {
-        std::cout << e.what() << std::endl;
-    }
-    
-}
-
 // We'll create a new Cinder Application by deriving from the App class.
 class BasicApp : public App 
 {
@@ -301,71 +282,89 @@ public:
 	// Cinder will call 'draw' each time the contents of the window need to be redrawn.
 	void draw() override;
     
-    static std::string g_strPythonScript;
+    static std::vector< std::string > g_strPythonScripts;
     static std::string g_strDatabase;
 
-    void RunCycle();
 private:
     HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
     HostClock theClock;
     HostEventLog theEventLog;
     InputEvents inputEvents;
     CinderHost_EGDependencyProvider dependencies;
-    std::unique_ptr< std::thread > pPythonThread;
+    std::vector< std::function< void() > > pythonFunctions;
+    pybind11::scoped_interpreter guard; // start the python interpreter
+    boost::fibers::fiber timeKeeperFiber;
+    boost::fibers::condition_variable   cond;
+    boost::fibers::mutex                mutex;
+    bool                                frame;
+    bool                                frameComplete;
 };
-
 
 BasicApp::BasicApp()
     :   theEventLog( "basicapp", strEventLogFolder.c_str() ),
-        dependencies( &theClock, &theEventLog, &inputEvents )
+        dependencies( &theClock, &theEventLog, &inputEvents ),
+        frame( false ),
+        frameComplete( false )
 {
     allocate_buffers();
     
     initialise( &dependencies );
-    
-    root_starter( 0 );
 }
 
 BasicApp::~BasicApp()
 {
-    if( pPythonThread ) pPythonThread->join();
+    root_stopper( 0U );
+    timeKeeperFiber.join();
     deallocate_buffers();
 }
 
 void BasicApp::setup()
 {
-    //load optional python script
-    if( !g_strPythonScript.empty() && !g_strDatabase.empty() )
-    {
-        std::string strScript;
-        const boost::filesystem::path pythonFilePath = 
-            boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( g_strPythonScript ) );
-        if( !boost::filesystem::exists( pythonFilePath ) )
+    boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
+    
+    timeKeeperFiber = boost::fibers::fiber
+    (
+        [   
+            &theClock = theClock, 
+            &frame = frame, 
+            &frameComplete = frameComplete, 
+            &mutex = mutex, 
+            &cond = cond 
+        ]() mutable
         {
-            THROW_RTE( "Cannot locate file: " << pythonFilePath.string() );
-        } 
-        const boost::filesystem::path databaseFilePath = 
-            boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( g_strDatabase ) );
-        if( !boost::filesystem::exists( databaseFilePath ) )
-        {
-            THROW_RTE( "Cannot locate file: " << databaseFilePath.string() );
+            boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
+            eg::sleep();
+            
+            while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
+            {
+                //wait for frame
+                {
+                    std::unique_lock< boost::fibers::mutex > lock( mutex );
+                    cond.wait( lock, [&frame](){ return frame; });
+                }
+                
+                eg::sleep();
+                theClock.nextCycle();
+                eg::wait();
+                
+                //signal frame complete
+                {
+                    std::unique_lock< boost::fibers::mutex > lock( mutex );
+                    frameComplete = true;
+                } // release mutex
+                cond.notify_one();
+            }
         }
+    );
+    
+    pythonFunctions = loadPythonScripts( g_strPythonScripts, g_strDatabase );
         
-        boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
-        pPythonThread = std::make_unique< std::thread >( 
-            std::bind( &runPython, g_strDatabase, strScript ) );
-    }
+    root_starter( pythonFunctions );
 }
 
 void prepareSettings( BasicApp::Settings* settings )
 {
 	settings->setMultiTouchEnabled( false );
-}
-
-void BasicApp::update()
-{
 }
 
 void BasicApp::mouseDown( MouseEvent event )
@@ -405,19 +404,32 @@ void BasicApp::keyUp( KeyEvent event )
     inputEvents.events.push_back( e );
 }
 
-void BasicApp::RunCycle()
+void BasicApp::update()
 {
 }
     
 void BasicApp::draw()
 {
+    {
+        std::unique_lock< boost::fibers::mutex > lock( mutex );
+        frame = true;
+    } // release mutex
+    cond.notify_one();
+    
+    {
+        std::unique_lock< boost::fibers::mutex > lock( mutex );
+        cond.wait( lock, [ &frameComplete = frameComplete ](){ return frameComplete; });
+    }
+    //eg::sleep();
+    
+    frame = false;
+    frameComplete = false;
 }
-
 
 // This line tells Cinder to actually create and run the application.
 CINDER_APP( BasicApp, RendererGl, prepareSettings )
 
-std::string BasicApp::g_strPythonScript;
+std::vector< std::string > BasicApp::g_strPythonScripts;
 std::string BasicApp::g_strDatabase;
 
 int main( int argc, const char* argv[] )
@@ -435,7 +447,7 @@ int main( int argc, const char* argv[] )
                 //options
                 ("debug",       po::value< bool >( &bDebug )->implicit_value( true ), 
                     "Wait at startup to allow attaching a debugger" )
-                ("python",      po::value< std::string >( &BasicApp::g_strPythonScript ), "Python file to run" )
+                ("python",      po::value< std::vector< std::string > >( &BasicApp::g_strPythonScripts ), "Python file to run" )
                 ("database",    po::value< std::string >( &BasicApp::g_strDatabase ), "Program Database" )
             ;
 

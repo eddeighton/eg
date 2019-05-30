@@ -3,9 +3,12 @@
     <hostcmd>test_host.exe</hostcmd>
     <hostflags>-nostdlib -lmsvcrt</hostflags>
     <libs>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_context-vc141-mt-x32-1_70.lib</file>
+        <file>W:/workspace/eg/third_party/install/boost/lib/libboost_fiber-vc141-mt-x32-1_70.lib</file>
         <file>W:/workspace/eg/bin/eventlog.lib</file>
     </libs>
     <includedirectories>
+        <folder>W:/workspace/eg/third_party/install/boost/include/boost-1_70/</folder>
         <folder>W:/workspace/eg/api</folder>
         <folder>W:/workspace/eg/src</folder>
         <folder>W:/workspace/eg</folder>

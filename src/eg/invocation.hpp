@@ -115,7 +115,6 @@ namespace eg
         const ElementPairVectorVector& getTypePathElements() const { return m_typePath; }
         const Context& getContext() const { return std::get< Context >( m_invocationID ); }
         const Context& getReturnTypes() const { return m_returnTypes; }
-        bool isImplicitStarter() const { return !m_bDimensions; }
         bool isReturnTypeDimensions() const { return m_bDimensions; }
         bool isDimensionReturnTypeHomogeneous() const { return m_bHomogeneousDimensions; }
         const RootInstruction* getRoot() const { return m_pRoot; }

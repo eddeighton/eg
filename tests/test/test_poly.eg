@@ -22,21 +22,11 @@ abstract Base : Base2
 action A[ 2 ] : Base
 {
     dim std::string theStr;
-    
-    while( !Done() )
-    {
-        SLEEP;
-    }
 }
 
 action B[ 2 ] : Base
 {
     dim std::string theStr;
-    
-    while( !Done() )
-    {
-        SLEEP;
-    }
 }
 
 Base2 baseA = A();
@@ -47,8 +37,3 @@ baseB.theStr( std::string( "B" ) );
 
 baseA.TestA();
 baseB.TestB();
-
-while( !Done() )
-{
-    SLEEP;
-}

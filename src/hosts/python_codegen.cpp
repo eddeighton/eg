@@ -181,7 +181,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "    }\n";
     os << "}\n";
     
-    os << eg::EG_TIME_STAMP << " getCycle( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
+    os << eg::EG_TIME_STAMP << " getStopCycle( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
     os << "{\n";
     os << "    switch( typeID )\n";
     os << "    {\n";
@@ -190,7 +190,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
         if( pAction->getParent() )
         {
     os << "        case " << pAction->getIndex() << ": return " << 
-        eg::Printer( layout.getDataMember( pAction->getCycle() ), "instance" ) << ";\n";
+        eg::Printer( layout.getDataMember( pAction->getStopCycle() ), "instance" ) << ";\n";
         }
     }
     os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
@@ -230,15 +230,6 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     {
         if( pAction->getParent() )
         {
-            if( pAction->getParent()->getParent() )
-            {
-                pAction->printType( os );
-                os << " " << getFuncName( pAction, "start" ) << "( " << eg::EG_INSTANCE << " instance )\n";
-                os << "{\n";
-                os << "    return " << pAction->getName() << "_starter( instance );\n";
-                os << "}\n";
-            }
-            
             os << "void " << getFuncName( pAction, "stop" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
             os << "    " << pAction->getName() << "_stopper( instance );\n";
@@ -315,7 +306,13 @@ void python_sleep_duration( float seconds )
     {
         if( pAction->getParent() && pAction->getParent()->getParent() )
         {
-    os << "    module.def( \"" << getFuncName( pAction, "start" )   << "\", " << getFuncName( pAction, "start" )    << ");\n";
+    //os << "    module.def( \"" << getFuncName( pAction, "start" )   << "\", " << getFuncName( pAction, "start" )    << ");\n";
+    //os << "    module.def( \"" << getFuncName( pAction, "call" )    << "\", " << getFuncName( pAction, "call" )    << ");\n";
+    
+    
+    os << "    module.def( \"" << getFuncName( pAction, "operator" ) << "\", &" << pAction->getAction()->getStaticType() << "::operator() );\n";
+    
+    
         }
         if( pAction->getParent() )
         {
@@ -341,6 +338,11 @@ void python_sleep_duration( float seconds )
     os << "        Stack( PyObject *args, PyObject *kwargs )\n";
     os << "            :   args( args ), kwargs( kwargs )\n";
     os << "        {\n";
+    os << "            Py_INCREF( args );\n";
+    os << "        }\n";
+    os << "        ~Stack()\n";
+    os << "        {\n";
+    os << "            Py_DECREF( args );\n";
     os << "        }\n";
     os << "        using WeakPtr = std::weak_ptr< Stack >;\n";
     os << "        using SharedPtr = std::shared_ptr< Stack >;\n";
@@ -458,11 +460,11 @@ void python_sleep_duration( float seconds )
     os << "            }\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doStart( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " actionType )\n";
+    os << "    virtual void doCall( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " actionType )\n";
     os << "    {\n";
     os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "        {\n";
-    //os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
+    os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
     os << "            switch( actionType )\n";
     os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
@@ -470,7 +472,94 @@ void python_sleep_duration( float seconds )
         if( pAction->getParent() && pAction->getParent()->getParent() )
         {
     os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pAction, "start" ) << "\" )( reference.instance );\n";
+    os << "                    {\n";
+    os << "                        " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                        if( ref )\n";
+    os << "                        {\n";
+    os << "                            switch( args.size() )\n";
+    os << "                            {\n";
+    
+    for( int numArgs = 0; numArgs < 10; ++numArgs )
+    {
+        if( numArgs == 0 )
+    os << "                                case " << numArgs << ": m_module_eg.attr( \"" << 
+                                            getFuncName( pAction, "operator" ) << "\" )( ref ); break;\n";
+        else
+        {
+    os << "                                case " << numArgs << ": m_module_eg.attr( \"" << 
+                                            getFuncName( pAction, "operator" ) << "\" )( ref";
+            for( int i = 0; i != numArgs; ++i )
+                os << ", args[ " << i << " ]";
+            os << " ); break;\n";
+        }
+    }
+    os << "                                 default: break;\n";
+    os << "                            }\n";
+    os << "                            " << pAction->getName() << "_stopper( ref.data.instance );\n";
+    
+    os << "                        }\n";
+    os << "                        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );\n";
+    os << "                    }\n";
+    os << "                    break;\n";
+        }
+    }
+    os << "                default:\n";
+    os << "                    break;\n";
+    os << "            }\n";
+    os << "        }\n";
+    os << "    }\n";
+    os << "    virtual void doStart( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " actionType )\n";
+    os << "    {\n";
+    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        {\n";
+    os << "            switch( actionType )\n";
+    os << "            {\n";
+    for( const eg::concrete::Action* pAction : actions )
+    {
+        if( pAction->getParent() && pAction->getParent()->getParent() )
+        {
+    os << "                case " << pAction->getIndex() << ":\n";
+    os << "                    {\n";
+    os << "                        " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                        if( ref )\n";
+    os << "                        {\n";
+    os << "                            getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber\n";
+    os << "                            (\n";
+    os << "                                [ pStack, &ref, m = m_module_eg ]()\n";
+    os << "                                {\n";
+    os << "                                    pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
+    os << "                                    try\n";
+    os << "                                    {\n";
+    os << "                                        switch( args.size() )\n";
+    os << "                                        {\n";
+    
+    for( int numArgs = 0; numArgs < 10; ++numArgs )
+    {
+        if( numArgs == 0 )
+    os << "                                            case " << numArgs << ": m.attr( \"" << 
+                                            getFuncName( pAction, "operator" ) << "\" )( ref ); break;\n";
+        else
+        {
+    os << "                                            case " << numArgs << ": m.attr( \"" << 
+                                            getFuncName( pAction, "operator" ) << "\" )( ref";
+            for( int i = 0; i != numArgs; ++i )
+                os << ", args[ " << i << " ]";
+            os << " ); break;\n";
+        }
+    }
+    os << "                                             default: break;\n";
+    os << "                                        }\n";
+    os << "                                    }\n";
+    os << "                                    catch( eg::termination_exception )\n";
+    os << "                                    {\n";
+    os << "                                    }\n";
+    os << "                                    " << pAction->getName() << "_stopper( ref.data.instance );\n";
+    os << "                                }\n";
+    os << "                            );\n";
+    os << "                            getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );\n";
+    os << "                        }\n";
+    os << "                        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );\n";
+    os << "                    }\n";
     os << "                    break;\n";
         }
     }
@@ -563,6 +652,39 @@ void python_sleep_duration( float seconds )
     os << "            }\n";
     os << "        }\n";
     os << "    }\n";
+    os << "    virtual void doWaitAction( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "    {\n";
+    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        {\n";
+    os << "            pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( reference ) );\n";
+    os << "        }\n";
+    os << "    }\n";
+    os << "    virtual void doWaitDimension( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+    os << "    {\n";
+    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        {\n";
+    os << "            switch( dimensionType )\n";
+    os << "            {\n";
+    
+    for( const eg::Buffer* pBuffer : layout.getBuffers() )
+    {
+        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        {
+            if( const eg::concrete::Dimension_User* pDimension = 
+                dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
+            {
+    os << "                case " << pDimension->getIndex() << ":\n";
+    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
+    os << "                    break;\n";
+            }
+        }
+    }
+    
+    os << "                default:\n";
+    os << "                    break;\n";
+    os << "            }\n";
+    os << "        }\n";
+    os << "    }\n";
     os << "    virtual void doGetAction( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
     os << "    {\n";
     os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
@@ -644,4 +766,70 @@ void python_sleep_duration( float seconds )
     os << "};\n";
     os << "\n";
     
+const char* pszPythonRun = R"(
+
+void runPythonScript( const std::string& strPythonFile, const std::string& strDatabaseFile )
+{
+    try
+    {
+        std::string strScript;
+        {
+            const boost::filesystem::path pythonFilePath = 
+                boost::filesystem::edsCannonicalise(
+                    boost::filesystem::absolute( strPythonFile ) );
+            if( !boost::filesystem::exists( pythonFilePath ) )
+            {
+                std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
+                return;
+            } 
+            boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
+        }
+
+        if( !strScript.empty() )
+        {
+            pybind11::module pyeg_module = pybind11::module::import( "pyeg" );
+
+            HostFunctions hostFunctions( strDatabaseFile, pyeg_module );
+            
+            if( !g_pEGRefType )
+                g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
+
+            pybind11::exec( strScript );
+        }
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
+}
+
+std::vector< std::function< void() > > loadPythonScripts( const std::vector< std::string >& scripts, const std::string& strDatabaseFile )
+{
+    std::vector< std::function< void() > > pythonFunctions;
+    if( !scripts.empty() )
+    {
+        if( strDatabaseFile.empty() )
+        {
+            std::cout << "Missing database file path" << std::endl;
+            return pythonFunctions;
+        }
+        const boost::filesystem::path databaseFilePath = 
+            boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( strDatabaseFile ) );
+        if( !boost::filesystem::exists( databaseFilePath ) )
+        {
+            std::cout << "Cannot locate file: " << databaseFilePath.string() << std::endl;
+            return pythonFunctions;
+        } 
+            
+        for( const std::string& strPythonScript : scripts )
+        {
+            pythonFunctions.push_back( std::bind( &runPythonScript, strPythonScript, strDatabaseFile ) );
+        }
+    }
+    return pythonFunctions;
+}
+
+)";
+    os << pszPythonRun;
 }

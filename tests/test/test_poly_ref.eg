@@ -12,11 +12,11 @@ action B[ 4 ] : A
         while( true )
         {
             x( x() + 1 );
-            SLEEP;
+            eg::sleep();
         }
     }
     while( !Done() )
-        SLEEP;
+        eg::sleep();
 }
 
 action D[ 4 ] : A
@@ -27,11 +27,11 @@ action D[ 4 ] : A
         while( true )
         {
             x( x() + 2 );
-            SLEEP;
+            eg::sleep();
         }
     }
     while( !Done() )
-        SLEEP;
+        eg::sleep();
 }
 
 action C[ 4 ]
@@ -40,27 +40,33 @@ action C[ 4 ]
     dim A a2;
     
     while( true )
-        SLEEP;
+        eg::sleep();
 }
 
-C c = C();
+C c = C.Start();
 {
-    c.a1( B() );
-    Var< B::Counter, D::Counter > v = c.a1.Counter();
-    TEST( v.x() == 0 );
+    c.a1( B.Start() );
+    Var< B::Counter, D::Counter > v = c.a1.Counter.Start();
+    TEST( v );
 }
 {
-    c.a2( D() );
-    c.a2.Counter();
+    c.a2( D.Start() );
+    c.a2.Counter.Start();
 }
 
-SLEEP;
-SLEEP;
+TEST_MSG( c.a1.x() == 0, "Counter x should be 0: " << c.a1.x() );
+TEST_MSG( c.a2.x() == 0, "Counter x should be 0: " << c.a2.x() );
+
+eg::wait();
 
 TEST_MSG( c.a1.x() == 1, "Counter x should be 1: " << c.a1.x() );
 TEST_MSG( c.a2.x() == 2, "Counter x should be 2: " << c.a2.x() );
 
-SLEEP;
+eg::sleep();
 
 TEST_MSG( c.a1.x() == 2, "Counter x should be 2: " << c.a1.x() );
 TEST_MSG( c.a2.x() == 4, "Counter x should be 4: " << c.a2.x() );
+
+Stop();
+
+eg::wait();

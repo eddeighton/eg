@@ -199,11 +199,14 @@ namespace eg
             case id_Imp_NoParams          :
             case id_Imp_Params            :
                 break;
-            case id_Get                   :
-                break;
+            case id_Start                 :
             case id_Stop                  :
             case id_Pause                 :
             case id_Resume                :
+            case id_Wait                  :
+                break;
+            case id_Get                   :
+                break;
             case id_Done                  :
                 bExpandFinalReferences = true;
                 break;

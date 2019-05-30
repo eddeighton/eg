@@ -33,12 +33,12 @@ using namespace std::chrono_literals;
 eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
 eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );
 boost::fibers::fiber& getFiber( eg::TypeID typeID, eg::Instance instance );
-eg::TimeStamp getCycle( eg::TypeID typeID, eg::Instance instance );
+eg::TimeStamp getStopCycle( eg::TypeID typeID, eg::Instance instance );
 
 namespace eg
 {
     
-class termination_exception : public std::exception
+class termination_exception
 {
 };
 
@@ -48,8 +48,8 @@ public:
     fiber_props( boost::fibers::context* pContext )
         :   fiber_properties( pContext ),
             m_cycle( 0U ),
-            m_terminate( false ),
-            m_bIsTimekeeper( false )
+            m_bIsTimekeeper( false ),
+            m_bShouldContinue( true )
     {
     }
     
@@ -71,19 +71,16 @@ public:
         if( m_reference != ref )
         {
             m_reference = ref;
-            //notify();
         }
     }
     
-    
-    bool isTerminated() const { return m_terminate; }
-    void terminate()
+    bool shouldContinue() const
     {
-        if( !m_terminate )
-        {
-            m_terminate = true;
-            //notify();
-        }
+        return m_bShouldContinue;
+    }
+    void stop()
+    {
+        m_bShouldContinue = false;
     }
     
     bool isTimeKeeper() const { return m_bIsTimekeeper; }
@@ -93,8 +90,8 @@ public:
 private:
     TimeStamp m_cycle;
     reference m_reference;
-    bool m_terminate;
     bool m_bIsTimekeeper;
+    bool m_bShouldContinue;
 };
 
 
@@ -104,20 +101,19 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     
     rqueue_t m_queue_wait;
     rqueue_t m_queue_sleep;
-    rqueue_t m_queue_blocked;
-    rqueue_t m_queue_pause;
+    //rqueue_t m_queue_blocked;
+    //rqueue_t m_queue_pause;
     boost::fibers::context* m_pTimeKeeper = nullptr;
     
     std::mutex                  mtx_{};
     std::condition_variable     cnd_{};
     bool                        flag_{ false };
-    
 
     eg_algorithm() 
         :   m_queue_wait(), 
-            m_queue_sleep(), 
-            m_queue_blocked(), 
-            m_queue_pause()
+            m_queue_sleep()//, 
+            //m_queue_blocked(), 
+            //m_queue_pause()
     {
     }
     
@@ -164,19 +160,12 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
                     }
                 case action_paused:
                     {
-                        m_queue_pause.push_back( *pContext );
+                        //m_queue_pause.push_back( *pContext );
                         break;
                     }
                 case action_stopped:
                     {
-                        if( props.getCycle() <= clock::cycle() )
-                        {
-                            m_queue_wait.push_back( *pContext );
-                        }
-                        else
-                        {
-                            m_queue_sleep.push_back( *pContext );
-                        }
+                        m_queue_wait.push_back( *pContext );
                         break;
                     }
                 default:
@@ -191,6 +180,11 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
             if( props.getCycle() <= clock::cycle() )
             {
                 m_queue_wait.swap( m_queue_sleep );
+                
+                if( m_queue_wait.empty() && m_queue_sleep.empty() )
+                {
+                    props.stop();
+                }
             }
         }
         else 
@@ -295,25 +289,41 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     }
 };
 
+inline void checkIfStopped()
+{
+    const reference& ref = boost::this_fiber::properties< eg::fiber_props >().getReference();
+    if( ref.type != 0 && getState( ref.type, ref.instance ) == action_stopped )
+    {
+        //std::cout << "checkIfStopped " << ref.type << " " << ref.instance << std::endl;
+        throw eg::termination_exception();
+    }
+}
 
 inline void sleep()
 {
+    checkIfStopped();
     boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
     boost::this_fiber::yield();
+    checkIfStopped();
 }
+
 
 template< typename Clock, typename Duration >
 inline void sleep( std::chrono::time_point< Clock, Duration > const& sleep_time )
 {
+    checkIfStopped();
     boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
     boost::this_fiber::sleep_until( sleep_time );
+    checkIfStopped();
 }
 
 template< typename Rep, typename Period >
 inline void sleep( std::chrono::duration< Rep, Period > const& timeout_duration )
 {
+    checkIfStopped();
     boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
     boost::this_fiber::sleep_for( timeout_duration );
+    checkIfStopped();
 }
 
 inline void wait()

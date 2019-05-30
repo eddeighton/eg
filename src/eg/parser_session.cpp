@@ -928,9 +928,24 @@ namespace eg
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_paren );
                 T.consumeOpen();
-
-                SkipUntil( clang::tok::r_paren, StopBeforeMatch );
-
+                
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeAnyToken();
+                
+                while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                }
+                
+                {
+                    input::Opaque* pOpaque = session.construct< input::Opaque >();
+                    VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
+                    pAction->m_pParams = pOpaque;
+                }
+                
+                //SkipUntil( clang::tok::r_paren, StopBeforeMatch );
                 T.consumeClose();
             }
             
