@@ -293,18 +293,12 @@ private:
     CinderHost_EGDependencyProvider dependencies;
     std::vector< std::function< void() > > pythonFunctions;
     pybind11::scoped_interpreter guard; // start the python interpreter
-    boost::fibers::fiber timeKeeperFiber;
-    boost::fibers::condition_variable   cond;
-    boost::fibers::mutex                mutex;
-    bool                                frame;
-    bool                                frameComplete;
+    
 };
 
 BasicApp::BasicApp()
     :   theEventLog( "basicapp", strEventLogFolder.c_str() ),
-        dependencies( &theClock, &theEventLog, &inputEvents ),
-        frame( false ),
-        frameComplete( false )
+        dependencies( &theClock, &theEventLog, &inputEvents )
 {
     allocate_buffers();
     
@@ -314,7 +308,13 @@ BasicApp::BasicApp()
 BasicApp::~BasicApp()
 {
     root_stopper( 0U );
-    timeKeeperFiber.join();
+    
+    while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
+    {
+        theClock.nextCycle();
+        eg::wait();
+    }
+    
     deallocate_buffers();
 }
 
@@ -322,41 +322,9 @@ void BasicApp::setup()
 {
     boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
-    timeKeeperFiber = boost::fibers::fiber
-    (
-        [   
-            &theClock = theClock, 
-            &frame = frame, 
-            &frameComplete = frameComplete, 
-            &mutex = mutex, 
-            &cond = cond 
-        ]() mutable
-        {
-            boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
-            eg::sleep();
-            
-            while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
-            {
-                //wait for frame
-                {
-                    std::unique_lock< boost::fibers::mutex > lock( mutex );
-                    cond.wait( lock, [&frame](){ return frame; });
-                }
-                
-                eg::sleep();
-                theClock.nextCycle();
-                eg::wait();
-                
-                //signal frame complete
-                {
-                    std::unique_lock< boost::fibers::mutex > lock( mutex );
-                    frameComplete = true;
-                } // release mutex
-                cond.notify_one();
-            }
-        }
-    );
-    
+    boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
+    eg::sleep();
+        
     pythonFunctions = loadPythonScripts( g_strPythonScripts, g_strDatabase );
         
     root_starter( pythonFunctions );
@@ -410,20 +378,8 @@ void BasicApp::update()
     
 void BasicApp::draw()
 {
-    {
-        std::unique_lock< boost::fibers::mutex > lock( mutex );
-        frame = true;
-    } // release mutex
-    cond.notify_one();
-    
-    {
-        std::unique_lock< boost::fibers::mutex > lock( mutex );
-        cond.wait( lock, [ &frameComplete = frameComplete ](){ return frameComplete; });
-    }
-    //eg::sleep();
-    
-    frame = false;
-    frameComplete = false;
+    theClock.nextCycle();
+    eg::wait();
 }
 
 // This line tells Cinder to actually create and run the application.

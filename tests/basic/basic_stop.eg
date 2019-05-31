@@ -1,18 +1,21 @@
 
-std::cout << "Root starting" << std::endl;
+include( <stdbool.h> );
 
-action A[ 4 ]
+dim int aCompleted;
+
+action A
 {
-    std::cout << "A started" << std::endl;
     eg::sleep();
-    std::cout << "A finished" << std::endl;
+    aCompleted( true );
 }
 
-A a = A();
-
-a.Stop();
+A a = A.Start();
+TEST_MSG( eg::count( A.Range() ) == 1, "A initially exists" );
 
 eg::sleep();
+TEST_MSG( eg::count( A.Range() ) == 0, "A is stopped by python" );
+
+TEST_MSG( !aCompleted(), "Because A was stopped by python then flag is still false" );
+
 eg::sleep();
-    
-std::cout << "Root stopping" << std::endl;
+TEST_MSG( eg::count( A.Range() ) == 0, "After sleeping again A no longer exists" );

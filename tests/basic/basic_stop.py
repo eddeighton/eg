@@ -3,8 +3,7 @@ import pyeg
 
 r = pyeg.get_root()
 
-r.x( 1 )
+pyeg.wait();
 
-pyeg.sleep()
+r.A.Stop()
 
-r.x( 2 )

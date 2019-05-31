@@ -8,8 +8,14 @@ while( x() != 1 )
     if( clock::ct() > 3 )
         break;
     else
-        SLEEP;
+        eg::sleep();
     
 TEST( x() == 1 );
 
-    
+while( x() != 2 )
+    if( clock::ct() > 3 )
+        break;
+    else
+        eg::sleep();
+        
+TEST( x() == 2 );

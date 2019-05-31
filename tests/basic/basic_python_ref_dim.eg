@@ -3,8 +3,6 @@
 action A
 {
     dim int x;
-    SLEEP;
-    SLEEP;
 }
 
 dim A aRef;
@@ -12,16 +10,15 @@ dim A aRef;
 TEST( !aRef() );
 
 while( !aRef() )
-    if( clock::ct() > 3 )
+{
+    eg::sleep();
+    if( clock::cycle() > 5 )
         break;
-    else
-        SLEEP;
+}
     
+TEST( A.Get() );
 TEST( aRef() == A.Get() );
 TEST( aRef.x() == 123 );
-
-TEST( !Done() );
-aRef.Stop();
 TEST( Done() );
 
 

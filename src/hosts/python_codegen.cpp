@@ -272,10 +272,6 @@ void python_sleep_cycle()
 {
     eg::sleep();
 }
-void python_sleep_duration( float seconds )
-{
-    eg::sleep( std::chrono::milliseconds( static_cast< int >( seconds * 1000.0f ) ) );
-}
     
 )";
     os << pszSleepUtils;
@@ -286,7 +282,6 @@ void python_sleep_duration( float seconds )
     os << "    module.def( \"get_root\", get_root );\n";
     
     os << "    module.def( \"sleep\", python_sleep_cycle );\n";
-    os << "    module.def( \"sleep\", python_sleep_duration );\n";
     os << "    module.def( \"wait\", eg::wait );\n";
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
@@ -525,7 +520,7 @@ void python_sleep_duration( float seconds )
     os << "                        {\n";
     os << "                            getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber\n";
     os << "                            (\n";
-    os << "                                [ pStack, &ref, m = m_module_eg ]()\n";
+    os << "                                [ pStack, ref, m = m_module_eg ]()\n";
     os << "                                {\n";
     os << "                                    pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
     os << "                                    try\n";
@@ -739,7 +734,8 @@ void python_sleep_duration( float seconds )
     os << "    }\n";
     os << "    virtual PyObject* invoke( const " << eg::EG_REFERENCE_TYPE << "& reference, const std::vector< " << eg::EG_TYPE_ID << " >& typePath, PyObject *args, PyObject *kwargs )\n";
     os << "    {\n";
-    os << "        if( getState( reference.type, reference.instance ) != eg::action_stopped )\n";
+    os << "        if( ( getState( reference.type, reference.instance ) != eg::action_stopped  ) || \n";
+    os << "            ( getStopCycle( reference.type, reference.instance ) >= clock::cycle() ) )\n";
     os << "        {\n";
     os << "            Stack::SharedPtr pStack = std::make_shared< Stack >( args, kwargs );\n";
     os << "            m_pStack = pStack;\n";

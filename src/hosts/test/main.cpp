@@ -252,30 +252,19 @@ int main( int argc, const char* argv[] )
         std::vector< std::function< void() > > pythonFunctions =  {};
         root_starter( pythonFunctions );
         
-        boost::fibers::fiber timeKeeperFiber
-        (
-            [ sleepDuration, &theClock ]()
-            {
-                boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
-                boost::this_fiber::yield();
-                
-                HostClock::Tick cycleStart = theClock.actual();
-                while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
-                {
-                    const HostClock::TickDuration elapsed = theClock.actual() - cycleStart;
-                    if( elapsed < sleepDuration )
-                    {
-                        eg::sleep( sleepDuration - elapsed );
-                    }
-                    theClock.nextCycle();
-                    cycleStart = theClock.actual();
-                    std::cout << "tick: " << theClock.cycle() << " : " << theClock.ct() << "s" << std::endl;
-                    eg::wait();
-                }
-            }
-        );
-        timeKeeperFiber.join();
+        boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
         
+        HostClock::Tick cycleStart = theClock.actual();
+        while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
+        {
+            const HostClock::TickDuration elapsed = theClock.actual() - cycleStart;
+            if( elapsed < sleepDuration )
+            {
+                boost::this_fiber::sleep_for( sleepDuration - elapsed );
+            }
+            theClock.nextCycle();
+            eg::wait();
+        }
     }
     catch( std::exception& e )
     {

@@ -1,0 +1,26 @@
+
+TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+
+eg::wait();
+
+TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+
+eg::wait();
+
+TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+
+eg::sleep();
+
+TEST_MSG( clock::cycle() == 2, "Cycle should be 2: " << clock::cycle() );
+
+eg::wait();
+
+TEST_MSG( clock::cycle() == 2, "Cycle should be 2: " << clock::cycle() );
+
+eg::sleep();
+
+TEST_MSG( clock::cycle() == 3, "Cycle should be 3: " << clock::cycle() );
+
+eg::wait();
+
+TEST_MSG( clock::cycle() == 3, "Cycle should be 3: " << clock::cycle() );

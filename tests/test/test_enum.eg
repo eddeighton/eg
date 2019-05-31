@@ -30,8 +30,6 @@ for( A a : as )
 
 std::for_each( as.begin(), as.end(), []( A a ){ a.x( a.x() + 1 ); } );
 
-eg::sleep();
-
 int iTotal = 0;
 
 for( A a : A.Range() )

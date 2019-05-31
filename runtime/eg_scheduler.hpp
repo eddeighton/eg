@@ -99,10 +99,8 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
 {
     typedef boost::fibers::scheduler::ready_queue_type rqueue_t;
     
-    rqueue_t m_queue_wait;
+    rqueue_t m_queue_ready;
     rqueue_t m_queue_sleep;
-    //rqueue_t m_queue_blocked;
-    //rqueue_t m_queue_pause;
     boost::fibers::context* m_pTimeKeeper = nullptr;
     
     std::mutex                  mtx_{};
@@ -110,10 +108,8 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     bool                        flag_{ false };
 
     eg_algorithm() 
-        :   m_queue_wait(), 
-            m_queue_sleep()//, 
-            //m_queue_blocked(), 
-            //m_queue_pause()
+        :   m_queue_ready(), 
+            m_queue_sleep()
     {
     }
     
@@ -150,24 +146,24 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
                     {
                         if( props.getCycle() <= clock::cycle() )
                         {
-                            m_queue_wait.push_back( *pContext );
+                            m_queue_ready.push_back( *pContext );
                         }
                         else
                         {
                             m_queue_sleep.push_back( *pContext );
                         }
-                        break;
                     }
+                    break;
                 case action_paused:
                     {
                         //m_queue_pause.push_back( *pContext );
-                        break;
                     }
+                    break;
                 case action_stopped:
                     {
-                        m_queue_wait.push_back( *pContext );
-                        break;
+                        m_queue_ready.push_back( *pContext );
                     }
+                    break;
                 default:
                     //unreachable
                     std::terminate();
@@ -177,21 +173,16 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
         {
             m_pTimeKeeper = pContext;
             
-            if( props.getCycle() <= clock::cycle() )
+            if( m_queue_ready.empty() && m_queue_sleep.empty() )
             {
-                m_queue_wait.swap( m_queue_sleep );
-                
-                if( m_queue_wait.empty() && m_queue_sleep.empty() )
-                {
-                    props.stop();
-                }
+                props.stop();
             }
         }
         else 
         {
             if( props.getCycle() <= clock::cycle() )
             {
-                m_queue_wait.push_back( *pContext );
+                m_queue_ready.push_back( *pContext );
             }
             else
             {
@@ -203,15 +194,17 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
 
     virtual boost::fibers::context* pick_next() noexcept
     {
-        if( !m_queue_wait.empty() )
+        if( !m_queue_ready.empty() )
         {
-            boost::fibers::context* pContext( &*m_queue_wait.begin() );
-            m_queue_wait.pop_front();
+            boost::fibers::context* pContext( &*m_queue_ready.begin() );
+            m_queue_ready.pop_front();
             return pContext;
         }
         
         if( m_pTimeKeeper )
         {
+            m_queue_ready.swap( m_queue_sleep );
+                    
             boost::fibers::context* pContext = m_pTimeKeeper;
             m_pTimeKeeper = nullptr;
             return pContext;
@@ -222,7 +215,7 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
 
     virtual bool has_ready_fibers() const noexcept
     {
-        return !m_queue_wait.empty();
+        return !m_queue_ready.empty();
     }
     
     virtual void property_change( boost::fibers::context * ctx, fiber_props & props ) noexcept 
@@ -307,7 +300,7 @@ inline void sleep()
     checkIfStopped();
 }
 
-
+/*
 template< typename Clock, typename Duration >
 inline void sleep( std::chrono::time_point< Clock, Duration > const& sleep_time )
 {
@@ -324,7 +317,7 @@ inline void sleep( std::chrono::duration< Rep, Period > const& timeout_duration 
     boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
     boost::this_fiber::sleep_for( timeout_duration );
     checkIfStopped();
-}
+}*/
 
 inline void wait()
 {
