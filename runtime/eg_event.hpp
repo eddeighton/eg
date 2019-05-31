@@ -34,6 +34,11 @@ namespace eg
             data.timestamp = INVALID_TIMESTAMP;
         }
         
+        inline Event( const reference& from )
+        {
+            data = from;
+        }
+        
         template< class T >
         inline Event( const T& from )
         {

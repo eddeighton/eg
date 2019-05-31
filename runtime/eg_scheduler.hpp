@@ -86,12 +86,28 @@ public:
     bool isTimeKeeper() const { return m_bIsTimekeeper; }
     void setTimeKeeper() { m_bIsTimekeeper = true; }
     
+    using ResumptionFunctor = std::function< bool( Event e ) >;
+    
+    template< typename ResumptionFunctorType >
+    void setResumption( ResumptionFunctorType&& functor )
+    {
+        m_resumptionFunctor = functor;
+    }
+    ResumptionFunctor getResumption() const
+    {
+        return m_resumptionFunctor;
+    }
+    void resetResumption()
+    {
+        m_resumptionFunctor = ResumptionFunctor();
+    }
     
 private:
     TimeStamp m_cycle;
     reference m_reference;
     bool m_bIsTimekeeper;
     bool m_bShouldContinue;
+    ResumptionFunctor m_resumptionFunctor;
 };
 
 
@@ -101,15 +117,19 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     
     rqueue_t m_queue_ready;
     rqueue_t m_queue_sleep;
+    rqueue_t m_queue_resume;
     boost::fibers::context* m_pTimeKeeper = nullptr;
     
     std::mutex                  mtx_{};
     std::condition_variable     cnd_{};
     bool                        flag_{ false };
+    event_iterator m_eventIterator;
 
     eg_algorithm() 
         :   m_queue_ready(), 
-            m_queue_sleep()
+            m_queue_sleep(),
+            m_queue_resume(),
+            m_eventIterator( events::getIterator() )
     {
     }
     
@@ -137,7 +157,11 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     {
         //blockedWaitingFibers.erase( pContext->get_id() );
         
-        if( isActionFiber( pContext ) )
+        if( fiber_props::ResumptionFunctor functor = props.getResumption() )
+        {
+            m_queue_resume.push_back( *pContext );
+        }
+        else if( isActionFiber( pContext ) )
         {
             const reference& ref = props.getReference();
             switch( getState( ref.type, ref.instance ) )
@@ -173,7 +197,7 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
         {
             m_pTimeKeeper = pContext;
             
-            if( m_queue_ready.empty() && m_queue_sleep.empty() )
+            if( m_queue_ready.empty() && m_queue_sleep.empty() && m_queue_resume.empty() )
             {
                 props.stop();
             }
@@ -194,6 +218,41 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
 
     virtual boost::fibers::context* pick_next() noexcept
     {
+        if( !m_queue_resume.empty() )
+        {
+            eg::_event ev;
+            while( events::get( m_eventIterator, ev ) )
+            {
+                if( 0U == strcmp( ev.type, "stop" ) )
+                {
+                    Event e( *reinterpret_cast< const reference* >( ev.value ) );
+                
+                    for( rqueue_t::iterator 
+                        i = m_queue_resume.begin(),
+                        iEnd = m_queue_resume.end(); i!=iEnd; )
+                    {
+                        boost::fibers::context* pContext( &*i );
+                        fiber_props& props = properties( pContext );
+                        if( props.getResumption()( e ) )
+                        {
+                            props.resetResumption();
+                            i = m_queue_resume.erase( i );
+                            m_queue_ready.push_back( *pContext );
+                        }
+                        else
+                        {
+                            ++i;
+                        }
+                    }
+                }
+            }
+        }
+        /*else if( !m_queue_ready.empty() )
+        {
+            //skip
+            m_eventIterator = events::getIterator();
+        }*/
+        
         if( !m_queue_ready.empty() )
         {
             boost::fibers::context* pContext( &*m_queue_ready.begin() );
@@ -296,6 +355,29 @@ inline void sleep()
 {
     checkIfStopped();
     boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
+    boost::this_fiber::yield();
+    checkIfStopped();
+}
+
+inline void sleep( Event event )
+{
+    checkIfStopped();
+    boost::this_fiber::properties< eg::fiber_props >().setResumption
+    (  
+        [ event ]( Event e )
+        {
+            return ( e == event );
+        }
+    );
+    boost::this_fiber::yield();
+    checkIfStopped();
+}
+
+
+inline void sleep( fiber_props::ResumptionFunctor functor )
+{
+    checkIfStopped();
+    boost::this_fiber::properties< eg::fiber_props >().setResumption( functor );
     boost::this_fiber::yield();
     checkIfStopped();
 }

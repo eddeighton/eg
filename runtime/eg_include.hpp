@@ -64,6 +64,8 @@ struct clock
 
 struct events
 {
+    static eg::event_iterator getIterator();
+    static bool get( eg::event_iterator& iterator, eg::_event& event );
     static void put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size );
 };
 

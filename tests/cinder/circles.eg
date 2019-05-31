@@ -4,6 +4,7 @@ include( "py_glm.hpp" );
 abstract Shape
 {
     dim vec2 position;
+    dim vec2 positionActual;
     dim Color color;
     dim float size;
     
@@ -25,38 +26,36 @@ abstract Shape
         }
     }
     
-    action Move
+    action Morph
     {
-        dim vec2 target;
         dim float speed;
         
-        vec2 diff = target() - position();
-        while( length( diff ) > 1.0f )
+        while( true )
         {
-            position( position() + diff * speed() * clock::dt() );
-            eg::sleep();
-            diff = target() - position();
+            positionActual( positionActual() + 
+                ( position() - positionActual() ) * clock::dt() * speed() );
+            eg::sleep();        
         }
     }
 }
 
 
-action StrokedCircle[ 2048 ] : Shape
+action StrokedCircle[ 256 ] : Shape
 {
     while( true )
     {
-        gl::color( color() ); // red
-        gl::drawStrokedCircle( position(), size() );
+        gl::color( color() );
+        gl::drawStrokedCircle( positionActual(), size() );
         eg::sleep();
     }
 }
 
-action Circle[ 2048 ] : Shape
+action Circle[ 256 ] : Shape
 {
     while( true )
     {
         gl::color( color() ); 
-        gl::drawSolidCircle( position(), size() );
+        gl::drawSolidCircle( positionActual(), size() );
         eg::sleep();
     }
 }
@@ -68,20 +67,19 @@ action Spiral
     
     while( true )
     {
-        root r = root.Get();
-        const int numCircles = eg::count( r.Circle.Range() );
+        const int numCircles = eg::count( root.Get().Shape.Range() );
         
         int index = 0;
         const vec2 center = getWindowCenter();
         float radius = 1.0f;
-        for( Circle circle : r.Circle.Range() )
+        for( Shape circle : root.Get().Shape.Range() )
         {
             float rel = ( clock::ct() / 10 ) + ( index / (float)numCircles );
             float angle = rel * M_PI * 10;
             vec2 offset( cos( angle ), sin( angle ) );
         
             circle.position( center + offset * radius * speed() );
-            circle.size( 25.0f );
+            circle.f( ( index / (float)numCircles ) );
             
             radius = radius + curve();
         
@@ -90,6 +88,19 @@ action Spiral
         eg::sleep();
     }
 
+}
+
+action Randomise
+{
+    const vec2 center = getWindowCenter();
+    dim int range;
+    range( 400 );
+    for( Shape s : root.Get().Shape.Range() )
+    {
+        vec2 vRand( center.x * float( ( rand() % range() ) - ( range() / 2 ) ),
+            center.y * float( ( rand() % range() ) - ( range() / 2 ) ) );
+        s.position( vRand );
+    }
 }
 
 bool bContinue = true;
@@ -104,6 +115,10 @@ while( bContinue )
                 if( e.keyEvent.getChar() == 's')
                 {
                     bContinue = false;
+                }
+                else if(  e.keyEvent.getChar() == 'r' )
+                {
+                    Randomise();
                 }
                 break;
             default:

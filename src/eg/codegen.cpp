@@ -1788,6 +1788,16 @@ float clock::dt()               { return g_eg_clock->dt(); }
 
 static eg::_event_log* g_eg_event_log;
 
+eg::event_iterator events::getIterator()
+{
+    return g_eg_event_log->GetEventIterator();
+}
+
+bool events::get( eg::event_iterator& iterator, eg::_event& event )
+{
+    return g_eg_event_log->GetEvent( iterator, event );
+}
+    
 void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
 {
     eg::_event ev = { type, timestamp, value, size };
