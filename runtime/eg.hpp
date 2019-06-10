@@ -23,7 +23,7 @@
 
 #include "eg_common.hpp"
 #include "eg_result_type.hpp"
-#include "eg_coroutine.hpp"
+//#include "eg_coroutine.hpp"
 #include "eg_default_traits.hpp"
 #include "eg_type_path.hpp"
 #include "eg_variant.hpp"

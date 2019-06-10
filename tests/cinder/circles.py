@@ -20,6 +20,8 @@ for i in range( 256 ):
         c.ColorChanger.Start()
    
 
-sp = r.Spiral.Start()
-sp.curve( 0.7 )
-sp.speed( 10.0 )
+#sp = r.Spiral.Start()
+#sp.curve( 4.0 )
+#sp.radius( 100.0 )
+#sp.relative( 10.0 )
+#sp.speed( 0.2 )

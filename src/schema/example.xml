@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eg xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///W:/workspace/eg/src/schema/schema.xsd">
+	<host>test</host>
+	<folder>theFolder</folder>
+	<stuff>
+		<name>test1</name>
+		<file>true</file>
+	</stuff>
+	<stuff>
+		<name>test2</name>
+		<file>false</file>
+	</stuff>
+</eg>

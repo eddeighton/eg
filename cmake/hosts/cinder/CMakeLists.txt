@@ -10,6 +10,7 @@ include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 set( CINDER_HOST_SOURCE_DIR ${EG_ROOT_DIR}/src/hosts/cinder )
 
 set( CINDER_HOST_SOURCES ${EG_ROOT_DIR}/src/hosts/python_codegen.cpp
+                         ${EG_ROOT_DIR}/src/hosts/dynamic_interface.cpp
                         ${CINDER_HOST_SOURCE_DIR}/main.cpp )
 
 source_group( src FILES ${CINDER_HOST_SOURCES} )

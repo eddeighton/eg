@@ -91,6 +91,8 @@ public:
     boost::filesystem::path getObjectName( int iIndex ) const;
             
     boost::filesystem::path getProgramName() const;
+    
+    boost::filesystem::path getDLLName( int iIndex ) const;
 
     void startCommand( std::ostream& os, bool bIncludeHostSettings = false );
     

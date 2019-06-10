@@ -1,17 +1,18 @@
 
-include( "py_glm.hpp" );
+//include( "py_glm.hpp" );
+include( "w:/workspace/third_party/cinder/include/glm/vec2.hpp" );
 
 abstract Shape
 {
-    dim vec2 position;
-    dim vec2 positionActual;
-    dim Color color;
+    dim glm::vec2 position;
+    dim glm::vec2 positionActual;
+    dim cinder::Color color;
     dim float size;
     
     action Default
     {
-        color( Color( CM_HSV, 0.5f, 1, 1 ) );
-        position( getWindowCenter() );
+        color( cinder::Color( cinder::CM_HSV, 0.5f, 1, 1 ) );
+        position( cinder::app::getWindowCenter() );
         size( 25.0f );
     }
     
@@ -21,7 +22,7 @@ abstract Shape
         while( true )
         {
             f( fmodf( f() + clock::dt() * 0.3, 1.0f ) );
-            color( Color( CM_HSV, f(), 1, 1 ) );
+            color( cinder::Color( cinder::CM_HSV, f(), 1, 1 ) );
             eg::sleep();
         }
     }
@@ -44,8 +45,8 @@ action StrokedCircle[ 256 ] : Shape
 {
     while( true )
     {
-        gl::color( color() );
-        gl::drawStrokedCircle( positionActual(), size() );
+        cinder::gl::color( color() );
+        cinder::gl::drawStrokedCircle( positionActual(), size() );
         eg::sleep();
     }
 }
@@ -54,34 +55,34 @@ action Circle[ 256 ] : Shape
 {
     while( true )
     {
-        gl::color( color() ); 
-        gl::drawSolidCircle( positionActual(), size() );
+        cinder::gl::color( color() ); 
+        cinder::gl::drawSolidCircle( positionActual(), size() );
         eg::sleep();
     }
 }
 
 action Spiral
 {
-    dim float speed;
     dim float curve;
+    dim float radius;
+    dim float relative;
+    dim float speed;
+    relative( 1.0f );
     
     while( true )
     {
         const int numCircles = eg::count( root.Get().Shape.Range() );
         
         int index = 0;
-        const vec2 center = getWindowCenter();
-        float radius = 1.0f;
+        const glm::vec2 center = cinder::app::getWindowCenter();
         for( Shape circle : root.Get().Shape.Range() )
         {
-            float rel = ( clock::ct() / 10 ) + ( index / (float)numCircles );
+            float rel = ( clock::ct() * speed() / 10 ) + ( index * relative() / (float)numCircles );
             float angle = rel * M_PI * 10;
-            vec2 offset( cos( angle ), sin( angle ) );
+            glm::vec2 offset( cos( angle ), sin( angle ) );
         
-            circle.position( center + offset * radius * speed() );
+            circle.position( center + ( offset * radius() ) + ( offset * ( curve() * index ) ) );
             circle.f( ( index / (float)numCircles ) );
-            
-            radius = radius + curve();
         
             ++index;
         }
@@ -90,28 +91,87 @@ action Spiral
 
 }
 
-action Randomise
+action Attract
 {
-    const vec2 center = getWindowCenter();
-    dim int range;
-    range( 400 );
-    for( Shape s : root.Get().Shape.Range() )
+    const int numCircles = eg::count( root.Get().Shape.Range() );
+    if( numCircles > 0 )
     {
-        vec2 vRand( center.x * float( ( rand() % range() ) - ( range() / 2 ) ),
-            center.y * float( ( rand() % range() ) - ( range() / 2 ) ) );
-        s.position( vRand );
+        bool bFirst = true;
+        glm::vec2 center;
+        for( Shape circle : root.Get().Shape.Range() )
+        {
+            if( bFirst )
+            {
+                center = circle.position();
+                bFirst = false;
+            }
+            else
+                circle.position( center );
+        }
     }
 }
+
+action Randomise
+{
+    const glm::vec2 center = cinder::app::getWindowCenter();
+    dim int range;
+    if( range() > 0 )
+    {
+        for( Shape s : root.Get().Shape.Range() )
+        {
+            glm::vec2 vRand( center.x + center.x * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ),
+                        center.y + center.y * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ) );
+            s.position( vRand );
+        }
+    }
+}
+
+action imgui
+{
+    while( true )
+    {
+        ImGui::Begin( "Settings" );
+        ImGui::TextColored( ImVec4(1,1,1,1), "Tweakatron 9000" );
+        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 200 );
+        ImGui::SliderFloat( "speed", &Spiral.speed.Get(), 0.0f, 2.0f );
+        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 200.0f );
+        ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
+        ImGui::SliderFloat( "relative", &Spiral.relative.Get(), -10.0f, 10.0f );
+    
+        if( ImGui::Button( "Spiral" ) )
+        {
+            if( eg::count( root.Get().Spiral.Range() ) )
+                Spiral.Stop();
+            else
+                Spiral.Start();
+        }
+        else if( ImGui::Button( "Rand" ) )
+        {
+            Randomise();
+        }
+        else if( ImGui::Button( "Attract" ) )
+        {
+            Attract();
+        }
+        else if( ImGui::Button( "Quit" ) )
+        {
+            root.Stop();
+        }
+        ImGui::End();
+        eg::sleep();
+    }
+}
+imgui.Start();
 
 bool bContinue = true;
 while( bContinue )
 {
-    while( std::optional< InputEvent > eOpt = Input::getEvent() )
+    while( std::optional< cinder::app::InputEvent > eOpt = Input::getEvent() )
     {
-        const InputEvent& e = eOpt.value();
+        const cinder::app::InputEvent& e = eOpt.value();
         switch( e.type )
         {
-            case InputEvent::eKeyDown:
+            case cinder::app::InputEvent::eKeyDown:
                 if( e.keyEvent.getChar() == 's')
                 {
                     bContinue = false;
@@ -125,6 +185,6 @@ while( bContinue )
                 break;
         }
     }
-	gl::clear();
+	cinder::gl::clear();
     eg::sleep();
 }

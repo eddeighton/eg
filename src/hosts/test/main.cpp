@@ -30,6 +30,7 @@
 
 #include <iostream>
 
+extern void generate_dynamic_interface( std::ostream& os, eg::ReadSession& session );
 
 int main( int argc, const char* argv[] )
 {
@@ -157,37 +158,11 @@ int main( int argc, const char* argv[] )
     
     os << "\n";
     
-    std::vector< const eg::concrete::Action* > actions = 
-        eg::many_cst< eg::concrete::Action >( objects );
-    os << eg::EG_ACTION_STATE << " getState( " << eg::EG_TYPE_ID << " typeID, " << eg::EG_INSTANCE << " instance )\n";
-    os << "{\n";
-    os << "    switch( typeID )\n";
-    os << "    {\n";
-    for( const eg::concrete::Action* pAction : actions )
-    {
-        if( pAction->getParent() )
-        {
-    os << "        case " << pAction->getIndex() << ": return " << 
-        eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << ";\n";
-        }
-    }
-    os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
-    os << "    }\n";
-    os << "}\n";
+        
+    generate_dynamic_interface( os, session );
     
     os << "//Action functions\n";
     os << "extern __eg_root< void > root_starter( std::vector< std::function< void() > >& );\n";
-    for( const eg::concrete::Action* pAction : actions )
-    {
-        if( pAction->getParent() && pAction->getParent()->getParent() )
-        {
-    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
-        }
-        if( pAction->getParent() )
-        {
-    os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
-        }
-    }
         
     os << "//Dependency Provider Implementation\n";
     os << "struct BasicHost_EGDependencyProvider : public " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "\n";

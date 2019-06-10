@@ -87,7 +87,7 @@ public:
     inline bool operator!=(const __eg_ReferenceIterator& rhs) const {return !(rhs==*this);}
     inline const value_type operator*()
     {
-        return ReferenceType( eg::reference{ instance, type, getTimestamp< ReferenceType >( type, instance ) } );
+        return eg::reference{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
     }
 };
 

@@ -1,0 +1,53 @@
+
+dim float size;
+size( 200 );
+
+action Square
+{
+    const float fStart = clock::ct();
+    while( ( fStart + 2.0f ) > clock::ct() )
+    {
+        gl::color( Color( CM_HSV, 0.5f, 1, 1 ) ); 
+        gl::drawSolidRect( Rectf{ 0, 0, size(), size() } );
+        eg::sleep();
+    }
+}
+
+action imgui[ 4 ]( std::string strName )
+{
+    bool bContinue = true;
+    while( bContinue )
+    {
+        {
+            ImGui::Begin( strName.c_str() );
+            ImGui::TextColored( ImVec4(1,1,1,1), "Hello World" );
+            ImGui::SliderFloat( "size", &size.Get(), 0.0f, 400.0f );
+        
+            if( ImGui::Button( "Square" ) )
+            {
+                Square.Start();
+            }
+            else if( ImGui::Button( "Other" ) )
+            {
+                include( <sstream> );
+                std::ostringstream os;
+                os << strName << "_again";
+                imgui.Start( os.str() );
+            }
+            else if( ImGui::Button( "Quit" ) )
+            {
+                bContinue = false;
+            }
+            ImGui::End();
+        }
+        eg::sleep();
+    }
+}
+
+imgui.Start( "EG has IMGUI!" );
+
+while( !Done() )
+{
+    gl::clear();
+    eg::sleep();
+}

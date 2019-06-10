@@ -612,7 +612,6 @@ int main( int argc, const char* argv[] )
         
     }
     
-    
     //generate the host code
     if( !config.hostCmd.empty() )
     {

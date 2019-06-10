@@ -26,12 +26,12 @@
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-
+/*
 //pull namespaces into global namespace
 using namespace ci;
 using namespace ci::app;
 
-
+*/
 namespace cinder
 {
     namespace app

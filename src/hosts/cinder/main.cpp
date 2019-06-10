@@ -29,6 +29,7 @@
 
 #include <iostream>
     
+extern void generate_dynamic_interface( std::ostream& os, eg::ReadSession& session );
 extern void generate_python( std::ostream& os, eg::ReadSession& session );
 
 int main( int argc, const char* argv[] )
@@ -212,6 +213,7 @@ public:
     
     //////Generate the python bindings
     os << "\n";
+    generate_dynamic_interface( os, session );
     generate_python( os, session );
     os << "\n";
     
@@ -322,12 +324,13 @@ void BasicApp::setup()
 {
     boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
-    boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
-    eg::sleep();
+    ImGui::initialize();
         
     pythonFunctions = loadPythonScripts( g_strPythonScripts, g_strDatabase );
         
     root_starter( pythonFunctions );
+    
+    boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
 }
 
 void prepareSettings( BasicApp::Settings* settings )
@@ -337,49 +340,47 @@ void prepareSettings( BasicApp::Settings* settings )
 
 void BasicApp::mouseDown( MouseEvent event )
 {
-    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseDown, event );
-    inputEvents.events.push_back( e );
+    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseDown, event ) );
 }
 void BasicApp::mouseUp( MouseEvent event )
 {
-    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseUp, event );
-    inputEvents.events.push_back( e );
+    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseUp, event ) );
 }
 void BasicApp::mouseMove( MouseEvent event )
 {
-    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseMove, event );
-    inputEvents.events.push_back( e );
+    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseMove, event ) );
 }
 void BasicApp::mouseWheel( MouseEvent event )
 {
-    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseWheel, event );
-    inputEvents.events.push_back( e );
+    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseWheel, event ) );
 }
 void BasicApp::mouseDrag( MouseEvent event )
 {
-    cinder::app::InputEvent e( cinder::app::InputEvent::eMouseDrag, event );
-    inputEvents.events.push_back( e );
+    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseDrag, event ) );
 }
 
 void BasicApp::keyDown( KeyEvent event )
 {
-    cinder::app::InputEvent e( cinder::app::InputEvent::eKeyDown, event );
-    inputEvents.events.push_back( e );
+    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eKeyDown, event ) );
 }
 void BasicApp::keyUp( KeyEvent event )
 {
-    cinder::app::InputEvent e( cinder::app::InputEvent::eKeyUp, event );
-    inputEvents.events.push_back( e );
+    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eKeyUp, event ) );
 }
 
 void BasicApp::update()
 {
+    if( !boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
+    {
+        quit();
+    }
 }
     
 void BasicApp::draw()
 {
     theClock.nextCycle();
     eg::wait();
+    inputEvents.events.clear();
 }
 
 // This line tells Cinder to actually create and run the application.

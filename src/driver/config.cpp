@@ -418,6 +418,14 @@ boost::filesystem::path Configuration::getProgramName() const
     return boost::filesystem::edsCannonicalise(
                 boost::filesystem::absolute( os.str() ) );
 }
+        
+boost::filesystem::path Configuration::getDLLName( int iIndex ) const
+{
+    std::ostringstream os;
+    os << strProjectName << "_" << std::setw( 3 ) << std::setfill( '0' ) << iIndex - 2 << ".dll";
+    return boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( os.str() ) );
+}
 
 void Configuration::startCommand( std::ostream& os, bool bIncludeHostSettings /*= false*/ )
 {

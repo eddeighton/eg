@@ -9,8 +9,9 @@ include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 #get the sources
 set( BASIC_HOST_SOURCE_DIR ${EG_ROOT_DIR}/src/hosts/basic )
 
-set( BASIC_HOST_SOURCES ${EG_ROOT_DIR}/src/hosts/python_codegen.cpp
-                        ${BASIC_HOST_SOURCE_DIR}/main.cpp )
+set( BASIC_HOST_SOURCES  ${EG_ROOT_DIR}/src/hosts/python_codegen.cpp
+                         ${EG_ROOT_DIR}/src/hosts/dynamic_interface.cpp
+                         ${BASIC_HOST_SOURCE_DIR}/main.cpp )
 
 source_group( src FILES ${BASIC_HOST_SOURCES} )
 

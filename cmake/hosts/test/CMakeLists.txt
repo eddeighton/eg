@@ -9,7 +9,8 @@ include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 #get the sources
 set( TEST_HOST_SOURCE_DIR ${EG_ROOT_DIR}/src/hosts/test )
 
-set( TEST_HOST_SOURCES ${TEST_HOST_SOURCE_DIR}/main.cpp )
+set( TEST_HOST_SOURCES ${TEST_HOST_SOURCE_DIR}/main.cpp
+                         ${EG_ROOT_DIR}/src/hosts/dynamic_interface.cpp )
 
 source_group( src FILES ${TEST_HOST_SOURCES} )
 
