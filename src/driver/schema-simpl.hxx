@@ -37,364 +37,284 @@
 
 #include <xsde/cxx/stack.hxx>
 
-class Package_simpl: public Package_sskel
+namespace egxml
 {
-  public:
-  virtual void
-  pre (const ::Package&);
-
-  // Elements.
-  //
-  virtual ::std::string
-  Name ();
-
-  virtual bool
-  Repository_present ();
-
-  virtual ::std::string
-  Repository ();
-
-  virtual ::std::string
-  License ();
-
-  virtual bool
-  Description_present ();
-
-  virtual ::std::string
-  Description ();
-
-  virtual bool
-  Directories_present ();
-
-  virtual const ::Directories&
-  Directories ();
-
-  virtual bool
-  Files_present ();
-
-  virtual const ::Files&
-  Files ();
-
-  public:
-  struct Package_simpl_state
+  class Package_simpl: public Package_sskel
   {
-    const ::Package* Package_;
+    public:
+    virtual void
+    pre (const ::egxml::Package&);
+
+    // Elements.
+    //
+    virtual ::std::string
+    Name ();
+
+    virtual bool
+    Repository_present ();
+
+    virtual ::std::string
+    Repository ();
+
+    virtual ::std::string
+    License ();
+
+    virtual bool
+    Description_present ();
+
+    virtual ::std::string
+    Description ();
+
+    virtual bool
+    Directories_present ();
+
+    virtual const ::egxml::Directories&
+    Directories ();
+
+    virtual bool
+    Files_present ();
+
+    virtual const ::egxml::Files&
+    Files ();
+
+    public:
+    struct Package_simpl_state
+    {
+      const ::egxml::Package* Package_;
+    };
+
+    Package_simpl_state Package_simpl_state_;
   };
 
-  Package_simpl_state Package_simpl_state_;
-};
-
-class Host_simpl: public Host_sskel
-{
-  public:
-  virtual void
-  pre (const ::Host&);
-
-  // Elements.
-  //
-  virtual ::std::string
-  Name ();
-
-  virtual ::std::string
-  Command ();
-
-  virtual bool
-  Repository_present ();
-
-  virtual ::std::string
-  Repository ();
-
-  virtual ::std::string
-  License ();
-
-  virtual bool
-  Description_present ();
-
-  virtual ::std::string
-  Description ();
-
-  virtual bool
-  Directories_present ();
-
-  virtual const ::Directories1&
-  Directories ();
-
-  virtual bool
-  Files_present ();
-
-  virtual const ::Files1&
-  Files ();
-
-  public:
-  struct Host_simpl_state
+  class Host_simpl: public Host_sskel
   {
-    const ::Host* Host_;
+    public:
+    Host_simpl ();
+
+    virtual void
+    pre (const ::egxml::Host&);
+
+    // Elements.
+    //
+    virtual ::std::string
+    Command ();
+
+    public:
+    ::egxml::Package_simpl base_impl_;
+
+    public:
+    struct Host_simpl_state
+    {
+      const ::egxml::Host* Host_;
+    };
+
+    Host_simpl_state Host_simpl_state_;
   };
 
-  Host_simpl_state Host_simpl_state_;
-};
-
-class Build_simpl: public Build_sskel
-{
-  public:
-  virtual void
-  pre (const ::Build&);
-
-  // Elements.
-  //
-  virtual ::std::string
-  Name ();
-
-  virtual ::std::string
-  CompilerFlags ();
-
-  virtual ::std::string
-  LinkerFlags ();
-
-  public:
-  struct Build_simpl_state
+  class Build_simpl: public Build_sskel
   {
-    const ::Build* Build_;
+    public:
+    virtual void
+    pre (const ::egxml::Build&);
+
+    // Elements.
+    //
+    virtual ::std::string
+    Name ();
+
+    virtual ::std::string
+    CompilerFlags ();
+
+    virtual ::std::string
+    LinkerFlags ();
+
+    public:
+    struct Build_simpl_state
+    {
+      const ::egxml::Build* Build_;
+    };
+
+    Build_simpl_state Build_simpl_state_;
   };
 
-  Build_simpl_state Build_simpl_state_;
-};
-
-class Project_simpl: public Project_sskel
-{
-  public:
-  virtual void
-  pre (const ::Project&);
-
-  // Elements.
-  //
-  virtual ::std::string
-  Name ();
-
-  virtual const ::Host&
-  Host ();
-
-  virtual bool
-  Package_next ();
-
-  virtual const ::Package&
-  Package ();
-
-  virtual bool
-  Build_next ();
-
-  virtual const ::Build&
-  Build ();
-
-  virtual bool
-  Run_next ();
-
-  virtual const ::Run&
-  Run ();
-
-  public:
-  struct Project_simpl_state
+  class Project_simpl: public Project_sskel
   {
-    const ::Project* Project_;
-    ::Project::Package_const_iterator Package_;
-    ::Project::Package_const_iterator Package_end_;
-    ::Project::Build_const_iterator Build_;
-    ::Project::Build_const_iterator Build_end_;
-    ::Project::Run_const_iterator Run_;
-    ::Project::Run_const_iterator Run_end_;
+    public:
+    virtual void
+    pre (const ::egxml::Project&);
+
+    // Elements.
+    //
+    virtual ::std::string
+    Name ();
+
+    virtual const ::egxml::Host&
+    Host ();
+
+    virtual bool
+    Package_next ();
+
+    virtual const ::egxml::Package&
+    Package ();
+
+    virtual bool
+    Build_next ();
+
+    virtual const ::egxml::Build&
+    Build ();
+
+    virtual bool
+    Run_next ();
+
+    virtual const ::egxml::Run&
+    Run ();
+
+    public:
+    struct Project_simpl_state
+    {
+      const ::egxml::Project* Project_;
+      ::egxml::Project::Package_const_iterator Package_;
+      ::egxml::Project::Package_const_iterator Package_end_;
+      ::egxml::Project::Build_const_iterator Build_;
+      ::egxml::Project::Build_const_iterator Build_end_;
+      ::egxml::Project::Run_const_iterator Run_;
+      ::egxml::Project::Run_const_iterator Run_end_;
+    };
+
+    Project_simpl_state Project_simpl_state_;
   };
 
-  Project_simpl_state Project_simpl_state_;
-};
-
-class EG_simpl: public EG_sskel
-{
-  public:
-  virtual void
-  pre (const ::EG&);
-
-  // Elements.
-  //
-  virtual choice_arm_tag
-  choice_arm ();
-
-  virtual const ::Package&
-  Package ();
-
-  virtual const ::Host&
-  Host ();
-
-  virtual const ::Project&
-  Project ();
-
-  public:
-  struct EG_simpl_state
+  class EG_simpl: public EG_sskel
   {
-    const ::EG* EG_;
+    public:
+    virtual void
+    pre (const ::egxml::EG&);
+
+    // Elements.
+    //
+    virtual choice_arm_tag
+    choice_arm ();
+
+    virtual const ::egxml::Package&
+    Package ();
+
+    virtual const ::egxml::Host&
+    Host ();
+
+    virtual const ::egxml::Project&
+    Project ();
+
+    public:
+    struct EG_simpl_state
+    {
+      const ::egxml::EG* EG_;
+    };
+
+    EG_simpl_state EG_simpl_state_;
   };
 
-  EG_simpl_state EG_simpl_state_;
-};
-
-class Directories_simpl: public Directories_sskel
-{
-  public:
-  virtual void
-  pre (const ::Directories&);
-
-  // Elements.
-  //
-  virtual bool
-  Include_next ();
-
-  virtual ::std::string
-  Include ();
-
-  virtual bool
-  Library_next ();
-
-  virtual ::std::string
-  Library ();
-
-  public:
-  struct Directories_simpl_state
+  class Directories_simpl: public Directories_sskel
   {
-    const ::Directories* Directories_;
-    ::Directories::Include_const_iterator Include_;
-    ::Directories::Include_const_iterator Include_end_;
-    ::Directories::Library_const_iterator Library_;
-    ::Directories::Library_const_iterator Library_end_;
+    public:
+    virtual void
+    pre (const ::egxml::Directories&);
+
+    // Elements.
+    //
+    virtual bool
+    Include_next ();
+
+    virtual ::std::string
+    Include ();
+
+    virtual bool
+    Library_next ();
+
+    virtual ::std::string
+    Library ();
+
+    public:
+    struct Directories_simpl_state
+    {
+      const ::egxml::Directories* Directories_;
+      ::egxml::Directories::Include_const_iterator Include_;
+      ::egxml::Directories::Include_const_iterator Include_end_;
+      ::egxml::Directories::Library_const_iterator Library_;
+      ::egxml::Directories::Library_const_iterator Library_end_;
+    };
+
+    Directories_simpl_state Directories_simpl_state_;
   };
 
-  Directories_simpl_state Directories_simpl_state_;
-};
-
-class Files_simpl: public Files_sskel
-{
-  public:
-  virtual void
-  pre (const ::Files&);
-
-  // Elements.
-  //
-  virtual bool
-  Include_next ();
-
-  virtual ::std::string
-  Include ();
-
-  virtual bool
-  Library_next ();
-
-  virtual ::std::string
-  Library ();
-
-  public:
-  struct Files_simpl_state
+  class Files_simpl: public Files_sskel
   {
-    const ::Files* Files_;
-    ::Files::Include_const_iterator Include_;
-    ::Files::Include_const_iterator Include_end_;
-    ::Files::Library_const_iterator Library_;
-    ::Files::Library_const_iterator Library_end_;
+    public:
+    virtual void
+    pre (const ::egxml::Files&);
+
+    // Elements.
+    //
+    virtual bool
+    System_next ();
+
+    virtual ::std::string
+    System ();
+
+    virtual bool
+    User_next ();
+
+    virtual ::std::string
+    User ();
+
+    virtual bool
+    Library_next ();
+
+    virtual ::std::string
+    Library ();
+
+    public:
+    struct Files_simpl_state
+    {
+      const ::egxml::Files* Files_;
+      ::egxml::Files::System_const_iterator System_;
+      ::egxml::Files::System_const_iterator System_end_;
+      ::egxml::Files::User_const_iterator User_;
+      ::egxml::Files::User_const_iterator User_end_;
+      ::egxml::Files::Library_const_iterator Library_;
+      ::egxml::Files::Library_const_iterator Library_end_;
+    };
+
+    Files_simpl_state Files_simpl_state_;
   };
 
-  Files_simpl_state Files_simpl_state_;
-};
-
-class Directories1_simpl: public Directories1_sskel
-{
-  public:
-  virtual void
-  pre (const ::Directories1&);
-
-  // Elements.
-  //
-  virtual bool
-  Include_next ();
-
-  virtual ::std::string
-  Include ();
-
-  virtual bool
-  Library_next ();
-
-  virtual ::std::string
-  Library ();
-
-  public:
-  struct Directories1_simpl_state
+  class Run_simpl: public Run_sskel
   {
-    const ::Directories1* Directories1_;
-    ::Directories1::Include_const_iterator Include_;
-    ::Directories1::Include_const_iterator Include_end_;
-    ::Directories1::Library_const_iterator Library_;
-    ::Directories1::Library_const_iterator Library_end_;
+    public:
+    virtual void
+    pre (const ::egxml::Run&);
+
+    // Elements.
+    //
+    virtual ::std::string
+    Name ();
+
+    virtual bool
+    Argument_next ();
+
+    virtual ::std::string
+    Argument ();
+
+    public:
+    struct Run_simpl_state
+    {
+      const ::egxml::Run* Run_;
+      ::egxml::Run::Argument_const_iterator Argument_;
+      ::egxml::Run::Argument_const_iterator Argument_end_;
+    };
+
+    Run_simpl_state Run_simpl_state_;
   };
-
-  Directories1_simpl_state Directories1_simpl_state_;
-};
-
-class Files1_simpl: public Files1_sskel
-{
-  public:
-  virtual void
-  pre (const ::Files1&);
-
-  // Elements.
-  //
-  virtual bool
-  Include_next ();
-
-  virtual ::std::string
-  Include ();
-
-  virtual bool
-  Library_next ();
-
-  virtual ::std::string
-  Library ();
-
-  public:
-  struct Files1_simpl_state
-  {
-    const ::Files1* Files1_;
-    ::Files1::Include_const_iterator Include_;
-    ::Files1::Include_const_iterator Include_end_;
-    ::Files1::Library_const_iterator Library_;
-    ::Files1::Library_const_iterator Library_end_;
-  };
-
-  Files1_simpl_state Files1_simpl_state_;
-};
-
-class Run_simpl: public Run_sskel
-{
-  public:
-  virtual void
-  pre (const ::Run&);
-
-  // Elements.
-  //
-  virtual ::std::string
-  Name ();
-
-  virtual bool
-  Argument_next ();
-
-  virtual ::std::string
-  Argument ();
-
-  public:
-  struct Run_simpl_state
-  {
-    const ::Run* Run_;
-    ::Run::Argument_const_iterator Argument_;
-    ::Run::Argument_const_iterator Argument_end_;
-  };
-
-  Run_simpl_state Run_simpl_state_;
-};
+}
 
 #ifdef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #  undef XSDE_OMIT_SAGGR
@@ -402,56 +322,57 @@ class Run_simpl: public Run_sskel
 
 #ifndef XSDE_OMIT_SAGGR
 
-// Serializer aggregate for the EG element.
-//
-class EG_saggr
+namespace egxml
 {
-  public:
-  EG_saggr ();
-
-  void
-  pre (const ::EG& x)
+  // Serializer aggregate for the EG element.
+  //
+  class EG_saggr
   {
-    this->EG_s_.pre (x);
-  }
+    public:
+    EG_saggr ();
 
-  void
-  post ()
-  {
-    this->EG_s_.post ();
-  }
+    void
+    pre (const ::egxml::EG& x)
+    {
+      this->EG_s_.pre (x);
+    }
 
-  ::EG_simpl&
-  root_serializer ()
-  {
-    return this->EG_s_;
-  }
+    void
+    post ()
+    {
+      this->EG_s_.post ();
+    }
 
-  static const char*
-  root_name ();
+    ::egxml::EG_simpl&
+    root_serializer ()
+    {
+      return this->EG_s_;
+    }
 
-  static const char*
-  root_namespace ();
+    static const char*
+    root_name ();
 
-  void
-  reset ()
-  {
-    this->EG_s_._reset ();
-  }
+    static const char*
+    root_namespace ();
 
-  public:
-  ::Build_simpl Build_s_;
-  ::Run_simpl Run_s_;
-  ::Directories1_simpl Directories1_s_;
-  ::Files1_simpl Files1_s_;
-  ::Project_simpl Project_s_;
-  ::EG_simpl EG_s_;
-  ::Package_simpl Package_s_;
-  ::Directories_simpl Directories_s_;
-  ::Files_simpl Files_s_;
-  ::Host_simpl Host_s_;
-  ::xml_schema::string_simpl string_s_;
-};
+    void
+    reset ()
+    {
+      this->EG_s_._reset ();
+    }
+
+    public:
+    ::egxml::EG_simpl EG_s_;
+    ::egxml::Package_simpl Package_s_;
+    ::egxml::Files_simpl Files_s_;
+    ::egxml::Host_simpl Host_s_;
+    ::egxml::Build_simpl Build_s_;
+    ::egxml::Run_simpl Run_s_;
+    ::xml_schema::string_simpl string_s_;
+    ::egxml::Project_simpl Project_s_;
+    ::egxml::Directories_simpl Directories_s_;
+  };
+}
 
 #endif // XSDE_OMIT_SAGGR
 

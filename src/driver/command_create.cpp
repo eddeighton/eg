@@ -45,31 +45,31 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
         
         
         
-        EG newEG;
-        Project project;
+        egxml::EG newEG;
+        egxml::Project project;
         project.Name( "test" );
-        Host projectHost;
+        egxml::Host projectHost;
         {
             projectHost.Name( "testHost" );
             projectHost.Command( "thing.exe" );
             projectHost.License( "nobody may use this software under any circumstances even the developer" );
         }
         project.Host( &projectHost );
-        Build build;
+        egxml::Build build;
         {
             build.Name( "release" );
             build.CompilerFlags( "--donothing" );
             build.LinkerFlags( "--dontlink" );
         }
         project.Build().push_back( build );
-        Run run;
+        egxml::Run run;
         {
             run.Name( "default" );
         }
         project.Run().push_back( &run );
         newEG.Project( &project );
         
-        EG_saggr newEGagg;
+        egxml::EG_saggr newEGagg;
         xml_schema::document_simpl doc_s( newEGagg.root_serializer(), newEGagg.root_name() );
         newEGagg.pre( newEG );
         

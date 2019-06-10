@@ -37,418 +37,333 @@
 
 #include <xsde/cxx/stack.hxx>
 
-class Package_pimpl: public Package_pskel
+namespace egxml
 {
-  public:
-  Package_pimpl (bool = false);
-
-  ~Package_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Name (const ::std::string&);
-
-  virtual void
-  Repository (const ::std::string&);
-
-  virtual void
-  License (const ::std::string&);
-
-  virtual void
-  Description (const ::std::string&);
-
-  virtual void
-  Directories (::Directories*);
-
-  virtual void
-  Files (::Files*);
-
-  virtual ::Package*
-  post_Package ();
-
-  public:
-  void
-  pre_impl (::Package*);
-
-  public:
-  struct Package_pimpl_state
+  class Package_pimpl: public Package_pskel
   {
-    ::Package* Package_;
+    public:
+    Package_pimpl (bool = false);
+
+    ~Package_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Name (const ::std::string&);
+
+    virtual void
+    Repository (const ::std::string&);
+
+    virtual void
+    License (const ::std::string&);
+
+    virtual void
+    Description (const ::std::string&);
+
+    virtual void
+    Directories (::egxml::Directories*);
+
+    virtual void
+    Files (::egxml::Files*);
+
+    virtual ::egxml::Package*
+    post_Package ();
+
+    public:
+    void
+    pre_impl (::egxml::Package*);
+
+    public:
+    struct Package_pimpl_state
+    {
+      ::egxml::Package* Package_;
+    };
+
+    Package_pimpl_state Package_pimpl_state_;
+    bool Package_pimpl_base_;
   };
 
-  Package_pimpl_state Package_pimpl_state_;
-  bool Package_pimpl_base_;
-};
-
-class Host_pimpl: public Host_pskel
-{
-  public:
-  Host_pimpl (bool = false);
-
-  ~Host_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Name (const ::std::string&);
-
-  virtual void
-  Command (const ::std::string&);
-
-  virtual void
-  Repository (const ::std::string&);
-
-  virtual void
-  License (const ::std::string&);
-
-  virtual void
-  Description (const ::std::string&);
-
-  virtual void
-  Directories (::Directories1*);
-
-  virtual void
-  Files (::Files1*);
-
-  virtual ::Host*
-  post_Host ();
-
-  public:
-  void
-  pre_impl (::Host*);
-
-  public:
-  struct Host_pimpl_state
+  class Host_pimpl: public Host_pskel
   {
-    ::Host* Host_;
+    public:
+    Host_pimpl (bool = false);
+
+    ~Host_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Command (const ::std::string&);
+
+    virtual ::egxml::Host*
+    post_Host ();
+
+    public:
+    void
+    pre_impl (::egxml::Host*);
+
+    public:
+    ::egxml::Package_pimpl base_impl_;
+
+    public:
+    struct Host_pimpl_state
+    {
+      ::egxml::Host* Host_;
+    };
+
+    Host_pimpl_state Host_pimpl_state_;
+    bool Host_pimpl_base_;
   };
 
-  Host_pimpl_state Host_pimpl_state_;
-  bool Host_pimpl_base_;
-};
-
-class Build_pimpl: public Build_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Name (const ::std::string&);
-
-  virtual void
-  CompilerFlags (const ::std::string&);
-
-  virtual void
-  LinkerFlags (const ::std::string&);
-
-  virtual ::Build
-  post_Build ();
-
-  public:
-  struct Build_pimpl_state
+  class Build_pimpl: public Build_pskel
   {
-    ::Build Build_;
+    public:
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Name (const ::std::string&);
+
+    virtual void
+    CompilerFlags (const ::std::string&);
+
+    virtual void
+    LinkerFlags (const ::std::string&);
+
+    virtual ::egxml::Build
+    post_Build ();
+
+    public:
+    struct Build_pimpl_state
+    {
+      ::egxml::Build Build_;
+    };
+
+    Build_pimpl_state Build_pimpl_state_;
   };
 
-  Build_pimpl_state Build_pimpl_state_;
-};
-
-class Project_pimpl: public Project_pskel
-{
-  public:
-  Project_pimpl (bool = false);
-
-  ~Project_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Name (const ::std::string&);
-
-  virtual void
-  Host (::Host*);
-
-  virtual void
-  Package (::Package*);
-
-  virtual void
-  Build (const ::Build&);
-
-  virtual void
-  Run (::Run*);
-
-  virtual ::Project*
-  post_Project ();
-
-  public:
-  void
-  pre_impl (::Project*);
-
-  public:
-  struct Project_pimpl_state
+  class Project_pimpl: public Project_pskel
   {
-    ::Project* Project_;
+    public:
+    Project_pimpl (bool = false);
+
+    ~Project_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Name (const ::std::string&);
+
+    virtual void
+    Host (::egxml::Host*);
+
+    virtual void
+    Package (::egxml::Package*);
+
+    virtual void
+    Build (const ::egxml::Build&);
+
+    virtual void
+    Run (::egxml::Run*);
+
+    virtual ::egxml::Project*
+    post_Project ();
+
+    public:
+    void
+    pre_impl (::egxml::Project*);
+
+    public:
+    struct Project_pimpl_state
+    {
+      ::egxml::Project* Project_;
+    };
+
+    Project_pimpl_state Project_pimpl_state_;
+    bool Project_pimpl_base_;
   };
 
-  Project_pimpl_state Project_pimpl_state_;
-  bool Project_pimpl_base_;
-};
-
-class EG_pimpl: public EG_pskel
-{
-  public:
-  EG_pimpl (bool = false);
-
-  ~EG_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  choice_arm (choice_arm_tag);
-
-  virtual void
-  Package (::Package*);
-
-  virtual void
-  Host (::Host*);
-
-  virtual void
-  Project (::Project*);
-
-  virtual ::EG*
-  post_EG ();
-
-  public:
-  void
-  pre_impl (::EG*);
-
-  public:
-  struct EG_pimpl_state
+  class EG_pimpl: public EG_pskel
   {
-    ::EG* EG_;
+    public:
+    EG_pimpl (bool = false);
+
+    ~EG_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    choice_arm (choice_arm_tag);
+
+    virtual void
+    Package (::egxml::Package*);
+
+    virtual void
+    Host (::egxml::Host*);
+
+    virtual void
+    Project (::egxml::Project*);
+
+    virtual ::egxml::EG*
+    post_EG ();
+
+    public:
+    void
+    pre_impl (::egxml::EG*);
+
+    public:
+    struct EG_pimpl_state
+    {
+      ::egxml::EG* EG_;
+    };
+
+    EG_pimpl_state EG_pimpl_state_;
+    bool EG_pimpl_base_;
   };
 
-  EG_pimpl_state EG_pimpl_state_;
-  bool EG_pimpl_base_;
-};
-
-class Directories_pimpl: public Directories_pskel
-{
-  public:
-  Directories_pimpl (bool = false);
-
-  ~Directories_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Include (const ::std::string&);
-
-  virtual void
-  Library (const ::std::string&);
-
-  virtual ::Directories*
-  post_Directories ();
-
-  public:
-  void
-  pre_impl (::Directories*);
-
-  public:
-  struct Directories_pimpl_state
+  class Directories_pimpl: public Directories_pskel
   {
-    ::Directories* Directories_;
+    public:
+    Directories_pimpl (bool = false);
+
+    ~Directories_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Include (const ::std::string&);
+
+    virtual void
+    Library (const ::std::string&);
+
+    virtual ::egxml::Directories*
+    post_Directories ();
+
+    public:
+    void
+    pre_impl (::egxml::Directories*);
+
+    public:
+    struct Directories_pimpl_state
+    {
+      ::egxml::Directories* Directories_;
+    };
+
+    Directories_pimpl_state Directories_pimpl_state_;
+    bool Directories_pimpl_base_;
   };
 
-  Directories_pimpl_state Directories_pimpl_state_;
-  bool Directories_pimpl_base_;
-};
-
-class Files_pimpl: public Files_pskel
-{
-  public:
-  Files_pimpl (bool = false);
-
-  ~Files_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Include (const ::std::string&);
-
-  virtual void
-  Library (const ::std::string&);
-
-  virtual ::Files*
-  post_Files ();
-
-  public:
-  void
-  pre_impl (::Files*);
-
-  public:
-  struct Files_pimpl_state
+  class Files_pimpl: public Files_pskel
   {
-    ::Files* Files_;
+    public:
+    Files_pimpl (bool = false);
+
+    ~Files_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    System (const ::std::string&);
+
+    virtual void
+    User (const ::std::string&);
+
+    virtual void
+    Library (const ::std::string&);
+
+    virtual ::egxml::Files*
+    post_Files ();
+
+    public:
+    void
+    pre_impl (::egxml::Files*);
+
+    public:
+    struct Files_pimpl_state
+    {
+      ::egxml::Files* Files_;
+    };
+
+    Files_pimpl_state Files_pimpl_state_;
+    bool Files_pimpl_base_;
   };
 
-  Files_pimpl_state Files_pimpl_state_;
-  bool Files_pimpl_base_;
-};
-
-class Directories1_pimpl: public Directories1_pskel
-{
-  public:
-  Directories1_pimpl (bool = false);
-
-  ~Directories1_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Include (const ::std::string&);
-
-  virtual void
-  Library (const ::std::string&);
-
-  virtual ::Directories1*
-  post_Directories1 ();
-
-  public:
-  void
-  pre_impl (::Directories1*);
-
-  public:
-  struct Directories1_pimpl_state
+  class Run_pimpl: public Run_pskel
   {
-    ::Directories1* Directories1_;
+    public:
+    Run_pimpl (bool = false);
+
+    ~Run_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Name (const ::std::string&);
+
+    virtual void
+    Argument (const ::std::string&);
+
+    virtual ::egxml::Run*
+    post_Run ();
+
+    public:
+    void
+    pre_impl (::egxml::Run*);
+
+    public:
+    struct Run_pimpl_state
+    {
+      ::egxml::Run* Run_;
+    };
+
+    Run_pimpl_state Run_pimpl_state_;
+    bool Run_pimpl_base_;
   };
-
-  Directories1_pimpl_state Directories1_pimpl_state_;
-  bool Directories1_pimpl_base_;
-};
-
-class Files1_pimpl: public Files1_pskel
-{
-  public:
-  Files1_pimpl (bool = false);
-
-  ~Files1_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Include (const ::std::string&);
-
-  virtual void
-  Library (const ::std::string&);
-
-  virtual ::Files1*
-  post_Files1 ();
-
-  public:
-  void
-  pre_impl (::Files1*);
-
-  public:
-  struct Files1_pimpl_state
-  {
-    ::Files1* Files1_;
-  };
-
-  Files1_pimpl_state Files1_pimpl_state_;
-  bool Files1_pimpl_base_;
-};
-
-class Run_pimpl: public Run_pskel
-{
-  public:
-  Run_pimpl (bool = false);
-
-  ~Run_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  Name (const ::std::string&);
-
-  virtual void
-  Argument (const ::std::string&);
-
-  virtual ::Run*
-  post_Run ();
-
-  public:
-  void
-  pre_impl (::Run*);
-
-  public:
-  struct Run_pimpl_state
-  {
-    ::Run* Run_;
-  };
-
-  Run_pimpl_state Run_pimpl_state_;
-  bool Run_pimpl_base_;
-};
+}
 
 #ifdef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
 #  undef XSDE_OMIT_PAGGR
@@ -456,56 +371,57 @@ class Run_pimpl: public Run_pskel
 
 #ifndef XSDE_OMIT_PAGGR
 
-// Parser aggregate for the EG element.
-//
-class EG_paggr
+namespace egxml
 {
-  public:
-  EG_paggr ();
-
-  void
-  pre ()
+  // Parser aggregate for the EG element.
+  //
+  class EG_paggr
   {
-    this->EG_p_.pre ();
-  }
+    public:
+    EG_paggr ();
 
-  ::EG*
-  post ()
-  {
-    return this->EG_p_.post_EG ();
-  }
+    void
+    pre ()
+    {
+      this->EG_p_.pre ();
+    }
 
-  ::EG_pimpl&
-  root_parser ()
-  {
-    return this->EG_p_;
-  }
+    ::egxml::EG*
+    post ()
+    {
+      return this->EG_p_.post_EG ();
+    }
 
-  static const char*
-  root_name ();
+    ::egxml::EG_pimpl&
+    root_parser ()
+    {
+      return this->EG_p_;
+    }
 
-  static const char*
-  root_namespace ();
+    static const char*
+    root_name ();
 
-  void
-  reset ()
-  {
-    this->EG_p_._reset ();
-  }
+    static const char*
+    root_namespace ();
 
-  public:
-  ::Build_pimpl Build_p_;
-  ::Run_pimpl Run_p_;
-  ::Directories1_pimpl Directories1_p_;
-  ::Files1_pimpl Files1_p_;
-  ::Project_pimpl Project_p_;
-  ::EG_pimpl EG_p_;
-  ::Package_pimpl Package_p_;
-  ::Directories_pimpl Directories_p_;
-  ::Files_pimpl Files_p_;
-  ::Host_pimpl Host_p_;
-  ::xml_schema::string_pimpl string_p_;
-};
+    void
+    reset ()
+    {
+      this->EG_p_._reset ();
+    }
+
+    public:
+    ::egxml::EG_pimpl EG_p_;
+    ::egxml::Package_pimpl Package_p_;
+    ::egxml::Files_pimpl Files_p_;
+    ::egxml::Host_pimpl Host_p_;
+    ::egxml::Build_pimpl Build_p_;
+    ::egxml::Run_pimpl Run_p_;
+    ::xml_schema::string_pimpl string_p_;
+    ::egxml::Project_pimpl Project_p_;
+    ::egxml::Directories_pimpl Directories_p_;
+  };
+}
 
 #endif // XSDE_OMIT_PAGGR
 

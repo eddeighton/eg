@@ -27,151 +27,157 @@
 
 #include "schema.hxx"
 
-// name
-//
-
-// Config
-//
-
-const ::name& Config::
-name () const
+namespace test
 {
-  return this->name_;
-}
+  // name
+  //
 
-::name& Config::
-name ()
-{
-  return this->name_;
-}
+  // Config
+  //
 
-void Config::
-name (const ::name& x)
-{
-  this->name_ = x;
-}
+  const ::test::name& Config::
+  name () const
+  {
+    return this->name_;
+  }
 
-bool Config::
-file () const
-{
-  return this->file_;
-}
+  ::test::name& Config::
+  name ()
+  {
+    return this->name_;
+  }
 
-bool& Config::
-file ()
-{
-  return this->file_;
-}
+  void Config::
+  name (const ::test::name& x)
+  {
+    this->name_ = x;
+  }
 
-void Config::
-file (bool x)
-{
-  this->file_ = x;
-}
+  bool Config::
+  file () const
+  {
+    return this->file_;
+  }
 
-// eg
-//
+  bool& Config::
+  file ()
+  {
+    return this->file_;
+  }
 
-const ::std::string& eg::
-host () const
-{
-  return this->host_;
-}
+  void Config::
+  file (bool x)
+  {
+    this->file_ = x;
+  }
 
-::std::string& eg::
-host ()
-{
-  return this->host_;
-}
+  // eg
+  //
 
-void eg::
-host (const ::std::string& x)
-{
-  this->host_ = x;
-}
+  const ::std::string& eg::
+  host () const
+  {
+    return this->host_;
+  }
 
-const ::std::string& eg::
-folder () const
-{
-  return this->folder_;
-}
+  ::std::string& eg::
+  host ()
+  {
+    return this->host_;
+  }
 
-::std::string& eg::
-folder ()
-{
-  return this->folder_;
-}
+  void eg::
+  host (const ::std::string& x)
+  {
+    this->host_ = x;
+  }
 
-void eg::
-folder (const ::std::string& x)
-{
-  this->folder_ = x;
-}
+  const ::std::string& eg::
+  folder () const
+  {
+    return this->folder_;
+  }
 
-const eg::stuff_sequence& eg::
-stuff () const
-{
-  return this->stuff_;
-}
+  ::std::string& eg::
+  folder ()
+  {
+    return this->folder_;
+  }
 
-eg::stuff_sequence& eg::
-stuff ()
-{
-  return this->stuff_;
+  void eg::
+  folder (const ::std::string& x)
+  {
+    this->folder_ = x;
+  }
+
+  const eg::stuff_sequence& eg::
+  stuff () const
+  {
+    return this->stuff_;
+  }
+
+  eg::stuff_sequence& eg::
+  stuff ()
+  {
+    return this->stuff_;
+  }
 }
 
 #include <stdlib.h>
 #include <new>
 
-// name
-//
-
-name::
-name ()
+namespace test
 {
-}
+  // name
+  //
 
-// Config
-//
+  name::
+  name ()
+  {
+  }
 
-Config::
-Config ()
-{
-}
+  // Config
+  //
 
-Config::
-~Config ()
-{
-}
+  Config::
+  Config ()
+  {
+  }
 
-Config::
-Config (const Config& x)
-{
-  XSDE_UNUSED (x);
-  this->name_ = x.name_;
-  this->file_ = x.file_;
-}
+  Config::
+  ~Config ()
+  {
+  }
 
-Config& Config::
-operator= (const Config& x)
-{
-  XSDE_UNUSED (x);
-  this->name_ = x.name_;
-  this->file_ = x.file_;
-  return *this;
-}
+  Config::
+  Config (const Config& x)
+  {
+    XSDE_UNUSED (x);
+    this->name_ = x.name_;
+    this->file_ = x.file_;
+  }
 
-// eg
-//
+  Config& Config::
+  operator= (const Config& x)
+  {
+    XSDE_UNUSED (x);
+    this->name_ = x.name_;
+    this->file_ = x.file_;
+    return *this;
+  }
 
-eg::
-eg ()
-{
-}
+  // eg
+  //
 
-eg::
-~eg ()
-{
+  eg::
+  eg ()
+  {
+  }
+
+  eg::
+  ~eg ()
+  {
+  }
 }
 
 // Begin epilogue.

@@ -27,743 +27,594 @@
 
 #include <xsde/cxx/parser/validating/string-common.hxx>
 
-// Package_pimpl
-//
-
-Package_pimpl::
-Package_pimpl (bool b)
+namespace egxml
 {
-  this->Package_pimpl_base_ = b;
-  this->Package_pimpl_state_.Package_ = 0;
-}
+  // Package_pimpl
+  //
 
-Package_pimpl::
-~Package_pimpl ()
-{
-  if (!this->Package_pimpl_base_ && this->Package_pimpl_state_.Package_)
-    delete this->Package_pimpl_state_.Package_;
-}
-
-void Package_pimpl::
-_reset ()
-{
-  Package_pskel::_reset ();
-
-  if (!this->Package_pimpl_base_ && this->Package_pimpl_state_.Package_)
+  Package_pimpl::
+  Package_pimpl (bool b)
   {
-    delete this->Package_pimpl_state_.Package_;
+    this->Package_pimpl_base_ = b;
     this->Package_pimpl_state_.Package_ = 0;
   }
-}
 
-void Package_pimpl::
-pre_impl (::Package* x)
-{
-  this->Package_pimpl_state_.Package_ = x;
-}
-
-void Package_pimpl::
-pre ()
-{
-  ::Package* x = new ::Package;
-  this->pre_impl (x);
-}
-
-void Package_pimpl::
-Name (const ::std::string& x)
-{
-  this->Package_pimpl_state_.Package_->Name (x);
-}
-
-void Package_pimpl::
-Repository (const ::std::string& x)
-{
-  this->Package_pimpl_state_.Package_->Repository (x);
-}
-
-void Package_pimpl::
-License (const ::std::string& x)
-{
-  this->Package_pimpl_state_.Package_->License (x);
-}
-
-void Package_pimpl::
-Description (const ::std::string& x)
-{
-  this->Package_pimpl_state_.Package_->Description (x);
-}
-
-void Package_pimpl::
-Directories (::Directories* x)
-{
-  this->Package_pimpl_state_.Package_->Directories (x);
-}
-
-void Package_pimpl::
-Files (::Files* x)
-{
-  this->Package_pimpl_state_.Package_->Files (x);
-}
-
-::Package* Package_pimpl::
-post_Package ()
-{
-  ::Package* r = this->Package_pimpl_state_.Package_;
-  this->Package_pimpl_state_.Package_ = 0;
-  return r;
-}
-
-// Host_pimpl
-//
-
-Host_pimpl::
-Host_pimpl (bool b)
-{
-  this->Host_pimpl_base_ = b;
-  this->Host_pimpl_state_.Host_ = 0;
-}
-
-Host_pimpl::
-~Host_pimpl ()
-{
-  if (!this->Host_pimpl_base_ && this->Host_pimpl_state_.Host_)
-    delete this->Host_pimpl_state_.Host_;
-}
-
-void Host_pimpl::
-_reset ()
-{
-  Host_pskel::_reset ();
-
-  if (!this->Host_pimpl_base_ && this->Host_pimpl_state_.Host_)
+  Package_pimpl::
+  ~Package_pimpl ()
   {
-    delete this->Host_pimpl_state_.Host_;
+    if (!this->Package_pimpl_base_ && this->Package_pimpl_state_.Package_)
+      delete this->Package_pimpl_state_.Package_;
+  }
+
+  void Package_pimpl::
+  _reset ()
+  {
+    Package_pskel::_reset ();
+
+    if (!this->Package_pimpl_base_ && this->Package_pimpl_state_.Package_)
+    {
+      delete this->Package_pimpl_state_.Package_;
+      this->Package_pimpl_state_.Package_ = 0;
+    }
+  }
+
+  void Package_pimpl::
+  pre_impl (::egxml::Package* x)
+  {
+    this->Package_pimpl_state_.Package_ = x;
+  }
+
+  void Package_pimpl::
+  pre ()
+  {
+    ::egxml::Package* x = new ::egxml::Package;
+    this->pre_impl (x);
+  }
+
+  void Package_pimpl::
+  Name (const ::std::string& x)
+  {
+    this->Package_pimpl_state_.Package_->Name (x);
+  }
+
+  void Package_pimpl::
+  Repository (const ::std::string& x)
+  {
+    this->Package_pimpl_state_.Package_->Repository (x);
+  }
+
+  void Package_pimpl::
+  License (const ::std::string& x)
+  {
+    this->Package_pimpl_state_.Package_->License (x);
+  }
+
+  void Package_pimpl::
+  Description (const ::std::string& x)
+  {
+    this->Package_pimpl_state_.Package_->Description (x);
+  }
+
+  void Package_pimpl::
+  Directories (::egxml::Directories* x)
+  {
+    this->Package_pimpl_state_.Package_->Directories (x);
+  }
+
+  void Package_pimpl::
+  Files (::egxml::Files* x)
+  {
+    this->Package_pimpl_state_.Package_->Files (x);
+  }
+
+  ::egxml::Package* Package_pimpl::
+  post_Package ()
+  {
+    ::egxml::Package* r = this->Package_pimpl_state_.Package_;
+    this->Package_pimpl_state_.Package_ = 0;
+    return r;
+  }
+
+  // Host_pimpl
+  //
+
+  Host_pimpl::
+  Host_pimpl (bool b)
+  : Host_pskel (&base_impl_),
+    base_impl_ (true)
+  {
+    this->Host_pimpl_base_ = b;
     this->Host_pimpl_state_.Host_ = 0;
   }
-}
 
-void Host_pimpl::
-pre_impl (::Host* x)
-{
-  this->Host_pimpl_state_.Host_ = x;
-}
-
-void Host_pimpl::
-pre ()
-{
-  ::Host* x = new ::Host;
-  this->pre_impl (x);
-}
-
-void Host_pimpl::
-Name (const ::std::string& x)
-{
-  this->Host_pimpl_state_.Host_->Name (x);
-}
-
-void Host_pimpl::
-Command (const ::std::string& x)
-{
-  this->Host_pimpl_state_.Host_->Command (x);
-}
-
-void Host_pimpl::
-Repository (const ::std::string& x)
-{
-  this->Host_pimpl_state_.Host_->Repository (x);
-}
-
-void Host_pimpl::
-License (const ::std::string& x)
-{
-  this->Host_pimpl_state_.Host_->License (x);
-}
-
-void Host_pimpl::
-Description (const ::std::string& x)
-{
-  this->Host_pimpl_state_.Host_->Description (x);
-}
-
-void Host_pimpl::
-Directories (::Directories1* x)
-{
-  this->Host_pimpl_state_.Host_->Directories (x);
-}
-
-void Host_pimpl::
-Files (::Files1* x)
-{
-  this->Host_pimpl_state_.Host_->Files (x);
-}
-
-::Host* Host_pimpl::
-post_Host ()
-{
-  ::Host* r = this->Host_pimpl_state_.Host_;
-  this->Host_pimpl_state_.Host_ = 0;
-  return r;
-}
-
-// Build_pimpl
-//
-
-void Build_pimpl::
-pre ()
-{
-  this->Build_pimpl_state_.Build_ = ::Build ();
-}
-
-void Build_pimpl::
-Name (const ::std::string& x)
-{
-  this->Build_pimpl_state_.Build_.Name (x);
-}
-
-void Build_pimpl::
-CompilerFlags (const ::std::string& x)
-{
-  this->Build_pimpl_state_.Build_.CompilerFlags (x);
-}
-
-void Build_pimpl::
-LinkerFlags (const ::std::string& x)
-{
-  this->Build_pimpl_state_.Build_.LinkerFlags (x);
-}
-
-::Build Build_pimpl::
-post_Build ()
-{
-  return this->Build_pimpl_state_.Build_;
-}
-
-// Project_pimpl
-//
-
-Project_pimpl::
-Project_pimpl (bool b)
-{
-  this->Project_pimpl_base_ = b;
-  this->Project_pimpl_state_.Project_ = 0;
-}
-
-Project_pimpl::
-~Project_pimpl ()
-{
-  if (!this->Project_pimpl_base_ && this->Project_pimpl_state_.Project_)
-    delete this->Project_pimpl_state_.Project_;
-}
-
-void Project_pimpl::
-_reset ()
-{
-  Project_pskel::_reset ();
-
-  if (!this->Project_pimpl_base_ && this->Project_pimpl_state_.Project_)
+  Host_pimpl::
+  ~Host_pimpl ()
   {
-    delete this->Project_pimpl_state_.Project_;
+    if (!this->Host_pimpl_base_ && this->Host_pimpl_state_.Host_)
+      delete this->Host_pimpl_state_.Host_;
+  }
+
+  void Host_pimpl::
+  _reset ()
+  {
+    Host_pskel::_reset ();
+
+    if (!this->Host_pimpl_base_ && this->Host_pimpl_state_.Host_)
+    {
+      delete this->Host_pimpl_state_.Host_;
+      this->Host_pimpl_state_.Host_ = 0;
+    }
+  }
+
+  void Host_pimpl::
+  pre_impl (::egxml::Host* x)
+  {
+    this->Host_pimpl_state_.Host_ = x;
+    this->base_impl_.pre_impl (x);
+  }
+
+  void Host_pimpl::
+  pre ()
+  {
+    ::egxml::Host* x = new ::egxml::Host;
+    this->pre_impl (x);
+  }
+
+  void Host_pimpl::
+  Command (const ::std::string& x)
+  {
+    this->Host_pimpl_state_.Host_->Command (x);
+  }
+
+  ::egxml::Host* Host_pimpl::
+  post_Host ()
+  {
+    this->base_impl_.post_Package ();
+    ::egxml::Host* r = this->Host_pimpl_state_.Host_;
+    this->Host_pimpl_state_.Host_ = 0;
+    return r;
+  }
+
+  // Build_pimpl
+  //
+
+  void Build_pimpl::
+  pre ()
+  {
+    this->Build_pimpl_state_.Build_ = ::egxml::Build ();
+  }
+
+  void Build_pimpl::
+  Name (const ::std::string& x)
+  {
+    this->Build_pimpl_state_.Build_.Name (x);
+  }
+
+  void Build_pimpl::
+  CompilerFlags (const ::std::string& x)
+  {
+    this->Build_pimpl_state_.Build_.CompilerFlags (x);
+  }
+
+  void Build_pimpl::
+  LinkerFlags (const ::std::string& x)
+  {
+    this->Build_pimpl_state_.Build_.LinkerFlags (x);
+  }
+
+  ::egxml::Build Build_pimpl::
+  post_Build ()
+  {
+    return this->Build_pimpl_state_.Build_;
+  }
+
+  // Project_pimpl
+  //
+
+  Project_pimpl::
+  Project_pimpl (bool b)
+  {
+    this->Project_pimpl_base_ = b;
     this->Project_pimpl_state_.Project_ = 0;
   }
-}
 
-void Project_pimpl::
-pre_impl (::Project* x)
-{
-  this->Project_pimpl_state_.Project_ = x;
-}
-
-void Project_pimpl::
-pre ()
-{
-  ::Project* x = new ::Project;
-  this->pre_impl (x);
-}
-
-void Project_pimpl::
-Name (const ::std::string& x)
-{
-  this->Project_pimpl_state_.Project_->Name (x);
-}
-
-void Project_pimpl::
-Host (::Host* x)
-{
-  this->Project_pimpl_state_.Project_->Host (x);
-}
-
-void Project_pimpl::
-Package (::Package* x)
-{
-  this->Project_pimpl_state_.Project_->Package ().push_back (x);
-}
-
-void Project_pimpl::
-Build (const ::Build& x)
-{
-  this->Project_pimpl_state_.Project_->Build ().push_back (x);
-}
-
-void Project_pimpl::
-Run (::Run* x)
-{
-  this->Project_pimpl_state_.Project_->Run ().push_back (x);
-}
-
-::Project* Project_pimpl::
-post_Project ()
-{
-  ::Project* r = this->Project_pimpl_state_.Project_;
-  this->Project_pimpl_state_.Project_ = 0;
-  return r;
-}
-
-// EG_pimpl
-//
-
-EG_pimpl::
-EG_pimpl (bool b)
-{
-  this->EG_pimpl_base_ = b;
-  this->EG_pimpl_state_.EG_ = 0;
-}
-
-EG_pimpl::
-~EG_pimpl ()
-{
-  if (!this->EG_pimpl_base_ && this->EG_pimpl_state_.EG_)
-    delete this->EG_pimpl_state_.EG_;
-}
-
-void EG_pimpl::
-_reset ()
-{
-  EG_pskel::_reset ();
-
-  if (!this->EG_pimpl_base_ && this->EG_pimpl_state_.EG_)
+  Project_pimpl::
+  ~Project_pimpl ()
   {
-    delete this->EG_pimpl_state_.EG_;
+    if (!this->Project_pimpl_base_ && this->Project_pimpl_state_.Project_)
+      delete this->Project_pimpl_state_.Project_;
+  }
+
+  void Project_pimpl::
+  _reset ()
+  {
+    Project_pskel::_reset ();
+
+    if (!this->Project_pimpl_base_ && this->Project_pimpl_state_.Project_)
+    {
+      delete this->Project_pimpl_state_.Project_;
+      this->Project_pimpl_state_.Project_ = 0;
+    }
+  }
+
+  void Project_pimpl::
+  pre_impl (::egxml::Project* x)
+  {
+    this->Project_pimpl_state_.Project_ = x;
+  }
+
+  void Project_pimpl::
+  pre ()
+  {
+    ::egxml::Project* x = new ::egxml::Project;
+    this->pre_impl (x);
+  }
+
+  void Project_pimpl::
+  Name (const ::std::string& x)
+  {
+    this->Project_pimpl_state_.Project_->Name (x);
+  }
+
+  void Project_pimpl::
+  Host (::egxml::Host* x)
+  {
+    this->Project_pimpl_state_.Project_->Host (x);
+  }
+
+  void Project_pimpl::
+  Package (::egxml::Package* x)
+  {
+    this->Project_pimpl_state_.Project_->Package ().push_back (x);
+  }
+
+  void Project_pimpl::
+  Build (const ::egxml::Build& x)
+  {
+    this->Project_pimpl_state_.Project_->Build ().push_back (x);
+  }
+
+  void Project_pimpl::
+  Run (::egxml::Run* x)
+  {
+    this->Project_pimpl_state_.Project_->Run ().push_back (x);
+  }
+
+  ::egxml::Project* Project_pimpl::
+  post_Project ()
+  {
+    ::egxml::Project* r = this->Project_pimpl_state_.Project_;
+    this->Project_pimpl_state_.Project_ = 0;
+    return r;
+  }
+
+  // EG_pimpl
+  //
+
+  EG_pimpl::
+  EG_pimpl (bool b)
+  {
+    this->EG_pimpl_base_ = b;
     this->EG_pimpl_state_.EG_ = 0;
   }
-}
 
-void EG_pimpl::
-pre_impl (::EG* x)
-{
-  this->EG_pimpl_state_.EG_ = x;
-}
-
-void EG_pimpl::
-pre ()
-{
-  ::EG* x = new ::EG;
-  this->pre_impl (x);
-}
-
-void EG_pimpl::
-choice_arm (choice_arm_tag t)
-{
-  this->EG_pimpl_state_.EG_->choice_arm (
-    static_cast< ::EG::choice_arm_tag > (t));
-}
-
-void EG_pimpl::
-Package (::Package* x)
-{
-  this->EG_pimpl_state_.EG_->Package (x);
-}
-
-void EG_pimpl::
-Host (::Host* x)
-{
-  this->EG_pimpl_state_.EG_->Host (x);
-}
-
-void EG_pimpl::
-Project (::Project* x)
-{
-  this->EG_pimpl_state_.EG_->Project (x);
-}
-
-::EG* EG_pimpl::
-post_EG ()
-{
-  ::EG* r = this->EG_pimpl_state_.EG_;
-  this->EG_pimpl_state_.EG_ = 0;
-  return r;
-}
-
-// Directories_pimpl
-//
-
-Directories_pimpl::
-Directories_pimpl (bool b)
-{
-  this->Directories_pimpl_base_ = b;
-  this->Directories_pimpl_state_.Directories_ = 0;
-}
-
-Directories_pimpl::
-~Directories_pimpl ()
-{
-  if (!this->Directories_pimpl_base_ && this->Directories_pimpl_state_.Directories_)
-    delete this->Directories_pimpl_state_.Directories_;
-}
-
-void Directories_pimpl::
-_reset ()
-{
-  Directories_pskel::_reset ();
-
-  if (!this->Directories_pimpl_base_ && this->Directories_pimpl_state_.Directories_)
+  EG_pimpl::
+  ~EG_pimpl ()
   {
-    delete this->Directories_pimpl_state_.Directories_;
+    if (!this->EG_pimpl_base_ && this->EG_pimpl_state_.EG_)
+      delete this->EG_pimpl_state_.EG_;
+  }
+
+  void EG_pimpl::
+  _reset ()
+  {
+    EG_pskel::_reset ();
+
+    if (!this->EG_pimpl_base_ && this->EG_pimpl_state_.EG_)
+    {
+      delete this->EG_pimpl_state_.EG_;
+      this->EG_pimpl_state_.EG_ = 0;
+    }
+  }
+
+  void EG_pimpl::
+  pre_impl (::egxml::EG* x)
+  {
+    this->EG_pimpl_state_.EG_ = x;
+  }
+
+  void EG_pimpl::
+  pre ()
+  {
+    ::egxml::EG* x = new ::egxml::EG;
+    this->pre_impl (x);
+  }
+
+  void EG_pimpl::
+  choice_arm (choice_arm_tag t)
+  {
+    this->EG_pimpl_state_.EG_->choice_arm (
+      static_cast< ::egxml::EG::choice_arm_tag > (t));
+  }
+
+  void EG_pimpl::
+  Package (::egxml::Package* x)
+  {
+    this->EG_pimpl_state_.EG_->Package (x);
+  }
+
+  void EG_pimpl::
+  Host (::egxml::Host* x)
+  {
+    this->EG_pimpl_state_.EG_->Host (x);
+  }
+
+  void EG_pimpl::
+  Project (::egxml::Project* x)
+  {
+    this->EG_pimpl_state_.EG_->Project (x);
+  }
+
+  ::egxml::EG* EG_pimpl::
+  post_EG ()
+  {
+    ::egxml::EG* r = this->EG_pimpl_state_.EG_;
+    this->EG_pimpl_state_.EG_ = 0;
+    return r;
+  }
+
+  // Directories_pimpl
+  //
+
+  Directories_pimpl::
+  Directories_pimpl (bool b)
+  {
+    this->Directories_pimpl_base_ = b;
     this->Directories_pimpl_state_.Directories_ = 0;
   }
-}
 
-void Directories_pimpl::
-pre_impl (::Directories* x)
-{
-  this->Directories_pimpl_state_.Directories_ = x;
-}
-
-void Directories_pimpl::
-pre ()
-{
-  ::Directories* x = new ::Directories;
-  this->pre_impl (x);
-}
-
-void Directories_pimpl::
-Include (const ::std::string& x)
-{
-  this->Directories_pimpl_state_.Directories_->Include ().push_back (x);
-}
-
-void Directories_pimpl::
-Library (const ::std::string& x)
-{
-  this->Directories_pimpl_state_.Directories_->Library ().push_back (x);
-}
-
-::Directories* Directories_pimpl::
-post_Directories ()
-{
-  ::Directories* r = this->Directories_pimpl_state_.Directories_;
-  this->Directories_pimpl_state_.Directories_ = 0;
-  return r;
-}
-
-// Files_pimpl
-//
-
-Files_pimpl::
-Files_pimpl (bool b)
-{
-  this->Files_pimpl_base_ = b;
-  this->Files_pimpl_state_.Files_ = 0;
-}
-
-Files_pimpl::
-~Files_pimpl ()
-{
-  if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
-    delete this->Files_pimpl_state_.Files_;
-}
-
-void Files_pimpl::
-_reset ()
-{
-  Files_pskel::_reset ();
-
-  if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
+  Directories_pimpl::
+  ~Directories_pimpl ()
   {
-    delete this->Files_pimpl_state_.Files_;
+    if (!this->Directories_pimpl_base_ && this->Directories_pimpl_state_.Directories_)
+      delete this->Directories_pimpl_state_.Directories_;
+  }
+
+  void Directories_pimpl::
+  _reset ()
+  {
+    Directories_pskel::_reset ();
+
+    if (!this->Directories_pimpl_base_ && this->Directories_pimpl_state_.Directories_)
+    {
+      delete this->Directories_pimpl_state_.Directories_;
+      this->Directories_pimpl_state_.Directories_ = 0;
+    }
+  }
+
+  void Directories_pimpl::
+  pre_impl (::egxml::Directories* x)
+  {
+    this->Directories_pimpl_state_.Directories_ = x;
+  }
+
+  void Directories_pimpl::
+  pre ()
+  {
+    ::egxml::Directories* x = new ::egxml::Directories;
+    this->pre_impl (x);
+  }
+
+  void Directories_pimpl::
+  Include (const ::std::string& x)
+  {
+    this->Directories_pimpl_state_.Directories_->Include ().push_back (x);
+  }
+
+  void Directories_pimpl::
+  Library (const ::std::string& x)
+  {
+    this->Directories_pimpl_state_.Directories_->Library ().push_back (x);
+  }
+
+  ::egxml::Directories* Directories_pimpl::
+  post_Directories ()
+  {
+    ::egxml::Directories* r = this->Directories_pimpl_state_.Directories_;
+    this->Directories_pimpl_state_.Directories_ = 0;
+    return r;
+  }
+
+  // Files_pimpl
+  //
+
+  Files_pimpl::
+  Files_pimpl (bool b)
+  {
+    this->Files_pimpl_base_ = b;
     this->Files_pimpl_state_.Files_ = 0;
   }
-}
 
-void Files_pimpl::
-pre_impl (::Files* x)
-{
-  this->Files_pimpl_state_.Files_ = x;
-}
-
-void Files_pimpl::
-pre ()
-{
-  ::Files* x = new ::Files;
-  this->pre_impl (x);
-}
-
-void Files_pimpl::
-Include (const ::std::string& x)
-{
-  this->Files_pimpl_state_.Files_->Include ().push_back (x);
-}
-
-void Files_pimpl::
-Library (const ::std::string& x)
-{
-  this->Files_pimpl_state_.Files_->Library ().push_back (x);
-}
-
-::Files* Files_pimpl::
-post_Files ()
-{
-  ::Files* r = this->Files_pimpl_state_.Files_;
-  this->Files_pimpl_state_.Files_ = 0;
-  return r;
-}
-
-// Directories1_pimpl
-//
-
-Directories1_pimpl::
-Directories1_pimpl (bool b)
-{
-  this->Directories1_pimpl_base_ = b;
-  this->Directories1_pimpl_state_.Directories1_ = 0;
-}
-
-Directories1_pimpl::
-~Directories1_pimpl ()
-{
-  if (!this->Directories1_pimpl_base_ && this->Directories1_pimpl_state_.Directories1_)
-    delete this->Directories1_pimpl_state_.Directories1_;
-}
-
-void Directories1_pimpl::
-_reset ()
-{
-  Directories1_pskel::_reset ();
-
-  if (!this->Directories1_pimpl_base_ && this->Directories1_pimpl_state_.Directories1_)
+  Files_pimpl::
+  ~Files_pimpl ()
   {
-    delete this->Directories1_pimpl_state_.Directories1_;
-    this->Directories1_pimpl_state_.Directories1_ = 0;
+    if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
+      delete this->Files_pimpl_state_.Files_;
   }
-}
 
-void Directories1_pimpl::
-pre_impl (::Directories1* x)
-{
-  this->Directories1_pimpl_state_.Directories1_ = x;
-}
-
-void Directories1_pimpl::
-pre ()
-{
-  ::Directories1* x = new ::Directories1;
-  this->pre_impl (x);
-}
-
-void Directories1_pimpl::
-Include (const ::std::string& x)
-{
-  this->Directories1_pimpl_state_.Directories1_->Include ().push_back (x);
-}
-
-void Directories1_pimpl::
-Library (const ::std::string& x)
-{
-  this->Directories1_pimpl_state_.Directories1_->Library ().push_back (x);
-}
-
-::Directories1* Directories1_pimpl::
-post_Directories1 ()
-{
-  ::Directories1* r = this->Directories1_pimpl_state_.Directories1_;
-  this->Directories1_pimpl_state_.Directories1_ = 0;
-  return r;
-}
-
-// Files1_pimpl
-//
-
-Files1_pimpl::
-Files1_pimpl (bool b)
-{
-  this->Files1_pimpl_base_ = b;
-  this->Files1_pimpl_state_.Files1_ = 0;
-}
-
-Files1_pimpl::
-~Files1_pimpl ()
-{
-  if (!this->Files1_pimpl_base_ && this->Files1_pimpl_state_.Files1_)
-    delete this->Files1_pimpl_state_.Files1_;
-}
-
-void Files1_pimpl::
-_reset ()
-{
-  Files1_pskel::_reset ();
-
-  if (!this->Files1_pimpl_base_ && this->Files1_pimpl_state_.Files1_)
+  void Files_pimpl::
+  _reset ()
   {
-    delete this->Files1_pimpl_state_.Files1_;
-    this->Files1_pimpl_state_.Files1_ = 0;
+    Files_pskel::_reset ();
+
+    if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
+    {
+      delete this->Files_pimpl_state_.Files_;
+      this->Files_pimpl_state_.Files_ = 0;
+    }
   }
-}
 
-void Files1_pimpl::
-pre_impl (::Files1* x)
-{
-  this->Files1_pimpl_state_.Files1_ = x;
-}
-
-void Files1_pimpl::
-pre ()
-{
-  ::Files1* x = new ::Files1;
-  this->pre_impl (x);
-}
-
-void Files1_pimpl::
-Include (const ::std::string& x)
-{
-  this->Files1_pimpl_state_.Files1_->Include ().push_back (x);
-}
-
-void Files1_pimpl::
-Library (const ::std::string& x)
-{
-  this->Files1_pimpl_state_.Files1_->Library ().push_back (x);
-}
-
-::Files1* Files1_pimpl::
-post_Files1 ()
-{
-  ::Files1* r = this->Files1_pimpl_state_.Files1_;
-  this->Files1_pimpl_state_.Files1_ = 0;
-  return r;
-}
-
-// Run_pimpl
-//
-
-Run_pimpl::
-Run_pimpl (bool b)
-{
-  this->Run_pimpl_base_ = b;
-  this->Run_pimpl_state_.Run_ = 0;
-}
-
-Run_pimpl::
-~Run_pimpl ()
-{
-  if (!this->Run_pimpl_base_ && this->Run_pimpl_state_.Run_)
-    delete this->Run_pimpl_state_.Run_;
-}
-
-void Run_pimpl::
-_reset ()
-{
-  Run_pskel::_reset ();
-
-  if (!this->Run_pimpl_base_ && this->Run_pimpl_state_.Run_)
+  void Files_pimpl::
+  pre_impl (::egxml::Files* x)
   {
-    delete this->Run_pimpl_state_.Run_;
+    this->Files_pimpl_state_.Files_ = x;
+  }
+
+  void Files_pimpl::
+  pre ()
+  {
+    ::egxml::Files* x = new ::egxml::Files;
+    this->pre_impl (x);
+  }
+
+  void Files_pimpl::
+  System (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->System ().push_back (x);
+  }
+
+  void Files_pimpl::
+  User (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->User ().push_back (x);
+  }
+
+  void Files_pimpl::
+  Library (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->Library ().push_back (x);
+  }
+
+  ::egxml::Files* Files_pimpl::
+  post_Files ()
+  {
+    ::egxml::Files* r = this->Files_pimpl_state_.Files_;
+    this->Files_pimpl_state_.Files_ = 0;
+    return r;
+  }
+
+  // Run_pimpl
+  //
+
+  Run_pimpl::
+  Run_pimpl (bool b)
+  {
+    this->Run_pimpl_base_ = b;
     this->Run_pimpl_state_.Run_ = 0;
   }
+
+  Run_pimpl::
+  ~Run_pimpl ()
+  {
+    if (!this->Run_pimpl_base_ && this->Run_pimpl_state_.Run_)
+      delete this->Run_pimpl_state_.Run_;
+  }
+
+  void Run_pimpl::
+  _reset ()
+  {
+    Run_pskel::_reset ();
+
+    if (!this->Run_pimpl_base_ && this->Run_pimpl_state_.Run_)
+    {
+      delete this->Run_pimpl_state_.Run_;
+      this->Run_pimpl_state_.Run_ = 0;
+    }
+  }
+
+  void Run_pimpl::
+  pre_impl (::egxml::Run* x)
+  {
+    this->Run_pimpl_state_.Run_ = x;
+  }
+
+  void Run_pimpl::
+  pre ()
+  {
+    ::egxml::Run* x = new ::egxml::Run;
+    this->pre_impl (x);
+  }
+
+  void Run_pimpl::
+  Name (const ::std::string& x)
+  {
+    this->Run_pimpl_state_.Run_->Name (x);
+  }
+
+  void Run_pimpl::
+  Argument (const ::std::string& x)
+  {
+    this->Run_pimpl_state_.Run_->Argument ().push_back (x);
+  }
+
+  ::egxml::Run* Run_pimpl::
+  post_Run ()
+  {
+    ::egxml::Run* r = this->Run_pimpl_state_.Run_;
+    this->Run_pimpl_state_.Run_ = 0;
+    return r;
+  }
 }
 
-void Run_pimpl::
-pre_impl (::Run* x)
+namespace egxml
 {
-  this->Run_pimpl_state_.Run_ = x;
-}
+  // EG_paggr
+  //
 
-void Run_pimpl::
-pre ()
-{
-  ::Run* x = new ::Run;
-  this->pre_impl (x);
-}
+  EG_paggr::
+  EG_paggr ()
+  {
+    this->EG_p_.parsers (this->Package_p_,
+                         this->Host_p_,
+                         this->Project_p_);
 
-void Run_pimpl::
-Name (const ::std::string& x)
-{
-  this->Run_pimpl_state_.Run_->Name (x);
-}
+    this->Package_p_.parsers (this->string_p_,
+                              this->string_p_,
+                              this->string_p_,
+                              this->string_p_,
+                              this->Directories_p_,
+                              this->Files_p_);
 
-void Run_pimpl::
-Argument (const ::std::string& x)
-{
-  this->Run_pimpl_state_.Run_->Argument ().push_back (x);
-}
+    this->Files_p_.parsers (this->string_p_,
+                            this->string_p_,
+                            this->string_p_);
 
-::Run* Run_pimpl::
-post_Run ()
-{
-  ::Run* r = this->Run_pimpl_state_.Run_;
-  this->Run_pimpl_state_.Run_ = 0;
-  return r;
-}
-
-// EG_paggr
-//
-
-EG_paggr::
-EG_paggr ()
-{
-  this->Build_p_.parsers (this->string_p_,
-                          this->string_p_,
-                          this->string_p_);
-
-  this->Run_p_.parsers (this->string_p_,
-                        this->string_p_);
-
-  this->Directories1_p_.parsers (this->string_p_,
-                                 this->string_p_);
-
-  this->Files1_p_.parsers (this->string_p_,
+    this->Host_p_.parsers (this->string_p_,
+                           this->string_p_,
+                           this->string_p_,
+                           this->string_p_,
+                           this->Directories_p_,
+                           this->Files_p_,
                            this->string_p_);
 
-  this->Project_p_.parsers (this->string_p_,
-                            this->Host_p_,
-                            this->Package_p_,
-                            this->Build_p_,
-                            this->Run_p_);
-
-  this->EG_p_.parsers (this->Package_p_,
-                       this->Host_p_,
-                       this->Project_p_);
-
-  this->Package_p_.parsers (this->string_p_,
+    this->Build_p_.parsers (this->string_p_,
                             this->string_p_,
-                            this->string_p_,
-                            this->string_p_,
-                            this->Directories_p_,
-                            this->Files_p_);
+                            this->string_p_);
 
-  this->Directories_p_.parsers (this->string_p_,
-                                this->string_p_);
-
-  this->Files_p_.parsers (this->string_p_,
+    this->Run_p_.parsers (this->string_p_,
                           this->string_p_);
 
-  this->Host_p_.parsers (this->string_p_,
-                         this->string_p_,
-                         this->string_p_,
-                         this->string_p_,
-                         this->string_p_,
-                         this->Directories1_p_,
-                         this->Files1_p_);
-}
+    this->Project_p_.parsers (this->string_p_,
+                              this->Host_p_,
+                              this->Package_p_,
+                              this->Build_p_,
+                              this->Run_p_);
 
-const char* EG_paggr::
-root_name ()
-{
-  return "EG";
-}
+    this->Directories_p_.parsers (this->string_p_,
+                                  this->string_p_);
+  }
 
-const char* EG_paggr::
-root_namespace ()
-{
-  return "";
+  const char* EG_paggr::
+  root_name ()
+  {
+    return "EG";
+  }
+
+  const char* EG_paggr::
+  root_namespace ()
+  {
+    return "";
+  }
 }
 
 // Begin epilogue.

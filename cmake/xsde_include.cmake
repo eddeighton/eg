@@ -17,10 +17,10 @@ function( link_xsde targetname )
     target_link_libraries( ${targetname} optimized ${XSDE_RELEASE_LIB} debug ${XSDE_DEBUG_LIB} )
 endfunction( link_xsde )
 
-function( compile_schema schema output_directory )
+function( compile_schema schema nmspace output_directory )
 
     add_custom_command( COMMAND ${XSDE_EXECUTABLE} 
-        ARGS "cxx-hybrid" --generate-parser --generate-serializer --generate-aggregate --no-long-long --output-dir ${output_directory} ${schema}
+        ARGS "cxx-hybrid" --generate-parser --generate-serializer --generate-aggregate --no-long-long --namespace-map =${nmspace} --output-dir ${output_directory} ${schema}
         MAIN_DEPENDENCY ${schema}
         OUTPUT 
         ${output_directory}/schema.hxx

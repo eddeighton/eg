@@ -30,7 +30,8 @@
 			<xs:element name="Files" minOccurs="0">
 				<xs:complexType>
 					<xs:sequence>
-						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="System" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="User" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
 				</xs:complexType>
@@ -38,29 +39,13 @@
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="Host">
-		<xs:sequence>
-			<xs:element name="Name" type="xs:string"/>
-			<xs:element name="Command" type="xs:string"/>
-			<xs:element name="Repository" type="xs:string" minOccurs="0"/>
-			<xs:element name="License" type="xs:string"/>
-			<xs:element name="Description" type="xs:string" minOccurs="0"/>
-			<xs:element name="Directories" minOccurs="0">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-			<xs:element name="Files" minOccurs="0">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
-		</xs:sequence>
+		<xs:complexContent>
+			<xs:extension base="Package">
+				<xs:sequence>
+					<xs:element name="Command" type="xs:string"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="Project">
 		<xs:sequence>

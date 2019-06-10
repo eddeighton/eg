@@ -164,654 +164,496 @@ namespace xml_schema
   using ::xsde::cxx::hybrid::data_sequence;
 }
 
-class Package;
-class Host;
-class Build;
-class Project;
-class EG;
-class Directories;
-class Files;
-class Directories1;
-class Files1;
-class Run;
-
-// Package (variable-length)
-//
-class Package
+namespace egxml
 {
-  private:
-  Package (const Package&);
-  Package& operator= (const Package&);
+  class Package;
+  class Host;
+  class Build;
+  class Project;
+  class EG;
+  class Directories;
+  class Files;
+  class Run;
+}
 
-  public:
-  Package ();
 
-  ~Package ();
-
-  // Name
-  //
-  const ::std::string&
-  Name () const;
-
-  ::std::string&
-  Name ();
-
-  void
-  Name (const ::std::string&);
-
-  // Repository
-  //
-  bool
-  Repository_present () const;
-
-  void
-  Repository_present (bool);
-
-  const ::std::string&
-  Repository () const;
-
-  ::std::string&
-  Repository ();
-
-  void
-  Repository (const ::std::string&);
-
-  // License
-  //
-  const ::std::string&
-  License () const;
-
-  ::std::string&
-  License ();
-
-  void
-  License (const ::std::string&);
-
-  // Description
-  //
-  bool
-  Description_present () const;
-
-  void
-  Description_present (bool);
-
-  const ::std::string&
-  Description () const;
-
-  ::std::string&
-  Description ();
-
-  void
-  Description (const ::std::string&);
-
-  // Directories
-  //
-  bool
-  Directories_present () const;
-
-  const ::Directories&
-  Directories () const;
-
-  ::Directories&
-  Directories ();
-
-  void
-  Directories (::Directories*);
-
-  // Files
-  //
-  bool
-  Files_present () const;
-
-  const ::Files&
-  Files () const;
-
-  ::Files&
-  Files ();
-
-  void
-  Files (::Files*);
-
-  private:
-  ::std::string Name_;
-  ::std::string Repository_;
-  unsigned char Repository_present_;
-  ::std::string License_;
-  ::std::string Description_;
-  unsigned char Description_present_;
-  ::Directories* Directories_;
-  ::Files* Files_;
-};
-
-// Host (variable-length)
-//
-class Host
+namespace egxml
 {
-  private:
-  Host (const Host&);
-  Host& operator= (const Host&);
-
-  public:
-  Host ();
-
-  ~Host ();
-
-  // Name
+  // Package (variable-length)
   //
-  const ::std::string&
-  Name () const;
-
-  ::std::string&
-  Name ();
-
-  void
-  Name (const ::std::string&);
-
-  // Command
-  //
-  const ::std::string&
-  Command () const;
-
-  ::std::string&
-  Command ();
-
-  void
-  Command (const ::std::string&);
-
-  // Repository
-  //
-  bool
-  Repository_present () const;
-
-  void
-  Repository_present (bool);
-
-  const ::std::string&
-  Repository () const;
-
-  ::std::string&
-  Repository ();
-
-  void
-  Repository (const ::std::string&);
-
-  // License
-  //
-  const ::std::string&
-  License () const;
-
-  ::std::string&
-  License ();
-
-  void
-  License (const ::std::string&);
-
-  // Description
-  //
-  bool
-  Description_present () const;
-
-  void
-  Description_present (bool);
-
-  const ::std::string&
-  Description () const;
-
-  ::std::string&
-  Description ();
-
-  void
-  Description (const ::std::string&);
-
-  // Directories
-  //
-  bool
-  Directories_present () const;
-
-  const ::Directories1&
-  Directories () const;
-
-  ::Directories1&
-  Directories ();
-
-  void
-  Directories (::Directories1*);
-
-  // Files
-  //
-  bool
-  Files_present () const;
-
-  const ::Files1&
-  Files () const;
-
-  ::Files1&
-  Files ();
-
-  void
-  Files (::Files1*);
-
-  private:
-  ::std::string Name_;
-  ::std::string Command_;
-  ::std::string Repository_;
-  unsigned char Repository_present_;
-  ::std::string License_;
-  ::std::string Description_;
-  unsigned char Description_present_;
-  ::Directories1* Directories_;
-  ::Files1* Files_;
-};
-
-// Build (fixed-length)
-//
-class Build
-{
-  public:
-  Build ();
-
-  Build (const Build&);
-  Build& operator= (const Build&);
-
-  ~Build ();
-
-  // Name
-  //
-  const ::std::string&
-  Name () const;
-
-  ::std::string&
-  Name ();
-
-  void
-  Name (const ::std::string&);
-
-  // CompilerFlags
-  //
-  const ::std::string&
-  CompilerFlags () const;
-
-  ::std::string&
-  CompilerFlags ();
-
-  void
-  CompilerFlags (const ::std::string&);
-
-  // LinkerFlags
-  //
-  const ::std::string&
-  LinkerFlags () const;
-
-  ::std::string&
-  LinkerFlags ();
-
-  void
-  LinkerFlags (const ::std::string&);
-
-  private:
-  ::std::string Name_;
-  ::std::string CompilerFlags_;
-  ::std::string LinkerFlags_;
-};
-
-// Project (variable-length)
-//
-class Project
-{
-  private:
-  Project (const Project&);
-  Project& operator= (const Project&);
-
-  public:
-  Project ();
-
-  ~Project ();
-
-  // Name
-  //
-  const ::std::string&
-  Name () const;
-
-  ::std::string&
-  Name ();
-
-  void
-  Name (const ::std::string&);
-
-  // Host
-  //
-  const ::Host&
-  Host () const;
-
-  ::Host&
-  Host ();
-
-  void
-  Host (::Host*);
-
-  // Package
-  //
-  typedef ::xsde::cxx::hybrid::var_sequence< ::Package > Package_sequence;
-  typedef Package_sequence::iterator Package_iterator;
-  typedef Package_sequence::const_iterator Package_const_iterator;
-
-  const Package_sequence&
-  Package () const;
-
-  Package_sequence&
-  Package ();
-
-  // Build
-  //
-  typedef ::xsde::cxx::hybrid::fix_sequence< ::Build > Build_sequence;
-  typedef Build_sequence::iterator Build_iterator;
-  typedef Build_sequence::const_iterator Build_const_iterator;
-
-  const Build_sequence&
-  Build () const;
-
-  Build_sequence&
-  Build ();
-
-  // Run
-  //
-  typedef ::xsde::cxx::hybrid::var_sequence< ::Run > Run_sequence;
-  typedef Run_sequence::iterator Run_iterator;
-  typedef Run_sequence::const_iterator Run_const_iterator;
-
-  const Run_sequence&
-  Run () const;
-
-  Run_sequence&
-  Run ();
-
-  private:
-  ::std::string Name_;
-  ::Host* Host_;
-  Package_sequence Package_;
-  Build_sequence Build_;
-  Run_sequence Run_;
-};
-
-// EG (variable-length)
-//
-class EG
-{
-  private:
-  EG (const EG&);
-  EG& operator= (const EG&);
-
-  public:
-  EG ();
-
-  ~EG ();
-
-  // choice
-  //
-  enum choice_arm_tag
+  class Package
   {
-    Package_tag,
-    Host_tag,
-    Project_tag
+    private:
+    Package (const Package&);
+    Package& operator= (const Package&);
+
+    public:
+    Package ();
+
+    ~Package ();
+
+    // Name
+    //
+    const ::std::string&
+    Name () const;
+
+    ::std::string&
+    Name ();
+
+    void
+    Name (const ::std::string&);
+
+    // Repository
+    //
+    bool
+    Repository_present () const;
+
+    void
+    Repository_present (bool);
+
+    const ::std::string&
+    Repository () const;
+
+    ::std::string&
+    Repository ();
+
+    void
+    Repository (const ::std::string&);
+
+    // License
+    //
+    const ::std::string&
+    License () const;
+
+    ::std::string&
+    License ();
+
+    void
+    License (const ::std::string&);
+
+    // Description
+    //
+    bool
+    Description_present () const;
+
+    void
+    Description_present (bool);
+
+    const ::std::string&
+    Description () const;
+
+    ::std::string&
+    Description ();
+
+    void
+    Description (const ::std::string&);
+
+    // Directories
+    //
+    bool
+    Directories_present () const;
+
+    const ::egxml::Directories&
+    Directories () const;
+
+    ::egxml::Directories&
+    Directories ();
+
+    void
+    Directories (::egxml::Directories*);
+
+    // Files
+    //
+    bool
+    Files_present () const;
+
+    const ::egxml::Files&
+    Files () const;
+
+    ::egxml::Files&
+    Files ();
+
+    void
+    Files (::egxml::Files*);
+
+    private:
+    ::std::string Name_;
+    ::std::string Repository_;
+    unsigned char Repository_present_;
+    ::std::string License_;
+    ::std::string Description_;
+    unsigned char Description_present_;
+    ::egxml::Directories* Directories_;
+    ::egxml::Files* Files_;
   };
 
-  choice_arm_tag
-  choice_arm () const;
-
-  void
-  choice_arm (choice_arm_tag);
-
-  // Package
+  // Host (variable-length)
   //
-  const ::Package&
-  Package () const;
-
-  ::Package&
-  Package ();
-
-  void
-  Package (::Package*);
-
-  // Host
-  //
-  const ::Host&
-  Host () const;
-
-  ::Host&
-  Host ();
-
-  void
-  Host (::Host*);
-
-  // Project
-  //
-  const ::Project&
-  Project () const;
-
-  ::Project&
-  Project ();
-
-  void
-  Project (::Project*);
-
-  private:
-  union
+  class Host: public ::egxml::Package
   {
-    ::Package* Package_;
-    ::Host* Host_;
-    ::Project* Project_;
-  } choice_;
-  choice_arm_tag choice_arm_;
-};
+    private:
+    Host (const Host&);
+    Host& operator= (const Host&);
 
-// Directories (variable-length)
-//
-class Directories
-{
-  private:
-  Directories (const Directories&);
-  Directories& operator= (const Directories&);
+    public:
+    Host ();
 
-  public:
-  Directories ();
+    ~Host ();
 
-  ~Directories ();
+    // Command
+    //
+    const ::std::string&
+    Command () const;
 
-  // Include
+    ::std::string&
+    Command ();
+
+    void
+    Command (const ::std::string&);
+
+    private:
+    ::std::string Command_;
+  };
+
+  // Build (fixed-length)
   //
-  typedef ::xsde::cxx::string_sequence Include_sequence;
-  typedef Include_sequence::iterator Include_iterator;
-  typedef Include_sequence::const_iterator Include_const_iterator;
+  class Build
+  {
+    public:
+    Build ();
 
-  const Include_sequence&
-  Include () const;
+    Build (const Build&);
+    Build& operator= (const Build&);
 
-  Include_sequence&
-  Include ();
+    ~Build ();
 
-  // Library
+    // Name
+    //
+    const ::std::string&
+    Name () const;
+
+    ::std::string&
+    Name ();
+
+    void
+    Name (const ::std::string&);
+
+    // CompilerFlags
+    //
+    const ::std::string&
+    CompilerFlags () const;
+
+    ::std::string&
+    CompilerFlags ();
+
+    void
+    CompilerFlags (const ::std::string&);
+
+    // LinkerFlags
+    //
+    const ::std::string&
+    LinkerFlags () const;
+
+    ::std::string&
+    LinkerFlags ();
+
+    void
+    LinkerFlags (const ::std::string&);
+
+    private:
+    ::std::string Name_;
+    ::std::string CompilerFlags_;
+    ::std::string LinkerFlags_;
+  };
+
+  // Project (variable-length)
   //
-  typedef ::xsde::cxx::string_sequence Library_sequence;
-  typedef Library_sequence::iterator Library_iterator;
-  typedef Library_sequence::const_iterator Library_const_iterator;
+  class Project
+  {
+    private:
+    Project (const Project&);
+    Project& operator= (const Project&);
 
-  const Library_sequence&
-  Library () const;
+    public:
+    Project ();
 
-  Library_sequence&
-  Library ();
+    ~Project ();
 
-  private:
-  Include_sequence Include_;
-  Library_sequence Library_;
-};
+    // Name
+    //
+    const ::std::string&
+    Name () const;
 
-// Files (variable-length)
-//
-class Files
-{
-  private:
-  Files (const Files&);
-  Files& operator= (const Files&);
+    ::std::string&
+    Name ();
 
-  public:
-  Files ();
+    void
+    Name (const ::std::string&);
 
-  ~Files ();
+    // Host
+    //
+    const ::egxml::Host&
+    Host () const;
 
-  // Include
+    ::egxml::Host&
+    Host ();
+
+    void
+    Host (::egxml::Host*);
+
+    // Package
+    //
+    typedef ::xsde::cxx::hybrid::var_sequence< ::egxml::Package > Package_sequence;
+    typedef Package_sequence::iterator Package_iterator;
+    typedef Package_sequence::const_iterator Package_const_iterator;
+
+    const Package_sequence&
+    Package () const;
+
+    Package_sequence&
+    Package ();
+
+    // Build
+    //
+    typedef ::xsde::cxx::hybrid::fix_sequence< ::egxml::Build > Build_sequence;
+    typedef Build_sequence::iterator Build_iterator;
+    typedef Build_sequence::const_iterator Build_const_iterator;
+
+    const Build_sequence&
+    Build () const;
+
+    Build_sequence&
+    Build ();
+
+    // Run
+    //
+    typedef ::xsde::cxx::hybrid::var_sequence< ::egxml::Run > Run_sequence;
+    typedef Run_sequence::iterator Run_iterator;
+    typedef Run_sequence::const_iterator Run_const_iterator;
+
+    const Run_sequence&
+    Run () const;
+
+    Run_sequence&
+    Run ();
+
+    private:
+    ::std::string Name_;
+    ::egxml::Host* Host_;
+    Package_sequence Package_;
+    Build_sequence Build_;
+    Run_sequence Run_;
+  };
+
+  // EG (variable-length)
   //
-  typedef ::xsde::cxx::string_sequence Include_sequence;
-  typedef Include_sequence::iterator Include_iterator;
-  typedef Include_sequence::const_iterator Include_const_iterator;
+  class EG
+  {
+    private:
+    EG (const EG&);
+    EG& operator= (const EG&);
 
-  const Include_sequence&
-  Include () const;
+    public:
+    EG ();
 
-  Include_sequence&
-  Include ();
+    ~EG ();
 
-  // Library
+    // choice
+    //
+    enum choice_arm_tag
+    {
+      Package_tag,
+      Host_tag,
+      Project_tag
+    };
+
+    choice_arm_tag
+    choice_arm () const;
+
+    void
+    choice_arm (choice_arm_tag);
+
+    // Package
+    //
+    const ::egxml::Package&
+    Package () const;
+
+    ::egxml::Package&
+    Package ();
+
+    void
+    Package (::egxml::Package*);
+
+    // Host
+    //
+    const ::egxml::Host&
+    Host () const;
+
+    ::egxml::Host&
+    Host ();
+
+    void
+    Host (::egxml::Host*);
+
+    // Project
+    //
+    const ::egxml::Project&
+    Project () const;
+
+    ::egxml::Project&
+    Project ();
+
+    void
+    Project (::egxml::Project*);
+
+    private:
+    union
+    {
+      ::egxml::Package* Package_;
+      ::egxml::Host* Host_;
+      ::egxml::Project* Project_;
+    } choice_;
+    choice_arm_tag choice_arm_;
+  };
+
+  // Directories (variable-length)
   //
-  typedef ::xsde::cxx::string_sequence Library_sequence;
-  typedef Library_sequence::iterator Library_iterator;
-  typedef Library_sequence::const_iterator Library_const_iterator;
+  class Directories
+  {
+    private:
+    Directories (const Directories&);
+    Directories& operator= (const Directories&);
 
-  const Library_sequence&
-  Library () const;
+    public:
+    Directories ();
 
-  Library_sequence&
-  Library ();
+    ~Directories ();
 
-  private:
-  Include_sequence Include_;
-  Library_sequence Library_;
-};
+    // Include
+    //
+    typedef ::xsde::cxx::string_sequence Include_sequence;
+    typedef Include_sequence::iterator Include_iterator;
+    typedef Include_sequence::const_iterator Include_const_iterator;
 
-// Directories1 (variable-length)
-//
-class Directories1
-{
-  private:
-  Directories1 (const Directories1&);
-  Directories1& operator= (const Directories1&);
+    const Include_sequence&
+    Include () const;
 
-  public:
-  Directories1 ();
+    Include_sequence&
+    Include ();
 
-  ~Directories1 ();
+    // Library
+    //
+    typedef ::xsde::cxx::string_sequence Library_sequence;
+    typedef Library_sequence::iterator Library_iterator;
+    typedef Library_sequence::const_iterator Library_const_iterator;
 
-  // Include
+    const Library_sequence&
+    Library () const;
+
+    Library_sequence&
+    Library ();
+
+    private:
+    Include_sequence Include_;
+    Library_sequence Library_;
+  };
+
+  // Files (variable-length)
   //
-  typedef ::xsde::cxx::string_sequence Include_sequence;
-  typedef Include_sequence::iterator Include_iterator;
-  typedef Include_sequence::const_iterator Include_const_iterator;
+  class Files
+  {
+    private:
+    Files (const Files&);
+    Files& operator= (const Files&);
 
-  const Include_sequence&
-  Include () const;
+    public:
+    Files ();
 
-  Include_sequence&
-  Include ();
+    ~Files ();
 
-  // Library
+    // System
+    //
+    typedef ::xsde::cxx::string_sequence System_sequence;
+    typedef System_sequence::iterator System_iterator;
+    typedef System_sequence::const_iterator System_const_iterator;
+
+    const System_sequence&
+    System () const;
+
+    System_sequence&
+    System ();
+
+    // User
+    //
+    typedef ::xsde::cxx::string_sequence User_sequence;
+    typedef User_sequence::iterator User_iterator;
+    typedef User_sequence::const_iterator User_const_iterator;
+
+    const User_sequence&
+    User () const;
+
+    User_sequence&
+    User ();
+
+    // Library
+    //
+    typedef ::xsde::cxx::string_sequence Library_sequence;
+    typedef Library_sequence::iterator Library_iterator;
+    typedef Library_sequence::const_iterator Library_const_iterator;
+
+    const Library_sequence&
+    Library () const;
+
+    Library_sequence&
+    Library ();
+
+    private:
+    System_sequence System_;
+    User_sequence User_;
+    Library_sequence Library_;
+  };
+
+  // Run (variable-length)
   //
-  typedef ::xsde::cxx::string_sequence Library_sequence;
-  typedef Library_sequence::iterator Library_iterator;
-  typedef Library_sequence::const_iterator Library_const_iterator;
+  class Run
+  {
+    private:
+    Run (const Run&);
+    Run& operator= (const Run&);
 
-  const Library_sequence&
-  Library () const;
+    public:
+    Run ();
 
-  Library_sequence&
-  Library ();
+    ~Run ();
 
-  private:
-  Include_sequence Include_;
-  Library_sequence Library_;
-};
+    // Name
+    //
+    const ::std::string&
+    Name () const;
 
-// Files1 (variable-length)
-//
-class Files1
-{
-  private:
-  Files1 (const Files1&);
-  Files1& operator= (const Files1&);
+    ::std::string&
+    Name ();
 
-  public:
-  Files1 ();
+    void
+    Name (const ::std::string&);
 
-  ~Files1 ();
+    // Argument
+    //
+    typedef ::xsde::cxx::string_sequence Argument_sequence;
+    typedef Argument_sequence::iterator Argument_iterator;
+    typedef Argument_sequence::const_iterator Argument_const_iterator;
 
-  // Include
-  //
-  typedef ::xsde::cxx::string_sequence Include_sequence;
-  typedef Include_sequence::iterator Include_iterator;
-  typedef Include_sequence::const_iterator Include_const_iterator;
+    const Argument_sequence&
+    Argument () const;
 
-  const Include_sequence&
-  Include () const;
+    Argument_sequence&
+    Argument ();
 
-  Include_sequence&
-  Include ();
-
-  // Library
-  //
-  typedef ::xsde::cxx::string_sequence Library_sequence;
-  typedef Library_sequence::iterator Library_iterator;
-  typedef Library_sequence::const_iterator Library_const_iterator;
-
-  const Library_sequence&
-  Library () const;
-
-  Library_sequence&
-  Library ();
-
-  private:
-  Include_sequence Include_;
-  Library_sequence Library_;
-};
-
-// Run (variable-length)
-//
-class Run
-{
-  private:
-  Run (const Run&);
-  Run& operator= (const Run&);
-
-  public:
-  Run ();
-
-  ~Run ();
-
-  // Name
-  //
-  const ::std::string&
-  Name () const;
-
-  ::std::string&
-  Name ();
-
-  void
-  Name (const ::std::string&);
-
-  // Argument
-  //
-  typedef ::xsde::cxx::string_sequence Argument_sequence;
-  typedef Argument_sequence::iterator Argument_iterator;
-  typedef Argument_sequence::const_iterator Argument_const_iterator;
-
-  const Argument_sequence&
-  Argument () const;
-
-  Argument_sequence&
-  Argument ();
-
-  private:
-  ::std::string Name_;
-  Argument_sequence Argument_;
-};
+    private:
+    ::std::string Name_;
+    Argument_sequence Argument_;
+  };
+}
 
 // Begin epilogue.
 //

@@ -27,149 +27,155 @@
 
 #include <xsde/cxx/parser/validating/string-common.hxx>
 
-// name_pimpl
-//
-
-name_pimpl::
-name_pimpl ()
-: name_pskel (&base_impl_)
+namespace test
 {
-}
+  // name_pimpl
+  //
 
-void name_pimpl::
-pre ()
-{
-  this->base_impl_.pre ();
-  this->name_pimpl_state_.name_ = ::name ();
-}
-
-::name name_pimpl::
-post_name ()
-{
-  static_cast< ::std::string& > (this->name_pimpl_state_.name_) = 
-  this->base_impl_.post_string ();
-  return this->name_pimpl_state_.name_;
-}
-
-// Config_pimpl
-//
-
-void Config_pimpl::
-pre ()
-{
-  this->Config_pimpl_state_.Config_ = ::Config ();
-}
-
-void Config_pimpl::
-name (const ::name& x)
-{
-  this->Config_pimpl_state_.Config_.name (x);
-}
-
-void Config_pimpl::
-file (bool x)
-{
-  this->Config_pimpl_state_.Config_.file (x);
-}
-
-::Config Config_pimpl::
-post_Config ()
-{
-  return this->Config_pimpl_state_.Config_;
-}
-
-// eg_pimpl
-//
-
-eg_pimpl::
-eg_pimpl (bool b)
-{
-  this->eg_pimpl_base_ = b;
-  this->eg_pimpl_state_.eg_ = 0;
-}
-
-eg_pimpl::
-~eg_pimpl ()
-{
-  if (!this->eg_pimpl_base_ && this->eg_pimpl_state_.eg_)
-    delete this->eg_pimpl_state_.eg_;
-}
-
-void eg_pimpl::
-_reset ()
-{
-  eg_pskel::_reset ();
-
-  if (!this->eg_pimpl_base_ && this->eg_pimpl_state_.eg_)
+  name_pimpl::
+  name_pimpl ()
+  : name_pskel (&base_impl_)
   {
-    delete this->eg_pimpl_state_.eg_;
+  }
+
+  void name_pimpl::
+  pre ()
+  {
+    this->base_impl_.pre ();
+    this->name_pimpl_state_.name_ = ::test::name ();
+  }
+
+  ::test::name name_pimpl::
+  post_name ()
+  {
+    static_cast< ::std::string& > (this->name_pimpl_state_.name_) = 
+    this->base_impl_.post_string ();
+    return this->name_pimpl_state_.name_;
+  }
+
+  // Config_pimpl
+  //
+
+  void Config_pimpl::
+  pre ()
+  {
+    this->Config_pimpl_state_.Config_ = ::test::Config ();
+  }
+
+  void Config_pimpl::
+  name (const ::test::name& x)
+  {
+    this->Config_pimpl_state_.Config_.name (x);
+  }
+
+  void Config_pimpl::
+  file (bool x)
+  {
+    this->Config_pimpl_state_.Config_.file (x);
+  }
+
+  ::test::Config Config_pimpl::
+  post_Config ()
+  {
+    return this->Config_pimpl_state_.Config_;
+  }
+
+  // eg_pimpl
+  //
+
+  eg_pimpl::
+  eg_pimpl (bool b)
+  {
+    this->eg_pimpl_base_ = b;
     this->eg_pimpl_state_.eg_ = 0;
+  }
+
+  eg_pimpl::
+  ~eg_pimpl ()
+  {
+    if (!this->eg_pimpl_base_ && this->eg_pimpl_state_.eg_)
+      delete this->eg_pimpl_state_.eg_;
+  }
+
+  void eg_pimpl::
+  _reset ()
+  {
+    eg_pskel::_reset ();
+
+    if (!this->eg_pimpl_base_ && this->eg_pimpl_state_.eg_)
+    {
+      delete this->eg_pimpl_state_.eg_;
+      this->eg_pimpl_state_.eg_ = 0;
+    }
+  }
+
+  void eg_pimpl::
+  pre_impl (::test::eg* x)
+  {
+    this->eg_pimpl_state_.eg_ = x;
+  }
+
+  void eg_pimpl::
+  pre ()
+  {
+    ::test::eg* x = new ::test::eg;
+    this->pre_impl (x);
+  }
+
+  void eg_pimpl::
+  host (const ::std::string& x)
+  {
+    this->eg_pimpl_state_.eg_->host (x);
+  }
+
+  void eg_pimpl::
+  folder (const ::std::string& x)
+  {
+    this->eg_pimpl_state_.eg_->folder (x);
+  }
+
+  void eg_pimpl::
+  stuff (const ::test::Config& x)
+  {
+    this->eg_pimpl_state_.eg_->stuff ().push_back (x);
+  }
+
+  ::test::eg* eg_pimpl::
+  post_eg ()
+  {
+    ::test::eg* r = this->eg_pimpl_state_.eg_;
+    this->eg_pimpl_state_.eg_ = 0;
+    return r;
   }
 }
 
-void eg_pimpl::
-pre_impl (::eg* x)
+namespace test
 {
-  this->eg_pimpl_state_.eg_ = x;
-}
+  // eg_paggr
+  //
 
-void eg_pimpl::
-pre ()
-{
-  ::eg* x = new ::eg;
-  this->pre_impl (x);
-}
+  eg_paggr::
+  eg_paggr ()
+  {
+    this->eg_p_.parsers (this->string_p_,
+                         this->string_p_,
+                         this->Config_p_);
 
-void eg_pimpl::
-host (const ::std::string& x)
-{
-  this->eg_pimpl_state_.eg_->host (x);
-}
+    this->Config_p_.parsers (this->name_p_,
+                             this->boolean_p_);
+  }
 
-void eg_pimpl::
-folder (const ::std::string& x)
-{
-  this->eg_pimpl_state_.eg_->folder (x);
-}
+  const char* eg_paggr::
+  root_name ()
+  {
+    return "eg";
+  }
 
-void eg_pimpl::
-stuff (const ::Config& x)
-{
-  this->eg_pimpl_state_.eg_->stuff ().push_back (x);
-}
-
-::eg* eg_pimpl::
-post_eg ()
-{
-  ::eg* r = this->eg_pimpl_state_.eg_;
-  this->eg_pimpl_state_.eg_ = 0;
-  return r;
-}
-
-// eg_paggr
-//
-
-eg_paggr::
-eg_paggr ()
-{
-  this->Config_p_.parsers (this->name_p_,
-                           this->boolean_p_);
-
-  this->eg_p_.parsers (this->string_p_,
-                       this->string_p_,
-                       this->Config_p_);
-}
-
-const char* eg_paggr::
-root_name ()
-{
-  return "eg";
-}
-
-const char* eg_paggr::
-root_namespace ()
-{
-  return "";
+  const char* eg_paggr::
+  root_namespace ()
+  {
+    return "";
+  }
 }
 
 // Begin epilogue.

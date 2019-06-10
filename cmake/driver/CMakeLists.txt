@@ -16,7 +16,7 @@ include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 #handle the schema code gen
 set( EG_SCHEMA_SOURCE_DIR ${EG_ROOT_DIR}/src/driver )
 find_file( EG_SCHEMA_FILE NAME schema.xsd PATHS ${EG_SCHEMA_SOURCE_DIR} )
-compile_schema( ${EG_SCHEMA_FILE} ${EG_SCHEMA_SOURCE_DIR} )
+compile_schema( ${EG_SCHEMA_FILE} "egxml" ${EG_SCHEMA_SOURCE_DIR} )
 set( SCHEMA_GENERATED_CODE
     ${EG_SCHEMA_SOURCE_DIR}/schema.hxx
     ${EG_SCHEMA_SOURCE_DIR}/schema.cxx

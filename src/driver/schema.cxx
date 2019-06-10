@@ -27,903 +27,687 @@
 
 #include "schema.hxx"
 
-// Package
-//
-
-const ::std::string& Package::
-Name () const
-{
-  return this->Name_;
-}
-
-::std::string& Package::
-Name ()
-{
-  return this->Name_;
-}
-
-void Package::
-Name (const ::std::string& x)
-{
-  this->Name_ = x;
-}
-
-bool Package::
-Repository_present () const
-{
-  return this->Repository_present_;
-}
-
-void Package::
-Repository_present (bool x)
-{
-  this->Repository_present_ = x;
-}
-
-const ::std::string& Package::
-Repository () const
-{
-  return this->Repository_;
-}
-
-::std::string& Package::
-Repository ()
-{
-  return this->Repository_;
-}
-
-void Package::
-Repository (const ::std::string& x)
-{
-  this->Repository_ = x;
-  this->Repository_present_ = true;
-}
-
-const ::std::string& Package::
-License () const
-{
-  return this->License_;
-}
-
-::std::string& Package::
-License ()
-{
-  return this->License_;
-}
-
-void Package::
-License (const ::std::string& x)
-{
-  this->License_ = x;
-}
-
-bool Package::
-Description_present () const
-{
-  return this->Description_present_;
-}
-
-void Package::
-Description_present (bool x)
-{
-  this->Description_present_ = x;
-}
-
-const ::std::string& Package::
-Description () const
-{
-  return this->Description_;
-}
-
-::std::string& Package::
-Description ()
-{
-  return this->Description_;
-}
-
-void Package::
-Description (const ::std::string& x)
-{
-  this->Description_ = x;
-  this->Description_present_ = true;
-}
-
-bool Package::
-Directories_present () const
-{
-  return this->Directories_ != 0;
-}
-
-const ::Directories& Package::
-Directories () const
-{
-  return *this->Directories_;
-}
-
-::Directories& Package::
-Directories ()
-{
-  return *this->Directories_;
-}
-
-void Package::
-Directories (::Directories* x)
-{
-  delete this->Directories_;
-  this->Directories_ = x;
-}
-
-bool Package::
-Files_present () const
-{
-  return this->Files_ != 0;
-}
-
-const ::Files& Package::
-Files () const
-{
-  return *this->Files_;
-}
-
-::Files& Package::
-Files ()
-{
-  return *this->Files_;
-}
-
-void Package::
-Files (::Files* x)
-{
-  delete this->Files_;
-  this->Files_ = x;
-}
-
-// Host
-//
-
-const ::std::string& Host::
-Name () const
-{
-  return this->Name_;
-}
-
-::std::string& Host::
-Name ()
-{
-  return this->Name_;
-}
-
-void Host::
-Name (const ::std::string& x)
-{
-  this->Name_ = x;
-}
-
-const ::std::string& Host::
-Command () const
-{
-  return this->Command_;
-}
-
-::std::string& Host::
-Command ()
-{
-  return this->Command_;
-}
-
-void Host::
-Command (const ::std::string& x)
-{
-  this->Command_ = x;
-}
-
-bool Host::
-Repository_present () const
-{
-  return this->Repository_present_;
-}
-
-void Host::
-Repository_present (bool x)
-{
-  this->Repository_present_ = x;
-}
-
-const ::std::string& Host::
-Repository () const
-{
-  return this->Repository_;
-}
-
-::std::string& Host::
-Repository ()
-{
-  return this->Repository_;
-}
-
-void Host::
-Repository (const ::std::string& x)
-{
-  this->Repository_ = x;
-  this->Repository_present_ = true;
-}
-
-const ::std::string& Host::
-License () const
-{
-  return this->License_;
-}
-
-::std::string& Host::
-License ()
-{
-  return this->License_;
-}
-
-void Host::
-License (const ::std::string& x)
-{
-  this->License_ = x;
-}
-
-bool Host::
-Description_present () const
-{
-  return this->Description_present_;
-}
-
-void Host::
-Description_present (bool x)
-{
-  this->Description_present_ = x;
-}
-
-const ::std::string& Host::
-Description () const
-{
-  return this->Description_;
-}
-
-::std::string& Host::
-Description ()
-{
-  return this->Description_;
-}
-
-void Host::
-Description (const ::std::string& x)
-{
-  this->Description_ = x;
-  this->Description_present_ = true;
-}
-
-bool Host::
-Directories_present () const
-{
-  return this->Directories_ != 0;
-}
-
-const ::Directories1& Host::
-Directories () const
-{
-  return *this->Directories_;
-}
-
-::Directories1& Host::
-Directories ()
-{
-  return *this->Directories_;
-}
-
-void Host::
-Directories (::Directories1* x)
-{
-  delete this->Directories_;
-  this->Directories_ = x;
-}
-
-bool Host::
-Files_present () const
-{
-  return this->Files_ != 0;
-}
-
-const ::Files1& Host::
-Files () const
-{
-  return *this->Files_;
-}
-
-::Files1& Host::
-Files ()
-{
-  return *this->Files_;
-}
-
-void Host::
-Files (::Files1* x)
-{
-  delete this->Files_;
-  this->Files_ = x;
-}
-
-// Build
-//
-
-const ::std::string& Build::
-Name () const
-{
-  return this->Name_;
-}
-
-::std::string& Build::
-Name ()
-{
-  return this->Name_;
-}
-
-void Build::
-Name (const ::std::string& x)
-{
-  this->Name_ = x;
-}
-
-const ::std::string& Build::
-CompilerFlags () const
-{
-  return this->CompilerFlags_;
-}
-
-::std::string& Build::
-CompilerFlags ()
-{
-  return this->CompilerFlags_;
-}
-
-void Build::
-CompilerFlags (const ::std::string& x)
+namespace egxml
 {
-  this->CompilerFlags_ = x;
-}
+  // Package
+  //
 
-const ::std::string& Build::
-LinkerFlags () const
-{
-  return this->LinkerFlags_;
-}
-
-::std::string& Build::
-LinkerFlags ()
-{
-  return this->LinkerFlags_;
-}
-
-void Build::
-LinkerFlags (const ::std::string& x)
-{
-  this->LinkerFlags_ = x;
-}
-
-// Project
-//
-
-const ::std::string& Project::
-Name () const
-{
-  return this->Name_;
-}
-
-::std::string& Project::
-Name ()
-{
-  return this->Name_;
-}
-
-void Project::
-Name (const ::std::string& x)
-{
-  this->Name_ = x;
-}
-
-const ::Host& Project::
-Host () const
-{
-  return *this->Host_;
-}
-
-::Host& Project::
-Host ()
-{
-  return *this->Host_;
-}
-
-void Project::
-Host (::Host* x)
-{
-  delete this->Host_;
-  this->Host_ = x;
-}
-
-const Project::Package_sequence& Project::
-Package () const
-{
-  return this->Package_;
-}
-
-Project::Package_sequence& Project::
-Package ()
-{
-  return this->Package_;
-}
-
-const Project::Build_sequence& Project::
-Build () const
-{
-  return this->Build_;
-}
-
-Project::Build_sequence& Project::
-Build ()
-{
-  return this->Build_;
-}
-
-const Project::Run_sequence& Project::
-Run () const
-{
-  return this->Run_;
-}
-
-Project::Run_sequence& Project::
-Run ()
-{
-  return this->Run_;
-}
-
-// EG
-//
-
-EG::choice_arm_tag EG::
-choice_arm () const
-{
-  return this->choice_arm_;
-}
-
-const ::Package& EG::
-Package () const
-{
-  return *this->choice_.Package_;
-}
-
-::Package& EG::
-Package ()
-{
-  return *this->choice_.Package_;
-}
-
-void EG::
-Package (::Package* x)
-{
-  if (this->choice_arm_ != Package_tag)
-    this->choice_arm (Package_tag);
-  else
+  const ::std::string& Package::
+  Name () const
   {
-    delete this->choice_.Package_;
+    return this->Name_;
   }
 
-  this->choice_.Package_ = x;
-}
-
-const ::Host& EG::
-Host () const
-{
-  return *this->choice_.Host_;
-}
-
-::Host& EG::
-Host ()
-{
-  return *this->choice_.Host_;
-}
-
-void EG::
-Host (::Host* x)
-{
-  if (this->choice_arm_ != Host_tag)
-    this->choice_arm (Host_tag);
-  else
+  ::std::string& Package::
+  Name ()
   {
-    delete this->choice_.Host_;
+    return this->Name_;
   }
 
-  this->choice_.Host_ = x;
-}
-
-const ::Project& EG::
-Project () const
-{
-  return *this->choice_.Project_;
-}
-
-::Project& EG::
-Project ()
-{
-  return *this->choice_.Project_;
-}
-
-void EG::
-Project (::Project* x)
-{
-  if (this->choice_arm_ != Project_tag)
-    this->choice_arm (Project_tag);
-  else
+  void Package::
+  Name (const ::std::string& x)
   {
-    delete this->choice_.Project_;
+    this->Name_ = x;
   }
 
-  this->choice_.Project_ = x;
-}
+  bool Package::
+  Repository_present () const
+  {
+    return this->Repository_present_;
+  }
 
-// Directories
-//
+  void Package::
+  Repository_present (bool x)
+  {
+    this->Repository_present_ = x;
+  }
 
-const Directories::Include_sequence& Directories::
-Include () const
-{
-  return this->Include_;
-}
+  const ::std::string& Package::
+  Repository () const
+  {
+    return this->Repository_;
+  }
 
-Directories::Include_sequence& Directories::
-Include ()
-{
-  return this->Include_;
-}
+  ::std::string& Package::
+  Repository ()
+  {
+    return this->Repository_;
+  }
 
-const Directories::Library_sequence& Directories::
-Library () const
-{
-  return this->Library_;
-}
+  void Package::
+  Repository (const ::std::string& x)
+  {
+    this->Repository_ = x;
+    this->Repository_present_ = true;
+  }
 
-Directories::Library_sequence& Directories::
-Library ()
-{
-  return this->Library_;
-}
+  const ::std::string& Package::
+  License () const
+  {
+    return this->License_;
+  }
 
-// Files
-//
+  ::std::string& Package::
+  License ()
+  {
+    return this->License_;
+  }
 
-const Files::Include_sequence& Files::
-Include () const
-{
-  return this->Include_;
-}
+  void Package::
+  License (const ::std::string& x)
+  {
+    this->License_ = x;
+  }
 
-Files::Include_sequence& Files::
-Include ()
-{
-  return this->Include_;
-}
+  bool Package::
+  Description_present () const
+  {
+    return this->Description_present_;
+  }
 
-const Files::Library_sequence& Files::
-Library () const
-{
-  return this->Library_;
-}
+  void Package::
+  Description_present (bool x)
+  {
+    this->Description_present_ = x;
+  }
 
-Files::Library_sequence& Files::
-Library ()
-{
-  return this->Library_;
-}
+  const ::std::string& Package::
+  Description () const
+  {
+    return this->Description_;
+  }
 
-// Directories1
-//
+  ::std::string& Package::
+  Description ()
+  {
+    return this->Description_;
+  }
 
-const Directories1::Include_sequence& Directories1::
-Include () const
-{
-  return this->Include_;
-}
+  void Package::
+  Description (const ::std::string& x)
+  {
+    this->Description_ = x;
+    this->Description_present_ = true;
+  }
 
-Directories1::Include_sequence& Directories1::
-Include ()
-{
-  return this->Include_;
-}
+  bool Package::
+  Directories_present () const
+  {
+    return this->Directories_ != 0;
+  }
 
-const Directories1::Library_sequence& Directories1::
-Library () const
-{
-  return this->Library_;
-}
+  const ::egxml::Directories& Package::
+  Directories () const
+  {
+    return *this->Directories_;
+  }
 
-Directories1::Library_sequence& Directories1::
-Library ()
-{
-  return this->Library_;
-}
+  ::egxml::Directories& Package::
+  Directories ()
+  {
+    return *this->Directories_;
+  }
 
-// Files1
-//
+  void Package::
+  Directories (::egxml::Directories* x)
+  {
+    delete this->Directories_;
+    this->Directories_ = x;
+  }
 
-const Files1::Include_sequence& Files1::
-Include () const
-{
-  return this->Include_;
-}
+  bool Package::
+  Files_present () const
+  {
+    return this->Files_ != 0;
+  }
 
-Files1::Include_sequence& Files1::
-Include ()
-{
-  return this->Include_;
-}
+  const ::egxml::Files& Package::
+  Files () const
+  {
+    return *this->Files_;
+  }
 
-const Files1::Library_sequence& Files1::
-Library () const
-{
-  return this->Library_;
-}
+  ::egxml::Files& Package::
+  Files ()
+  {
+    return *this->Files_;
+  }
 
-Files1::Library_sequence& Files1::
-Library ()
-{
-  return this->Library_;
-}
+  void Package::
+  Files (::egxml::Files* x)
+  {
+    delete this->Files_;
+    this->Files_ = x;
+  }
 
-// Run
-//
+  // Host
+  //
 
-const ::std::string& Run::
-Name () const
-{
-  return this->Name_;
-}
+  const ::std::string& Host::
+  Command () const
+  {
+    return this->Command_;
+  }
 
-::std::string& Run::
-Name ()
-{
-  return this->Name_;
-}
+  ::std::string& Host::
+  Command ()
+  {
+    return this->Command_;
+  }
 
-void Run::
-Name (const ::std::string& x)
-{
-  this->Name_ = x;
-}
+  void Host::
+  Command (const ::std::string& x)
+  {
+    this->Command_ = x;
+  }
 
-const Run::Argument_sequence& Run::
-Argument () const
-{
-  return this->Argument_;
-}
+  // Build
+  //
 
-Run::Argument_sequence& Run::
-Argument ()
-{
-  return this->Argument_;
+  const ::std::string& Build::
+  Name () const
+  {
+    return this->Name_;
+  }
+
+  ::std::string& Build::
+  Name ()
+  {
+    return this->Name_;
+  }
+
+  void Build::
+  Name (const ::std::string& x)
+  {
+    this->Name_ = x;
+  }
+
+  const ::std::string& Build::
+  CompilerFlags () const
+  {
+    return this->CompilerFlags_;
+  }
+
+  ::std::string& Build::
+  CompilerFlags ()
+  {
+    return this->CompilerFlags_;
+  }
+
+  void Build::
+  CompilerFlags (const ::std::string& x)
+  {
+    this->CompilerFlags_ = x;
+  }
+
+  const ::std::string& Build::
+  LinkerFlags () const
+  {
+    return this->LinkerFlags_;
+  }
+
+  ::std::string& Build::
+  LinkerFlags ()
+  {
+    return this->LinkerFlags_;
+  }
+
+  void Build::
+  LinkerFlags (const ::std::string& x)
+  {
+    this->LinkerFlags_ = x;
+  }
+
+  // Project
+  //
+
+  const ::std::string& Project::
+  Name () const
+  {
+    return this->Name_;
+  }
+
+  ::std::string& Project::
+  Name ()
+  {
+    return this->Name_;
+  }
+
+  void Project::
+  Name (const ::std::string& x)
+  {
+    this->Name_ = x;
+  }
+
+  const ::egxml::Host& Project::
+  Host () const
+  {
+    return *this->Host_;
+  }
+
+  ::egxml::Host& Project::
+  Host ()
+  {
+    return *this->Host_;
+  }
+
+  void Project::
+  Host (::egxml::Host* x)
+  {
+    delete this->Host_;
+    this->Host_ = x;
+  }
+
+  const Project::Package_sequence& Project::
+  Package () const
+  {
+    return this->Package_;
+  }
+
+  Project::Package_sequence& Project::
+  Package ()
+  {
+    return this->Package_;
+  }
+
+  const Project::Build_sequence& Project::
+  Build () const
+  {
+    return this->Build_;
+  }
+
+  Project::Build_sequence& Project::
+  Build ()
+  {
+    return this->Build_;
+  }
+
+  const Project::Run_sequence& Project::
+  Run () const
+  {
+    return this->Run_;
+  }
+
+  Project::Run_sequence& Project::
+  Run ()
+  {
+    return this->Run_;
+  }
+
+  // EG
+  //
+
+  EG::choice_arm_tag EG::
+  choice_arm () const
+  {
+    return this->choice_arm_;
+  }
+
+  const ::egxml::Package& EG::
+  Package () const
+  {
+    return *this->choice_.Package_;
+  }
+
+  ::egxml::Package& EG::
+  Package ()
+  {
+    return *this->choice_.Package_;
+  }
+
+  void EG::
+  Package (::egxml::Package* x)
+  {
+    if (this->choice_arm_ != Package_tag)
+      this->choice_arm (Package_tag);
+    else
+    {
+      delete this->choice_.Package_;
+    }
+
+    this->choice_.Package_ = x;
+  }
+
+  const ::egxml::Host& EG::
+  Host () const
+  {
+    return *this->choice_.Host_;
+  }
+
+  ::egxml::Host& EG::
+  Host ()
+  {
+    return *this->choice_.Host_;
+  }
+
+  void EG::
+  Host (::egxml::Host* x)
+  {
+    if (this->choice_arm_ != Host_tag)
+      this->choice_arm (Host_tag);
+    else
+    {
+      delete this->choice_.Host_;
+    }
+
+    this->choice_.Host_ = x;
+  }
+
+  const ::egxml::Project& EG::
+  Project () const
+  {
+    return *this->choice_.Project_;
+  }
+
+  ::egxml::Project& EG::
+  Project ()
+  {
+    return *this->choice_.Project_;
+  }
+
+  void EG::
+  Project (::egxml::Project* x)
+  {
+    if (this->choice_arm_ != Project_tag)
+      this->choice_arm (Project_tag);
+    else
+    {
+      delete this->choice_.Project_;
+    }
+
+    this->choice_.Project_ = x;
+  }
+
+  // Directories
+  //
+
+  const Directories::Include_sequence& Directories::
+  Include () const
+  {
+    return this->Include_;
+  }
+
+  Directories::Include_sequence& Directories::
+  Include ()
+  {
+    return this->Include_;
+  }
+
+  const Directories::Library_sequence& Directories::
+  Library () const
+  {
+    return this->Library_;
+  }
+
+  Directories::Library_sequence& Directories::
+  Library ()
+  {
+    return this->Library_;
+  }
+
+  // Files
+  //
+
+  const Files::System_sequence& Files::
+  System () const
+  {
+    return this->System_;
+  }
+
+  Files::System_sequence& Files::
+  System ()
+  {
+    return this->System_;
+  }
+
+  const Files::User_sequence& Files::
+  User () const
+  {
+    return this->User_;
+  }
+
+  Files::User_sequence& Files::
+  User ()
+  {
+    return this->User_;
+  }
+
+  const Files::Library_sequence& Files::
+  Library () const
+  {
+    return this->Library_;
+  }
+
+  Files::Library_sequence& Files::
+  Library ()
+  {
+    return this->Library_;
+  }
+
+  // Run
+  //
+
+  const ::std::string& Run::
+  Name () const
+  {
+    return this->Name_;
+  }
+
+  ::std::string& Run::
+  Name ()
+  {
+    return this->Name_;
+  }
+
+  void Run::
+  Name (const ::std::string& x)
+  {
+    this->Name_ = x;
+  }
+
+  const Run::Argument_sequence& Run::
+  Argument () const
+  {
+    return this->Argument_;
+  }
+
+  Run::Argument_sequence& Run::
+  Argument ()
+  {
+    return this->Argument_;
+  }
 }
 
 #include <stdlib.h>
 #include <new>
 
-// Package
-//
-
-Package::
-Package ()
+namespace egxml
 {
-  this->Repository_present_ = false;
-  this->Description_present_ = false;
-  this->Directories_ = 0;
-  this->Files_ = 0;
-}
+  // Package
+  //
 
-Package::
-~Package ()
-{
-  delete this->Directories_;
-  delete this->Files_;
-}
-
-// Host
-//
-
-Host::
-Host ()
-{
-  this->Repository_present_ = false;
-  this->Description_present_ = false;
-  this->Directories_ = 0;
-  this->Files_ = 0;
-}
-
-Host::
-~Host ()
-{
-  delete this->Directories_;
-  delete this->Files_;
-}
-
-// Build
-//
-
-Build::
-Build ()
-{
-}
-
-Build::
-~Build ()
-{
-}
-
-Build::
-Build (const Build& x)
-{
-  XSDE_UNUSED (x);
-  this->Name_ = x.Name_;
-  this->CompilerFlags_ = x.CompilerFlags_;
-  this->LinkerFlags_ = x.LinkerFlags_;
-}
-
-Build& Build::
-operator= (const Build& x)
-{
-  XSDE_UNUSED (x);
-  this->Name_ = x.Name_;
-  this->CompilerFlags_ = x.CompilerFlags_;
-  this->LinkerFlags_ = x.LinkerFlags_;
-  return *this;
-}
-
-// Project
-//
-
-Project::
-Project ()
-{
-  this->Host_ = 0;
-}
-
-Project::
-~Project ()
-{
-  delete this->Host_;
-}
-
-// EG
-//
-
-EG::
-EG ()
-{
-  this->choice_arm_ = choice_arm_tag (3);
-}
-
-EG::
-~EG ()
-{
-  this->choice_arm (choice_arm_tag (3));
-}
-
-void EG::
-choice_arm (choice_arm_tag x)
-{
-  if (this->choice_arm_ == x)
-    return;
-
-  switch (this->choice_arm_)
+  Package::
+  Package ()
   {
-    case Package_tag:
-    {
-      delete this->choice_.Package_;
-      break;
-    }
-    case Host_tag:
-    {
-      delete this->choice_.Host_;
-      break;
-    }
-    case Project_tag:
-    {
-      delete this->choice_.Project_;
-      break;
-    }
-    default:
-    break;
+    this->Repository_present_ = false;
+    this->Description_present_ = false;
+    this->Directories_ = 0;
+    this->Files_ = 0;
   }
 
-  this->choice_arm_ = choice_arm_tag (3);
-
-  switch (x)
+  Package::
+  ~Package ()
   {
-    case Package_tag:
-    {
-      this->choice_.Package_ = 0;
-      break;
-    }
-    case Host_tag:
-    {
-      this->choice_.Host_ = 0;
-      break;
-    }
-    case Project_tag:
-    {
-      this->choice_.Project_ = 0;
-      break;
-    }
-    default:
-    break;
+    delete this->Directories_;
+    delete this->Files_;
   }
 
-  this->choice_arm_ = x;
-}
+  // Host
+  //
 
-// Directories
-//
+  Host::
+  Host ()
+  {
+  }
 
-Directories::
-Directories ()
-{
-}
+  Host::
+  ~Host ()
+  {
+  }
 
-Directories::
-~Directories ()
-{
-}
+  // Build
+  //
 
-// Files
-//
+  Build::
+  Build ()
+  {
+  }
 
-Files::
-Files ()
-{
-}
+  Build::
+  ~Build ()
+  {
+  }
 
-Files::
-~Files ()
-{
-}
+  Build::
+  Build (const Build& x)
+  {
+    XSDE_UNUSED (x);
+    this->Name_ = x.Name_;
+    this->CompilerFlags_ = x.CompilerFlags_;
+    this->LinkerFlags_ = x.LinkerFlags_;
+  }
 
-// Directories1
-//
+  Build& Build::
+  operator= (const Build& x)
+  {
+    XSDE_UNUSED (x);
+    this->Name_ = x.Name_;
+    this->CompilerFlags_ = x.CompilerFlags_;
+    this->LinkerFlags_ = x.LinkerFlags_;
+    return *this;
+  }
 
-Directories1::
-Directories1 ()
-{
-}
+  // Project
+  //
 
-Directories1::
-~Directories1 ()
-{
-}
+  Project::
+  Project ()
+  {
+    this->Host_ = 0;
+  }
 
-// Files1
-//
+  Project::
+  ~Project ()
+  {
+    delete this->Host_;
+  }
 
-Files1::
-Files1 ()
-{
-}
+  // EG
+  //
 
-Files1::
-~Files1 ()
-{
-}
+  EG::
+  EG ()
+  {
+    this->choice_arm_ = choice_arm_tag (3);
+  }
 
-// Run
-//
+  EG::
+  ~EG ()
+  {
+    this->choice_arm (choice_arm_tag (3));
+  }
 
-Run::
-Run ()
-{
-}
+  void EG::
+  choice_arm (choice_arm_tag x)
+  {
+    if (this->choice_arm_ == x)
+      return;
 
-Run::
-~Run ()
-{
+    switch (this->choice_arm_)
+    {
+      case Package_tag:
+      {
+        delete this->choice_.Package_;
+        break;
+      }
+      case Host_tag:
+      {
+        delete this->choice_.Host_;
+        break;
+      }
+      case Project_tag:
+      {
+        delete this->choice_.Project_;
+        break;
+      }
+      default:
+      break;
+    }
+
+    this->choice_arm_ = choice_arm_tag (3);
+
+    switch (x)
+    {
+      case Package_tag:
+      {
+        this->choice_.Package_ = 0;
+        break;
+      }
+      case Host_tag:
+      {
+        this->choice_.Host_ = 0;
+        break;
+      }
+      case Project_tag:
+      {
+        this->choice_.Project_ = 0;
+        break;
+      }
+      default:
+      break;
+    }
+
+    this->choice_arm_ = x;
+  }
+
+  // Directories
+  //
+
+  Directories::
+  Directories ()
+  {
+  }
+
+  Directories::
+  ~Directories ()
+  {
+  }
+
+  // Files
+  //
+
+  Files::
+  Files ()
+  {
+  }
+
+  Files::
+  ~Files ()
+  {
+  }
+
+  // Run
+  //
+
+  Run::
+  Run ()
+  {
+  }
+
+  Run::
+  ~Run ()
+  {
+  }
 }
 
 // Begin epilogue.

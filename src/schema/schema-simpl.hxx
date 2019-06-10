@@ -37,71 +37,74 @@
 
 #include <xsde/cxx/stack.hxx>
 
-class name_simpl: public name_sskel
+namespace test
 {
-  public:
-  name_simpl ();
-
-  virtual void
-  pre (const ::name&);
-
-  public:
-  ::xml_schema::string_simpl base_impl_;
-};
-
-class Config_simpl: public Config_sskel
-{
-  public:
-  virtual void
-  pre (const ::Config&);
-
-  // Elements.
-  //
-  virtual const ::name&
-  name ();
-
-  virtual bool
-  file ();
-
-  public:
-  struct Config_simpl_state
+  class name_simpl: public name_sskel
   {
-    const ::Config* Config_;
+    public:
+    name_simpl ();
+
+    virtual void
+    pre (const ::test::name&);
+
+    public:
+    ::xml_schema::string_simpl base_impl_;
   };
 
-  Config_simpl_state Config_simpl_state_;
-};
-
-class eg_simpl: public eg_sskel
-{
-  public:
-  virtual void
-  pre (const ::eg&);
-
-  // Elements.
-  //
-  virtual ::std::string
-  host ();
-
-  virtual ::std::string
-  folder ();
-
-  virtual bool
-  stuff_next ();
-
-  virtual const ::Config&
-  stuff ();
-
-  public:
-  struct eg_simpl_state
+  class Config_simpl: public Config_sskel
   {
-    const ::eg* eg_;
-    ::eg::stuff_const_iterator stuff_;
-    ::eg::stuff_const_iterator stuff_end_;
+    public:
+    virtual void
+    pre (const ::test::Config&);
+
+    // Elements.
+    //
+    virtual const ::test::name&
+    name ();
+
+    virtual bool
+    file ();
+
+    public:
+    struct Config_simpl_state
+    {
+      const ::test::Config* Config_;
+    };
+
+    Config_simpl_state Config_simpl_state_;
   };
 
-  eg_simpl_state eg_simpl_state_;
-};
+  class eg_simpl: public eg_sskel
+  {
+    public:
+    virtual void
+    pre (const ::test::eg&);
+
+    // Elements.
+    //
+    virtual ::std::string
+    host ();
+
+    virtual ::std::string
+    folder ();
+
+    virtual bool
+    stuff_next ();
+
+    virtual const ::test::Config&
+    stuff ();
+
+    public:
+    struct eg_simpl_state
+    {
+      const ::test::eg* eg_;
+      ::test::eg::stuff_const_iterator stuff_;
+      ::test::eg::stuff_const_iterator stuff_end_;
+    };
+
+    eg_simpl_state eg_simpl_state_;
+  };
+}
 
 #ifdef W__WORKSPACE_EG_SRC_SCHEMA_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #  undef XSDE_OMIT_SAGGR
@@ -109,50 +112,53 @@ class eg_simpl: public eg_sskel
 
 #ifndef XSDE_OMIT_SAGGR
 
-// Serializer aggregate for the eg element.
-//
-class eg_saggr
+namespace test
 {
-  public:
-  eg_saggr ();
-
-  void
-  pre (const ::eg& x)
+  // Serializer aggregate for the eg element.
+  //
+  class eg_saggr
   {
-    this->eg_s_.pre (x);
-  }
+    public:
+    eg_saggr ();
 
-  void
-  post ()
-  {
-    this->eg_s_.post ();
-  }
+    void
+    pre (const ::test::eg& x)
+    {
+      this->eg_s_.pre (x);
+    }
 
-  ::eg_simpl&
-  root_serializer ()
-  {
-    return this->eg_s_;
-  }
+    void
+    post ()
+    {
+      this->eg_s_.post ();
+    }
 
-  static const char*
-  root_name ();
+    ::test::eg_simpl&
+    root_serializer ()
+    {
+      return this->eg_s_;
+    }
 
-  static const char*
-  root_namespace ();
+    static const char*
+    root_name ();
 
-  void
-  reset ()
-  {
-    this->eg_s_._reset ();
-  }
+    static const char*
+    root_namespace ();
 
-  public:
-  ::Config_simpl Config_s_;
-  ::name_simpl name_s_;
-  ::eg_simpl eg_s_;
-  ::xml_schema::boolean_simpl boolean_s_;
-  ::xml_schema::string_simpl string_s_;
-};
+    void
+    reset ()
+    {
+      this->eg_s_._reset ();
+    }
+
+    public:
+    ::test::name_simpl name_s_;
+    ::xml_schema::string_simpl string_s_;
+    ::xml_schema::boolean_simpl boolean_s_;
+    ::test::eg_simpl eg_s_;
+    ::test::Config_simpl Config_s_;
+  };
+}
 
 #endif // XSDE_OMIT_SAGGR
 

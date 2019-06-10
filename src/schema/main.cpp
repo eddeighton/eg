@@ -74,26 +74,26 @@ int main( int argc, const char* argv[] )
             
         try
         {
-            eg_paggr eg_p;
+            test::eg_paggr eg_p;
             xml_schema::document_pimpl doc_p( eg_p.root_parser(), eg_p.root_name() );
              
             eg_p.pre();
             doc_p.parse( xmlFilePath.string() );
-            eg* pEG = eg_p.post();
+            test::eg* pEG = eg_p.post();
 
             std::cout << "host: " << pEG->host() << std::endl;
             std::cout << "folder: " << pEG->folder() << std::endl;
             
-            for( const Config& config : pEG->stuff() )
+            for( const test::Config& config : pEG->stuff() )
             {
                 std::cout << "config: " << config.name() << " " << config.file() << std::endl;
             }
             
             std::string str = "newconfig";
-            name n;
+            test::name n;
             n.assign( str.begin(), str.end() );
             
-            Config newConfig;
+            test::Config newConfig;
             newConfig.name( n );
             //newConfig.file( "newconfigfile" );
             pEG->stuff().push_back( newConfig );
@@ -109,7 +109,7 @@ int main( int argc, const char* argv[] )
             pEG->folder( "somethingElse" );
 
             {
-                eg_saggr newEG;
+                test::eg_saggr newEG;
                 xml_schema::document_simpl doc_s( newEG.root_serializer(), newEG.root_name() );
                 newEG.pre( *pEG );
                 doc_s.serialize( std::cout, xml_schema::document_simpl::pretty_print );

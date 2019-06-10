@@ -27,104 +27,110 @@
 
 #include <xsde/cxx/serializer/validating/string-common.hxx>
 
-// name_simpl
-//
-
-name_simpl::
-name_simpl ()
-: name_sskel (&base_impl_)
+namespace test
 {
+  // name_simpl
+  //
+
+  name_simpl::
+  name_simpl ()
+  : name_sskel (&base_impl_)
+  {
+  }
+
+  void name_simpl::
+  pre (const ::test::name& x)
+  {
+    this->base_impl_.pre (x);
+  }
+
+  // Config_simpl
+  //
+
+  void Config_simpl::
+  pre (const ::test::Config& x)
+  {
+    this->Config_simpl_state_.Config_ = &x;
+  }
+
+  const ::test::name& Config_simpl::
+  name ()
+  {
+    return this->Config_simpl_state_.Config_->name ();
+  }
+
+  bool Config_simpl::
+  file ()
+  {
+    return this->Config_simpl_state_.Config_->file ();
+  }
+
+  // eg_simpl
+  //
+
+  void eg_simpl::
+  pre (const ::test::eg& x)
+  {
+    this->eg_simpl_state_.eg_ = &x;
+    this->eg_simpl_state_.stuff_ = 
+    this->eg_simpl_state_.eg_->stuff ().begin ();
+    this->eg_simpl_state_.stuff_end_ = 
+    this->eg_simpl_state_.eg_->stuff ().end ();
+  }
+
+  ::std::string eg_simpl::
+  host ()
+  {
+    return this->eg_simpl_state_.eg_->host ();
+  }
+
+  ::std::string eg_simpl::
+  folder ()
+  {
+    return this->eg_simpl_state_.eg_->folder ();
+  }
+
+  bool eg_simpl::
+  stuff_next ()
+  {
+    return this->eg_simpl_state_.stuff_ != 
+    this->eg_simpl_state_.stuff_end_;
+  }
+
+  const ::test::Config& eg_simpl::
+  stuff ()
+  {
+    return *this->eg_simpl_state_.stuff_++;
+  }
 }
 
-void name_simpl::
-pre (const ::name& x)
+namespace test
 {
-  this->base_impl_.pre (x);
-}
+  // eg_saggr
+  //
 
-// Config_simpl
-//
+  eg_saggr::
+  eg_saggr ()
+  {
+    this->eg_s_.serializers (this->string_s_,
+                             this->string_s_,
+                             this->Config_s_);
 
-void Config_simpl::
-pre (const ::Config& x)
-{
-  this->Config_simpl_state_.Config_ = &x;
-}
+    this->Config_s_.serializers (this->name_s_,
+                                 this->boolean_s_);
+  }
 
-const ::name& Config_simpl::
-name ()
-{
-  return this->Config_simpl_state_.Config_->name ();
-}
+  const char* eg_saggr::
+  root_name ()
+  {
+    return "eg";
+  }
 
-bool Config_simpl::
-file ()
-{
-  return this->Config_simpl_state_.Config_->file ();
-}
-
-// eg_simpl
-//
-
-void eg_simpl::
-pre (const ::eg& x)
-{
-  this->eg_simpl_state_.eg_ = &x;
-  this->eg_simpl_state_.stuff_ = 
-  this->eg_simpl_state_.eg_->stuff ().begin ();
-  this->eg_simpl_state_.stuff_end_ = 
-  this->eg_simpl_state_.eg_->stuff ().end ();
-}
-
-::std::string eg_simpl::
-host ()
-{
-  return this->eg_simpl_state_.eg_->host ();
-}
-
-::std::string eg_simpl::
-folder ()
-{
-  return this->eg_simpl_state_.eg_->folder ();
-}
-
-bool eg_simpl::
-stuff_next ()
-{
-  return this->eg_simpl_state_.stuff_ != 
-  this->eg_simpl_state_.stuff_end_;
-}
-
-const ::Config& eg_simpl::
-stuff ()
-{
-  return *this->eg_simpl_state_.stuff_++;
-}
-
-// eg_saggr
-//
-
-eg_saggr::
-eg_saggr ()
-{
-  this->Config_s_.serializers (this->name_s_,
-                               this->boolean_s_);
-
-  this->eg_s_.serializers (this->string_s_,
-                           this->string_s_,
-                           this->Config_s_);
-}
-
-const char* eg_saggr::
-root_name ()
-{
-  return "eg";
-}
-
-const char* eg_saggr::
-root_namespace ()
-{
-  return "";
+  const char* eg_saggr::
+  root_namespace ()
+  {
+    return "";
+  }
 }
 
 // Begin epilogue.

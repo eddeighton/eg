@@ -27,549 +27,428 @@
 
 #include <xsde/cxx/serializer/validating/string-common.hxx>
 
-// Package_simpl
-//
-
-void Package_simpl::
-pre (const ::Package& x)
-{
-  this->Package_simpl_state_.Package_ = &x;
-}
-
-::std::string Package_simpl::
-Name ()
-{
-  return this->Package_simpl_state_.Package_->Name ();
-}
-
-bool Package_simpl::
-Repository_present ()
-{
-  return this->Package_simpl_state_.Package_->Repository_present ();
-}
-
-::std::string Package_simpl::
-Repository ()
-{
-  return this->Package_simpl_state_.Package_->Repository ();
-}
-
-::std::string Package_simpl::
-License ()
-{
-  return this->Package_simpl_state_.Package_->License ();
-}
-
-bool Package_simpl::
-Description_present ()
-{
-  return this->Package_simpl_state_.Package_->Description_present ();
-}
-
-::std::string Package_simpl::
-Description ()
-{
-  return this->Package_simpl_state_.Package_->Description ();
-}
-
-bool Package_simpl::
-Directories_present ()
-{
-  return this->Package_simpl_state_.Package_->Directories_present ();
-}
-
-const ::Directories& Package_simpl::
-Directories ()
-{
-  return this->Package_simpl_state_.Package_->Directories ();
-}
-
-bool Package_simpl::
-Files_present ()
-{
-  return this->Package_simpl_state_.Package_->Files_present ();
-}
-
-const ::Files& Package_simpl::
-Files ()
-{
-  return this->Package_simpl_state_.Package_->Files ();
-}
-
-// Host_simpl
-//
-
-void Host_simpl::
-pre (const ::Host& x)
-{
-  this->Host_simpl_state_.Host_ = &x;
-}
-
-::std::string Host_simpl::
-Name ()
-{
-  return this->Host_simpl_state_.Host_->Name ();
-}
-
-::std::string Host_simpl::
-Command ()
-{
-  return this->Host_simpl_state_.Host_->Command ();
-}
-
-bool Host_simpl::
-Repository_present ()
-{
-  return this->Host_simpl_state_.Host_->Repository_present ();
-}
-
-::std::string Host_simpl::
-Repository ()
-{
-  return this->Host_simpl_state_.Host_->Repository ();
-}
-
-::std::string Host_simpl::
-License ()
-{
-  return this->Host_simpl_state_.Host_->License ();
-}
-
-bool Host_simpl::
-Description_present ()
-{
-  return this->Host_simpl_state_.Host_->Description_present ();
-}
-
-::std::string Host_simpl::
-Description ()
-{
-  return this->Host_simpl_state_.Host_->Description ();
-}
-
-bool Host_simpl::
-Directories_present ()
-{
-  return this->Host_simpl_state_.Host_->Directories_present ();
-}
-
-const ::Directories1& Host_simpl::
-Directories ()
-{
-  return this->Host_simpl_state_.Host_->Directories ();
-}
-
-bool Host_simpl::
-Files_present ()
-{
-  return this->Host_simpl_state_.Host_->Files_present ();
-}
-
-const ::Files1& Host_simpl::
-Files ()
-{
-  return this->Host_simpl_state_.Host_->Files ();
-}
-
-// Build_simpl
-//
-
-void Build_simpl::
-pre (const ::Build& x)
-{
-  this->Build_simpl_state_.Build_ = &x;
-}
-
-::std::string Build_simpl::
-Name ()
-{
-  return this->Build_simpl_state_.Build_->Name ();
-}
-
-::std::string Build_simpl::
-CompilerFlags ()
-{
-  return this->Build_simpl_state_.Build_->CompilerFlags ();
-}
-
-::std::string Build_simpl::
-LinkerFlags ()
-{
-  return this->Build_simpl_state_.Build_->LinkerFlags ();
-}
-
-// Project_simpl
-//
-
-void Project_simpl::
-pre (const ::Project& x)
-{
-  this->Project_simpl_state_.Project_ = &x;
-  this->Project_simpl_state_.Package_ = 
-  this->Project_simpl_state_.Project_->Package ().begin ();
-  this->Project_simpl_state_.Package_end_ = 
-  this->Project_simpl_state_.Project_->Package ().end ();
-  this->Project_simpl_state_.Build_ = 
-  this->Project_simpl_state_.Project_->Build ().begin ();
-  this->Project_simpl_state_.Build_end_ = 
-  this->Project_simpl_state_.Project_->Build ().end ();
-  this->Project_simpl_state_.Run_ = 
-  this->Project_simpl_state_.Project_->Run ().begin ();
-  this->Project_simpl_state_.Run_end_ = 
-  this->Project_simpl_state_.Project_->Run ().end ();
-}
-
-::std::string Project_simpl::
-Name ()
-{
-  return this->Project_simpl_state_.Project_->Name ();
-}
-
-const ::Host& Project_simpl::
-Host ()
-{
-  return this->Project_simpl_state_.Project_->Host ();
-}
-
-bool Project_simpl::
-Package_next ()
-{
-  return this->Project_simpl_state_.Package_ != 
-  this->Project_simpl_state_.Package_end_;
-}
-
-const ::Package& Project_simpl::
-Package ()
-{
-  return *this->Project_simpl_state_.Package_++;
-}
-
-bool Project_simpl::
-Build_next ()
-{
-  return this->Project_simpl_state_.Build_ != 
-  this->Project_simpl_state_.Build_end_;
-}
-
-const ::Build& Project_simpl::
-Build ()
-{
-  return *this->Project_simpl_state_.Build_++;
-}
-
-bool Project_simpl::
-Run_next ()
-{
-  return this->Project_simpl_state_.Run_ != 
-  this->Project_simpl_state_.Run_end_;
-}
-
-const ::Run& Project_simpl::
-Run ()
-{
-  return *this->Project_simpl_state_.Run_++;
-}
-
-// EG_simpl
-//
-
-void EG_simpl::
-pre (const ::EG& x)
-{
-  this->EG_simpl_state_.EG_ = &x;
-}
-
-EG_sskel::choice_arm_tag EG_simpl::
-choice_arm ()
-{
-  choice_arm_tag t (static_cast< choice_arm_tag > (
-                      this->EG_simpl_state_.EG_->choice_arm ()));
-  return t;
-}
-
-const ::Package& EG_simpl::
-Package ()
-{
-  return this->EG_simpl_state_.EG_->Package ();
-}
-
-const ::Host& EG_simpl::
-Host ()
-{
-  return this->EG_simpl_state_.EG_->Host ();
-}
-
-const ::Project& EG_simpl::
-Project ()
-{
-  return this->EG_simpl_state_.EG_->Project ();
-}
-
-// Directories_simpl
-//
-
-void Directories_simpl::
-pre (const ::Directories& x)
-{
-  this->Directories_simpl_state_.Directories_ = &x;
-  this->Directories_simpl_state_.Include_ = 
-  this->Directories_simpl_state_.Directories_->Include ().begin ();
-  this->Directories_simpl_state_.Include_end_ = 
-  this->Directories_simpl_state_.Directories_->Include ().end ();
-  this->Directories_simpl_state_.Library_ = 
-  this->Directories_simpl_state_.Directories_->Library ().begin ();
-  this->Directories_simpl_state_.Library_end_ = 
-  this->Directories_simpl_state_.Directories_->Library ().end ();
-}
-
-bool Directories_simpl::
-Include_next ()
-{
-  return this->Directories_simpl_state_.Include_ != 
-  this->Directories_simpl_state_.Include_end_;
-}
-
-::std::string Directories_simpl::
-Include ()
-{
-  return *this->Directories_simpl_state_.Include_++;
-}
-
-bool Directories_simpl::
-Library_next ()
-{
-  return this->Directories_simpl_state_.Library_ != 
-  this->Directories_simpl_state_.Library_end_;
-}
-
-::std::string Directories_simpl::
-Library ()
-{
-  return *this->Directories_simpl_state_.Library_++;
-}
-
-// Files_simpl
-//
-
-void Files_simpl::
-pre (const ::Files& x)
-{
-  this->Files_simpl_state_.Files_ = &x;
-  this->Files_simpl_state_.Include_ = 
-  this->Files_simpl_state_.Files_->Include ().begin ();
-  this->Files_simpl_state_.Include_end_ = 
-  this->Files_simpl_state_.Files_->Include ().end ();
-  this->Files_simpl_state_.Library_ = 
-  this->Files_simpl_state_.Files_->Library ().begin ();
-  this->Files_simpl_state_.Library_end_ = 
-  this->Files_simpl_state_.Files_->Library ().end ();
-}
-
-bool Files_simpl::
-Include_next ()
-{
-  return this->Files_simpl_state_.Include_ != 
-  this->Files_simpl_state_.Include_end_;
-}
-
-::std::string Files_simpl::
-Include ()
-{
-  return *this->Files_simpl_state_.Include_++;
-}
-
-bool Files_simpl::
-Library_next ()
-{
-  return this->Files_simpl_state_.Library_ != 
-  this->Files_simpl_state_.Library_end_;
-}
-
-::std::string Files_simpl::
-Library ()
-{
-  return *this->Files_simpl_state_.Library_++;
-}
-
-// Directories1_simpl
-//
-
-void Directories1_simpl::
-pre (const ::Directories1& x)
-{
-  this->Directories1_simpl_state_.Directories1_ = &x;
-  this->Directories1_simpl_state_.Include_ = 
-  this->Directories1_simpl_state_.Directories1_->Include ().begin ();
-  this->Directories1_simpl_state_.Include_end_ = 
-  this->Directories1_simpl_state_.Directories1_->Include ().end ();
-  this->Directories1_simpl_state_.Library_ = 
-  this->Directories1_simpl_state_.Directories1_->Library ().begin ();
-  this->Directories1_simpl_state_.Library_end_ = 
-  this->Directories1_simpl_state_.Directories1_->Library ().end ();
-}
-
-bool Directories1_simpl::
-Include_next ()
-{
-  return this->Directories1_simpl_state_.Include_ != 
-  this->Directories1_simpl_state_.Include_end_;
-}
-
-::std::string Directories1_simpl::
-Include ()
-{
-  return *this->Directories1_simpl_state_.Include_++;
-}
-
-bool Directories1_simpl::
-Library_next ()
-{
-  return this->Directories1_simpl_state_.Library_ != 
-  this->Directories1_simpl_state_.Library_end_;
-}
-
-::std::string Directories1_simpl::
-Library ()
-{
-  return *this->Directories1_simpl_state_.Library_++;
-}
-
-// Files1_simpl
-//
-
-void Files1_simpl::
-pre (const ::Files1& x)
-{
-  this->Files1_simpl_state_.Files1_ = &x;
-  this->Files1_simpl_state_.Include_ = 
-  this->Files1_simpl_state_.Files1_->Include ().begin ();
-  this->Files1_simpl_state_.Include_end_ = 
-  this->Files1_simpl_state_.Files1_->Include ().end ();
-  this->Files1_simpl_state_.Library_ = 
-  this->Files1_simpl_state_.Files1_->Library ().begin ();
-  this->Files1_simpl_state_.Library_end_ = 
-  this->Files1_simpl_state_.Files1_->Library ().end ();
-}
-
-bool Files1_simpl::
-Include_next ()
-{
-  return this->Files1_simpl_state_.Include_ != 
-  this->Files1_simpl_state_.Include_end_;
-}
-
-::std::string Files1_simpl::
-Include ()
-{
-  return *this->Files1_simpl_state_.Include_++;
-}
-
-bool Files1_simpl::
-Library_next ()
-{
-  return this->Files1_simpl_state_.Library_ != 
-  this->Files1_simpl_state_.Library_end_;
-}
-
-::std::string Files1_simpl::
-Library ()
-{
-  return *this->Files1_simpl_state_.Library_++;
-}
-
-// Run_simpl
-//
-
-void Run_simpl::
-pre (const ::Run& x)
-{
-  this->Run_simpl_state_.Run_ = &x;
-  this->Run_simpl_state_.Argument_ = 
-  this->Run_simpl_state_.Run_->Argument ().begin ();
-  this->Run_simpl_state_.Argument_end_ = 
-  this->Run_simpl_state_.Run_->Argument ().end ();
-}
-
-::std::string Run_simpl::
-Name ()
-{
-  return this->Run_simpl_state_.Run_->Name ();
-}
-
-bool Run_simpl::
-Argument_next ()
-{
-  return this->Run_simpl_state_.Argument_ != 
-  this->Run_simpl_state_.Argument_end_;
-}
-
-::std::string Run_simpl::
-Argument ()
-{
-  return *this->Run_simpl_state_.Argument_++;
-}
-
-// EG_saggr
-//
-
-EG_saggr::
-EG_saggr ()
-{
-  this->Build_s_.serializers (this->string_s_,
-                              this->string_s_,
-                              this->string_s_);
-
-  this->Run_s_.serializers (this->string_s_,
-                            this->string_s_);
-
-  this->Directories1_s_.serializers (this->string_s_,
-                                     this->string_s_);
-
-  this->Files1_s_.serializers (this->string_s_,
+namespace egxml
+{
+  // Package_simpl
+  //
+
+  void Package_simpl::
+  pre (const ::egxml::Package& x)
+  {
+    this->Package_simpl_state_.Package_ = &x;
+  }
+
+  ::std::string Package_simpl::
+  Name ()
+  {
+    return this->Package_simpl_state_.Package_->Name ();
+  }
+
+  bool Package_simpl::
+  Repository_present ()
+  {
+    return this->Package_simpl_state_.Package_->Repository_present ();
+  }
+
+  ::std::string Package_simpl::
+  Repository ()
+  {
+    return this->Package_simpl_state_.Package_->Repository ();
+  }
+
+  ::std::string Package_simpl::
+  License ()
+  {
+    return this->Package_simpl_state_.Package_->License ();
+  }
+
+  bool Package_simpl::
+  Description_present ()
+  {
+    return this->Package_simpl_state_.Package_->Description_present ();
+  }
+
+  ::std::string Package_simpl::
+  Description ()
+  {
+    return this->Package_simpl_state_.Package_->Description ();
+  }
+
+  bool Package_simpl::
+  Directories_present ()
+  {
+    return this->Package_simpl_state_.Package_->Directories_present ();
+  }
+
+  const ::egxml::Directories& Package_simpl::
+  Directories ()
+  {
+    return this->Package_simpl_state_.Package_->Directories ();
+  }
+
+  bool Package_simpl::
+  Files_present ()
+  {
+    return this->Package_simpl_state_.Package_->Files_present ();
+  }
+
+  const ::egxml::Files& Package_simpl::
+  Files ()
+  {
+    return this->Package_simpl_state_.Package_->Files ();
+  }
+
+  // Host_simpl
+  //
+
+  Host_simpl::
+  Host_simpl ()
+  : Host_sskel (&base_impl_)
+  {
+  }
+
+  void Host_simpl::
+  pre (const ::egxml::Host& x)
+  {
+    this->base_impl_.pre (x);
+    this->Host_simpl_state_.Host_ = &x;
+  }
+
+  ::std::string Host_simpl::
+  Command ()
+  {
+    return this->Host_simpl_state_.Host_->Command ();
+  }
+
+  // Build_simpl
+  //
+
+  void Build_simpl::
+  pre (const ::egxml::Build& x)
+  {
+    this->Build_simpl_state_.Build_ = &x;
+  }
+
+  ::std::string Build_simpl::
+  Name ()
+  {
+    return this->Build_simpl_state_.Build_->Name ();
+  }
+
+  ::std::string Build_simpl::
+  CompilerFlags ()
+  {
+    return this->Build_simpl_state_.Build_->CompilerFlags ();
+  }
+
+  ::std::string Build_simpl::
+  LinkerFlags ()
+  {
+    return this->Build_simpl_state_.Build_->LinkerFlags ();
+  }
+
+  // Project_simpl
+  //
+
+  void Project_simpl::
+  pre (const ::egxml::Project& x)
+  {
+    this->Project_simpl_state_.Project_ = &x;
+    this->Project_simpl_state_.Package_ = 
+    this->Project_simpl_state_.Project_->Package ().begin ();
+    this->Project_simpl_state_.Package_end_ = 
+    this->Project_simpl_state_.Project_->Package ().end ();
+    this->Project_simpl_state_.Build_ = 
+    this->Project_simpl_state_.Project_->Build ().begin ();
+    this->Project_simpl_state_.Build_end_ = 
+    this->Project_simpl_state_.Project_->Build ().end ();
+    this->Project_simpl_state_.Run_ = 
+    this->Project_simpl_state_.Project_->Run ().begin ();
+    this->Project_simpl_state_.Run_end_ = 
+    this->Project_simpl_state_.Project_->Run ().end ();
+  }
+
+  ::std::string Project_simpl::
+  Name ()
+  {
+    return this->Project_simpl_state_.Project_->Name ();
+  }
+
+  const ::egxml::Host& Project_simpl::
+  Host ()
+  {
+    return this->Project_simpl_state_.Project_->Host ();
+  }
+
+  bool Project_simpl::
+  Package_next ()
+  {
+    return this->Project_simpl_state_.Package_ != 
+    this->Project_simpl_state_.Package_end_;
+  }
+
+  const ::egxml::Package& Project_simpl::
+  Package ()
+  {
+    return *this->Project_simpl_state_.Package_++;
+  }
+
+  bool Project_simpl::
+  Build_next ()
+  {
+    return this->Project_simpl_state_.Build_ != 
+    this->Project_simpl_state_.Build_end_;
+  }
+
+  const ::egxml::Build& Project_simpl::
+  Build ()
+  {
+    return *this->Project_simpl_state_.Build_++;
+  }
+
+  bool Project_simpl::
+  Run_next ()
+  {
+    return this->Project_simpl_state_.Run_ != 
+    this->Project_simpl_state_.Run_end_;
+  }
+
+  const ::egxml::Run& Project_simpl::
+  Run ()
+  {
+    return *this->Project_simpl_state_.Run_++;
+  }
+
+  // EG_simpl
+  //
+
+  void EG_simpl::
+  pre (const ::egxml::EG& x)
+  {
+    this->EG_simpl_state_.EG_ = &x;
+  }
+
+  EG_sskel::choice_arm_tag EG_simpl::
+  choice_arm ()
+  {
+    choice_arm_tag t (static_cast< choice_arm_tag > (
+                        this->EG_simpl_state_.EG_->choice_arm ()));
+    return t;
+  }
+
+  const ::egxml::Package& EG_simpl::
+  Package ()
+  {
+    return this->EG_simpl_state_.EG_->Package ();
+  }
+
+  const ::egxml::Host& EG_simpl::
+  Host ()
+  {
+    return this->EG_simpl_state_.EG_->Host ();
+  }
+
+  const ::egxml::Project& EG_simpl::
+  Project ()
+  {
+    return this->EG_simpl_state_.EG_->Project ();
+  }
+
+  // Directories_simpl
+  //
+
+  void Directories_simpl::
+  pre (const ::egxml::Directories& x)
+  {
+    this->Directories_simpl_state_.Directories_ = &x;
+    this->Directories_simpl_state_.Include_ = 
+    this->Directories_simpl_state_.Directories_->Include ().begin ();
+    this->Directories_simpl_state_.Include_end_ = 
+    this->Directories_simpl_state_.Directories_->Include ().end ();
+    this->Directories_simpl_state_.Library_ = 
+    this->Directories_simpl_state_.Directories_->Library ().begin ();
+    this->Directories_simpl_state_.Library_end_ = 
+    this->Directories_simpl_state_.Directories_->Library ().end ();
+  }
+
+  bool Directories_simpl::
+  Include_next ()
+  {
+    return this->Directories_simpl_state_.Include_ != 
+    this->Directories_simpl_state_.Include_end_;
+  }
+
+  ::std::string Directories_simpl::
+  Include ()
+  {
+    return *this->Directories_simpl_state_.Include_++;
+  }
+
+  bool Directories_simpl::
+  Library_next ()
+  {
+    return this->Directories_simpl_state_.Library_ != 
+    this->Directories_simpl_state_.Library_end_;
+  }
+
+  ::std::string Directories_simpl::
+  Library ()
+  {
+    return *this->Directories_simpl_state_.Library_++;
+  }
+
+  // Files_simpl
+  //
+
+  void Files_simpl::
+  pre (const ::egxml::Files& x)
+  {
+    this->Files_simpl_state_.Files_ = &x;
+    this->Files_simpl_state_.System_ = 
+    this->Files_simpl_state_.Files_->System ().begin ();
+    this->Files_simpl_state_.System_end_ = 
+    this->Files_simpl_state_.Files_->System ().end ();
+    this->Files_simpl_state_.User_ = 
+    this->Files_simpl_state_.Files_->User ().begin ();
+    this->Files_simpl_state_.User_end_ = 
+    this->Files_simpl_state_.Files_->User ().end ();
+    this->Files_simpl_state_.Library_ = 
+    this->Files_simpl_state_.Files_->Library ().begin ();
+    this->Files_simpl_state_.Library_end_ = 
+    this->Files_simpl_state_.Files_->Library ().end ();
+  }
+
+  bool Files_simpl::
+  System_next ()
+  {
+    return this->Files_simpl_state_.System_ != 
+    this->Files_simpl_state_.System_end_;
+  }
+
+  ::std::string Files_simpl::
+  System ()
+  {
+    return *this->Files_simpl_state_.System_++;
+  }
+
+  bool Files_simpl::
+  User_next ()
+  {
+    return this->Files_simpl_state_.User_ != 
+    this->Files_simpl_state_.User_end_;
+  }
+
+  ::std::string Files_simpl::
+  User ()
+  {
+    return *this->Files_simpl_state_.User_++;
+  }
+
+  bool Files_simpl::
+  Library_next ()
+  {
+    return this->Files_simpl_state_.Library_ != 
+    this->Files_simpl_state_.Library_end_;
+  }
+
+  ::std::string Files_simpl::
+  Library ()
+  {
+    return *this->Files_simpl_state_.Library_++;
+  }
+
+  // Run_simpl
+  //
+
+  void Run_simpl::
+  pre (const ::egxml::Run& x)
+  {
+    this->Run_simpl_state_.Run_ = &x;
+    this->Run_simpl_state_.Argument_ = 
+    this->Run_simpl_state_.Run_->Argument ().begin ();
+    this->Run_simpl_state_.Argument_end_ = 
+    this->Run_simpl_state_.Run_->Argument ().end ();
+  }
+
+  ::std::string Run_simpl::
+  Name ()
+  {
+    return this->Run_simpl_state_.Run_->Name ();
+  }
+
+  bool Run_simpl::
+  Argument_next ()
+  {
+    return this->Run_simpl_state_.Argument_ != 
+    this->Run_simpl_state_.Argument_end_;
+  }
+
+  ::std::string Run_simpl::
+  Argument ()
+  {
+    return *this->Run_simpl_state_.Argument_++;
+  }
+}
+
+namespace egxml
+{
+  // EG_saggr
+  //
+
+  EG_saggr::
+  EG_saggr ()
+  {
+    this->EG_s_.serializers (this->Package_s_,
+                             this->Host_s_,
+                             this->Project_s_);
+
+    this->Package_s_.serializers (this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->Directories_s_,
+                                  this->Files_s_);
+
+    this->Files_s_.serializers (this->string_s_,
+                                this->string_s_,
+                                this->string_s_);
+
+    this->Host_s_.serializers (this->string_s_,
+                               this->string_s_,
+                               this->string_s_,
+                               this->string_s_,
+                               this->Directories_s_,
+                               this->Files_s_,
                                this->string_s_);
 
-  this->Project_s_.serializers (this->string_s_,
-                                this->Host_s_,
-                                this->Package_s_,
-                                this->Build_s_,
-                                this->Run_s_);
-
-  this->EG_s_.serializers (this->Package_s_,
-                           this->Host_s_,
-                           this->Project_s_);
-
-  this->Package_s_.serializers (this->string_s_,
+    this->Build_s_.serializers (this->string_s_,
                                 this->string_s_,
-                                this->string_s_,
-                                this->string_s_,
-                                this->Directories_s_,
-                                this->Files_s_);
+                                this->string_s_);
 
-  this->Directories_s_.serializers (this->string_s_,
-                                    this->string_s_);
-
-  this->Files_s_.serializers (this->string_s_,
+    this->Run_s_.serializers (this->string_s_,
                               this->string_s_);
 
-  this->Host_s_.serializers (this->string_s_,
-                             this->string_s_,
-                             this->string_s_,
-                             this->string_s_,
-                             this->string_s_,
-                             this->Directories1_s_,
-                             this->Files1_s_);
-}
+    this->Project_s_.serializers (this->string_s_,
+                                  this->Host_s_,
+                                  this->Package_s_,
+                                  this->Build_s_,
+                                  this->Run_s_);
 
-const char* EG_saggr::
-root_name ()
-{
-  return "EG";
-}
+    this->Directories_s_.serializers (this->string_s_,
+                                      this->string_s_);
+  }
 
-const char* EG_saggr::
-root_namespace ()
-{
-  return "";
+  const char* EG_saggr::
+  root_name ()
+  {
+    return "EG";
+  }
+
+  const char* EG_saggr::
+  root_namespace ()
+  {
+    return "";
+  }
 }
 
 // Begin epilogue.

@@ -37,95 +37,98 @@
 
 #include <xsde/cxx/stack.hxx>
 
-class name_pimpl: public name_pskel
+namespace test
 {
-  public:
-  name_pimpl ();
-
-  virtual void
-  pre ();
-
-  virtual ::name
-  post_name ();
-
-  public:
-  ::xml_schema::string_pimpl base_impl_;
-
-  public:
-  struct name_pimpl_state
+  class name_pimpl: public name_pskel
   {
-    ::name name_;
+    public:
+    name_pimpl ();
+
+    virtual void
+    pre ();
+
+    virtual ::test::name
+    post_name ();
+
+    public:
+    ::xml_schema::string_pimpl base_impl_;
+
+    public:
+    struct name_pimpl_state
+    {
+      ::test::name name_;
+    };
+
+    name_pimpl_state name_pimpl_state_;
   };
 
-  name_pimpl_state name_pimpl_state_;
-};
-
-class Config_pimpl: public Config_pskel
-{
-  public:
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  name (const ::name&);
-
-  virtual void
-  file (bool);
-
-  virtual ::Config
-  post_Config ();
-
-  public:
-  struct Config_pimpl_state
+  class Config_pimpl: public Config_pskel
   {
-    ::Config Config_;
+    public:
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    name (const ::test::name&);
+
+    virtual void
+    file (bool);
+
+    virtual ::test::Config
+    post_Config ();
+
+    public:
+    struct Config_pimpl_state
+    {
+      ::test::Config Config_;
+    };
+
+    Config_pimpl_state Config_pimpl_state_;
   };
 
-  Config_pimpl_state Config_pimpl_state_;
-};
-
-class eg_pimpl: public eg_pskel
-{
-  public:
-  eg_pimpl (bool = false);
-
-  ~eg_pimpl ();
-
-  virtual void
-  _reset ();
-
-  virtual void
-  pre ();
-
-  // Elements.
-  //
-  virtual void
-  host (const ::std::string&);
-
-  virtual void
-  folder (const ::std::string&);
-
-  virtual void
-  stuff (const ::Config&);
-
-  virtual ::eg*
-  post_eg ();
-
-  public:
-  void
-  pre_impl (::eg*);
-
-  public:
-  struct eg_pimpl_state
+  class eg_pimpl: public eg_pskel
   {
-    ::eg* eg_;
-  };
+    public:
+    eg_pimpl (bool = false);
 
-  eg_pimpl_state eg_pimpl_state_;
-  bool eg_pimpl_base_;
-};
+    ~eg_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    host (const ::std::string&);
+
+    virtual void
+    folder (const ::std::string&);
+
+    virtual void
+    stuff (const ::test::Config&);
+
+    virtual ::test::eg*
+    post_eg ();
+
+    public:
+    void
+    pre_impl (::test::eg*);
+
+    public:
+    struct eg_pimpl_state
+    {
+      ::test::eg* eg_;
+    };
+
+    eg_pimpl_state eg_pimpl_state_;
+    bool eg_pimpl_base_;
+  };
+}
 
 #ifdef W__WORKSPACE_EG_SRC_SCHEMA_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
 #  undef XSDE_OMIT_PAGGR
@@ -133,50 +136,53 @@ class eg_pimpl: public eg_pskel
 
 #ifndef XSDE_OMIT_PAGGR
 
-// Parser aggregate for the eg element.
-//
-class eg_paggr
+namespace test
 {
-  public:
-  eg_paggr ();
-
-  void
-  pre ()
+  // Parser aggregate for the eg element.
+  //
+  class eg_paggr
   {
-    this->eg_p_.pre ();
-  }
+    public:
+    eg_paggr ();
 
-  ::eg*
-  post ()
-  {
-    return this->eg_p_.post_eg ();
-  }
+    void
+    pre ()
+    {
+      this->eg_p_.pre ();
+    }
 
-  ::eg_pimpl&
-  root_parser ()
-  {
-    return this->eg_p_;
-  }
+    ::test::eg*
+    post ()
+    {
+      return this->eg_p_.post_eg ();
+    }
 
-  static const char*
-  root_name ();
+    ::test::eg_pimpl&
+    root_parser ()
+    {
+      return this->eg_p_;
+    }
 
-  static const char*
-  root_namespace ();
+    static const char*
+    root_name ();
 
-  void
-  reset ()
-  {
-    this->eg_p_._reset ();
-  }
+    static const char*
+    root_namespace ();
 
-  public:
-  ::Config_pimpl Config_p_;
-  ::name_pimpl name_p_;
-  ::eg_pimpl eg_p_;
-  ::xml_schema::boolean_pimpl boolean_p_;
-  ::xml_schema::string_pimpl string_p_;
-};
+    void
+    reset ()
+    {
+      this->eg_p_._reset ();
+    }
+
+    public:
+    ::test::name_pimpl name_p_;
+    ::xml_schema::string_pimpl string_p_;
+    ::xml_schema::boolean_pimpl boolean_p_;
+    ::test::eg_pimpl eg_p_;
+    ::test::Config_pimpl Config_p_;
+  };
+}
 
 #endif // XSDE_OMIT_PAGGR
 

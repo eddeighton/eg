@@ -18,7 +18,7 @@ set( SCHEMA_SOURCE_DIR ${EG_ROOT_DIR}/src/schema )
 find_file( SCHEMA_FILE NAME schema.xsd PATHS ${SCHEMA_SOURCE_DIR} )
 
 #execute the schema code gen
-compile_schema( ${SCHEMA_FILE} ${SCHEMA_SOURCE_DIR} )
+compile_schema( ${SCHEMA_FILE} "test" ${SCHEMA_SOURCE_DIR} )
 
 set( SCHEMA_SOURCES
     ${EG_SRC_DIR}/common/assert_verify.hpp

@@ -164,109 +164,116 @@ namespace xml_schema
   using ::xsde::cxx::hybrid::data_sequence;
 }
 
-class name;
-class Config;
-class eg;
-
-// name (fixed-length)
-//
-class name: public ::std::string
+namespace test
 {
-  public:
-  name ();
-};
+  class name;
+  class Config;
+  class eg;
+}
 
-// Config (fixed-length)
-//
-class Config
+
+namespace test
 {
-  public:
-  Config ();
-
-  Config (const Config&);
-  Config& operator= (const Config&);
-
-  ~Config ();
-
-  // name
+  // name (fixed-length)
   //
-  const ::name&
-  name () const;
+  class name: public ::std::string
+  {
+    public:
+    name ();
+  };
 
-  ::name&
-  name ();
-
-  void
-  name (const ::name&);
-
-  // file
+  // Config (fixed-length)
   //
-  bool
-  file () const;
+  class Config
+  {
+    public:
+    Config ();
 
-  bool&
-  file ();
+    Config (const Config&);
+    Config& operator= (const Config&);
 
-  void
-  file (bool);
+    ~Config ();
 
-  private:
-  ::name name_;
-  bool file_;
-};
+    // name
+    //
+    const ::test::name&
+    name () const;
 
-// eg (variable-length)
-//
-class eg
-{
-  private:
-  eg (const eg&);
-  eg& operator= (const eg&);
+    ::test::name&
+    name ();
 
-  public:
-  eg ();
+    void
+    name (const ::test::name&);
 
-  ~eg ();
+    // file
+    //
+    bool
+    file () const;
 
-  // host
+    bool&
+    file ();
+
+    void
+    file (bool);
+
+    private:
+    ::test::name name_;
+    bool file_;
+  };
+
+  // eg (variable-length)
   //
-  const ::std::string&
-  host () const;
+  class eg
+  {
+    private:
+    eg (const eg&);
+    eg& operator= (const eg&);
 
-  ::std::string&
-  host ();
+    public:
+    eg ();
 
-  void
-  host (const ::std::string&);
+    ~eg ();
 
-  // folder
-  //
-  const ::std::string&
-  folder () const;
+    // host
+    //
+    const ::std::string&
+    host () const;
 
-  ::std::string&
-  folder ();
+    ::std::string&
+    host ();
 
-  void
-  folder (const ::std::string&);
+    void
+    host (const ::std::string&);
 
-  // stuff
-  //
-  typedef ::xsde::cxx::hybrid::fix_sequence< ::Config > stuff_sequence;
-  typedef stuff_sequence::iterator stuff_iterator;
-  typedef stuff_sequence::const_iterator stuff_const_iterator;
+    // folder
+    //
+    const ::std::string&
+    folder () const;
 
-  const stuff_sequence&
-  stuff () const;
+    ::std::string&
+    folder ();
 
-  stuff_sequence&
-  stuff ();
+    void
+    folder (const ::std::string&);
 
-  private:
-  ::std::string host_;
-  ::std::string folder_;
-  stuff_sequence stuff_;
-};
+    // stuff
+    //
+    typedef ::xsde::cxx::hybrid::fix_sequence< ::test::Config > stuff_sequence;
+    typedef stuff_sequence::iterator stuff_iterator;
+    typedef stuff_sequence::const_iterator stuff_const_iterator;
+
+    const stuff_sequence&
+    stuff () const;
+
+    stuff_sequence&
+    stuff ();
+
+    private:
+    ::std::string host_;
+    ::std::string folder_;
+    stuff_sequence stuff_;
+  };
+}
 
 // Begin epilogue.
 //

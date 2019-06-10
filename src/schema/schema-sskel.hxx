@@ -88,9 +88,13 @@ namespace xml_schema
 
 // Forward declarations
 //
-class name_sskel;
-class Config_sskel;
-class eg_sskel;
+namespace test
+{
+  class name_sskel;
+  class Config_sskel;
+  class eg_sskel;
+}
+
 
 #include <string>
 
@@ -281,155 +285,158 @@ namespace xml_schema
   typedef xsde::cxx::serializer::context serializer_context;
 }
 
-class name_sskel: public ::xml_schema::string_sskel
+namespace test
 {
-  public:
-  // Serializer callbacks. Override them in your implementation.
-  //
+  class name_sskel: public ::xml_schema::string_sskel
+  {
+    public:
+    // Serializer callbacks. Override them in your implementation.
+    //
 
-  virtual void
-  pre (const ::name&) = 0;
+    virtual void
+    pre (const ::test::name&) = 0;
 
-  // virtual void
-  // post ();
+    // virtual void
+    // post ();
 
-  // Constructor.
-  //
-  name_sskel (::xml_schema::string_sskel* tiein);
+    // Constructor.
+    //
+    name_sskel (::xml_schema::string_sskel* tiein);
 
-  // Implementation.
-  //
-  public:
-  virtual void
-  pre (const ::std::string&);
+    // Implementation.
+    //
+    public:
+    virtual void
+    pre (const ::std::string&);
 
-  protected:
-  name_sskel* name_impl_;
-  name_sskel (name_sskel*, void*);
-};
+    protected:
+    name_sskel* name_impl_;
+    name_sskel (name_sskel*, void*);
+  };
 
-class Config_sskel: public ::xsde::cxx::serializer::validating::complex_content
-{
-  public:
-  // Serializer callbacks. Override them in your implementation.
-  //
+  class Config_sskel: public ::xsde::cxx::serializer::validating::complex_content
+  {
+    public:
+    // Serializer callbacks. Override them in your implementation.
+    //
 
-  virtual void
-  pre (const ::Config&) = 0;
+    virtual void
+    pre (const ::test::Config&) = 0;
 
-  // Elements.
-  //
-  virtual const ::name&
-  name () = 0;
+    // Elements.
+    //
+    virtual const ::test::name&
+    name () = 0;
 
-  virtual bool
-  file () = 0;
+    virtual bool
+    file () = 0;
 
-  // virtual void
-  // post ();
+    // virtual void
+    // post ();
 
-  // Serializer construction API.
-  //
-  void
-  serializers (::name_sskel& /* name */,
-               ::xml_schema::boolean_sskel& /* file */);
+    // Serializer construction API.
+    //
+    void
+    serializers (::test::name_sskel& /* name */,
+                 ::xml_schema::boolean_sskel& /* file */);
 
-  // Individual element serializers.
-  //
-  void
-  name_serializer (::name_sskel&);
+    // Individual element serializers.
+    //
+    void
+    name_serializer (::test::name_sskel&);
 
-  void
-  file_serializer (::xml_schema::boolean_sskel&);
+    void
+    file_serializer (::xml_schema::boolean_sskel&);
 
-  virtual void
-  _reset ();
+    virtual void
+    _reset ();
 
-  // Constructor.
-  //
-  Config_sskel ();
+    // Constructor.
+    //
+    Config_sskel ();
 
-  // Implementation.
-  //
-  public:
-  virtual void
-  _serialize_content ();
+    // Implementation.
+    //
+    public:
+    virtual void
+    _serialize_content ();
 
-  protected:
-  Config_sskel* Config_impl_;
-  Config_sskel (Config_sskel*, void*);
+    protected:
+    Config_sskel* Config_impl_;
+    Config_sskel (Config_sskel*, void*);
 
-  protected:
-  ::name_sskel* name_serializer_;
-  ::xml_schema::boolean_sskel* file_serializer_;
-};
+    protected:
+    ::test::name_sskel* name_serializer_;
+    ::xml_schema::boolean_sskel* file_serializer_;
+  };
 
-class eg_sskel: public ::xsde::cxx::serializer::validating::complex_content
-{
-  public:
-  // Serializer callbacks. Override them in your implementation.
-  //
+  class eg_sskel: public ::xsde::cxx::serializer::validating::complex_content
+  {
+    public:
+    // Serializer callbacks. Override them in your implementation.
+    //
 
-  virtual void
-  pre (const ::eg&) = 0;
+    virtual void
+    pre (const ::test::eg&) = 0;
 
-  // Elements.
-  //
-  virtual ::std::string
-  host () = 0;
+    // Elements.
+    //
+    virtual ::std::string
+    host () = 0;
 
-  virtual ::std::string
-  folder () = 0;
+    virtual ::std::string
+    folder () = 0;
 
-  virtual bool
-  stuff_next ();
+    virtual bool
+    stuff_next ();
 
-  virtual const ::Config&
-  stuff () = 0;
+    virtual const ::test::Config&
+    stuff () = 0;
 
-  // virtual void
-  // post ();
+    // virtual void
+    // post ();
 
-  // Serializer construction API.
-  //
-  void
-  serializers (::xml_schema::string_sskel& /* host */,
-               ::xml_schema::string_sskel& /* folder */,
-               ::Config_sskel& /* stuff */);
+    // Serializer construction API.
+    //
+    void
+    serializers (::xml_schema::string_sskel& /* host */,
+                 ::xml_schema::string_sskel& /* folder */,
+                 ::test::Config_sskel& /* stuff */);
 
-  // Individual element serializers.
-  //
-  void
-  host_serializer (::xml_schema::string_sskel&);
+    // Individual element serializers.
+    //
+    void
+    host_serializer (::xml_schema::string_sskel&);
 
-  void
-  folder_serializer (::xml_schema::string_sskel&);
+    void
+    folder_serializer (::xml_schema::string_sskel&);
 
-  void
-  stuff_serializer (::Config_sskel&);
+    void
+    stuff_serializer (::test::Config_sskel&);
 
-  virtual void
-  _reset ();
+    virtual void
+    _reset ();
 
-  // Constructor.
-  //
-  eg_sskel ();
+    // Constructor.
+    //
+    eg_sskel ();
 
-  // Implementation.
-  //
-  public:
-  virtual void
-  _serialize_content ();
+    // Implementation.
+    //
+    public:
+    virtual void
+    _serialize_content ();
 
-  protected:
-  eg_sskel* eg_impl_;
-  eg_sskel (eg_sskel*, void*);
+    protected:
+    eg_sskel* eg_impl_;
+    eg_sskel (eg_sskel*, void*);
 
-  protected:
-  ::xml_schema::string_sskel* host_serializer_;
-  ::xml_schema::string_sskel* folder_serializer_;
-  ::Config_sskel* stuff_serializer_;
-};
+    protected:
+    ::xml_schema::string_sskel* host_serializer_;
+    ::xml_schema::string_sskel* folder_serializer_;
+    ::test::Config_sskel* stuff_serializer_;
+  };
+}
 
 // Begin epilogue.
 //
