@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2013 (x64) (http://www.altova.com) by Edward Deighton (Deighton Systems Limited) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="EG">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:choice>
+				<xs:element name="Package" type="Package"/>
+				<xs:element name="Host" type="Host"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="Package">
+		<xs:sequence>
+			<xs:element name="Name" type="xs:string"/>
+			<xs:element name="Repository" type="xs:string" minOccurs="0"/>
+			<xs:element name="License" type="xs:string"/>
+			<xs:element name="Description" type="xs:string" minOccurs="0"/>
+			<xs:element name="Directories" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Files" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Host">
+		<xs:sequence>
+			<xs:element name="Name" type="xs:string"/>
+			<xs:element name="Command" type="xs:string"/>
+			<xs:element name="Repository" type="xs:string" minOccurs="0"/>
+			<xs:element name="License" type="xs:string"/>
+			<xs:element name="Description" type="xs:string" minOccurs="0"/>
+			<xs:element name="Directories" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Files" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

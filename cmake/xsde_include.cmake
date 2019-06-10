@@ -34,7 +34,7 @@ function( compile_schema schema output_directory )
         ${output_directory}/schema-simpl.hxx
         ${output_directory}/schema-simpl.cxx
         
-        COMMENT "Generating xml schema parser using xsde"
+        COMMENT "Generating xml schema parser using xsde for ${schema} to ${output_directory}"
     )
 
 endfunction( compile_schema )

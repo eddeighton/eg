@@ -174,8 +174,8 @@ class eg_paggr
   ::Config_pimpl Config_p_;
   ::name_pimpl name_p_;
   ::eg_pimpl eg_p_;
-  ::xml_schema::string_pimpl string_p_;
   ::xml_schema::boolean_pimpl boolean_p_;
+  ::xml_schema::string_pimpl string_p_;
 };
 
 #endif // XSDE_OMIT_PAGGR

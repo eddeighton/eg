@@ -150,8 +150,8 @@ class eg_saggr
   ::Config_simpl Config_s_;
   ::name_simpl name_s_;
   ::eg_simpl eg_s_;
-  ::xml_schema::string_simpl string_s_;
   ::xml_schema::boolean_simpl boolean_s_;
+  ::xml_schema::string_simpl string_s_;
 };
 
 #endif // XSDE_OMIT_SAGGR
