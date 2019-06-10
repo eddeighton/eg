@@ -205,6 +205,119 @@ post_Host ()
   return r;
 }
 
+// Build_pimpl
+//
+
+void Build_pimpl::
+pre ()
+{
+  this->Build_pimpl_state_.Build_ = ::Build ();
+}
+
+void Build_pimpl::
+Name (const ::std::string& x)
+{
+  this->Build_pimpl_state_.Build_.Name (x);
+}
+
+void Build_pimpl::
+CompilerFlags (const ::std::string& x)
+{
+  this->Build_pimpl_state_.Build_.CompilerFlags (x);
+}
+
+void Build_pimpl::
+LinkerFlags (const ::std::string& x)
+{
+  this->Build_pimpl_state_.Build_.LinkerFlags (x);
+}
+
+::Build Build_pimpl::
+post_Build ()
+{
+  return this->Build_pimpl_state_.Build_;
+}
+
+// Project_pimpl
+//
+
+Project_pimpl::
+Project_pimpl (bool b)
+{
+  this->Project_pimpl_base_ = b;
+  this->Project_pimpl_state_.Project_ = 0;
+}
+
+Project_pimpl::
+~Project_pimpl ()
+{
+  if (!this->Project_pimpl_base_ && this->Project_pimpl_state_.Project_)
+    delete this->Project_pimpl_state_.Project_;
+}
+
+void Project_pimpl::
+_reset ()
+{
+  Project_pskel::_reset ();
+
+  if (!this->Project_pimpl_base_ && this->Project_pimpl_state_.Project_)
+  {
+    delete this->Project_pimpl_state_.Project_;
+    this->Project_pimpl_state_.Project_ = 0;
+  }
+}
+
+void Project_pimpl::
+pre_impl (::Project* x)
+{
+  this->Project_pimpl_state_.Project_ = x;
+}
+
+void Project_pimpl::
+pre ()
+{
+  ::Project* x = new ::Project;
+  this->pre_impl (x);
+}
+
+void Project_pimpl::
+Name (const ::std::string& x)
+{
+  this->Project_pimpl_state_.Project_->Name (x);
+}
+
+void Project_pimpl::
+Host (::Host* x)
+{
+  this->Project_pimpl_state_.Project_->Host (x);
+}
+
+void Project_pimpl::
+Package (::Package* x)
+{
+  this->Project_pimpl_state_.Project_->Package ().push_back (x);
+}
+
+void Project_pimpl::
+Build (const ::Build& x)
+{
+  this->Project_pimpl_state_.Project_->Build ().push_back (x);
+}
+
+void Project_pimpl::
+Run (::Run* x)
+{
+  this->Project_pimpl_state_.Project_->Run ().push_back (x);
+}
+
+::Project* Project_pimpl::
+post_Project ()
+{
+  ::Project* r = this->Project_pimpl_state_.Project_;
+  this->Project_pimpl_state_.Project_ = 0;
+  return r;
+}
+
 // EG_pimpl
 //
 
@@ -264,6 +377,12 @@ void EG_pimpl::
 Host (::Host* x)
 {
   this->EG_pimpl_state_.EG_->Host (x);
+}
+
+void EG_pimpl::
+Project (::Project* x)
+{
+  this->EG_pimpl_state_.EG_->Project (x);
 }
 
 ::EG* EG_pimpl::
@@ -522,12 +641,97 @@ post_Files1 ()
   return r;
 }
 
+// Run_pimpl
+//
+
+Run_pimpl::
+Run_pimpl (bool b)
+{
+  this->Run_pimpl_base_ = b;
+  this->Run_pimpl_state_.Run_ = 0;
+}
+
+Run_pimpl::
+~Run_pimpl ()
+{
+  if (!this->Run_pimpl_base_ && this->Run_pimpl_state_.Run_)
+    delete this->Run_pimpl_state_.Run_;
+}
+
+void Run_pimpl::
+_reset ()
+{
+  Run_pskel::_reset ();
+
+  if (!this->Run_pimpl_base_ && this->Run_pimpl_state_.Run_)
+  {
+    delete this->Run_pimpl_state_.Run_;
+    this->Run_pimpl_state_.Run_ = 0;
+  }
+}
+
+void Run_pimpl::
+pre_impl (::Run* x)
+{
+  this->Run_pimpl_state_.Run_ = x;
+}
+
+void Run_pimpl::
+pre ()
+{
+  ::Run* x = new ::Run;
+  this->pre_impl (x);
+}
+
+void Run_pimpl::
+Name (const ::std::string& x)
+{
+  this->Run_pimpl_state_.Run_->Name (x);
+}
+
+void Run_pimpl::
+Argument (const ::std::string& x)
+{
+  this->Run_pimpl_state_.Run_->Argument ().push_back (x);
+}
+
+::Run* Run_pimpl::
+post_Run ()
+{
+  ::Run* r = this->Run_pimpl_state_.Run_;
+  this->Run_pimpl_state_.Run_ = 0;
+  return r;
+}
+
 // EG_paggr
 //
 
 EG_paggr::
 EG_paggr ()
 {
+  this->Build_p_.parsers (this->string_p_,
+                          this->string_p_,
+                          this->string_p_);
+
+  this->Run_p_.parsers (this->string_p_,
+                        this->string_p_);
+
+  this->Directories1_p_.parsers (this->string_p_,
+                                 this->string_p_);
+
+  this->Files1_p_.parsers (this->string_p_,
+                           this->string_p_);
+
+  this->Project_p_.parsers (this->string_p_,
+                            this->Host_p_,
+                            this->Package_p_,
+                            this->Build_p_,
+                            this->Run_p_);
+
+  this->EG_p_.parsers (this->Package_p_,
+                       this->Host_p_,
+                       this->Project_p_);
+
   this->Package_p_.parsers (this->string_p_,
                             this->string_p_,
                             this->string_p_,
@@ -548,15 +752,6 @@ EG_paggr ()
                          this->string_p_,
                          this->Directories1_p_,
                          this->Files1_p_);
-
-  this->Directories1_p_.parsers (this->string_p_,
-                                 this->string_p_);
-
-  this->Files1_p_.parsers (this->string_p_,
-                           this->string_p_);
-
-  this->EG_p_.parsers (this->Package_p_,
-                       this->Host_p_);
 }
 
 const char* EG_paggr::

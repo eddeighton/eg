@@ -140,6 +140,82 @@ class Host_pimpl: public Host_pskel
   bool Host_pimpl_base_;
 };
 
+class Build_pimpl: public Build_pskel
+{
+  public:
+  virtual void
+  pre ();
+
+  // Elements.
+  //
+  virtual void
+  Name (const ::std::string&);
+
+  virtual void
+  CompilerFlags (const ::std::string&);
+
+  virtual void
+  LinkerFlags (const ::std::string&);
+
+  virtual ::Build
+  post_Build ();
+
+  public:
+  struct Build_pimpl_state
+  {
+    ::Build Build_;
+  };
+
+  Build_pimpl_state Build_pimpl_state_;
+};
+
+class Project_pimpl: public Project_pskel
+{
+  public:
+  Project_pimpl (bool = false);
+
+  ~Project_pimpl ();
+
+  virtual void
+  _reset ();
+
+  virtual void
+  pre ();
+
+  // Elements.
+  //
+  virtual void
+  Name (const ::std::string&);
+
+  virtual void
+  Host (::Host*);
+
+  virtual void
+  Package (::Package*);
+
+  virtual void
+  Build (const ::Build&);
+
+  virtual void
+  Run (::Run*);
+
+  virtual ::Project*
+  post_Project ();
+
+  public:
+  void
+  pre_impl (::Project*);
+
+  public:
+  struct Project_pimpl_state
+  {
+    ::Project* Project_;
+  };
+
+  Project_pimpl_state Project_pimpl_state_;
+  bool Project_pimpl_base_;
+};
+
 class EG_pimpl: public EG_pskel
 {
   public:
@@ -163,6 +239,9 @@ class EG_pimpl: public EG_pskel
 
   virtual void
   Host (::Host*);
+
+  virtual void
+  Project (::Project*);
 
   virtual ::EG*
   post_EG ();
@@ -333,6 +412,44 @@ class Files1_pimpl: public Files1_pskel
   bool Files1_pimpl_base_;
 };
 
+class Run_pimpl: public Run_pskel
+{
+  public:
+  Run_pimpl (bool = false);
+
+  ~Run_pimpl ();
+
+  virtual void
+  _reset ();
+
+  virtual void
+  pre ();
+
+  // Elements.
+  //
+  virtual void
+  Name (const ::std::string&);
+
+  virtual void
+  Argument (const ::std::string&);
+
+  virtual ::Run*
+  post_Run ();
+
+  public:
+  void
+  pre_impl (::Run*);
+
+  public:
+  struct Run_pimpl_state
+  {
+    ::Run* Run_;
+  };
+
+  Run_pimpl_state Run_pimpl_state_;
+  bool Run_pimpl_base_;
+};
+
 #ifdef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
 #  undef XSDE_OMIT_PAGGR
 #endif
@@ -377,13 +494,16 @@ class EG_paggr
   }
 
   public:
+  ::Build_pimpl Build_p_;
+  ::Run_pimpl Run_p_;
+  ::Directories1_pimpl Directories1_p_;
+  ::Files1_pimpl Files1_p_;
+  ::Project_pimpl Project_p_;
+  ::EG_pimpl EG_p_;
   ::Package_pimpl Package_p_;
   ::Directories_pimpl Directories_p_;
   ::Files_pimpl Files_p_;
   ::Host_pimpl Host_p_;
-  ::Directories1_pimpl Directories1_p_;
-  ::Files1_pimpl Files1_p_;
-  ::EG_pimpl EG_p_;
   ::xml_schema::string_pimpl string_p_;
 };
 

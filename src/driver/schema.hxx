@@ -166,11 +166,14 @@ namespace xml_schema
 
 class Package;
 class Host;
+class Build;
+class Project;
 class EG;
 class Directories;
 class Files;
 class Directories1;
 class Files1;
+class Run;
 
 // Package (variable-length)
 //
@@ -400,6 +403,136 @@ class Host
   ::Files1* Files_;
 };
 
+// Build (fixed-length)
+//
+class Build
+{
+  public:
+  Build ();
+
+  Build (const Build&);
+  Build& operator= (const Build&);
+
+  ~Build ();
+
+  // Name
+  //
+  const ::std::string&
+  Name () const;
+
+  ::std::string&
+  Name ();
+
+  void
+  Name (const ::std::string&);
+
+  // CompilerFlags
+  //
+  const ::std::string&
+  CompilerFlags () const;
+
+  ::std::string&
+  CompilerFlags ();
+
+  void
+  CompilerFlags (const ::std::string&);
+
+  // LinkerFlags
+  //
+  const ::std::string&
+  LinkerFlags () const;
+
+  ::std::string&
+  LinkerFlags ();
+
+  void
+  LinkerFlags (const ::std::string&);
+
+  private:
+  ::std::string Name_;
+  ::std::string CompilerFlags_;
+  ::std::string LinkerFlags_;
+};
+
+// Project (variable-length)
+//
+class Project
+{
+  private:
+  Project (const Project&);
+  Project& operator= (const Project&);
+
+  public:
+  Project ();
+
+  ~Project ();
+
+  // Name
+  //
+  const ::std::string&
+  Name () const;
+
+  ::std::string&
+  Name ();
+
+  void
+  Name (const ::std::string&);
+
+  // Host
+  //
+  const ::Host&
+  Host () const;
+
+  ::Host&
+  Host ();
+
+  void
+  Host (::Host*);
+
+  // Package
+  //
+  typedef ::xsde::cxx::hybrid::var_sequence< ::Package > Package_sequence;
+  typedef Package_sequence::iterator Package_iterator;
+  typedef Package_sequence::const_iterator Package_const_iterator;
+
+  const Package_sequence&
+  Package () const;
+
+  Package_sequence&
+  Package ();
+
+  // Build
+  //
+  typedef ::xsde::cxx::hybrid::fix_sequence< ::Build > Build_sequence;
+  typedef Build_sequence::iterator Build_iterator;
+  typedef Build_sequence::const_iterator Build_const_iterator;
+
+  const Build_sequence&
+  Build () const;
+
+  Build_sequence&
+  Build ();
+
+  // Run
+  //
+  typedef ::xsde::cxx::hybrid::var_sequence< ::Run > Run_sequence;
+  typedef Run_sequence::iterator Run_iterator;
+  typedef Run_sequence::const_iterator Run_const_iterator;
+
+  const Run_sequence&
+  Run () const;
+
+  Run_sequence&
+  Run ();
+
+  private:
+  ::std::string Name_;
+  ::Host* Host_;
+  Package_sequence Package_;
+  Build_sequence Build_;
+  Run_sequence Run_;
+};
+
 // EG (variable-length)
 //
 class EG
@@ -418,7 +551,8 @@ class EG
   enum choice_arm_tag
   {
     Package_tag,
-    Host_tag
+    Host_tag,
+    Project_tag
   };
 
   choice_arm_tag
@@ -449,11 +583,23 @@ class EG
   void
   Host (::Host*);
 
+  // Project
+  //
+  const ::Project&
+  Project () const;
+
+  ::Project&
+  Project ();
+
+  void
+  Project (::Project*);
+
   private:
   union
   {
     ::Package* Package_;
     ::Host* Host_;
+    ::Project* Project_;
   } choice_;
   choice_arm_tag choice_arm_;
 };
@@ -624,6 +770,47 @@ class Files1
   private:
   Include_sequence Include_;
   Library_sequence Library_;
+};
+
+// Run (variable-length)
+//
+class Run
+{
+  private:
+  Run (const Run&);
+  Run& operator= (const Run&);
+
+  public:
+  Run ();
+
+  ~Run ();
+
+  // Name
+  //
+  const ::std::string&
+  Name () const;
+
+  ::std::string&
+  Name ();
+
+  void
+  Name (const ::std::string&);
+
+  // Argument
+  //
+  typedef ::xsde::cxx::string_sequence Argument_sequence;
+  typedef Argument_sequence::iterator Argument_iterator;
+  typedef Argument_sequence::const_iterator Argument_const_iterator;
+
+  const Argument_sequence&
+  Argument () const;
+
+  Argument_sequence&
+  Argument ();
+
+  private:
+  ::std::string Name_;
+  Argument_sequence Argument_;
 };
 
 // Begin epilogue.

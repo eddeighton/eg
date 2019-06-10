@@ -90,11 +90,14 @@ namespace xml_schema
 //
 class Package_sskel;
 class Host_sskel;
+class Build_sskel;
+class Project_sskel;
 class EG_sskel;
 class Directories_sskel;
 class Files_sskel;
 class Directories1_sskel;
 class Files1_sskel;
+class Run_sskel;
 
 #include <string>
 
@@ -493,6 +496,159 @@ class Host_sskel: public ::xsde::cxx::serializer::validating::complex_content
   ::Files1_sskel* Files_serializer_;
 };
 
+class Build_sskel: public ::xsde::cxx::serializer::validating::complex_content
+{
+  public:
+  // Serializer callbacks. Override them in your implementation.
+  //
+
+  virtual void
+  pre (const ::Build&) = 0;
+
+  // Elements.
+  //
+  virtual ::std::string
+  Name () = 0;
+
+  virtual ::std::string
+  CompilerFlags () = 0;
+
+  virtual ::std::string
+  LinkerFlags () = 0;
+
+  // virtual void
+  // post ();
+
+  // Serializer construction API.
+  //
+  void
+  serializers (::xml_schema::string_sskel& /* Name */,
+               ::xml_schema::string_sskel& /* CompilerFlags */,
+               ::xml_schema::string_sskel& /* LinkerFlags */);
+
+  // Individual element serializers.
+  //
+  void
+  Name_serializer (::xml_schema::string_sskel&);
+
+  void
+  CompilerFlags_serializer (::xml_schema::string_sskel&);
+
+  void
+  LinkerFlags_serializer (::xml_schema::string_sskel&);
+
+  virtual void
+  _reset ();
+
+  // Constructor.
+  //
+  Build_sskel ();
+
+  // Implementation.
+  //
+  public:
+  virtual void
+  _serialize_content ();
+
+  protected:
+  Build_sskel* Build_impl_;
+  Build_sskel (Build_sskel*, void*);
+
+  protected:
+  ::xml_schema::string_sskel* Name_serializer_;
+  ::xml_schema::string_sskel* CompilerFlags_serializer_;
+  ::xml_schema::string_sskel* LinkerFlags_serializer_;
+};
+
+class Project_sskel: public ::xsde::cxx::serializer::validating::complex_content
+{
+  public:
+  // Serializer callbacks. Override them in your implementation.
+  //
+
+  virtual void
+  pre (const ::Project&) = 0;
+
+  // Elements.
+  //
+  virtual ::std::string
+  Name () = 0;
+
+  virtual const ::Host&
+  Host () = 0;
+
+  virtual bool
+  Package_next ();
+
+  virtual const ::Package&
+  Package () = 0;
+
+  virtual bool
+  Build_next () = 0;
+
+  virtual const ::Build&
+  Build () = 0;
+
+  virtual bool
+  Run_next () = 0;
+
+  virtual const ::Run&
+  Run () = 0;
+
+  // virtual void
+  // post ();
+
+  // Serializer construction API.
+  //
+  void
+  serializers (::xml_schema::string_sskel& /* Name */,
+               ::Host_sskel& /* Host */,
+               ::Package_sskel& /* Package */,
+               ::Build_sskel& /* Build */,
+               ::Run_sskel& /* Run */);
+
+  // Individual element serializers.
+  //
+  void
+  Name_serializer (::xml_schema::string_sskel&);
+
+  void
+  Host_serializer (::Host_sskel&);
+
+  void
+  Package_serializer (::Package_sskel&);
+
+  void
+  Build_serializer (::Build_sskel&);
+
+  void
+  Run_serializer (::Run_sskel&);
+
+  virtual void
+  _reset ();
+
+  // Constructor.
+  //
+  Project_sskel ();
+
+  // Implementation.
+  //
+  public:
+  virtual void
+  _serialize_content ();
+
+  protected:
+  Project_sskel* Project_impl_;
+  Project_sskel (Project_sskel*, void*);
+
+  protected:
+  ::xml_schema::string_sskel* Name_serializer_;
+  ::Host_sskel* Host_serializer_;
+  ::Package_sskel* Package_serializer_;
+  ::Build_sskel* Build_serializer_;
+  ::Run_sskel* Run_serializer_;
+};
+
 class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content
 {
   public:
@@ -507,7 +663,8 @@ class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content
   enum choice_arm_tag
   {
     Package_tag,
-    Host_tag
+    Host_tag,
+    Project_tag
   };
 
   virtual choice_arm_tag
@@ -519,6 +676,9 @@ class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content
   virtual const ::Host&
   Host () = 0;
 
+  virtual const ::Project&
+  Project () = 0;
+
   // virtual void
   // post ();
 
@@ -526,7 +686,8 @@ class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content
   //
   void
   serializers (::Package_sskel& /* Package */,
-               ::Host_sskel& /* Host */);
+               ::Host_sskel& /* Host */,
+               ::Project_sskel& /* Project */);
 
   // Individual element serializers.
   //
@@ -535,6 +696,9 @@ class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content
 
   void
   Host_serializer (::Host_sskel&);
+
+  void
+  Project_serializer (::Project_sskel&);
 
   virtual void
   _reset ();
@@ -556,6 +720,7 @@ class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content
   protected:
   ::Package_sskel* Package_serializer_;
   ::Host_sskel* Host_serializer_;
+  ::Project_sskel* Project_serializer_;
 };
 
 class Directories_sskel: public ::xsde::cxx::serializer::validating::complex_content
@@ -804,6 +969,65 @@ class Files1_sskel: public ::xsde::cxx::serializer::validating::complex_content
   protected:
   ::xml_schema::string_sskel* Include_serializer_;
   ::xml_schema::string_sskel* Library_serializer_;
+};
+
+class Run_sskel: public ::xsde::cxx::serializer::validating::complex_content
+{
+  public:
+  // Serializer callbacks. Override them in your implementation.
+  //
+
+  virtual void
+  pre (const ::Run&) = 0;
+
+  // Elements.
+  //
+  virtual ::std::string
+  Name () = 0;
+
+  virtual bool
+  Argument_next ();
+
+  virtual ::std::string
+  Argument () = 0;
+
+  // virtual void
+  // post ();
+
+  // Serializer construction API.
+  //
+  void
+  serializers (::xml_schema::string_sskel& /* Name */,
+               ::xml_schema::string_sskel& /* Argument */);
+
+  // Individual element serializers.
+  //
+  void
+  Name_serializer (::xml_schema::string_sskel&);
+
+  void
+  Argument_serializer (::xml_schema::string_sskel&);
+
+  virtual void
+  _reset ();
+
+  // Constructor.
+  //
+  Run_sskel ();
+
+  // Implementation.
+  //
+  public:
+  virtual void
+  _serialize_content ();
+
+  protected:
+  Run_sskel* Run_impl_;
+  Run_sskel (Run_sskel*, void*);
+
+  protected:
+  ::xml_schema::string_sskel* Name_serializer_;
+  ::xml_schema::string_sskel* Argument_serializer_;
 };
 
 // Begin epilogue.

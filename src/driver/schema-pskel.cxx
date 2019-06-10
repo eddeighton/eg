@@ -199,6 +199,130 @@ Host_pskel (Host_pskel* impl, void*)
 {
 }
 
+// Build_pskel
+//
+
+void Build_pskel::
+Name_parser (::xml_schema::string_pskel& p)
+{
+  this->Name_parser_ = &p;
+}
+
+void Build_pskel::
+CompilerFlags_parser (::xml_schema::string_pskel& p)
+{
+  this->CompilerFlags_parser_ = &p;
+}
+
+void Build_pskel::
+LinkerFlags_parser (::xml_schema::string_pskel& p)
+{
+  this->LinkerFlags_parser_ = &p;
+}
+
+void Build_pskel::
+parsers (::xml_schema::string_pskel& Name,
+         ::xml_schema::string_pskel& CompilerFlags,
+         ::xml_schema::string_pskel& LinkerFlags)
+{
+  this->Name_parser_ = &Name;
+  this->CompilerFlags_parser_ = &CompilerFlags;
+  this->LinkerFlags_parser_ = &LinkerFlags;
+}
+
+Build_pskel::
+Build_pskel ()
+: Build_impl_ (0),
+  Name_parser_ (0),
+  CompilerFlags_parser_ (0),
+  LinkerFlags_parser_ (0),
+  v_state_stack_ (sizeof (v_state_), &v_state_first_)
+{
+}
+
+Build_pskel::
+Build_pskel (Build_pskel* impl, void*)
+: ::xsde::cxx::parser::validating::complex_content (impl, 0),
+  Build_impl_ (impl),
+  Name_parser_ (0),
+  CompilerFlags_parser_ (0),
+  LinkerFlags_parser_ (0),
+  v_state_stack_ (sizeof (v_state_), &v_state_first_)
+{
+}
+
+// Project_pskel
+//
+
+void Project_pskel::
+Name_parser (::xml_schema::string_pskel& p)
+{
+  this->Name_parser_ = &p;
+}
+
+void Project_pskel::
+Host_parser (::Host_pskel& p)
+{
+  this->Host_parser_ = &p;
+}
+
+void Project_pskel::
+Package_parser (::Package_pskel& p)
+{
+  this->Package_parser_ = &p;
+}
+
+void Project_pskel::
+Build_parser (::Build_pskel& p)
+{
+  this->Build_parser_ = &p;
+}
+
+void Project_pskel::
+Run_parser (::Run_pskel& p)
+{
+  this->Run_parser_ = &p;
+}
+
+void Project_pskel::
+parsers (::xml_schema::string_pskel& Name,
+         ::Host_pskel& Host,
+         ::Package_pskel& Package,
+         ::Build_pskel& Build,
+         ::Run_pskel& Run)
+{
+  this->Name_parser_ = &Name;
+  this->Host_parser_ = &Host;
+  this->Package_parser_ = &Package;
+  this->Build_parser_ = &Build;
+  this->Run_parser_ = &Run;
+}
+
+Project_pskel::
+Project_pskel ()
+: Project_impl_ (0),
+  Name_parser_ (0),
+  Host_parser_ (0),
+  Package_parser_ (0),
+  Build_parser_ (0),
+  Run_parser_ (0),
+  v_state_stack_ (sizeof (v_state_), &v_state_first_)
+{
+}
+
+Project_pskel::
+Project_pskel (Project_pskel* impl, void*)
+: ::xsde::cxx::parser::validating::complex_content (impl, 0),
+  Project_impl_ (impl),
+  Name_parser_ (0),
+  Host_parser_ (0),
+  Package_parser_ (0),
+  Build_parser_ (0),
+  Run_parser_ (0),
+  v_state_stack_ (sizeof (v_state_), &v_state_first_)
+{
+}
+
 // EG_pskel
 //
 
@@ -215,11 +339,19 @@ Host_parser (::Host_pskel& p)
 }
 
 void EG_pskel::
+Project_parser (::Project_pskel& p)
+{
+  this->Project_parser_ = &p;
+}
+
+void EG_pskel::
 parsers (::Package_pskel& Package,
-         ::Host_pskel& Host)
+         ::Host_pskel& Host,
+         ::Project_pskel& Project)
 {
   this->Package_parser_ = &Package;
   this->Host_parser_ = &Host;
+  this->Project_parser_ = &Project;
 }
 
 EG_pskel::
@@ -227,6 +359,7 @@ EG_pskel ()
 : EG_impl_ (0),
   Package_parser_ (0),
   Host_parser_ (0),
+  Project_parser_ (0),
   v_state_stack_ (sizeof (v_state_), &v_state_first_)
 {
 }
@@ -237,6 +370,7 @@ EG_pskel (EG_pskel* impl, void*)
   EG_impl_ (impl),
   Package_parser_ (0),
   Host_parser_ (0),
+  Project_parser_ (0),
   v_state_stack_ (sizeof (v_state_), &v_state_first_)
 {
 }
@@ -405,6 +539,48 @@ Files1_pskel (Files1_pskel* impl, void*)
   Files1_impl_ (impl),
   Include_parser_ (0),
   Library_parser_ (0),
+  v_state_stack_ (sizeof (v_state_), &v_state_first_)
+{
+}
+
+// Run_pskel
+//
+
+void Run_pskel::
+Name_parser (::xml_schema::string_pskel& p)
+{
+  this->Name_parser_ = &p;
+}
+
+void Run_pskel::
+Argument_parser (::xml_schema::string_pskel& p)
+{
+  this->Argument_parser_ = &p;
+}
+
+void Run_pskel::
+parsers (::xml_schema::string_pskel& Name,
+         ::xml_schema::string_pskel& Argument)
+{
+  this->Name_parser_ = &Name;
+  this->Argument_parser_ = &Argument;
+}
+
+Run_pskel::
+Run_pskel ()
+: Run_impl_ (0),
+  Name_parser_ (0),
+  Argument_parser_ (0),
+  v_state_stack_ (sizeof (v_state_), &v_state_first_)
+{
+}
+
+Run_pskel::
+Run_pskel (Run_pskel* impl, void*)
+: ::xsde::cxx::parser::validating::complex_content (impl, 0),
+  Run_impl_ (impl),
+  Name_parser_ (0),
+  Argument_parser_ (0),
   v_state_stack_ (sizeof (v_state_), &v_state_first_)
 {
 }
@@ -579,6 +755,124 @@ _reset ()
   this->resetting_ = false;
 }
 
+// Build_pskel
+//
+
+void Build_pskel::
+Name (const ::std::string& x)
+{
+  if (this->Build_impl_)
+    this->Build_impl_->Name (x);
+}
+
+void Build_pskel::
+CompilerFlags (const ::std::string& x)
+{
+  if (this->Build_impl_)
+    this->Build_impl_->CompilerFlags (x);
+}
+
+void Build_pskel::
+LinkerFlags (const ::std::string& x)
+{
+  if (this->Build_impl_)
+    this->Build_impl_->LinkerFlags (x);
+}
+
+void Build_pskel::
+_reset ()
+{
+  if (this->resetting_)
+    return;
+
+  typedef ::xsde::cxx::parser::validating::complex_content base;
+  base::_reset ();
+
+  this->v_state_stack_.clear ();
+
+  this->resetting_ = true;
+
+  if (this->Name_parser_)
+    this->Name_parser_->_reset ();
+
+  if (this->CompilerFlags_parser_)
+    this->CompilerFlags_parser_->_reset ();
+
+  if (this->LinkerFlags_parser_)
+    this->LinkerFlags_parser_->_reset ();
+
+  this->resetting_ = false;
+}
+
+// Project_pskel
+//
+
+void Project_pskel::
+Name (const ::std::string& x)
+{
+  if (this->Project_impl_)
+    this->Project_impl_->Name (x);
+}
+
+void Project_pskel::
+Host (::Host* x)
+{
+  if (this->Project_impl_)
+    this->Project_impl_->Host (x);
+}
+
+void Project_pskel::
+Package (::Package* x)
+{
+  if (this->Project_impl_)
+    this->Project_impl_->Package (x);
+}
+
+void Project_pskel::
+Build (const ::Build& x)
+{
+  if (this->Project_impl_)
+    this->Project_impl_->Build (x);
+}
+
+void Project_pskel::
+Run (::Run* x)
+{
+  if (this->Project_impl_)
+    this->Project_impl_->Run (x);
+}
+
+void Project_pskel::
+_reset ()
+{
+  if (this->resetting_)
+    return;
+
+  typedef ::xsde::cxx::parser::validating::complex_content base;
+  base::_reset ();
+
+  this->v_state_stack_.clear ();
+
+  this->resetting_ = true;
+
+  if (this->Name_parser_)
+    this->Name_parser_->_reset ();
+
+  if (this->Host_parser_)
+    this->Host_parser_->_reset ();
+
+  if (this->Package_parser_)
+    this->Package_parser_->_reset ();
+
+  if (this->Build_parser_)
+    this->Build_parser_->_reset ();
+
+  if (this->Run_parser_)
+    this->Run_parser_->_reset ();
+
+  this->resetting_ = false;
+}
+
 // EG_pskel
 //
 
@@ -604,6 +898,13 @@ Host (::Host* x)
 }
 
 void EG_pskel::
+Project (::Project* x)
+{
+  if (this->EG_impl_)
+    this->EG_impl_->Project (x);
+}
+
+void EG_pskel::
 _reset ()
 {
   if (this->resetting_)
@@ -621,6 +922,9 @@ _reset ()
 
   if (this->Host_parser_)
     this->Host_parser_->_reset ();
+
+  if (this->Project_parser_)
+    this->Project_parser_->_reset ();
 
   this->resetting_ = false;
 }
@@ -777,6 +1081,45 @@ _reset ()
 
   if (this->Library_parser_)
     this->Library_parser_->_reset ();
+
+  this->resetting_ = false;
+}
+
+// Run_pskel
+//
+
+void Run_pskel::
+Name (const ::std::string& x)
+{
+  if (this->Run_impl_)
+    this->Run_impl_->Name (x);
+}
+
+void Run_pskel::
+Argument (const ::std::string& x)
+{
+  if (this->Run_impl_)
+    this->Run_impl_->Argument (x);
+}
+
+void Run_pskel::
+_reset ()
+{
+  if (this->resetting_)
+    return;
+
+  typedef ::xsde::cxx::parser::validating::complex_content base;
+  base::_reset ();
+
+  this->v_state_stack_.clear ();
+
+  this->resetting_ = true;
+
+  if (this->Name_parser_)
+    this->Name_parser_->_reset ();
+
+  if (this->Argument_parser_)
+    this->Argument_parser_->_reset ();
 
   this->resetting_ = false;
 }
@@ -1561,6 +1904,623 @@ sequence_0 (unsigned long& state,
   }
 }
 
+// Element validation and dispatch functions for Build_pskel.
+//
+bool Build_pskel::
+_start_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_* vd = vs.data + (vs.size - 1);
+
+  if (vd->func == 0 && vd->state == 0)
+  {
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    if (base::_start_element_impl (ns, n))
+      return true;
+    else
+      vd->state = 1;
+  }
+
+  while (vd->func != 0)
+  {
+    (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+    vd = vs.data + (vs.size - 1);
+
+    if (vd->state == ~0UL && !ctx.error_type ())
+      vd = vs.data + (--vs.size - 1);
+    else
+      break;
+  }
+
+  if (vd->func == 0)
+  {
+    if (vd->state != ~0UL)
+    {
+      unsigned long s = ~0UL;
+
+      if (n == "Name" && ns.empty ())
+        s = 0UL;
+
+      if (s != ~0UL)
+      {
+        vd->count++;
+        vd->state = ~0UL;
+
+        vd = vs.data + vs.size++;
+        vd->func = &Build_pskel::sequence_0;
+        vd->state = s;
+        vd->count = 0;
+
+        this->sequence_0 (vd->state, vd->count, ns, n, true);
+      }
+      else
+      {
+        if (vd->count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          return true;
+        }
+
+        return false;
+      }
+    }
+    else
+      return false;
+  }
+
+  return true;
+}
+
+bool Build_pskel::
+_end_element_impl (const ::xsde::cxx::ro_string& ns,
+                   const ::xsde::cxx::ro_string& n)
+{
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_& vd = vs.data[vs.size - 1];
+
+  if (vd.func == 0 && vd.state == 0)
+  {
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    if (!base::_end_element_impl (ns, n))
+      assert (false);
+    return true;
+  }
+
+  assert (vd.func != 0);
+  (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+  if (vd.state == ~0UL)
+    vs.size--;
+
+  return true;
+}
+
+void Build_pskel::
+_pre_e_validate ()
+{
+  this->v_state_stack_.push ();
+  static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_& vd = vs.data[vs.size++];
+
+  vd.func = 0;
+  vd.state = 0;
+  vd.count = 0;
+}
+
+void Build_pskel::
+_post_e_validate ()
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_* vd = vs.data + (vs.size - 1);
+
+  ::xsde::cxx::ro_string empty;
+  while (vd->func != 0)
+  {
+    (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+    if (ctx.error_type ())
+      return;
+
+    assert (vd->state == ~0UL);
+    vd = vs.data + (--vs.size - 1);
+  }
+
+  if (vd->count < 1UL)
+    this->_schema_error (::xsde::cxx::schema_error::expected_element);
+
+  this->v_state_stack_.pop ();
+}
+
+void Build_pskel::
+sequence_0 (unsigned long& state,
+            unsigned long& count,
+            const ::xsde::cxx::ro_string& ns,
+            const ::xsde::cxx::ro_string& n,
+            bool start)
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  XSDE_UNUSED (ctx);
+
+  switch (state)
+  {
+    case 0UL:
+    {
+      if (n == "Name" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Name_parser_)
+          {
+            this->Name_parser_->pre ();
+            ctx.nested_parser (this->Name_parser_);
+          }
+        }
+        else
+        {
+          if (this->Name_parser_ != 0)
+          {
+            const ::std::string& tmp = this->Name_parser_->post_string ();
+            this->Name (tmp);
+          }
+
+          count = 0;
+          state = 1UL;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = 1UL;
+        // Fall through.
+      }
+    }
+    case 1UL:
+    {
+      if (n == "CompilerFlags" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->CompilerFlags_parser_)
+          {
+            this->CompilerFlags_parser_->pre ();
+            ctx.nested_parser (this->CompilerFlags_parser_);
+          }
+        }
+        else
+        {
+          if (this->CompilerFlags_parser_ != 0)
+          {
+            const ::std::string& tmp = this->CompilerFlags_parser_->post_string ();
+            this->CompilerFlags (tmp);
+          }
+
+          count = 0;
+          state = 2UL;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = 2UL;
+        // Fall through.
+      }
+    }
+    case 2UL:
+    {
+      if (n == "LinkerFlags" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->LinkerFlags_parser_)
+          {
+            this->LinkerFlags_parser_->pre ();
+            ctx.nested_parser (this->LinkerFlags_parser_);
+          }
+        }
+        else
+        {
+          if (this->LinkerFlags_parser_ != 0)
+          {
+            const ::std::string& tmp = this->LinkerFlags_parser_->post_string ();
+            this->LinkerFlags (tmp);
+          }
+
+          count = 0;
+          state = ~0UL;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = ~0UL;
+        // Fall through.
+      }
+    }
+    case ~0UL:
+      break;
+  }
+}
+
+// Element validation and dispatch functions for Project_pskel.
+//
+bool Project_pskel::
+_start_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_* vd = vs.data + (vs.size - 1);
+
+  if (vd->func == 0 && vd->state == 0)
+  {
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    if (base::_start_element_impl (ns, n))
+      return true;
+    else
+      vd->state = 1;
+  }
+
+  while (vd->func != 0)
+  {
+    (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+    vd = vs.data + (vs.size - 1);
+
+    if (vd->state == ~0UL && !ctx.error_type ())
+      vd = vs.data + (--vs.size - 1);
+    else
+      break;
+  }
+
+  if (vd->func == 0)
+  {
+    if (vd->state != ~0UL)
+    {
+      unsigned long s = ~0UL;
+
+      if (n == "Name" && ns.empty ())
+        s = 0UL;
+
+      if (s != ~0UL)
+      {
+        vd->count++;
+        vd->state = ~0UL;
+
+        vd = vs.data + vs.size++;
+        vd->func = &Project_pskel::sequence_0;
+        vd->state = s;
+        vd->count = 0;
+
+        this->sequence_0 (vd->state, vd->count, ns, n, true);
+      }
+      else
+      {
+        if (vd->count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          return true;
+        }
+
+        return false;
+      }
+    }
+    else
+      return false;
+  }
+
+  return true;
+}
+
+bool Project_pskel::
+_end_element_impl (const ::xsde::cxx::ro_string& ns,
+                   const ::xsde::cxx::ro_string& n)
+{
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_& vd = vs.data[vs.size - 1];
+
+  if (vd.func == 0 && vd.state == 0)
+  {
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    if (!base::_end_element_impl (ns, n))
+      assert (false);
+    return true;
+  }
+
+  assert (vd.func != 0);
+  (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+  if (vd.state == ~0UL)
+    vs.size--;
+
+  return true;
+}
+
+void Project_pskel::
+_pre_e_validate ()
+{
+  this->v_state_stack_.push ();
+  static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_& vd = vs.data[vs.size++];
+
+  vd.func = 0;
+  vd.state = 0;
+  vd.count = 0;
+}
+
+void Project_pskel::
+_post_e_validate ()
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_* vd = vs.data + (vs.size - 1);
+
+  ::xsde::cxx::ro_string empty;
+  while (vd->func != 0)
+  {
+    (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+    if (ctx.error_type ())
+      return;
+
+    assert (vd->state == ~0UL);
+    vd = vs.data + (--vs.size - 1);
+  }
+
+  if (vd->count < 1UL)
+    this->_schema_error (::xsde::cxx::schema_error::expected_element);
+
+  this->v_state_stack_.pop ();
+}
+
+void Project_pskel::
+sequence_0 (unsigned long& state,
+            unsigned long& count,
+            const ::xsde::cxx::ro_string& ns,
+            const ::xsde::cxx::ro_string& n,
+            bool start)
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  XSDE_UNUSED (ctx);
+
+  switch (state)
+  {
+    case 0UL:
+    {
+      if (n == "Name" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Name_parser_)
+          {
+            this->Name_parser_->pre ();
+            ctx.nested_parser (this->Name_parser_);
+          }
+        }
+        else
+        {
+          if (this->Name_parser_ != 0)
+          {
+            const ::std::string& tmp = this->Name_parser_->post_string ();
+            this->Name (tmp);
+          }
+
+          count = 0;
+          state = 1UL;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = 1UL;
+        // Fall through.
+      }
+    }
+    case 1UL:
+    {
+      if (n == "Host" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Host_parser_)
+          {
+            this->Host_parser_->pre ();
+            ctx.nested_parser (this->Host_parser_);
+          }
+        }
+        else
+        {
+          if (this->Host_parser_ != 0)
+          {
+            ::Host* tmp = this->Host_parser_->post_Host ();
+            this->Host (tmp);
+          }
+
+          count = 0;
+          state = 2UL;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = 2UL;
+        // Fall through.
+      }
+    }
+    case 2UL:
+    {
+      if (n == "Package" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Package_parser_)
+          {
+            this->Package_parser_->pre ();
+            ctx.nested_parser (this->Package_parser_);
+          }
+        }
+        else
+        {
+          if (this->Package_parser_ != 0)
+          {
+            ::Package* tmp = this->Package_parser_->post_Package ();
+            this->Package (tmp);
+          }
+
+          count++;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        count = 0;
+        state = 3UL;
+        // Fall through.
+      }
+    }
+    case 3UL:
+    {
+      if (n == "Build" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Build_parser_)
+          {
+            this->Build_parser_->pre ();
+            ctx.nested_parser (this->Build_parser_);
+          }
+        }
+        else
+        {
+          if (this->Build_parser_ != 0)
+          {
+            const ::Build& tmp = this->Build_parser_->post_Build ();
+            this->Build (tmp);
+          }
+
+          count++;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = 4UL;
+        // Fall through.
+      }
+    }
+    case 4UL:
+    {
+      if (n == "Run" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Run_parser_)
+          {
+            this->Run_parser_->pre ();
+            ctx.nested_parser (this->Run_parser_);
+          }
+        }
+        else
+        {
+          if (this->Run_parser_ != 0)
+          {
+            ::Run* tmp = this->Run_parser_->post_Run ();
+            this->Run (tmp);
+          }
+
+          count++;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = ~0UL;
+        // Fall through.
+      }
+    }
+    case ~0UL:
+      break;
+  }
+}
+
 // Element validation and dispatch functions for EG_pskel.
 //
 bool EG_pskel::
@@ -1603,6 +2563,8 @@ _start_element_impl (const ::xsde::cxx::ro_string& ns,
         s = 0UL;
       else if (n == "Host" && ns.empty ())
         s = 1UL;
+      else if (n == "Project" && ns.empty ())
+        s = 2UL;
 
       if (s != ~0UL)
       {
@@ -1754,6 +2716,29 @@ choice_0 (unsigned long& state,
         {
           ::Host* tmp = this->Host_parser_->post_Host ();
           this->Host (tmp);
+        }
+
+        state = ~0UL;
+      }
+
+      break;
+    }
+    case 2UL:
+    {
+      if (start)
+      {
+        if (this->Project_parser_)
+        {
+          this->Project_parser_->pre ();
+          ctx.nested_parser (this->Project_parser_);
+        }
+      }
+      else
+      {
+        if (this->Project_parser_ != 0)
+        {
+          ::Project* tmp = this->Project_parser_->post_Project ();
+          this->Project (tmp);
         }
 
         state = ~0UL;
@@ -2596,6 +3581,232 @@ sequence_0 (unsigned long& state,
           {
             const ::std::string& tmp = this->Library_parser_->post_string ();
             this->Library (tmp);
+          }
+
+          count++;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        count = 0;
+        state = ~0UL;
+        // Fall through.
+      }
+    }
+    case ~0UL:
+      break;
+  }
+}
+
+// Element validation and dispatch functions for Run_pskel.
+//
+bool Run_pskel::
+_start_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_* vd = vs.data + (vs.size - 1);
+
+  if (vd->func == 0 && vd->state == 0)
+  {
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    if (base::_start_element_impl (ns, n))
+      return true;
+    else
+      vd->state = 1;
+  }
+
+  while (vd->func != 0)
+  {
+    (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+    vd = vs.data + (vs.size - 1);
+
+    if (vd->state == ~0UL && !ctx.error_type ())
+      vd = vs.data + (--vs.size - 1);
+    else
+      break;
+  }
+
+  if (vd->func == 0)
+  {
+    if (vd->state != ~0UL)
+    {
+      unsigned long s = ~0UL;
+
+      if (n == "Name" && ns.empty ())
+        s = 0UL;
+
+      if (s != ~0UL)
+      {
+        vd->count++;
+        vd->state = ~0UL;
+
+        vd = vs.data + vs.size++;
+        vd->func = &Run_pskel::sequence_0;
+        vd->state = s;
+        vd->count = 0;
+
+        this->sequence_0 (vd->state, vd->count, ns, n, true);
+      }
+      else
+      {
+        if (vd->count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          return true;
+        }
+
+        return false;
+      }
+    }
+    else
+      return false;
+  }
+
+  return true;
+}
+
+bool Run_pskel::
+_end_element_impl (const ::xsde::cxx::ro_string& ns,
+                   const ::xsde::cxx::ro_string& n)
+{
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_& vd = vs.data[vs.size - 1];
+
+  if (vd.func == 0 && vd.state == 0)
+  {
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    if (!base::_end_element_impl (ns, n))
+      assert (false);
+    return true;
+  }
+
+  assert (vd.func != 0);
+  (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+  if (vd.state == ~0UL)
+    vs.size--;
+
+  return true;
+}
+
+void Run_pskel::
+_pre_e_validate ()
+{
+  this->v_state_stack_.push ();
+  static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_& vd = vs.data[vs.size++];
+
+  vd.func = 0;
+  vd.state = 0;
+  vd.count = 0;
+}
+
+void Run_pskel::
+_post_e_validate ()
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+  v_state_descr_* vd = vs.data + (vs.size - 1);
+
+  ::xsde::cxx::ro_string empty;
+  while (vd->func != 0)
+  {
+    (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+    if (ctx.error_type ())
+      return;
+
+    assert (vd->state == ~0UL);
+    vd = vs.data + (--vs.size - 1);
+  }
+
+  if (vd->count < 1UL)
+    this->_schema_error (::xsde::cxx::schema_error::expected_element);
+
+  this->v_state_stack_.pop ();
+}
+
+void Run_pskel::
+sequence_0 (unsigned long& state,
+            unsigned long& count,
+            const ::xsde::cxx::ro_string& ns,
+            const ::xsde::cxx::ro_string& n,
+            bool start)
+{
+  ::xsde::cxx::parser::context& ctx = this->_context ();
+
+  XSDE_UNUSED (ctx);
+
+  switch (state)
+  {
+    case 0UL:
+    {
+      if (n == "Name" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Name_parser_)
+          {
+            this->Name_parser_->pre ();
+            ctx.nested_parser (this->Name_parser_);
+          }
+        }
+        else
+        {
+          if (this->Name_parser_ != 0)
+          {
+            const ::std::string& tmp = this->Name_parser_->post_string ();
+            this->Name (tmp);
+          }
+
+          count = 0;
+          state = 1UL;
+        }
+
+        break;
+      }
+      else
+      {
+        assert (start);
+        if (count < 1UL)
+        {
+          this->_schema_error (::xsde::cxx::schema_error::expected_element);
+          break;
+        }
+
+        count = 0;
+        state = 1UL;
+        // Fall through.
+      }
+    }
+    case 1UL:
+    {
+      if (n == "Argument" && ns.empty ())
+      {
+        if (start)
+        {
+          if (this->Argument_parser_)
+          {
+            this->Argument_parser_->pre ();
+            ctx.nested_parser (this->Argument_parser_);
+          }
+        }
+        else
+        {
+          if (this->Argument_parser_ != 0)
+          {
+            const ::std::string& tmp = this->Argument_parser_->post_string ();
+            this->Argument (tmp);
           }
 
           count++;

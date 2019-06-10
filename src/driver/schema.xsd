@@ -9,6 +9,7 @@
 			<xs:choice>
 				<xs:element name="Package" type="Package"/>
 				<xs:element name="Host" type="Host"/>
+				<xs:element name="Project" type="Project"/>
 			</xs:choice>
 		</xs:complexType>
 	</xs:element>
@@ -56,6 +57,30 @@
 					<xs:sequence>
 						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Project">
+		<xs:sequence>
+			<xs:element name="Name" type="xs:string"/>
+			<xs:element name="Host" type="Host"/>
+			<xs:element name="Package" type="Package" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Build" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Name" type="xs:string"/>
+						<xs:element name="CompilerFlags" type="xs:string"/>
+						<xs:element name="LinkerFlags" type="xs:string"/>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="Run" maxOccurs="unbounded">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Name" type="xs:string"/>
+						<xs:element name="Argument" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>

@@ -171,6 +171,105 @@ Files ()
   return this->Host_simpl_state_.Host_->Files ();
 }
 
+// Build_simpl
+//
+
+void Build_simpl::
+pre (const ::Build& x)
+{
+  this->Build_simpl_state_.Build_ = &x;
+}
+
+::std::string Build_simpl::
+Name ()
+{
+  return this->Build_simpl_state_.Build_->Name ();
+}
+
+::std::string Build_simpl::
+CompilerFlags ()
+{
+  return this->Build_simpl_state_.Build_->CompilerFlags ();
+}
+
+::std::string Build_simpl::
+LinkerFlags ()
+{
+  return this->Build_simpl_state_.Build_->LinkerFlags ();
+}
+
+// Project_simpl
+//
+
+void Project_simpl::
+pre (const ::Project& x)
+{
+  this->Project_simpl_state_.Project_ = &x;
+  this->Project_simpl_state_.Package_ = 
+  this->Project_simpl_state_.Project_->Package ().begin ();
+  this->Project_simpl_state_.Package_end_ = 
+  this->Project_simpl_state_.Project_->Package ().end ();
+  this->Project_simpl_state_.Build_ = 
+  this->Project_simpl_state_.Project_->Build ().begin ();
+  this->Project_simpl_state_.Build_end_ = 
+  this->Project_simpl_state_.Project_->Build ().end ();
+  this->Project_simpl_state_.Run_ = 
+  this->Project_simpl_state_.Project_->Run ().begin ();
+  this->Project_simpl_state_.Run_end_ = 
+  this->Project_simpl_state_.Project_->Run ().end ();
+}
+
+::std::string Project_simpl::
+Name ()
+{
+  return this->Project_simpl_state_.Project_->Name ();
+}
+
+const ::Host& Project_simpl::
+Host ()
+{
+  return this->Project_simpl_state_.Project_->Host ();
+}
+
+bool Project_simpl::
+Package_next ()
+{
+  return this->Project_simpl_state_.Package_ != 
+  this->Project_simpl_state_.Package_end_;
+}
+
+const ::Package& Project_simpl::
+Package ()
+{
+  return *this->Project_simpl_state_.Package_++;
+}
+
+bool Project_simpl::
+Build_next ()
+{
+  return this->Project_simpl_state_.Build_ != 
+  this->Project_simpl_state_.Build_end_;
+}
+
+const ::Build& Project_simpl::
+Build ()
+{
+  return *this->Project_simpl_state_.Build_++;
+}
+
+bool Project_simpl::
+Run_next ()
+{
+  return this->Project_simpl_state_.Run_ != 
+  this->Project_simpl_state_.Run_end_;
+}
+
+const ::Run& Project_simpl::
+Run ()
+{
+  return *this->Project_simpl_state_.Run_++;
+}
+
 // EG_simpl
 //
 
@@ -198,6 +297,12 @@ const ::Host& EG_simpl::
 Host ()
 {
   return this->EG_simpl_state_.EG_->Host ();
+}
+
+const ::Project& EG_simpl::
+Project ()
+{
+  return this->EG_simpl_state_.EG_->Project ();
 }
 
 // Directories_simpl
@@ -372,12 +477,67 @@ Library ()
   return *this->Files1_simpl_state_.Library_++;
 }
 
+// Run_simpl
+//
+
+void Run_simpl::
+pre (const ::Run& x)
+{
+  this->Run_simpl_state_.Run_ = &x;
+  this->Run_simpl_state_.Argument_ = 
+  this->Run_simpl_state_.Run_->Argument ().begin ();
+  this->Run_simpl_state_.Argument_end_ = 
+  this->Run_simpl_state_.Run_->Argument ().end ();
+}
+
+::std::string Run_simpl::
+Name ()
+{
+  return this->Run_simpl_state_.Run_->Name ();
+}
+
+bool Run_simpl::
+Argument_next ()
+{
+  return this->Run_simpl_state_.Argument_ != 
+  this->Run_simpl_state_.Argument_end_;
+}
+
+::std::string Run_simpl::
+Argument ()
+{
+  return *this->Run_simpl_state_.Argument_++;
+}
+
 // EG_saggr
 //
 
 EG_saggr::
 EG_saggr ()
 {
+  this->Build_s_.serializers (this->string_s_,
+                              this->string_s_,
+                              this->string_s_);
+
+  this->Run_s_.serializers (this->string_s_,
+                            this->string_s_);
+
+  this->Directories1_s_.serializers (this->string_s_,
+                                     this->string_s_);
+
+  this->Files1_s_.serializers (this->string_s_,
+                               this->string_s_);
+
+  this->Project_s_.serializers (this->string_s_,
+                                this->Host_s_,
+                                this->Package_s_,
+                                this->Build_s_,
+                                this->Run_s_);
+
+  this->EG_s_.serializers (this->Package_s_,
+                           this->Host_s_,
+                           this->Project_s_);
+
   this->Package_s_.serializers (this->string_s_,
                                 this->string_s_,
                                 this->string_s_,
@@ -398,15 +558,6 @@ EG_saggr ()
                              this->string_s_,
                              this->Directories1_s_,
                              this->Files1_s_);
-
-  this->Directories1_s_.serializers (this->string_s_,
-                                     this->string_s_);
-
-  this->Files1_s_.serializers (this->string_s_,
-                               this->string_s_);
-
-  this->EG_s_.serializers (this->Package_s_,
-                           this->Host_s_);
 }
 
 const char* EG_saggr::

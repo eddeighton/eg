@@ -3,6 +3,8 @@
 #include "schema-pimpl.hxx"
 #include "schema-simpl.hxx"
 
+#include "common/file.hpp"
+
 #include <boost/program_options.hpp>
 
 #include <iostream>
@@ -32,20 +34,53 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
     else
     {
         
-        EG newEGProject;
-        Host h;
-        {
-            h.Name( "test" );
-            h.Command( "thing.exe" );
-            h.License( "nobody may use this software under any circumstances even the developer" );
-        }
-        newEGProject.Host( &h );
         
-        EG_saggr newEG;
-        xml_schema::document_simpl doc_s( newEG.root_serializer(), newEG.root_name() );
-        newEG.pre( newEGProject );
-        doc_s.serialize( std::cout, xml_schema::document_simpl::pretty_print );
-        newEG.post();
+        const boost::filesystem::path projectDirectory = 
+            boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( strDirectory ) );
+        
+        const boost::filesystem::path projectFile = projectDirectory / ".eg";
+        
+        
+        
+        
+        
+        EG newEG;
+        Project project;
+        project.Name( "test" );
+        Host projectHost;
+        {
+            projectHost.Name( "testHost" );
+            projectHost.Command( "thing.exe" );
+            projectHost.License( "nobody may use this software under any circumstances even the developer" );
+        }
+        project.Host( &projectHost );
+        Build build;
+        {
+            build.Name( "release" );
+            build.CompilerFlags( "--donothing" );
+            build.LinkerFlags( "--dontlink" );
+        }
+        project.Build().push_back( build );
+        Run run;
+        {
+            run.Name( "default" );
+        }
+        project.Run().push_back( &run );
+        newEG.Project( &project );
+        
+        EG_saggr newEGagg;
+        xml_schema::document_simpl doc_s( newEGagg.root_serializer(), newEGagg.root_name() );
+        newEGagg.pre( newEG );
+        
+        ensureFoldersExist( projectDirectory );
+        
+        std::unique_ptr< boost::filesystem::ofstream > pFileStream =
+            createNewFileStream( projectFile );
+        
+        doc_s.serialize( *pFileStream, xml_schema::document_simpl::pretty_print );
+        
+        newEGagg.post();
         
         
     }

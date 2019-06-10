@@ -90,11 +90,14 @@ namespace xml_schema
 //
 class Package_pskel;
 class Host_pskel;
+class Build_pskel;
+class Project_pskel;
 class EG_pskel;
 class Directories_pskel;
 class Files_pskel;
 class Directories1_pskel;
 class Files1_pskel;
+class Run_pskel;
 
 #include <xsde/cxx/ro-string.hxx>
 
@@ -554,6 +557,230 @@ class Host_pskel: public ::xsde::cxx::parser::validating::complex_content
               bool);
 };
 
+class Build_pskel: public ::xsde::cxx::parser::validating::complex_content
+{
+  public:
+  // Parser callbacks. Override them in your implementation.
+  //
+  // virtual void
+  // pre ();
+
+  // Elements.
+  //
+  virtual void
+  Name (const ::std::string&);
+
+  virtual void
+  CompilerFlags (const ::std::string&);
+
+  virtual void
+  LinkerFlags (const ::std::string&);
+
+  virtual ::Build
+  post_Build () = 0;
+
+  // Parser construction API.
+  //
+  void
+  parsers (::xml_schema::string_pskel& /* Name */,
+           ::xml_schema::string_pskel& /* CompilerFlags */,
+           ::xml_schema::string_pskel& /* LinkerFlags */);
+
+  // Individual element parsers.
+  //
+  void
+  Name_parser (::xml_schema::string_pskel&);
+
+  void
+  CompilerFlags_parser (::xml_schema::string_pskel&);
+
+  void
+  LinkerFlags_parser (::xml_schema::string_pskel&);
+
+  virtual void
+  _reset ();
+
+  // Constructor.
+  //
+  Build_pskel ();
+
+  // Implementation details.
+  //
+  protected:
+  Build_pskel* Build_impl_;
+  Build_pskel (Build_pskel*, void*);
+
+  protected:
+  virtual bool
+  _start_element_impl (const ::xsde::cxx::ro_string&,
+                       const ::xsde::cxx::ro_string&);
+
+  virtual bool
+  _end_element_impl (const ::xsde::cxx::ro_string&,
+                     const ::xsde::cxx::ro_string&);
+
+  protected:
+  ::xml_schema::string_pskel* Name_parser_;
+  ::xml_schema::string_pskel* CompilerFlags_parser_;
+  ::xml_schema::string_pskel* LinkerFlags_parser_;
+
+  public:
+  struct v_state_descr_
+  {
+    void (::Build_pskel::*func) (
+      unsigned long&,
+      unsigned long&,
+      const ::xsde::cxx::ro_string&,
+      const ::xsde::cxx::ro_string&,
+      bool);
+    unsigned long state;
+    unsigned long count;
+  };
+
+  struct v_state_
+  {
+    v_state_descr_ data[2UL];
+    unsigned long size;
+  };
+
+  protected:
+  v_state_ v_state_first_;
+  ::xsde::cxx::stack v_state_stack_;
+
+  virtual void
+  _pre_e_validate ();
+
+  virtual void
+  _post_e_validate ();
+
+  void
+  sequence_0 (unsigned long&,
+              unsigned long&,
+              const ::xsde::cxx::ro_string&,
+              const ::xsde::cxx::ro_string&,
+              bool);
+};
+
+class Project_pskel: public ::xsde::cxx::parser::validating::complex_content
+{
+  public:
+  // Parser callbacks. Override them in your implementation.
+  //
+  // virtual void
+  // pre ();
+
+  // Elements.
+  //
+  virtual void
+  Name (const ::std::string&);
+
+  virtual void
+  Host (::Host*);
+
+  virtual void
+  Package (::Package*);
+
+  virtual void
+  Build (const ::Build&);
+
+  virtual void
+  Run (::Run*);
+
+  virtual ::Project*
+  post_Project () = 0;
+
+  // Parser construction API.
+  //
+  void
+  parsers (::xml_schema::string_pskel& /* Name */,
+           ::Host_pskel& /* Host */,
+           ::Package_pskel& /* Package */,
+           ::Build_pskel& /* Build */,
+           ::Run_pskel& /* Run */);
+
+  // Individual element parsers.
+  //
+  void
+  Name_parser (::xml_schema::string_pskel&);
+
+  void
+  Host_parser (::Host_pskel&);
+
+  void
+  Package_parser (::Package_pskel&);
+
+  void
+  Build_parser (::Build_pskel&);
+
+  void
+  Run_parser (::Run_pskel&);
+
+  virtual void
+  _reset ();
+
+  // Constructor.
+  //
+  Project_pskel ();
+
+  // Implementation details.
+  //
+  protected:
+  Project_pskel* Project_impl_;
+  Project_pskel (Project_pskel*, void*);
+
+  protected:
+  virtual bool
+  _start_element_impl (const ::xsde::cxx::ro_string&,
+                       const ::xsde::cxx::ro_string&);
+
+  virtual bool
+  _end_element_impl (const ::xsde::cxx::ro_string&,
+                     const ::xsde::cxx::ro_string&);
+
+  protected:
+  ::xml_schema::string_pskel* Name_parser_;
+  ::Host_pskel* Host_parser_;
+  ::Package_pskel* Package_parser_;
+  ::Build_pskel* Build_parser_;
+  ::Run_pskel* Run_parser_;
+
+  public:
+  struct v_state_descr_
+  {
+    void (::Project_pskel::*func) (
+      unsigned long&,
+      unsigned long&,
+      const ::xsde::cxx::ro_string&,
+      const ::xsde::cxx::ro_string&,
+      bool);
+    unsigned long state;
+    unsigned long count;
+  };
+
+  struct v_state_
+  {
+    v_state_descr_ data[2UL];
+    unsigned long size;
+  };
+
+  protected:
+  v_state_ v_state_first_;
+  ::xsde::cxx::stack v_state_stack_;
+
+  virtual void
+  _pre_e_validate ();
+
+  virtual void
+  _post_e_validate ();
+
+  void
+  sequence_0 (unsigned long&,
+              unsigned long&,
+              const ::xsde::cxx::ro_string&,
+              const ::xsde::cxx::ro_string&,
+              bool);
+};
+
 class EG_pskel: public ::xsde::cxx::parser::validating::complex_content
 {
   public:
@@ -567,7 +794,8 @@ class EG_pskel: public ::xsde::cxx::parser::validating::complex_content
   enum choice_arm_tag
   {
     Package_tag,
-    Host_tag
+    Host_tag,
+    Project_tag
   };
 
   virtual void
@@ -579,6 +807,9 @@ class EG_pskel: public ::xsde::cxx::parser::validating::complex_content
   virtual void
   Host (::Host*);
 
+  virtual void
+  Project (::Project*);
+
   virtual ::EG*
   post_EG () = 0;
 
@@ -586,7 +817,8 @@ class EG_pskel: public ::xsde::cxx::parser::validating::complex_content
   //
   void
   parsers (::Package_pskel& /* Package */,
-           ::Host_pskel& /* Host */);
+           ::Host_pskel& /* Host */,
+           ::Project_pskel& /* Project */);
 
   // Individual element parsers.
   //
@@ -595,6 +827,9 @@ class EG_pskel: public ::xsde::cxx::parser::validating::complex_content
 
   void
   Host_parser (::Host_pskel&);
+
+  void
+  Project_parser (::Project_pskel&);
 
   virtual void
   _reset ();
@@ -621,6 +856,7 @@ class EG_pskel: public ::xsde::cxx::parser::validating::complex_content
   protected:
   ::Package_pskel* Package_parser_;
   ::Host_pskel* Host_parser_;
+  ::Project_pskel* Project_parser_;
 
   public:
   struct v_state_descr_
@@ -1010,6 +1246,102 @@ class Files1_pskel: public ::xsde::cxx::parser::validating::complex_content
   struct v_state_descr_
   {
     void (::Files1_pskel::*func) (
+      unsigned long&,
+      unsigned long&,
+      const ::xsde::cxx::ro_string&,
+      const ::xsde::cxx::ro_string&,
+      bool);
+    unsigned long state;
+    unsigned long count;
+  };
+
+  struct v_state_
+  {
+    v_state_descr_ data[2UL];
+    unsigned long size;
+  };
+
+  protected:
+  v_state_ v_state_first_;
+  ::xsde::cxx::stack v_state_stack_;
+
+  virtual void
+  _pre_e_validate ();
+
+  virtual void
+  _post_e_validate ();
+
+  void
+  sequence_0 (unsigned long&,
+              unsigned long&,
+              const ::xsde::cxx::ro_string&,
+              const ::xsde::cxx::ro_string&,
+              bool);
+};
+
+class Run_pskel: public ::xsde::cxx::parser::validating::complex_content
+{
+  public:
+  // Parser callbacks. Override them in your implementation.
+  //
+  // virtual void
+  // pre ();
+
+  // Elements.
+  //
+  virtual void
+  Name (const ::std::string&);
+
+  virtual void
+  Argument (const ::std::string&);
+
+  virtual ::Run*
+  post_Run () = 0;
+
+  // Parser construction API.
+  //
+  void
+  parsers (::xml_schema::string_pskel& /* Name */,
+           ::xml_schema::string_pskel& /* Argument */);
+
+  // Individual element parsers.
+  //
+  void
+  Name_parser (::xml_schema::string_pskel&);
+
+  void
+  Argument_parser (::xml_schema::string_pskel&);
+
+  virtual void
+  _reset ();
+
+  // Constructor.
+  //
+  Run_pskel ();
+
+  // Implementation details.
+  //
+  protected:
+  Run_pskel* Run_impl_;
+  Run_pskel (Run_pskel*, void*);
+
+  protected:
+  virtual bool
+  _start_element_impl (const ::xsde::cxx::ro_string&,
+                       const ::xsde::cxx::ro_string&);
+
+  virtual bool
+  _end_element_impl (const ::xsde::cxx::ro_string&,
+                     const ::xsde::cxx::ro_string&);
+
+  protected:
+  ::xml_schema::string_pskel* Name_parser_;
+  ::xml_schema::string_pskel* Argument_parser_;
+
+  public:
+  struct v_state_descr_
+  {
+    void (::Run_pskel::*func) (
       unsigned long&,
       unsigned long&,
       const ::xsde::cxx::ro_string&,

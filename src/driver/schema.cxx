@@ -347,6 +347,139 @@ Files (::Files1* x)
   this->Files_ = x;
 }
 
+// Build
+//
+
+const ::std::string& Build::
+Name () const
+{
+  return this->Name_;
+}
+
+::std::string& Build::
+Name ()
+{
+  return this->Name_;
+}
+
+void Build::
+Name (const ::std::string& x)
+{
+  this->Name_ = x;
+}
+
+const ::std::string& Build::
+CompilerFlags () const
+{
+  return this->CompilerFlags_;
+}
+
+::std::string& Build::
+CompilerFlags ()
+{
+  return this->CompilerFlags_;
+}
+
+void Build::
+CompilerFlags (const ::std::string& x)
+{
+  this->CompilerFlags_ = x;
+}
+
+const ::std::string& Build::
+LinkerFlags () const
+{
+  return this->LinkerFlags_;
+}
+
+::std::string& Build::
+LinkerFlags ()
+{
+  return this->LinkerFlags_;
+}
+
+void Build::
+LinkerFlags (const ::std::string& x)
+{
+  this->LinkerFlags_ = x;
+}
+
+// Project
+//
+
+const ::std::string& Project::
+Name () const
+{
+  return this->Name_;
+}
+
+::std::string& Project::
+Name ()
+{
+  return this->Name_;
+}
+
+void Project::
+Name (const ::std::string& x)
+{
+  this->Name_ = x;
+}
+
+const ::Host& Project::
+Host () const
+{
+  return *this->Host_;
+}
+
+::Host& Project::
+Host ()
+{
+  return *this->Host_;
+}
+
+void Project::
+Host (::Host* x)
+{
+  delete this->Host_;
+  this->Host_ = x;
+}
+
+const Project::Package_sequence& Project::
+Package () const
+{
+  return this->Package_;
+}
+
+Project::Package_sequence& Project::
+Package ()
+{
+  return this->Package_;
+}
+
+const Project::Build_sequence& Project::
+Build () const
+{
+  return this->Build_;
+}
+
+Project::Build_sequence& Project::
+Build ()
+{
+  return this->Build_;
+}
+
+const Project::Run_sequence& Project::
+Run () const
+{
+  return this->Run_;
+}
+
+Project::Run_sequence& Project::
+Run ()
+{
+  return this->Run_;
+}
+
 // EG
 //
 
@@ -404,6 +537,31 @@ Host (::Host* x)
   }
 
   this->choice_.Host_ = x;
+}
+
+const ::Project& EG::
+Project () const
+{
+  return *this->choice_.Project_;
+}
+
+::Project& EG::
+Project ()
+{
+  return *this->choice_.Project_;
+}
+
+void EG::
+Project (::Project* x)
+{
+  if (this->choice_arm_ != Project_tag)
+    this->choice_arm (Project_tag);
+  else
+  {
+    delete this->choice_.Project_;
+  }
+
+  this->choice_.Project_ = x;
 }
 
 // Directories
@@ -514,6 +672,39 @@ Library ()
   return this->Library_;
 }
 
+// Run
+//
+
+const ::std::string& Run::
+Name () const
+{
+  return this->Name_;
+}
+
+::std::string& Run::
+Name ()
+{
+  return this->Name_;
+}
+
+void Run::
+Name (const ::std::string& x)
+{
+  this->Name_ = x;
+}
+
+const Run::Argument_sequence& Run::
+Argument () const
+{
+  return this->Argument_;
+}
+
+Run::Argument_sequence& Run::
+Argument ()
+{
+  return this->Argument_;
+}
+
 #include <stdlib.h>
 #include <new>
 
@@ -555,19 +746,66 @@ Host::
   delete this->Files_;
 }
 
+// Build
+//
+
+Build::
+Build ()
+{
+}
+
+Build::
+~Build ()
+{
+}
+
+Build::
+Build (const Build& x)
+{
+  XSDE_UNUSED (x);
+  this->Name_ = x.Name_;
+  this->CompilerFlags_ = x.CompilerFlags_;
+  this->LinkerFlags_ = x.LinkerFlags_;
+}
+
+Build& Build::
+operator= (const Build& x)
+{
+  XSDE_UNUSED (x);
+  this->Name_ = x.Name_;
+  this->CompilerFlags_ = x.CompilerFlags_;
+  this->LinkerFlags_ = x.LinkerFlags_;
+  return *this;
+}
+
+// Project
+//
+
+Project::
+Project ()
+{
+  this->Host_ = 0;
+}
+
+Project::
+~Project ()
+{
+  delete this->Host_;
+}
+
 // EG
 //
 
 EG::
 EG ()
 {
-  this->choice_arm_ = choice_arm_tag (2);
+  this->choice_arm_ = choice_arm_tag (3);
 }
 
 EG::
 ~EG ()
 {
-  this->choice_arm (choice_arm_tag (2));
+  this->choice_arm (choice_arm_tag (3));
 }
 
 void EG::
@@ -588,11 +826,16 @@ choice_arm (choice_arm_tag x)
       delete this->choice_.Host_;
       break;
     }
+    case Project_tag:
+    {
+      delete this->choice_.Project_;
+      break;
+    }
     default:
     break;
   }
 
-  this->choice_arm_ = choice_arm_tag (2);
+  this->choice_arm_ = choice_arm_tag (3);
 
   switch (x)
   {
@@ -604,6 +847,11 @@ choice_arm (choice_arm_tag x)
     case Host_tag:
     {
       this->choice_.Host_ = 0;
+      break;
+    }
+    case Project_tag:
+    {
+      this->choice_.Project_ = 0;
       break;
     }
     default:
@@ -662,6 +910,19 @@ Files1 ()
 
 Files1::
 ~Files1 ()
+{
+}
+
+// Run
+//
+
+Run::
+Run ()
+{
+}
+
+Run::
+~Run ()
 {
 }
 

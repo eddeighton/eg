@@ -76,8 +76,7 @@ Copyright Deighton Systems Limited (c) 2015
 #define THROW( exceptionType, msg ) \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         std::ostringstream _os; \
-        Common::getBackTrace( _os );\
-        _os << "FILE " << __FILE__ << " LINE:" << __LINE__ /*<< " FUNCTION:" << BOOST_CURRENT_FUNCTION*/ << "\nMSG:" << msg; \
+        _os << msg; \
         throw exceptionType( _os.str() );)
 
 #define TERMINATE_IF_NOT( expression, msg ) \

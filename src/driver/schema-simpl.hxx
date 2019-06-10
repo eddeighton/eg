@@ -134,6 +134,79 @@ class Host_simpl: public Host_sskel
   Host_simpl_state Host_simpl_state_;
 };
 
+class Build_simpl: public Build_sskel
+{
+  public:
+  virtual void
+  pre (const ::Build&);
+
+  // Elements.
+  //
+  virtual ::std::string
+  Name ();
+
+  virtual ::std::string
+  CompilerFlags ();
+
+  virtual ::std::string
+  LinkerFlags ();
+
+  public:
+  struct Build_simpl_state
+  {
+    const ::Build* Build_;
+  };
+
+  Build_simpl_state Build_simpl_state_;
+};
+
+class Project_simpl: public Project_sskel
+{
+  public:
+  virtual void
+  pre (const ::Project&);
+
+  // Elements.
+  //
+  virtual ::std::string
+  Name ();
+
+  virtual const ::Host&
+  Host ();
+
+  virtual bool
+  Package_next ();
+
+  virtual const ::Package&
+  Package ();
+
+  virtual bool
+  Build_next ();
+
+  virtual const ::Build&
+  Build ();
+
+  virtual bool
+  Run_next ();
+
+  virtual const ::Run&
+  Run ();
+
+  public:
+  struct Project_simpl_state
+  {
+    const ::Project* Project_;
+    ::Project::Package_const_iterator Package_;
+    ::Project::Package_const_iterator Package_end_;
+    ::Project::Build_const_iterator Build_;
+    ::Project::Build_const_iterator Build_end_;
+    ::Project::Run_const_iterator Run_;
+    ::Project::Run_const_iterator Run_end_;
+  };
+
+  Project_simpl_state Project_simpl_state_;
+};
+
 class EG_simpl: public EG_sskel
 {
   public:
@@ -150,6 +223,9 @@ class EG_simpl: public EG_sskel
 
   virtual const ::Host&
   Host ();
+
+  virtual const ::Project&
+  Project ();
 
   public:
   struct EG_simpl_state
@@ -292,6 +368,34 @@ class Files1_simpl: public Files1_sskel
   Files1_simpl_state Files1_simpl_state_;
 };
 
+class Run_simpl: public Run_sskel
+{
+  public:
+  virtual void
+  pre (const ::Run&);
+
+  // Elements.
+  //
+  virtual ::std::string
+  Name ();
+
+  virtual bool
+  Argument_next ();
+
+  virtual ::std::string
+  Argument ();
+
+  public:
+  struct Run_simpl_state
+  {
+    const ::Run* Run_;
+    ::Run::Argument_const_iterator Argument_;
+    ::Run::Argument_const_iterator Argument_end_;
+  };
+
+  Run_simpl_state Run_simpl_state_;
+};
+
 #ifdef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #  undef XSDE_OMIT_SAGGR
 #endif
@@ -336,13 +440,16 @@ class EG_saggr
   }
 
   public:
+  ::Build_simpl Build_s_;
+  ::Run_simpl Run_s_;
+  ::Directories1_simpl Directories1_s_;
+  ::Files1_simpl Files1_s_;
+  ::Project_simpl Project_s_;
+  ::EG_simpl EG_s_;
   ::Package_simpl Package_s_;
   ::Directories_simpl Directories_s_;
   ::Files_simpl Files_s_;
   ::Host_simpl Host_s_;
-  ::Directories1_simpl Directories1_s_;
-  ::Files1_simpl Files1_s_;
-  ::EG_simpl EG_s_;
   ::xml_schema::string_simpl string_s_;
 };
 

@@ -75,10 +75,7 @@ class EGDiagConsumer : public clang::DiagnosticConsumer
 
 extern void command_create( bool bHelp, const std::vector< std::string >& args );
 
-void command_build( bool bHelp, const std::vector< std::string >& args )
-{
-    
-}
+extern void command_build( bool bHelp, const std::vector< std::string >& args );
 
 void command_run( bool bHelp, const std::vector< std::string >& args )
 {
@@ -253,7 +250,7 @@ int main( int argc, const char* argv[] )
         }*/
         catch( std::exception& e )
         {
-            std::cout << "Unknown error: " << e.what() << std::endl;
+            std::cout << "Error: " << e.what() << std::endl;
             return 1;
         }
     }
