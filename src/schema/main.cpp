@@ -7,6 +7,7 @@
 #include "common/file.hpp"
 
 #include <boost/program_options.hpp>
+#include <boost/format.hpp>
 
 #include <iostream>
 
@@ -57,6 +58,8 @@ int main( int argc, const char* argv[] )
         char c;
         std::cin >> c;
     }
+    
+    
     
     if( xmlFiles.empty() )
     {

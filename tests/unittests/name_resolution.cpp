@@ -36,7 +36,7 @@ inline std::vector< eg::TypeID > toTypeIDs( const std::vector< T >& stuff )
         result.push_back( t->getIndex() );
     return result;
 }
-
+/*
 TEST( NameResolution, LoadDatabase )
 {
     DBPtr pDatabase = loadDatabase( "name_resolution_build" );
@@ -80,4 +80,4 @@ TEST( NameResolution, LoadDatabase )
         pDatabase->getInvocation( invocationID, implicitTypePath );
 
     //ASSERT_EQ( toTypeIDs( pInvocation->getTargetTypes() ), std::vector< eg::TypeID >{ 15 } );
-}
+}*/

@@ -17,6 +17,11 @@ include( ${EG_ROOT_DIR}/cmake/gtest_include.cmake )
 #get eg
 include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 
+#get driver source
+set( DRIVER_SRC
+    ${EG_ROOT_DIR}/src/driver/environment_string.hpp
+    ${EG_ROOT_DIR}/src/driver/environment_string.cpp )
+
 set( EG_UNITTEST_DIR ${EG_ROOT_DIR}/tests/unittests )
 
 file( GLOB UNITTEST_TEST_SOURCES ${EG_UNITTEST_DIR}/*.cpp )
@@ -26,6 +31,7 @@ file( GLOB UNITTEST_TEST_SOURCES ${EG_UNITTEST_DIR}/*.cpp )
 source_group( eg/tests FILES ${UNITTEST_TEST_SOURCES} )
 
 add_executable( eg_tests
+                    ${DRIVER_SRC}
 					${EG_SOURCES}
 					${UNITTEST_TEST_SOURCES}
 				)
