@@ -8,7 +8,7 @@
 #include <regex>
 #include <iterator>
 
-void expand( const std::string& str, const EnvironmentDict& env, std::ostream& os )
+void expand( const std::string& str, StringLookup lookup, std::ostream& os )
 {
     //https://stackoverflow.com/questions/1902681/expand-file-names-that-have-environment-variables-in-their-path
     static std::regex envStringRegex( "\\$\\{([^}]+)\\}" );
@@ -33,15 +33,7 @@ void expand( const std::string& str, const EnvironmentDict& env, std::ostream& o
         
         ++i;
         
-        EnvironmentDict::const_iterator iFind = env.find( i->str() );
-        if( iFind == env.end() )
-        {
-            THROW_RTE( "Failed to find string substitution of: " << i->str() << " for: " << str );
-        }
-        else
-        {
-            os << iFind->second;
-        }
+        os << lookup( i->str() );
         
         iStrIter = matchEnd;
     }
@@ -50,9 +42,9 @@ void expand( const std::string& str, const EnvironmentDict& env, std::ostream& o
 }
 
 
-std::string expand( const std::string& str, const EnvironmentDict& env )
+std::string expand( const std::string& str, StringLookup lookup )
 {
     std::ostringstream os;
-    expand( str, env, os );
+    expand( str, lookup, os );
     return os.str();
 }

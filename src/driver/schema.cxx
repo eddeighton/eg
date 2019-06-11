@@ -279,22 +279,21 @@ namespace egxml
     this->Name_ = x;
   }
 
-  const ::egxml::Host& Project::
+  const ::std::string& Project::
   Host () const
   {
-    return *this->Host_;
+    return this->Host_;
   }
 
-  ::egxml::Host& Project::
+  ::std::string& Project::
   Host ()
   {
-    return *this->Host_;
+    return this->Host_;
   }
 
   void Project::
-  Host (::egxml::Host* x)
+  Host (const ::std::string& x)
   {
-    delete this->Host_;
     this->Host_ = x;
   }
 
@@ -460,16 +459,28 @@ namespace egxml
     return this->System_;
   }
 
-  const Files::User_sequence& Files::
-  User () const
+  const Files::Include_sequence& Files::
+  Include () const
   {
-    return this->User_;
+    return this->Include_;
   }
 
-  Files::User_sequence& Files::
-  User ()
+  Files::Include_sequence& Files::
+  Include ()
   {
-    return this->User_;
+    return this->Include_;
+  }
+
+  const Files::Source_sequence& Files::
+  Source () const
+  {
+    return this->Source_;
+  }
+
+  Files::Source_sequence& Files::
+  Source ()
+  {
+    return this->Source_;
   }
 
   const Files::Library_sequence& Files::
@@ -593,13 +604,11 @@ namespace egxml
   Project::
   Project ()
   {
-    this->Host_ = 0;
   }
 
   Project::
   ~Project ()
   {
-    delete this->Host_;
   }
 
   // EG

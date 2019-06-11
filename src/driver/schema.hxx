@@ -392,18 +392,18 @@ namespace egxml
 
     // Host
     //
-    const ::egxml::Host&
+    const ::std::string&
     Host () const;
 
-    ::egxml::Host&
+    ::std::string&
     Host ();
 
     void
-    Host (::egxml::Host*);
+    Host (const ::std::string&);
 
     // Package
     //
-    typedef ::xsde::cxx::hybrid::var_sequence< ::egxml::Package > Package_sequence;
+    typedef ::xsde::cxx::string_sequence Package_sequence;
     typedef Package_sequence::iterator Package_iterator;
     typedef Package_sequence::const_iterator Package_const_iterator;
 
@@ -439,7 +439,7 @@ namespace egxml
 
     private:
     ::std::string Name_;
-    ::egxml::Host* Host_;
+    ::std::string Host_;
     Package_sequence Package_;
     Build_sequence Build_;
     Run_sequence Run_;
@@ -583,17 +583,29 @@ namespace egxml
     System_sequence&
     System ();
 
-    // User
+    // Include
     //
-    typedef ::xsde::cxx::string_sequence User_sequence;
-    typedef User_sequence::iterator User_iterator;
-    typedef User_sequence::const_iterator User_const_iterator;
+    typedef ::xsde::cxx::string_sequence Include_sequence;
+    typedef Include_sequence::iterator Include_iterator;
+    typedef Include_sequence::const_iterator Include_const_iterator;
 
-    const User_sequence&
-    User () const;
+    const Include_sequence&
+    Include () const;
 
-    User_sequence&
-    User ();
+    Include_sequence&
+    Include ();
+
+    // Source
+    //
+    typedef ::xsde::cxx::string_sequence Source_sequence;
+    typedef Source_sequence::iterator Source_iterator;
+    typedef Source_sequence::const_iterator Source_const_iterator;
+
+    const Source_sequence&
+    Source () const;
+
+    Source_sequence&
+    Source ();
 
     // Library
     //
@@ -609,7 +621,8 @@ namespace egxml
 
     private:
     System_sequence System_;
-    User_sequence User_;
+    Include_sequence Include_;
+    Source_sequence Source_;
     Library_sequence Library_;
   };
 

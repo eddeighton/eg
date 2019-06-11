@@ -31,7 +31,8 @@
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="System" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-						<xs:element name="User" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+						<xs:element name="Source" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 					</xs:sequence>
 				</xs:complexType>
@@ -50,8 +51,8 @@
 	<xs:complexType name="Project">
 		<xs:sequence>
 			<xs:element name="Name" type="xs:string"/>
-			<xs:element name="Host" type="Host"/>
-			<xs:element name="Package" type="Package" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Host" type="xs:string"/>
+			<xs:element name="Package" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="Build" maxOccurs="unbounded">
 				<xs:complexType>
 					<xs:sequence>

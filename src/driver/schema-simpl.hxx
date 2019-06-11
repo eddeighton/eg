@@ -148,13 +148,13 @@ namespace egxml
     virtual ::std::string
     Name ();
 
-    virtual const ::egxml::Host&
+    virtual ::std::string
     Host ();
 
     virtual bool
     Package_next ();
 
-    virtual const ::egxml::Package&
+    virtual ::std::string
     Package ();
 
     virtual bool
@@ -261,10 +261,16 @@ namespace egxml
     System ();
 
     virtual bool
-    User_next ();
+    Include_next ();
 
     virtual ::std::string
-    User ();
+    Include ();
+
+    virtual bool
+    Source_next ();
+
+    virtual ::std::string
+    Source ();
 
     virtual bool
     Library_next ();
@@ -278,8 +284,10 @@ namespace egxml
       const ::egxml::Files* Files_;
       ::egxml::Files::System_const_iterator System_;
       ::egxml::Files::System_const_iterator System_end_;
-      ::egxml::Files::User_const_iterator User_;
-      ::egxml::Files::User_const_iterator User_end_;
+      ::egxml::Files::Include_const_iterator Include_;
+      ::egxml::Files::Include_const_iterator Include_end_;
+      ::egxml::Files::Source_const_iterator Source_;
+      ::egxml::Files::Source_const_iterator Source_end_;
       ::egxml::Files::Library_const_iterator Library_;
       ::egxml::Files::Library_const_iterator Library_end_;
     };

@@ -81,8 +81,7 @@ namespace eg
     
     void generateBufferStructures( std::ostream& os, const ImplementationSession& program );
 
-    void generateImplementationSource( std::ostream& os, const ImplementationSession& program, 
-        std::size_t szTranslationUnitID, const std::vector< std::string >& dependencies );
+    void generateImplementationSource( std::ostream& os, const ImplementationSession& program, std::size_t szTranslationUnitID );
         
             
     class DataMember;

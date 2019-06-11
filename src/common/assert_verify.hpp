@@ -94,7 +94,7 @@ Copyright Deighton Systems Limited (c) 2015
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         if( !( expression ) )\
         {\
-            THROW( exceptionType, "Verify of: " << #expression << " failed.\n" << msg );\
+            THROW( exceptionType, msg );\
         })
 
 #define VERIFY_RTE_MSG( expression, msg ) VERIFY( expression, std::runtime_error, msg )

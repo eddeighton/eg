@@ -1,4 +1,6 @@
 
+#include "project.hpp"
+
 #include "schema.hxx"
 #include "schema-pimpl.hxx"
 #include "schema-simpl.hxx"
@@ -19,7 +21,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
     {
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
-            ("host",    po::value< std::string >( &strHost ), "Host type: test_host, basic_host, cinder_host" )
+            ("host",    po::value< std::string >( &strHost ), "Host type: test, basic, cinder" )
         ;
     }
     
@@ -39,35 +41,32 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
             boost::filesystem::edsCannonicalise(
                 boost::filesystem::absolute( strDirectory ) );
         
-        const boost::filesystem::path projectFile = projectDirectory / ".eg";
+        const boost::filesystem::path projectFile = 
+            projectDirectory / Environment::EG_FILE_EXTENSION;
         
-        
-        
-        
+        Environment environment( projectFile );
         
         egxml::EG newEG;
-        egxml::Project project;
-        project.Name( "test" );
-        egxml::Host projectHost;
         {
-            projectHost.Name( "testHost" );
-            projectHost.Command( "thing.exe" );
-            projectHost.License( "nobody may use this software under any circumstances even the developer" );
+            egxml::Project* pProject = new egxml::Project;
+            {
+                pProject->Name( "test" );
+                pProject->Host( strHost );
+                egxml::Build build;
+                {
+                    build.Name( "release" );
+                    build.CompilerFlags( "--donothing" );
+                    build.LinkerFlags( "--dontlink" );
+                }
+                pProject->Build().push_back( build );
+                egxml::Run* pRun = new egxml::Run;
+                {
+                    pRun->Name( "default" );
+                }
+                pProject->Run().push_back( pRun );
+            }
+            newEG.Project( pProject );
         }
-        project.Host( &projectHost );
-        egxml::Build build;
-        {
-            build.Name( "release" );
-            build.CompilerFlags( "--donothing" );
-            build.LinkerFlags( "--dontlink" );
-        }
-        project.Build().push_back( build );
-        egxml::Run run;
-        {
-            run.Name( "default" );
-        }
-        project.Run().push_back( &run );
-        newEG.Project( &project );
         
         egxml::EG_saggr newEGagg;
         xml_schema::document_simpl doc_s( newEGagg.root_serializer(), newEGagg.root_name() );

@@ -640,10 +640,10 @@ namespace egxml
     Name (const ::std::string&);
 
     virtual void
-    Host (::egxml::Host*);
+    Host (const ::std::string&);
 
     virtual void
-    Package (::egxml::Package*);
+    Package (const ::std::string&);
 
     virtual void
     Build (const ::egxml::Build&);
@@ -658,8 +658,8 @@ namespace egxml
     //
     void
     parsers (::xml_schema::string_pskel& /* Name */,
-             ::egxml::Host_pskel& /* Host */,
-             ::egxml::Package_pskel& /* Package */,
+             ::xml_schema::string_pskel& /* Host */,
+             ::xml_schema::string_pskel& /* Package */,
              ::egxml::Build_pskel& /* Build */,
              ::egxml::Run_pskel& /* Run */);
 
@@ -669,10 +669,10 @@ namespace egxml
     Name_parser (::xml_schema::string_pskel&);
 
     void
-    Host_parser (::egxml::Host_pskel&);
+    Host_parser (::xml_schema::string_pskel&);
 
     void
-    Package_parser (::egxml::Package_pskel&);
+    Package_parser (::xml_schema::string_pskel&);
 
     void
     Build_parser (::egxml::Build_pskel&);
@@ -704,8 +704,8 @@ namespace egxml
 
     protected:
     ::xml_schema::string_pskel* Name_parser_;
-    ::egxml::Host_pskel* Host_parser_;
-    ::egxml::Package_pskel* Package_parser_;
+    ::xml_schema::string_pskel* Host_parser_;
+    ::xml_schema::string_pskel* Package_parser_;
     ::egxml::Build_pskel* Build_parser_;
     ::egxml::Run_pskel* Run_parser_;
 
@@ -970,7 +970,10 @@ namespace egxml
     System (const ::std::string&);
 
     virtual void
-    User (const ::std::string&);
+    Include (const ::std::string&);
+
+    virtual void
+    Source (const ::std::string&);
 
     virtual void
     Library (const ::std::string&);
@@ -982,7 +985,8 @@ namespace egxml
     //
     void
     parsers (::xml_schema::string_pskel& /* System */,
-             ::xml_schema::string_pskel& /* User */,
+             ::xml_schema::string_pskel& /* Include */,
+             ::xml_schema::string_pskel& /* Source */,
              ::xml_schema::string_pskel& /* Library */);
 
     // Individual element parsers.
@@ -991,7 +995,10 @@ namespace egxml
     System_parser (::xml_schema::string_pskel&);
 
     void
-    User_parser (::xml_schema::string_pskel&);
+    Include_parser (::xml_schema::string_pskel&);
+
+    void
+    Source_parser (::xml_schema::string_pskel&);
 
     void
     Library_parser (::xml_schema::string_pskel&);
@@ -1020,7 +1027,8 @@ namespace egxml
 
     protected:
     ::xml_schema::string_pskel* System_parser_;
-    ::xml_schema::string_pskel* User_parser_;
+    ::xml_schema::string_pskel* Include_parser_;
+    ::xml_schema::string_pskel* Source_parser_;
     ::xml_schema::string_pskel* Library_parser_;
 
     public:

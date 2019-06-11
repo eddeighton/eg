@@ -1534,7 +1534,7 @@ namespace eg
         os << "                 reference.data.timestamp = startCycle;\n";
         os << "                 " << Printer( pStateData, "nextInstance" ) << " = " << getActionState( action_running ) << ";\n";
         os << "                 " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        os << "                 g_eg_event_log->PutEvent( ev );\n";
+        //os << "                 g_eg_event_log->PutEvent( ev );\n";
                 //if there is an object mapping then start it
                 if( pObject )
                 {
@@ -1570,7 +1570,7 @@ namespace eg
         os << "    reference.data.timestamp = startCycle;\n";
         os << "    " << Printer( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
         os << "    " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        os << "    g_eg_event_log->PutEvent( ev );\n";
+        //os << "    g_eg_event_log->PutEvent( ev );\n";
         
         os << "    " << Printer( pFiberData, "0" ) << " = " << EG_FIBER_TYPE << "\n";
         os << "    (                                                                                       \n";
@@ -1697,7 +1697,7 @@ namespace eg
         os << "         if( " << Printer( pFiberData, "_gid" ) << ".joinable() )\n";
         os << "             " << Printer( pFiberData, "_gid" ) << ".detach();\n";
         os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        os << "         g_eg_event_log->PutEvent( ev );\n";
+        //os << "         g_eg_event_log->PutEvent( ev );\n";
                 //if there is an object mapping then start it
                 if( pObject )
                 {
@@ -1732,7 +1732,7 @@ namespace eg
         os << "         if( " << Printer( pFiberData, "_gid" ) << ".joinable() )\n";
         os << "             " << Printer( pFiberData, "_gid" ) << ".detach();\n";
         os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        os << "         g_eg_event_log->PutEvent( ev );\n";
+        //os << "         g_eg_event_log->PutEvent( ev );\n";
         os << "     }\n";
             }
         
@@ -1743,7 +1743,7 @@ namespace eg
     }
     
     void generateImplementationSource( std::ostream& os, const ImplementationSession& program, 
-            std::size_t szTranslationUnitID, const std::vector< std::string >& dependencies )
+            std::size_t szTranslationUnitID )
     {
         const interface::Root* pRoot = program.getTreeRoot();
         
@@ -1777,55 +1777,55 @@ namespace eg
         os << "\n";
         
      
-   const char* pszDefaultInterfaces = R"(
-//global dependencies
-static eg::_clock* g_eg_clock;
-
-//clock impl\n";
-eg::TimeStamp clock::cycle()    { return g_eg_clock->cycle(); }
-float clock::ct()               { return g_eg_clock->ct(); }
-float clock::dt()               { return g_eg_clock->dt(); }
-
-static eg::_event_log* g_eg_event_log;
-
-eg::event_iterator events::getIterator()
-{
-    return g_eg_event_log->GetEventIterator();
-}
-
-bool events::get( eg::event_iterator& iterator, eg::_event& event )
-{
-    return g_eg_event_log->GetEvent( iterator, event );
-}
-    
-void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
-{
-    eg::_event ev = { type, timestamp, value, size };
-    g_eg_event_log->PutEvent( ev );
-}
-)";
-        os << pszDefaultInterfaces;
+//   const char* pszDefaultInterfaces = R"(
+////global dependencies
+//static eg::_clock* g_eg_clock;
+//
+////clock impl\n";
+//eg::TimeStamp clock::cycle()    { return g_eg_clock->cycle(); }
+//float clock::ct()               { return g_eg_clock->ct(); }
+//float clock::dt()               { return g_eg_clock->dt(); }
+//
+//static eg::_event_log* g_eg_event_log;
+//
+//eg::event_iterator events::getIterator()
+//{
+//    return g_eg_event_log->GetEventIterator();
+//}
+//
+//bool events::get( eg::event_iterator& iterator, eg::_event& event )
+//{
+//    return g_eg_event_log->GetEvent( iterator, event );
+//}
+//    
+//void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
+//{
+//    eg::_event ev = { type, timestamp, value, size };
+//    g_eg_event_log->PutEvent( ev );
+//}
+//)";
+        //os << pszDefaultInterfaces;
         
         //initialiser
-        os << "void initialise( " << EG_DEPENDENCY_PROVIDER_TYPE << "* pDependencyProvider )\n";
-        os << "{    \n";
-        os << "    //buffers\n";
-        for( const Buffer* pBuffer : layout.getBuffers() )
-        {
-        os << "    " << pBuffer->getVariableName() << " = reinterpret_cast< " << pBuffer->getTypeName() << 
-            "* >( pDependencyProvider->getBuffer( \"" << pBuffer->getVariableName() << "\" ) );\n";
-        }
-        os << "    //global dependencies\n";
-        os << "    g_eg_clock = reinterpret_cast< eg::_clock* >( pDependencyProvider->getInterface( \"_clock\" ) );\n";
-        os << "    g_eg_event_log = reinterpret_cast< eg::_event_log* >( pDependencyProvider->getInterface( \"_event_log\" ) );\n";
-        for( const std::string& strDependency : dependencies )
-        {
-            std::string strVariable = strDependency;
-            strVariable[ 0 ] = 'g';
-        os << "    " << strVariable << " = reinterpret_cast< " << strDependency << "* >( pDependencyProvider->getInterface( \"" << strDependency << "\" ) );\n";
-        }            
-        os << "}\n";
-        os << "\n";
+        //os << "void initialise( " << EG_DEPENDENCY_PROVIDER_TYPE << "* pDependencyProvider )\n";
+        //os << "{    \n";
+        //os << "    //buffers\n";
+        //for( const Buffer* pBuffer : layout.getBuffers() )
+        //{
+        //os << "    " << pBuffer->getVariableName() << " = reinterpret_cast< " << pBuffer->getTypeName() << 
+        //    "* >( pDependencyProvider->getBuffer( \"" << pBuffer->getVariableName() << "\" ) );\n";
+        //}
+        //os << "    //global dependencies\n";
+        //os << "    g_eg_clock = reinterpret_cast< eg::_clock* >( pDependencyProvider->getInterface( \"_clock\" ) );\n";
+        //os << "    g_eg_event_log = reinterpret_cast< eg::_event_log* >( pDependencyProvider->getInterface( \"_event_log\" ) );\n";
+        //for( const std::string& strDependency : dependencies )
+        //{
+        //    std::string strVariable = strDependency;
+        //    strVariable[ 0 ] = 'g';
+        //os << "    " << strVariable << " = reinterpret_cast< " << strDependency << "* >( pDependencyProvider->getInterface( \"" << strDependency << "\" ) );\n";
+        //}            
+        //os << "}\n";
+        //os << "\n";
         
         os << "//input::Action Function Implementations\n";
         for( const concrete::Action* pAction : actions )

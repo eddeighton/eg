@@ -175,10 +175,10 @@ namespace egxml
     Name (const ::std::string&);
 
     virtual void
-    Host (::egxml::Host*);
+    Host (const ::std::string&);
 
     virtual void
-    Package (::egxml::Package*);
+    Package (const ::std::string&);
 
     virtual void
     Build (const ::egxml::Build&);
@@ -304,7 +304,10 @@ namespace egxml
     System (const ::std::string&);
 
     virtual void
-    User (const ::std::string&);
+    Include (const ::std::string&);
+
+    virtual void
+    Source (const ::std::string&);
 
     virtual void
     Library (const ::std::string&);

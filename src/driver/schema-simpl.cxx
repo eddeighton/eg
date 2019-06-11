@@ -174,7 +174,7 @@ namespace egxml
     return this->Project_simpl_state_.Project_->Name ();
   }
 
-  const ::egxml::Host& Project_simpl::
+  ::std::string Project_simpl::
   Host ()
   {
     return this->Project_simpl_state_.Project_->Host ();
@@ -187,7 +187,7 @@ namespace egxml
     this->Project_simpl_state_.Package_end_;
   }
 
-  const ::egxml::Package& Project_simpl::
+  ::std::string Project_simpl::
   Package ()
   {
     return *this->Project_simpl_state_.Package_++;
@@ -308,10 +308,14 @@ namespace egxml
     this->Files_simpl_state_.Files_->System ().begin ();
     this->Files_simpl_state_.System_end_ = 
     this->Files_simpl_state_.Files_->System ().end ();
-    this->Files_simpl_state_.User_ = 
-    this->Files_simpl_state_.Files_->User ().begin ();
-    this->Files_simpl_state_.User_end_ = 
-    this->Files_simpl_state_.Files_->User ().end ();
+    this->Files_simpl_state_.Include_ = 
+    this->Files_simpl_state_.Files_->Include ().begin ();
+    this->Files_simpl_state_.Include_end_ = 
+    this->Files_simpl_state_.Files_->Include ().end ();
+    this->Files_simpl_state_.Source_ = 
+    this->Files_simpl_state_.Files_->Source ().begin ();
+    this->Files_simpl_state_.Source_end_ = 
+    this->Files_simpl_state_.Files_->Source ().end ();
     this->Files_simpl_state_.Library_ = 
     this->Files_simpl_state_.Files_->Library ().begin ();
     this->Files_simpl_state_.Library_end_ = 
@@ -332,16 +336,29 @@ namespace egxml
   }
 
   bool Files_simpl::
-  User_next ()
+  Include_next ()
   {
-    return this->Files_simpl_state_.User_ != 
-    this->Files_simpl_state_.User_end_;
+    return this->Files_simpl_state_.Include_ != 
+    this->Files_simpl_state_.Include_end_;
   }
 
   ::std::string Files_simpl::
-  User ()
+  Include ()
   {
-    return *this->Files_simpl_state_.User_++;
+    return *this->Files_simpl_state_.Include_++;
+  }
+
+  bool Files_simpl::
+  Source_next ()
+  {
+    return this->Files_simpl_state_.Source_ != 
+    this->Files_simpl_state_.Source_end_;
+  }
+
+  ::std::string Files_simpl::
+  Source ()
+  {
+    return *this->Files_simpl_state_.Source_++;
   }
 
   bool Files_simpl::
@@ -411,6 +428,7 @@ namespace egxml
 
     this->Files_s_.serializers (this->string_s_,
                                 this->string_s_,
+                                this->string_s_,
                                 this->string_s_);
 
     this->Host_s_.serializers (this->string_s_,
@@ -429,8 +447,8 @@ namespace egxml
                               this->string_s_);
 
     this->Project_s_.serializers (this->string_s_,
-                                  this->Host_s_,
-                                  this->Package_s_,
+                                  this->string_s_,
+                                  this->string_s_,
                                   this->Build_s_,
                                   this->Run_s_);
 

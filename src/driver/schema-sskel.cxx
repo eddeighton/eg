@@ -210,13 +210,13 @@ namespace egxml
   }
 
   void Project_sskel::
-  Host_serializer (::egxml::Host_sskel& s)
+  Host_serializer (::xml_schema::string_sskel& s)
   {
     this->Host_serializer_ = &s;
   }
 
   void Project_sskel::
-  Package_serializer (::egxml::Package_sskel& s)
+  Package_serializer (::xml_schema::string_sskel& s)
   {
     this->Package_serializer_ = &s;
   }
@@ -235,8 +235,8 @@ namespace egxml
 
   void Project_sskel::
   serializers (::xml_schema::string_sskel& Name,
-               ::egxml::Host_sskel& Host,
-               ::egxml::Package_sskel& Package,
+               ::xml_schema::string_sskel& Host,
+               ::xml_schema::string_sskel& Package,
                ::egxml::Build_sskel& Build,
                ::egxml::Run_sskel& Run)
   {
@@ -370,9 +370,15 @@ namespace egxml
   }
 
   void Files_sskel::
-  User_serializer (::xml_schema::string_sskel& s)
+  Include_serializer (::xml_schema::string_sskel& s)
   {
-    this->User_serializer_ = &s;
+    this->Include_serializer_ = &s;
+  }
+
+  void Files_sskel::
+  Source_serializer (::xml_schema::string_sskel& s)
+  {
+    this->Source_serializer_ = &s;
   }
 
   void Files_sskel::
@@ -383,11 +389,13 @@ namespace egxml
 
   void Files_sskel::
   serializers (::xml_schema::string_sskel& System,
-               ::xml_schema::string_sskel& User,
+               ::xml_schema::string_sskel& Include,
+               ::xml_schema::string_sskel& Source,
                ::xml_schema::string_sskel& Library)
   {
     this->System_serializer_ = &System;
-    this->User_serializer_ = &User;
+    this->Include_serializer_ = &Include;
+    this->Source_serializer_ = &Source;
     this->Library_serializer_ = &Library;
   }
 
@@ -395,7 +403,8 @@ namespace egxml
   Files_sskel ()
   : Files_impl_ (0),
     System_serializer_ (0),
-    User_serializer_ (0),
+    Include_serializer_ (0),
+    Source_serializer_ (0),
     Library_serializer_ (0)
   {
   }
@@ -405,7 +414,8 @@ namespace egxml
   : ::xsde::cxx::serializer::validating::complex_content (impl, 0),
     Files_impl_ (impl),
     System_serializer_ (0),
-    User_serializer_ (0),
+    Include_serializer_ (0),
+    Source_serializer_ (0),
     Library_serializer_ (0)
   {
   }
@@ -718,9 +728,15 @@ namespace egxml
   }
 
   bool Files_sskel::
-  User_next ()
+  Include_next ()
   {
-    return this->Files_impl_ ? this->Files_impl_->User_next () : false;
+    return this->Files_impl_ ? this->Files_impl_->Include_next () : false;
+  }
+
+  bool Files_sskel::
+  Source_next ()
+  {
+    return this->Files_impl_ ? this->Files_impl_->Source_next () : false;
   }
 
   bool Files_sskel::
@@ -743,8 +759,11 @@ namespace egxml
     if (this->System_serializer_)
       this->System_serializer_->_reset ();
 
-    if (this->User_serializer_)
-      this->User_serializer_->_reset ();
+    if (this->Include_serializer_)
+      this->Include_serializer_->_reset ();
+
+    if (this->Source_serializer_)
+      this->Source_serializer_->_reset ();
 
     if (this->Library_serializer_)
       this->Library_serializer_->_reset ();
@@ -1237,7 +1256,7 @@ namespace egxml
     // Host
     //
     {
-      const ::egxml::Host& r = this->Host ();
+      const ::std::string& r = this->Host ();
 
       if (this->Host_serializer_)
       {
@@ -1277,7 +1296,7 @@ namespace egxml
     //
     while (this->Package_next ())
     {
-      const ::egxml::Package& r = this->Package ();
+      const ::std::string& r = this->Package ();
 
       if (this->Package_serializer_)
       {
@@ -1673,38 +1692,73 @@ namespace egxml
       }
     }
 
-    // User
+    // Include
     //
-    while (this->User_next ())
+    while (this->Include_next ())
     {
-      const ::std::string& r = this->User ();
+      const ::std::string& r = this->Include ();
 
-      if (this->User_serializer_)
+      if (this->Include_serializer_)
       {
-        this->User_serializer_->pre (r);
-        this->_start_element ("User");
-        this->User_serializer_->_pre_impl (ctx);
+        this->Include_serializer_->pre (r);
+        this->_start_element ("Include");
+        this->Include_serializer_->_pre_impl (ctx);
 
         if (ctx.error_type ())
           return;
 
-        this->User_serializer_->_serialize_attributes ();
+        this->Include_serializer_->_serialize_attributes ();
 
         if (ctx.error_type ())
           return;
 
-        this->User_serializer_->_serialize_content ();
+        this->Include_serializer_->_serialize_content ();
 
         if (ctx.error_type ())
           return;
 
-        this->User_serializer_->_post_impl ();
+        this->Include_serializer_->_post_impl ();
 
         if (ctx.error_type ())
           return;
 
         this->_end_element ();
-        this->User_serializer_->post ();
+        this->Include_serializer_->post ();
+      }
+    }
+
+    // Source
+    //
+    while (this->Source_next ())
+    {
+      const ::std::string& r = this->Source ();
+
+      if (this->Source_serializer_)
+      {
+        this->Source_serializer_->pre (r);
+        this->_start_element ("Source");
+        this->Source_serializer_->_pre_impl (ctx);
+
+        if (ctx.error_type ())
+          return;
+
+        this->Source_serializer_->_serialize_attributes ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Source_serializer_->_serialize_content ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Source_serializer_->_post_impl ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->_end_element ();
+        this->Source_serializer_->post ();
       }
     }
 

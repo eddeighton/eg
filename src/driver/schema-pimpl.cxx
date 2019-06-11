@@ -257,13 +257,13 @@ namespace egxml
   }
 
   void Project_pimpl::
-  Host (::egxml::Host* x)
+  Host (const ::std::string& x)
   {
     this->Project_pimpl_state_.Project_->Host (x);
   }
 
   void Project_pimpl::
-  Package (::egxml::Package* x)
+  Package (const ::std::string& x)
   {
     this->Project_pimpl_state_.Project_->Package ().push_back (x);
   }
@@ -474,9 +474,15 @@ namespace egxml
   }
 
   void Files_pimpl::
-  User (const ::std::string& x)
+  Include (const ::std::string& x)
   {
-    this->Files_pimpl_state_.Files_->User ().push_back (x);
+    this->Files_pimpl_state_.Files_->Include ().push_back (x);
+  }
+
+  void Files_pimpl::
+  Source (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->Source ().push_back (x);
   }
 
   void Files_pimpl::
@@ -577,6 +583,7 @@ namespace egxml
 
     this->Files_p_.parsers (this->string_p_,
                             this->string_p_,
+                            this->string_p_,
                             this->string_p_);
 
     this->Host_p_.parsers (this->string_p_,
@@ -595,8 +602,8 @@ namespace egxml
                           this->string_p_);
 
     this->Project_p_.parsers (this->string_p_,
-                              this->Host_p_,
-                              this->Package_p_,
+                              this->string_p_,
+                              this->string_p_,
                               this->Build_p_,
                               this->Run_p_);
 

@@ -216,13 +216,13 @@ namespace egxml
   }
 
   void Project_pskel::
-  Host_parser (::egxml::Host_pskel& p)
+  Host_parser (::xml_schema::string_pskel& p)
   {
     this->Host_parser_ = &p;
   }
 
   void Project_pskel::
-  Package_parser (::egxml::Package_pskel& p)
+  Package_parser (::xml_schema::string_pskel& p)
   {
     this->Package_parser_ = &p;
   }
@@ -241,8 +241,8 @@ namespace egxml
 
   void Project_pskel::
   parsers (::xml_schema::string_pskel& Name,
-           ::egxml::Host_pskel& Host,
-           ::egxml::Package_pskel& Package,
+           ::xml_schema::string_pskel& Host,
+           ::xml_schema::string_pskel& Package,
            ::egxml::Build_pskel& Build,
            ::egxml::Run_pskel& Run)
   {
@@ -382,9 +382,15 @@ namespace egxml
   }
 
   void Files_pskel::
-  User_parser (::xml_schema::string_pskel& p)
+  Include_parser (::xml_schema::string_pskel& p)
   {
-    this->User_parser_ = &p;
+    this->Include_parser_ = &p;
+  }
+
+  void Files_pskel::
+  Source_parser (::xml_schema::string_pskel& p)
+  {
+    this->Source_parser_ = &p;
   }
 
   void Files_pskel::
@@ -395,11 +401,13 @@ namespace egxml
 
   void Files_pskel::
   parsers (::xml_schema::string_pskel& System,
-           ::xml_schema::string_pskel& User,
+           ::xml_schema::string_pskel& Include,
+           ::xml_schema::string_pskel& Source,
            ::xml_schema::string_pskel& Library)
   {
     this->System_parser_ = &System;
-    this->User_parser_ = &User;
+    this->Include_parser_ = &Include;
+    this->Source_parser_ = &Source;
     this->Library_parser_ = &Library;
   }
 
@@ -407,7 +415,8 @@ namespace egxml
   Files_pskel ()
   : Files_impl_ (0),
     System_parser_ (0),
-    User_parser_ (0),
+    Include_parser_ (0),
+    Source_parser_ (0),
     Library_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
@@ -418,7 +427,8 @@ namespace egxml
   : ::xsde::cxx::parser::validating::complex_content (impl, 0),
     Files_impl_ (impl),
     System_parser_ (0),
-    User_parser_ (0),
+    Include_parser_ (0),
+    Source_parser_ (0),
     Library_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
@@ -646,14 +656,14 @@ namespace egxml
   }
 
   void Project_pskel::
-  Host (::egxml::Host* x)
+  Host (const ::std::string& x)
   {
     if (this->Project_impl_)
       this->Project_impl_->Host (x);
   }
 
   void Project_pskel::
-  Package (::egxml::Package* x)
+  Package (const ::std::string& x)
   {
     if (this->Project_impl_)
       this->Project_impl_->Package (x);
@@ -810,10 +820,17 @@ namespace egxml
   }
 
   void Files_pskel::
-  User (const ::std::string& x)
+  Include (const ::std::string& x)
   {
     if (this->Files_impl_)
-      this->Files_impl_->User (x);
+      this->Files_impl_->Include (x);
+  }
+
+  void Files_pskel::
+  Source (const ::std::string& x)
+  {
+    if (this->Files_impl_)
+      this->Files_impl_->Source (x);
   }
 
   void Files_pskel::
@@ -839,8 +856,11 @@ namespace egxml
     if (this->System_parser_)
       this->System_parser_->_reset ();
 
-    if (this->User_parser_)
-      this->User_parser_->_reset ();
+    if (this->Include_parser_)
+      this->Include_parser_->_reset ();
+
+    if (this->Source_parser_)
+      this->Source_parser_->_reset ();
 
     if (this->Library_parser_)
       this->Library_parser_->_reset ();
@@ -1939,7 +1959,7 @@ namespace egxml
           {
             if (this->Host_parser_ != 0)
             {
-              ::egxml::Host* tmp = this->Host_parser_->post_Host ();
+              const ::std::string& tmp = this->Host_parser_->post_string ();
               this->Host (tmp);
             }
 
@@ -1979,7 +1999,7 @@ namespace egxml
           {
             if (this->Package_parser_ != 0)
             {
-              ::egxml::Package* tmp = this->Package_parser_->post_Package ();
+              const ::std::string& tmp = this->Package_parser_->post_string ();
               this->Package (tmp);
             }
 
@@ -2560,10 +2580,12 @@ namespace egxml
 
         if (n == "System" && ns.empty ())
           s = 0UL;
-        else if (n == "User" && ns.empty ())
+        else if (n == "Include" && ns.empty ())
           s = 1UL;
-        else if (n == "Library" && ns.empty ())
+        else if (n == "Source" && ns.empty ())
           s = 2UL;
+        else if (n == "Library" && ns.empty ())
+          s = 3UL;
 
         if (s != ~0UL)
         {
@@ -2699,22 +2721,22 @@ namespace egxml
       }
       case 1UL:
       {
-        if (n == "User" && ns.empty ())
+        if (n == "Include" && ns.empty ())
         {
           if (start)
           {
-            if (this->User_parser_)
+            if (this->Include_parser_)
             {
-              this->User_parser_->pre ();
-              ctx.nested_parser (this->User_parser_);
+              this->Include_parser_->pre ();
+              ctx.nested_parser (this->Include_parser_);
             }
           }
           else
           {
-            if (this->User_parser_ != 0)
+            if (this->Include_parser_ != 0)
             {
-              const ::std::string& tmp = this->User_parser_->post_string ();
-              this->User (tmp);
+              const ::std::string& tmp = this->Include_parser_->post_string ();
+              this->Include (tmp);
             }
 
             count++;
@@ -2731,6 +2753,39 @@ namespace egxml
         }
       }
       case 2UL:
+      {
+        if (n == "Source" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Source_parser_)
+            {
+              this->Source_parser_->pre ();
+              ctx.nested_parser (this->Source_parser_);
+            }
+          }
+          else
+          {
+            if (this->Source_parser_ != 0)
+            {
+              const ::std::string& tmp = this->Source_parser_->post_string ();
+              this->Source (tmp);
+            }
+
+            count++;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = 3UL;
+          // Fall through.
+        }
+      }
+      case 3UL:
       {
         if (n == "Library" && ns.empty ())
         {

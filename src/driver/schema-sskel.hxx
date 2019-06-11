@@ -545,13 +545,13 @@ namespace egxml
     virtual ::std::string
     Name () = 0;
 
-    virtual const ::egxml::Host&
+    virtual ::std::string
     Host () = 0;
 
     virtual bool
     Package_next ();
 
-    virtual const ::egxml::Package&
+    virtual ::std::string
     Package () = 0;
 
     virtual bool
@@ -573,8 +573,8 @@ namespace egxml
     //
     void
     serializers (::xml_schema::string_sskel& /* Name */,
-                 ::egxml::Host_sskel& /* Host */,
-                 ::egxml::Package_sskel& /* Package */,
+                 ::xml_schema::string_sskel& /* Host */,
+                 ::xml_schema::string_sskel& /* Package */,
                  ::egxml::Build_sskel& /* Build */,
                  ::egxml::Run_sskel& /* Run */);
 
@@ -584,10 +584,10 @@ namespace egxml
     Name_serializer (::xml_schema::string_sskel&);
 
     void
-    Host_serializer (::egxml::Host_sskel&);
+    Host_serializer (::xml_schema::string_sskel&);
 
     void
-    Package_serializer (::egxml::Package_sskel&);
+    Package_serializer (::xml_schema::string_sskel&);
 
     void
     Build_serializer (::egxml::Build_sskel&);
@@ -614,8 +614,8 @@ namespace egxml
 
     protected:
     ::xml_schema::string_sskel* Name_serializer_;
-    ::egxml::Host_sskel* Host_serializer_;
-    ::egxml::Package_sskel* Package_serializer_;
+    ::xml_schema::string_sskel* Host_serializer_;
+    ::xml_schema::string_sskel* Package_serializer_;
     ::egxml::Build_sskel* Build_serializer_;
     ::egxml::Run_sskel* Run_serializer_;
   };
@@ -774,10 +774,16 @@ namespace egxml
     System () = 0;
 
     virtual bool
-    User_next ();
+    Include_next ();
 
     virtual ::std::string
-    User () = 0;
+    Include () = 0;
+
+    virtual bool
+    Source_next ();
+
+    virtual ::std::string
+    Source () = 0;
 
     virtual bool
     Library_next ();
@@ -792,7 +798,8 @@ namespace egxml
     //
     void
     serializers (::xml_schema::string_sskel& /* System */,
-                 ::xml_schema::string_sskel& /* User */,
+                 ::xml_schema::string_sskel& /* Include */,
+                 ::xml_schema::string_sskel& /* Source */,
                  ::xml_schema::string_sskel& /* Library */);
 
     // Individual element serializers.
@@ -801,7 +808,10 @@ namespace egxml
     System_serializer (::xml_schema::string_sskel&);
 
     void
-    User_serializer (::xml_schema::string_sskel&);
+    Include_serializer (::xml_schema::string_sskel&);
+
+    void
+    Source_serializer (::xml_schema::string_sskel&);
 
     void
     Library_serializer (::xml_schema::string_sskel&);
@@ -825,7 +835,8 @@ namespace egxml
 
     protected:
     ::xml_schema::string_sskel* System_serializer_;
-    ::xml_schema::string_sskel* User_serializer_;
+    ::xml_schema::string_sskel* Include_serializer_;
+    ::xml_schema::string_sskel* Source_serializer_;
     ::xml_schema::string_sskel* Library_serializer_;
   };
 

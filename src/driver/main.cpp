@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "schema.hxx"
+#include "schema-pimpl.hxx"
 
 #include "eg/parser_session.hpp"
 #include "eg/interface_session.hpp"
@@ -75,7 +76,7 @@ class EGDiagConsumer : public clang::DiagnosticConsumer
 
 extern void command_create( bool bHelp, const std::vector< std::string >& args );
 
-extern void command_build( bool bHelp, const std::vector< std::string >& args );
+extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
 
 void command_run( bool bHelp, const std::vector< std::string >& args )
 {
@@ -100,7 +101,8 @@ int main( int argc, const char* argv[] )
     
     //commands
     bool bCmdCreate = false;
-    bool bCmdBuild  = false;
+    //bool bCmdBuild  = false;
+    std::string strBuildCommand;
     bool bCmdRun    = false;
     bool bCmdCMake  = false;
     bool bCmdDebug  = false;
@@ -127,8 +129,9 @@ int main( int argc, const char* argv[] )
                     ("create",  po::bool_switch( &bCmdCreate ),
                         "Start a new eg project" )
                         
-                    ("build",   po::bool_switch( &bCmdBuild ),
-                        "Build an eg project" )
+                    //("build",   po::bool_switch( &bCmdBuild ),
+                    //    "Build an eg project" )
+                    ("build", po::value< std::string >( &strBuildCommand ), "Build an eg project with the specified build command" )
                         
                     ("run",   po::bool_switch( &bCmdRun ),
                         "Run an eg project" )
@@ -180,7 +183,7 @@ int main( int argc, const char* argv[] )
             
             if( bCmdCreate )
             {
-                if( bCmdBuild || bCmdRun || bCmdCMake || bCmdDebug )
+                if( !strBuildCommand.empty() || bCmdRun || bCmdCMake || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -188,19 +191,19 @@ int main( int argc, const char* argv[] )
                 command_create( vm.count("help"), commandArguments );
                 return 0;
             }
-            else if( bCmdBuild )
+            else if( !strBuildCommand.empty() )
             {
                 if( bCmdCreate || bCmdRun || bCmdCMake || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
                 }
-                command_build( vm.count("help"), commandArguments );
+                command_build( vm.count("help"), strBuildCommand, commandArguments );
                 return 0;
             }
             else if( bCmdRun )
             {
-                if( bCmdBuild || bCmdCreate || bCmdCMake || bCmdDebug )
+                if( !strBuildCommand.empty() || bCmdCreate || bCmdCMake || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -210,7 +213,7 @@ int main( int argc, const char* argv[] )
             }
             else if( bCmdCMake )
             {
-                if( bCmdBuild || bCmdRun || bCmdCreate || bCmdDebug )
+                if( !strBuildCommand.empty() || bCmdRun || bCmdCreate || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -220,7 +223,7 @@ int main( int argc, const char* argv[] )
             }
             else if( bCmdDebug )
             {
-                if( bCmdBuild || bCmdRun || bCmdCMake || bCmdCreate )
+                if( !strBuildCommand.empty() || bCmdRun || bCmdCMake || bCmdCreate )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -244,10 +247,12 @@ int main( int argc, const char* argv[] )
             std::cout << "Invalid input. " << e.what() << "\nType '--help' for options" << std::endl;
             return 1;
         }
-        /*catch( xml_schema::parser_exception& p )
+        catch( const xml_schema::parser_exception& e )
         {
-            std::cout << "XML error: " << p.code() << " text: " << p.text() << " info: " << p.what() << std::endl;
-        }*/
+            std::cout << "XML error: " << e.line () << ":" << e.column ()
+             << ": " << e.text () << std::endl;
+            return 1;
+        }
         catch( std::exception& e )
         {
             std::cout << "Error: " << e.what() << std::endl;
