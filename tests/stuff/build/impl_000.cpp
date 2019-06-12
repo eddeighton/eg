@@ -1,9 +1,5 @@
 #include "structures.hpp"
 
-//eg implementation source code
-
-//buffers
-static b_root *g_root;
 
 //input::Action function forward declarations
 
@@ -18,7 +14,7 @@ __eg_root< void > root_starter( std::vector< std::function< void() > >& function
     __eg_root< void >& reference = g_root[ 0 ].g_root_reference;
     reference.data.timestamp = startCycle;
     g_root[ 0 ].g_root_state = ::eg::action_running;
-    eg::_event ev = { "start", startCycle, &reference.data, sizeof( eg::reference ) };
+    events::put( "start", startCycle, &reference.data, sizeof( eg::reference ) );
     g_root[ 0 ].g_root_fiber = boost::fibers::fiber
     (                                                                                       
         [ reference, &functions ]()                                                         
@@ -69,7 +65,7 @@ void root_stopper( eg::Instance _gid )
          g_root[ _gid ].g_root_cycle = clock::cycle();
          if( g_root[ _gid ].g_root_fiber.joinable() )
              g_root[ _gid ].g_root_fiber.detach();
-         eg::_event ev = { "stop", clock::cycle(), &g_root[ _gid ].g_root_reference, sizeof( eg::reference ) };
+         events::put( "stop", clock::cycle(), &g_root[ _gid ].g_root_reference, sizeof( eg::reference ) );
      }
 }
 

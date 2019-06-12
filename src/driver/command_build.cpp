@@ -413,6 +413,12 @@ void build_program( const Environment& environment, const Project& project, bool
             osCmd << environment.printPath( project.getObjectName( szUnitID ) ) << " ";
         }
         
+        for( const boost::filesystem::path& strLibraryPath : project.getLibraryDirectories() )
+        {
+            osCmd << "-L" << environment.printPath( strLibraryPath ) << " ";
+        }
+        
+        
         for( const boost::filesystem::path& strSourceFile : project.getCPPSourceCode() )
         {
             osCmd << environment.printPath( strSourceFile ) << " ";

@@ -23,7 +23,7 @@
 
 #include "interface.hpp"
 
-#include "runtime/eg_common.hpp"
+#include "library/eg_common.hpp"
 
 namespace eg
 {

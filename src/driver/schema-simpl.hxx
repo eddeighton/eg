@@ -370,15 +370,15 @@ namespace egxml
     }
 
     public:
-    ::egxml::EG_simpl EG_s_;
-    ::egxml::Package_simpl Package_s_;
+    ::egxml::Directories_simpl Directories_s_;
     ::egxml::Files_simpl Files_s_;
     ::egxml::Host_simpl Host_s_;
+    ::egxml::Project_simpl Project_s_;
     ::egxml::Build_simpl Build_s_;
     ::egxml::Run_simpl Run_s_;
+    ::egxml::EG_simpl EG_s_;
+    ::egxml::Package_simpl Package_s_;
     ::xml_schema::string_simpl string_s_;
-    ::egxml::Project_simpl Project_s_;
-    ::egxml::Directories_simpl Directories_s_;
   };
 }
 

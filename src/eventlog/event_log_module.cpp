@@ -115,10 +115,17 @@ namespace eg
         
         IPC::Event::Client m_client;
     };
-
+    
     EventLogServer* EventLogServer::create( const char* pszPID, const char* pszFilePath )
     {
         IPC::PID pid( pszPID );
+        boost::filesystem::path logPath( pszFilePath );
+        return new EventLogServerImpl( pid, logPath );
+    }
+
+    EventLogServer* EventLogServer::create( const char* pszFilePath )
+    {
+        IPC::PID pid;
         boost::filesystem::path logPath( pszFilePath );
         return new EventLogServerImpl( pid, logPath );
     }

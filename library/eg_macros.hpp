@@ -17,57 +17,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#ifndef EG_DEPENDENCIES_INCLUDE_24_04_2019
-#define EG_DEPENDENCIES_INCLUDE_24_04_2019
+#ifndef EG_MACROS_24_04_2019
+#define EG_MACROS_24_04_2019
 
 #include "eg_common.hpp"
+#include "eg_event.hpp"
+#include "eg_clock.hpp"
 
-namespace eg
-{
+#include "common/require_semicolon.hpp"
 
-    struct DependencyProvider
-    {
-        virtual void* getBuffer( const char* pszName ) = 0;
-        virtual void* getInterface( const char* pszName ) = 0;
-    };
-
-    // the eg clock
-    struct _clock
-    {
-        virtual TimeStamp cycle()       const = 0;
-        virtual float ct()              const = 0;
-        virtual float dt()              const = 0;
-    };
-
-    // the eg event log
-    struct _event
-    {
-        const char* type;
-        TimeStamp timestamp;
-        const void* value;
-        std::size_t size;
-    };
-    struct _event_log
-    {
-        virtual event_iterator GetEventIterator() = 0;
-        virtual bool GetEvent( event_iterator& iterator, _event& event ) = 0;
-        virtual void PutEvent( const _event& event ) = 0;
-    };
-}
-
-struct clock
-{
-    static eg::TimeStamp cycle();
-    static float ct();
-    static float dt();
-};
-
-struct events
-{
-    static eg::event_iterator getIterator();
-    static bool get( eg::event_iterator& iterator, eg::_event& event );
-    static void put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size );
-};
+#include <sstream>
 
 #define LOG( __msg )\
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
@@ -77,7 +36,7 @@ struct events
         events::put( "log", clock::cycle(), __str.data(), __str.size() + 1 );\
         )
         
-#define ERROR( __msg )\
+#define ERR( __msg )\
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         events::put( "error", clock::cycle(), __msg, strlen( __msg ) + 1 );\
         )
@@ -110,4 +69,4 @@ struct events
         }\
     )
     
-#endif //EG_DEPENDENCIES_INCLUDE_24_04_2019
+#endif //EG_MACROS_24_04_2019

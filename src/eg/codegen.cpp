@@ -698,8 +698,9 @@ namespace eg
             }
             
             os << "};\n";
-            //os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
+            os << "extern " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
             //os << "static_assert( sizeof( " << pBuffer->getTypeName() << " ) == " << szBufferSize << ", \"Incorrect buffer size\" );\n";
+            
         }
         
         os << "\n" << pszLine << pszLine;
@@ -1533,8 +1534,7 @@ namespace eg
                                 Printer( pReferenceData, "nextInstance" ) << ";\n";
         os << "                 reference.data.timestamp = startCycle;\n";
         os << "                 " << Printer( pStateData, "nextInstance" ) << " = " << getActionState( action_running ) << ";\n";
-        os << "                 " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        //os << "                 g_eg_event_log->PutEvent( ev );\n";
+        os << "                 events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
                 //if there is an object mapping then start it
                 if( pObject )
                 {
@@ -1569,8 +1569,7 @@ namespace eg
         os << "    "; pAction->printType( os ); os << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
         os << "    reference.data.timestamp = startCycle;\n";
         os << "    " << Printer( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
-        os << "    " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        //os << "    g_eg_event_log->PutEvent( ev );\n";
+        os << "    events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
         
         os << "    " << Printer( pFiberData, "0" ) << " = " << EG_FIBER_TYPE << "\n";
         os << "    (                                                                                       \n";
@@ -1696,8 +1695,7 @@ namespace eg
         os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
         os << "         if( " << Printer( pFiberData, "_gid" ) << ".joinable() )\n";
         os << "             " << Printer( pFiberData, "_gid" ) << ".detach();\n";
-        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        //os << "         g_eg_event_log->PutEvent( ev );\n";
+        os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
                 //if there is an object mapping then start it
                 if( pObject )
                 {
@@ -1731,8 +1729,7 @@ namespace eg
         os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
         os << "         if( " << Printer( pFiberData, "_gid" ) << ".joinable() )\n";
         os << "             " << Printer( pFiberData, "_gid" ) << ".detach();\n";
-        os << "         " << EG_EVENT_LOG_EVENT_TYPE << " ev = { \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) };\n";
-        //os << "         g_eg_event_log->PutEvent( ev );\n";
+        os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
         os << "     }\n";
             }
         
@@ -1754,13 +1751,13 @@ namespace eg
         
         os << "#include \"structures.hpp\"\n\n";
         
-        os << "//eg implementation source code\n";
-        os << "\n//buffers\n";
-        for( const Buffer* pBuffer : layout.getBuffers() )
-        {
-            os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
-            //os << "static_assert( sizeof( " << pBuffer->getTypeName() << " ) == " << szBufferSize << ", \"Incorrect buffer size\" );\n";
-        }
+        //os << "//eg implementation source code\n";
+        //os << "\n//buffers\n";
+        //for( const Buffer* pBuffer : layout.getBuffers() )
+        //{
+        //    os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
+        //    //os << "static_assert( sizeof( " << pBuffer->getTypeName() << " ) == " << szBufferSize << ", \"Incorrect buffer size\" );\n";
+        //}
         
         os << "\n";
         os << "//input::Action function forward declarations\n";

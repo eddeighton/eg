@@ -22,7 +22,7 @@
 
 #include "eg/implementation_session.hpp"
 
-#include "runtime/eg_common.hpp"
+#include "library/eg_common.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"

@@ -22,7 +22,8 @@
 #define EG_SCHEDULER
 
 #include "eg_common.hpp"
-#include "eg_include.hpp"
+#include "eg_clock.hpp"
+#include "eg_event.hpp"
 
 #include <boost/fiber/all.hpp>
 
@@ -220,12 +221,12 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     {
         if( !m_queue_resume.empty() )
         {
-            eg::_event ev;
-            while( events::get( m_eventIterator, ev ) )
+            Event e;
+            while( events::get( m_eventIterator, e ) )
             {
-                if( 0U == strcmp( ev.type, "stop" ) )
-                {
-                    Event e( *reinterpret_cast< const reference* >( ev.value ) );
+                //if( 0U == strcmp( ev.type, "stop" ) )
+                //{
+                //    Event e( *reinterpret_cast< const reference* >( ev.value ) );
                 
                     for( rqueue_t::iterator 
                         i = m_queue_resume.begin(),
@@ -244,7 +245,7 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
                             ++i;
                         }
                     }
-                }
+                //}
             }
         }
         /*else if( !m_queue_ready.empty() )

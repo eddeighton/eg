@@ -415,16 +415,8 @@ namespace egxml
   EG_saggr::
   EG_saggr ()
   {
-    this->EG_s_.serializers (this->Package_s_,
-                             this->Host_s_,
-                             this->Project_s_);
-
-    this->Package_s_.serializers (this->string_s_,
-                                  this->string_s_,
-                                  this->string_s_,
-                                  this->string_s_,
-                                  this->Directories_s_,
-                                  this->Files_s_);
+    this->Directories_s_.serializers (this->string_s_,
+                                      this->string_s_);
 
     this->Files_s_.serializers (this->string_s_,
                                 this->string_s_,
@@ -439,6 +431,12 @@ namespace egxml
                                this->Files_s_,
                                this->string_s_);
 
+    this->Project_s_.serializers (this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->Build_s_,
+                                  this->Run_s_);
+
     this->Build_s_.serializers (this->string_s_,
                                 this->string_s_,
                                 this->string_s_);
@@ -446,14 +444,16 @@ namespace egxml
     this->Run_s_.serializers (this->string_s_,
                               this->string_s_);
 
-    this->Project_s_.serializers (this->string_s_,
-                                  this->string_s_,
-                                  this->string_s_,
-                                  this->Build_s_,
-                                  this->Run_s_);
+    this->EG_s_.serializers (this->Package_s_,
+                             this->Host_s_,
+                             this->Project_s_);
 
-    this->Directories_s_.serializers (this->string_s_,
-                                      this->string_s_);
+    this->Package_s_.serializers (this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->Directories_s_,
+                                  this->Files_s_);
   }
 
   const char* EG_saggr::

@@ -22,7 +22,7 @@
 #define EG_ITERATORS_02_05_2019
 
 #include "eg_common.hpp"
-#include "eg_include.hpp" //clock
+#include "eg_clock.hpp"
 
 #include <array>
 

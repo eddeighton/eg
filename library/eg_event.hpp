@@ -88,4 +88,11 @@ namespace eg
 
 using Event = eg::Event;
 
+struct events
+{
+    static eg::event_iterator getIterator();
+    static bool get( eg::event_iterator& iterator, Event& event );
+    static void put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size );
+};
+
 #endif //EG_EVENT

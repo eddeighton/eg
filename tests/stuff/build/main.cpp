@@ -1,17 +1,92 @@
 #include "structures.hpp"
-#include "host_clock.hpp"
-#include "host_event_log.hpp"
 #include "pybind11/embed.h"
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 #include "pybind11/stl_bind.h"
-#include "py_eg_reference.hpp"
+#include "hosts/py_eg_reference.hpp"
 #include "eg_runtime/eg_runtime.hpp"
+#include "eventlog/eventlog_api.hpp"
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
+
+struct HostClock
+{
+public:
+    typedef std::chrono::steady_clock ClockType;
+    typedef ClockType::time_point Tick;
+    typedef ClockType::duration TickDuration;
+    typedef std::chrono::duration< float, std::ratio< 1 > > FloatTickDuration;
+    
+    HostClock()
+    {
+        m_lastTick = m_startTick = ClockType::now();
+        m_cycle = 1U;
+        m_ct = m_dt = 0.0f;
+    }
+    
+    inline Tick nextCycle()
+    {
+        const Tick nowTick = ClockType::now();
+        m_dt = FloatTickDuration( nowTick - m_lastTick  ).count();
+        m_ct = FloatTickDuration( nowTick - m_startTick ).count();
+        m_lastTick = nowTick;
+        ++m_cycle;
+        return nowTick;
+    }
+    
+    inline Tick actual()           const { return ClockType::now(); }
+    inline eg::TimeStamp cycle()   const { return m_cycle; }
+    inline float ct()              const { return m_ct; }
+    inline float dt()              const { return m_dt; }
+    
+private:
+    Tick m_lastTick, m_startTick;
+    eg::TimeStamp m_cycle;
+    float m_ct, m_dt;
+} theClock;
+
+eg::TimeStamp clock::cycle()
+{
+    return theClock.cycle();
+}
+float clock::ct()
+{
+    return theClock.ct();
+}
+float clock::dt()
+{
+    return theClock.dt();
+}
+
+
+
+std::unique_ptr< eg::EventLogServer > g_eventLogServer( eg::EventLogServer::create( "log" ) );
+
+eg::event_iterator events::getIterator()
+{
+    return g_eventLogServer->head();
+}
+
+bool events::get( eg::event_iterator& iterator, Event& event )
+{
+    return false;//g_eventLogServer->read( iterator, event.type, event.timestamp, event.value, event.size );
+}
+
+void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
+{
+    g_eventLogServer->write( type, strlen( type ), timestamp, value, size );
+}
+    
+bool updateEventLogAndWasEvent()
+{
+    return g_eventLogServer->updateHead();
+}
+    
+    
 //buffers
-static std::array< b_root, 1 > g_root;
+static std::array< b_root, 1 > g_root_array;
+b_root* g_root = g_root_array.data();
 void allocate_buffers()
 {
     for( eg::Instance i = 0U; i != 1; ++i )
@@ -28,9 +103,6 @@ void deallocate_buffers()
     {
     }
 }
-
-//initialiser
-extern void initialise( eg::DependencyProvider* pDependencyProvider );
 
 //Action functions
 extern __eg_root< void > root_starter( std::vector< std::function< void() > >& );
@@ -421,35 +493,6 @@ std::vector< std::function< void() > > loadPythonScripts( const std::vector< std
 }
 
 
-//Dependency Provider Implementation
-struct BasicHost_EGDependencyProvider : public eg::DependencyProvider
-{
-     eg::_clock* m_pClock;
-     eg::_event_log* m_pEventLog;
-
-     BasicHost_EGDependencyProvider( eg::_clock* pClock, eg::_event_log* pEventLog )
-         :   m_pClock( pClock ),
-             m_pEventLog( pEventLog )
-     {
-
-     }
-
-    virtual void* getBuffer( const char* pszName )
-    {
-        if( 0U == strcmp( pszName, "g_root" ) ) return g_root.data();
-        return nullptr;
-    }
-    virtual void* getInterface( const char* pszName )
-    {
-        if( 0U == strcmp( pszName, "_clock" ) ) return m_pClock;
-        if( 0U == strcmp( pszName, "_event_log" ) ) return m_pEventLog;
-        return nullptr;
-    }
-};
-
-
-std::string strEventLogFolder = "log";
-
 
     
 int main( int argc, const char* argv[] )
@@ -516,13 +559,6 @@ int main( int argc, const char* argv[] )
         //allocate everything
         allocate_buffers();
         
-        //setup the dependencies
-        HostClock theClock;
-        HostEventLog theEventLog( "basic", strEventLogFolder.c_str() );
-        
-        BasicHost_EGDependencyProvider dependencies( &theClock, &theEventLog );
-        initialise( &dependencies );
-        
         //be sure to initialise the clock before the scheduler
         boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
@@ -545,6 +581,7 @@ int main( int argc, const char* argv[] )
                 boost::this_fiber::sleep_for( sleepDuration - elapsed );
             }
             theClock.nextCycle();
+            updateEventLogAndWasEvent();
             eg::wait();
         }
         

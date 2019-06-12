@@ -42,6 +42,7 @@ public:
     
     static const std::string EG_INSTALLATION;
     static const std::string CURRENT_PROJECT;
+    static const std::string WINDOWS_10_SDK;
     
     Environment( const boost::filesystem::path& projectDir );
     
@@ -77,6 +78,7 @@ public:
     std::vector< boost::filesystem::path > getHostSystemIncludes() const;
     std::vector< boost::filesystem::path > getHostUserIncludes() const;
     std::vector< boost::filesystem::path > getIncludeDirectories() const;
+    std::vector< boost::filesystem::path > getLibraryDirectories() const;
     std::vector< boost::filesystem::path > getCPPSourceCode() const;
     std::vector< boost::filesystem::path > getCPPLibs() const;
     

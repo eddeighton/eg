@@ -17,44 +17,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef EG_CLOCK_12_06_2019
+#define EG_CLOCK_12_06_2019
 
-#ifndef EG_EVENT_LOG_IMPL_24_04_2019
-#define EG_EVENT_LOG_IMPL_24_04_2019
+#include "eg_common.hpp"
 
-#include "eventlog/eventlog_api.hpp"
-    
-struct HostEventLog : public eg::_event_log
+struct clock
 {
-    HostEventLog( const char* pszPID, const char* pszLogDir )
-        :   m_pEventServer( ::eg::EventLogServer::create( pszPID, pszLogDir ) )
-    {
-    }
-    ~HostEventLog()
-    {
-        delete m_pEventServer;
-    }
-    
-    virtual eg::event_iterator GetEventIterator()
-    {
-        return m_pEventServer->head();
-    }
-    
-    virtual bool GetEvent( eg::event_iterator& iterator, eg::_event& event )
-    {
-        return m_pEventServer->read( iterator, event.type, event.timestamp, event.value, event.size );
-    }
-    
-    virtual void PutEvent( const eg::_event& event )
-    {
-        m_pEventServer->write( event.type, strlen( event.type ), event.timestamp, event.value, event.size );
-    }
-    
-    bool updateAndWasEvent()
-    {
-        return m_pEventServer->updateHead();
-    }
-    
-    eg::EventLogServer* m_pEventServer;
+    static eg::TimeStamp cycle();
+    static float ct();
+    static float dt();
 };
 
-#endif //EG_EVENT_LOG_IMPL_24_04_2019
+#endif //EG_CLOCK_12_06_2019

@@ -1,6 +1,5 @@
 
-//include( "py_glm.hpp" );
-include( "w:/workspace/third_party/cinder/include/glm/vec2.hpp" );
+include( "glm/vec2.hpp" );
 
 abstract Shape
 {
@@ -125,7 +124,7 @@ action Randomise
         }
     }
 }
-
+/*
 action imgui
 {
     while( true )
@@ -161,7 +160,7 @@ action imgui
         eg::sleep();
     }
 }
-imgui.Start();
+imgui.Start();*/
 
 bool bContinue = true;
 while( bContinue )

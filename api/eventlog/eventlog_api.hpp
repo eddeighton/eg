@@ -45,6 +45,7 @@ namespace eg
         virtual bool read( std::uint64_t& iterator, const char*& pszType, std::size_t& timestamp, 
                 const void*& pValue, std::size_t& szValueSize ) = 0;
                 
+        static EventLogServer* create( const char* pszFilePath );
         static EventLogServer* create( const char* pszPID, const char* pszFilePath );
     };
 

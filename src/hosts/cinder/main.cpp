@@ -109,21 +109,126 @@ int main( int argc, const char* argv[] )
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
     
     os << "#include \"structures.hpp\"\n";
-    os << "#include \"host_clock.hpp\"\n";
-    os << "#include \"host_event_log.hpp\"\n";
     os << "#include \"pybind11/embed.h\"\n";
     os << "#include \"pybind11/numpy.h\"\n";
     os << "#include \"pybind11/stl.h\"\n";
     os << "#include \"pybind11/stl_bind.h\"\n";
-    os << "#include \"py_eg_reference.hpp\"\n";
+    os << "#include \"hosts/py_eg_reference.hpp\"\n";
     os << "#include \"eg_runtime/eg_runtime.hpp\"\n";
+    os << "#include \"eventlog/eventlog_api.hpp\"\n";
     os << "#include <boost/program_options.hpp>\n";
     os << "#include <boost/filesystem.hpp>\n";
+    
+    
+    const char* pszClock = R"(
+
+struct HostClock
+{
+public:
+    typedef std::chrono::steady_clock ClockType;
+    typedef ClockType::time_point Tick;
+    typedef ClockType::duration TickDuration;
+    typedef std::chrono::duration< float, std::ratio< 1 > > FloatTickDuration;
+    
+    HostClock()
+    {
+        m_lastTick = m_startTick = ClockType::now();
+        m_cycle = 1U;
+        m_ct = m_dt = 0.0f;
+    }
+    
+    inline Tick nextCycle()
+    {
+        const Tick nowTick = ClockType::now();
+        m_dt = FloatTickDuration( nowTick - m_lastTick  ).count();
+        m_ct = FloatTickDuration( nowTick - m_startTick ).count();
+        m_lastTick = nowTick;
+        ++m_cycle;
+        return nowTick;
+    }
+    
+    inline Tick actual()           const { return ClockType::now(); }
+    inline eg::TimeStamp cycle()   const { return m_cycle; }
+    inline float ct()              const { return m_ct; }
+    inline float dt()              const { return m_dt; }
+    
+private:
+    Tick m_lastTick, m_startTick;
+    eg::TimeStamp m_cycle;
+    float m_ct, m_dt;
+} theClock;
+
+eg::TimeStamp clock::cycle()
+{
+    return theClock.cycle();
+}
+float clock::ct()
+{
+    return theClock.ct();
+}
+float clock::dt()
+{
+    return theClock.dt();
+}
+
+)";
+
+os << pszClock;
+
+const char* pszEventLog = R"(
+
+std::unique_ptr< eg::EventLogServer > g_eventLogServer( eg::EventLogServer::create( "log" ) );
+
+eg::event_iterator events::getIterator()
+{
+    return g_eventLogServer->head();
+}
+
+bool events::get( eg::event_iterator& iterator, Event& event )
+{
+    return false;//g_eventLogServer->read( iterator, event.type, event.timestamp, event.value, event.size );
+}
+
+void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
+{
+    g_eventLogServer->write( type, strlen( type ), timestamp, value, size );
+}
+    
+bool updateEventLogAndWasEvent()
+{
+    return g_eventLogServer->updateHead();
+}
+    
+    )";
+    
+    os << pszEventLog;
+    
+    const char* pszInputEventsImpl = R"(
+
+std::deque< cinder::app::InputEvent > _cinder_events;
+    
+std::optional< cinder::app::InputEvent > Input::getEvent()
+{
+    std::optional< cinder::app::InputEvent > event;
+    if( !_cinder_events.empty() )
+    {
+        event = _cinder_events.front();
+        _cinder_events.pop_front();
+    }
+    return event;
+}
+    
+    )";
+    os << pszInputEventsImpl;
     
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << ";\n";
+        os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << "_array;\n";
+    }
+    for( const eg::Buffer* pBuffer : layout.getBuffers() )
+    {
+        os << pBuffer->getTypeName() << "* " << pBuffer->getVariableName() << " = " << pBuffer->getVariableName() << "_array.data();\n";
     }
     
     os << "\n";
@@ -163,36 +268,6 @@ int main( int argc, const char* argv[] )
     
     os << "\n";
     
-    os << "//clock implementation\n";
-    const char* pszInputEventsImpl = R"(
-
-class InputEvents : public __eg_input
-{
-public:
-    virtual std::optional< cinder::app::InputEvent > getEvent()
-    {
-        std::optional< cinder::app::InputEvent > event;
-        if( !events.empty() )
-        {
-            event = events.front();
-            events.pop_front();
-        }
-        return event;
-    }
-    
-    std::deque< cinder::app::InputEvent > events;
-};
-
-    
-    )";
-    os << pszInputEventsImpl;
-    
-    
-    os << "//initialiser\n";
-    os << "extern void initialise( " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "* pDependencyProvider );\n";
-    
-    os << "\n";
-    
     os << "//Action functions\n";
     os << "extern __eg_root< void > root_starter( std::vector< std::function< void() > >& );\n";
     std::vector< const eg::concrete::Action* > actions = 
@@ -216,44 +291,6 @@ public:
     generate_dynamic_interface( os, session );
     generate_python( os, session );
     os << "\n";
-    
-    os << "//Dependency Provider Implementation\n";
-    os << "struct CinderHost_EGDependencyProvider : public " << eg::EG_DEPENDENCY_PROVIDER_TYPE << "\n";
-    os << "{\n";
-    os << "     eg::_clock* m_pClock;\n";
-    os << "     eg::_event_log* m_pEventLog;\n";
-    os << "     __eg_input* m_pInput;\n";
-    os << "\n";
-    os << "     CinderHost_EGDependencyProvider( eg::_clock* pClock, eg::_event_log* pEventLog, __eg_input* pInput )\n";
-    os << "         :   m_pClock( pClock ),\n";
-    os << "             m_pEventLog( pEventLog ),\n";
-    os << "             m_pInput( pInput )\n";
-    os << "     {\n";
-    os << "\n";         
-    os << "     }\n"; 
-    os << "\n";
-    os << "    virtual void* getBuffer( const char* pszName )\n";
-    os << "    {\n";
-    for( const eg::Buffer* pBuffer : layout.getBuffers() )
-    {
-    os << "        if( 0U == strcmp( pszName, \"" << pBuffer->getVariableName() << "\" ) ) return " << pBuffer->getVariableName() << ".data();\n";
-    }
-    os << "        return nullptr;\n";
-    os << "    }\n";
-    os << "    virtual void* getInterface( const char* pszName )\n";
-    os << "    {\n";
-    os << "        if( 0U == strcmp( pszName, \"_clock\" ) ) return m_pClock;\n";
-    os << "        if( 0U == strcmp( pszName, \"_event_log\" ) ) return m_pEventLog;\n";
-    os << "        if( 0U == strcmp( pszName, \"__eg_input\" ) ) return m_pInput;\n";
-    os << "        return nullptr;\n";
-    os << "    }\n";
-    os << "};\n";
-    
-    
-    //const std::string strProgramNameIsh = 
-    //    boost::filesystem::path( strProgram ).filename().stem().generic_string();
-    
-    os << "\n\nstd::string strEventLogFolder = \"" << strLogFileDefault << "\";\n\n";
     
     const char* pszMain = R"(
     
@@ -289,22 +326,14 @@ public:
 
 private:
     HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
-    HostClock theClock;
-    HostEventLog theEventLog;
-    InputEvents inputEvents;
-    CinderHost_EGDependencyProvider dependencies;
     std::vector< std::function< void() > > pythonFunctions;
     pybind11::scoped_interpreter guard; // start the python interpreter
     
 };
 
 BasicApp::BasicApp()
-    :   theEventLog( "basicapp", strEventLogFolder.c_str() ),
-        dependencies( &theClock, &theEventLog, &inputEvents )
 {
     allocate_buffers();
-    
-    initialise( &dependencies );
 }
 
 BasicApp::~BasicApp()
@@ -324,7 +353,7 @@ void BasicApp::setup()
 {
     boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
-    ImGui::initialize();
+    //ImGui::initialize();
         
     pythonFunctions = loadPythonScripts( g_strPythonScripts, g_strDatabase );
         
@@ -340,32 +369,32 @@ void prepareSettings( BasicApp::Settings* settings )
 
 void BasicApp::mouseDown( MouseEvent event )
 {
-    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseDown, event ) );
+    _cinder_events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseDown, event ) );
 }
 void BasicApp::mouseUp( MouseEvent event )
 {
-    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseUp, event ) );
+    _cinder_events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseUp, event ) );
 }
 void BasicApp::mouseMove( MouseEvent event )
 {
-    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseMove, event ) );
+    _cinder_events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseMove, event ) );
 }
 void BasicApp::mouseWheel( MouseEvent event )
 {
-    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseWheel, event ) );
+    _cinder_events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseWheel, event ) );
 }
 void BasicApp::mouseDrag( MouseEvent event )
 {
-    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseDrag, event ) );
+    _cinder_events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eMouseDrag, event ) );
 }
 
 void BasicApp::keyDown( KeyEvent event )
 {
-    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eKeyDown, event ) );
+    _cinder_events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eKeyDown, event ) );
 }
 void BasicApp::keyUp( KeyEvent event )
 {
-    inputEvents.events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eKeyUp, event ) );
+    _cinder_events.push_back( cinder::app::InputEvent( cinder::app::InputEvent::eKeyUp, event ) );
 }
 
 void BasicApp::update()
@@ -380,7 +409,7 @@ void BasicApp::draw()
 {
     theClock.nextCycle();
     eg::wait();
-    inputEvents.events.clear();
+    _cinder_events.clear();
 }
 
 // This line tells Cinder to actually create and run the application.

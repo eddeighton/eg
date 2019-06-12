@@ -28,9 +28,10 @@
 #include "eg_type_path.hpp"
 #include "eg_variant.hpp"
 #include "eg_event.hpp"
+#include "eg_clock.hpp"
 #include "eg_operations.hpp"
 #include "eg_iterators.hpp"
 #include "eg_scheduler.hpp"
-#include "eg_include.hpp"
+#include "eg_macros.hpp"
 
 #endif //EG_STANDARD_STUFF

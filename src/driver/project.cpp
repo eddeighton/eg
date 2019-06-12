@@ -47,12 +47,27 @@ XMLManager::XMLDocPtr XMLManager::load( const boost::filesystem::path& docPath )
 const boost::filesystem::path Environment::EG_FILE_EXTENSION = std::string( ".eg" );
 const std::string Environment::EG_INSTALLATION = "EG";
 const std::string Environment::CURRENT_PROJECT = "PROJECT";
+const std::string Environment::WINDOWS_10_SDK = "WINDOWS_10_SDK";
 
 Environment::Environment( const boost::filesystem::path& projectDir )
     :   m_projectDir( projectDir ),
         m_environment( boost::this_process::environment() )
 {
     m_environment[ CURRENT_PROJECT ] = m_projectDir.generic_string();
+    
+    if( m_environment.count( WINDOWS_10_SDK ) == 0U )
+    {
+        boost::filesystem::path guessSDKPath = "C:/Program Files (x86)/Windows Kits/10";
+        if( boost::filesystem::exists( guessSDKPath ) )
+        {
+            m_environment[ WINDOWS_10_SDK ] = guessSDKPath.generic_string();
+        }
+        else
+        {
+            THROW_RTE( "Failed to locate Windows 10 SDK Installation" );
+        }
+    }
+    
     
     boost::filesystem::path egInstallationPath;
     {
@@ -107,7 +122,7 @@ const boost::filesystem::path& Environment::getEGLibraryInclude() const
     static boost::filesystem::path EG_LIBRARY;
     if( EG_LIBRARY.empty() )
     {
-        EG_LIBRARY = boost::filesystem::path( get( EG_INSTALLATION ) ) / "runtime";
+        EG_LIBRARY = boost::filesystem::path( get( EG_INSTALLATION ) ) / "library";
     }
     return EG_LIBRARY;
 }
@@ -323,6 +338,45 @@ std::vector< boost::filesystem::path > Project::getIncludeDirectories() const
     {
         if( package.Directories_present() )
             collateIncludeDirectories( m_environment, uniquified, directories, package.Directories() );
+    }
+    
+    return directories;
+}
+
+
+static void collateLibraryDirectories( 
+    const Environment& environment,
+    std::set< boost::filesystem::path >& uniquified, 
+    std::vector< boost::filesystem::path >& directories,
+    const egxml::Directories& xmlDirectories )
+{
+    for( const std::string& strLibrary : xmlDirectories.Library() )
+    {
+        const boost::filesystem::path absPath =
+            boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( 
+                    environment.expand( strLibrary ) ) );
+                
+        if( 0 == uniquified.count( absPath ) )
+        {
+            uniquified.insert( absPath );
+            directories.push_back( absPath );
+        }
+    }
+}
+
+std::vector< boost::filesystem::path > Project::getLibraryDirectories() const
+{
+    std::set< boost::filesystem::path > uniquified;
+    std::vector< boost::filesystem::path > directories;
+    
+    if( m_host.Directories_present() )
+        collateLibraryDirectories( m_environment, uniquified, directories, m_host.Directories() );
+    
+    for( const egxml::Package& package : m_packages )
+    {
+        if( package.Directories_present() )
+            collateLibraryDirectories( m_environment, uniquified, directories, package.Directories() );
     }
     
     return directories;

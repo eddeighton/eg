@@ -414,15 +414,15 @@ namespace egxml
     }
 
     public:
-    ::egxml::EG_pimpl EG_p_;
-    ::egxml::Package_pimpl Package_p_;
+    ::egxml::Directories_pimpl Directories_p_;
     ::egxml::Files_pimpl Files_p_;
     ::egxml::Host_pimpl Host_p_;
+    ::egxml::Project_pimpl Project_p_;
     ::egxml::Build_pimpl Build_p_;
     ::egxml::Run_pimpl Run_p_;
+    ::egxml::EG_pimpl EG_p_;
+    ::egxml::Package_pimpl Package_p_;
     ::xml_schema::string_pimpl string_p_;
-    ::egxml::Project_pimpl Project_p_;
-    ::egxml::Directories_pimpl Directories_p_;
   };
 }
 

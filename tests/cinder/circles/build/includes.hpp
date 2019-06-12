@@ -1,5 +1,5 @@
-#ifndef EG_INTERFACE_GUARD_E2C48227_9137_4096_8550_03B73E4DAD67__2019_Jun_12_13_03_19
-#define EG_INTERFACE_GUARD_E2C48227_9137_4096_8550_03B73E4DAD67__2019_Jun_12_13_03_19
+#ifndef EG_INTERFACE_GUARD_760F4D33_019F_4C5D_9B86_5F8AA6C51FDE__2019_Jun_12_18_01_23
+#define EG_INTERFACE_GUARD_760F4D33_019F_4C5D_9B86_5F8AA6C51FDE__2019_Jun_12_18_01_23
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -20,6 +20,8 @@
 #include "W:/workspace\eg\src\common\assert_verify.hpp"
 #include "W:/workspace\eg\src\common\backtrace.hpp"
 #include "W:/workspace\eg\src\common\file.hpp"
+#include "W:/workspace\eg\src\hosts\cinder\cinder_include.hpp"
+#include "glm/vec2.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
