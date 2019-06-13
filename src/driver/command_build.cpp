@@ -418,7 +418,6 @@ void build_program( const Environment& environment, const Project& project, bool
             osCmd << "-L" << environment.printPath( strLibraryPath ) << " ";
         }
         
-        
         for( const boost::filesystem::path& strSourceFile : project.getCPPSourceCode() )
         {
             osCmd << environment.printPath( strSourceFile ) << " ";
