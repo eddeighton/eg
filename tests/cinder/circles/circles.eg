@@ -124,7 +124,7 @@ action Randomise
         }
     }
 }
-/*
+
 action imgui
 {
     while( true )
@@ -160,7 +160,7 @@ action imgui
         eg::sleep();
     }
 }
-imgui.Start();*/
+imgui.Start();
 
 bool bContinue = true;
 while( bContinue )

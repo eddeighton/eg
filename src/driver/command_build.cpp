@@ -475,18 +475,18 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
     po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
     po::notify( vm );
     
-    if( strBuildCommand.empty() )
-    {
-        std::cout << "Missing build command type" << std::endl;
-        return;
-    }
-    
     if( bHelp )
     {
         std::cout << commandOptions << "\n";
     }
     else
     {
+        if( strBuildCommand.empty() )
+        {
+            std::cout << "Missing build command type" << std::endl;
+            return;
+        }
+        
         const boost::filesystem::path projectDirectory = 
             boost::filesystem::edsCannonicalise(
                 boost::filesystem::absolute( strDirectory ) );

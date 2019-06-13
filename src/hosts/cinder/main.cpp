@@ -353,7 +353,7 @@ void BasicApp::setup()
 {
     boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
-    //ImGui::initialize();
+    ImGui::initialize();
         
     pythonFunctions = loadPythonScripts( g_strPythonScripts, g_strDatabase );
         

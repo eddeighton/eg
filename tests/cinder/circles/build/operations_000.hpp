@@ -1,5 +1,5 @@
-#ifndef EG_INTERFACE_GUARD_F218CF91_2616_4A84_9DC3_4A972F53594C__2019_Jun_13_01_02_40
-#define EG_INTERFACE_GUARD_F218CF91_2616_4A84_9DC3_4A972F53594C__2019_Jun_13_01_02_40
+#ifndef EG_INTERFACE_GUARD_AC3F00DF_C7BE_491C_8A2D_6E2B083ABBE7__2019_Jun_13_01_54_58
+#define EG_INTERFACE_GUARD_AC3F00DF_C7BE_491C_8A2D_6E2B083ABBE7__2019_Jun_13_01_54_58
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -8,43 +8,7 @@
 template<>
 void __eg_root< void >::operator()() const
 {
-  /*
-action imgui
-{
-    while( true )
-    {
-        ImGui::Begin( "Settings" );
-        ImGui::TextColored( ImVec4(1,1,1,1), "Tweakatron 9000" );
-        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 200 );
-        ImGui::SliderFloat( "speed", &Spiral.speed.Get(), 0.0f, 2.0f );
-        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 200.0f );
-        ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
-        ImGui::SliderFloat( "relative", &Spiral.relative.Get(), -10.0f, 10.0f );
-    
-        if( ImGui::Button( "Spiral" ) )
-        {
-            if( eg::count( root.Get().Spiral.Range() ) )
-                Spiral.Stop();
-            else
-                Spiral.Start();
-        }
-        else if( ImGui::Button( "Rand" ) )
-        {
-            Randomise();
-        }
-        else if( ImGui::Button( "Attract" ) )
-        {
-            Attract();
-        }
-        else if( ImGui::Button( "Quit" ) )
-        {
-            root.Stop();
-        }
-        ImGui::End();
-        eg::sleep();
-    }
-}
-imgui.Start();*/
+  imgui.Start();
 
 bool bContinue = true;
 while( bContinue )
@@ -210,6 +174,45 @@ void __eg_root< void >::__eg_Randomise< void >::operator()() const
                         center.y + center.y * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ) );
             s.position( vRand );
         }
+    }
+}
+
+//root::imgui
+template<>
+template<>
+void __eg_root< void >::__eg_imgui< void >::operator()() const
+{
+  while( true )
+    {
+        ImGui::Begin( "Settings" );
+        ImGui::TextColored( ImVec4(1,1,1,1), "Tweakatron 9000" );
+        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 200 );
+        ImGui::SliderFloat( "speed", &Spiral.speed.Get(), 0.0f, 2.0f );
+        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 200.0f );
+        ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
+        ImGui::SliderFloat( "relative", &Spiral.relative.Get(), -10.0f, 10.0f );
+    
+        if( ImGui::Button( "Spiral" ) )
+        {
+            if( eg::count( root.Get().Spiral.Range() ) )
+                Spiral.Stop();
+            else
+                Spiral.Start();
+        }
+        else if( ImGui::Button( "Rand" ) )
+        {
+            Randomise();
+        }
+        else if( ImGui::Button( "Attract" ) )
+        {
+            Attract();
+        }
+        else if( ImGui::Button( "Quit" ) )
+        {
+            root.Stop();
+        }
+        ImGui::End();
+        eg::sleep();
     }
 }
 

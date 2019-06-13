@@ -21,6 +21,9 @@ void root_Attract_stopper( eg::Instance _gid );
 __eg_root< void >::__eg_Randomise< void > root_Randomise_starter( eg::Instance _gid );
 void root_Randomise_stopper( eg::Instance _gid );
 
+__eg_root< void >::__eg_imgui< void > root_imgui_starter( eg::Instance _gid );
+void root_imgui_stopper( eg::Instance _gid );
+
 __eg_root< void >::__eg_Shape< void >::__eg_Default< void > root_StrokedCircle_Default_starter( eg::Instance _gid );
 void root_StrokedCircle_Default_stopper( eg::Instance _gid );
 
@@ -113,6 +116,10 @@ void root_stopper( eg::Instance _gid )
          for( eg::Instance childIndex = _gid * 1; childIndex != ( _gid + 1 ) * 1; ++childIndex )
          {
              root_Randomise_stopper( childIndex );
+         }
+         for( eg::Instance childIndex = _gid * 1; childIndex != ( _gid + 1 ) * 1; ++childIndex )
+         {
+             root_imgui_stopper( childIndex );
          }
          g_root[ _gid ].g_root_state = ::eg::action_stopped;
          g_root[ _gid ].g_root_cycle = clock::cycle();
@@ -658,6 +665,109 @@ void root_Randomise_stopper( eg::Instance _gid )
          if( g_root_Randomise[ _gid ].g_root_Randomise_fiber.joinable() )
              g_root_Randomise[ _gid ].g_root_Randomise_fiber.detach();
          events::put( "stop", clock::cycle(), &g_root_Randomise[ _gid ].g_root_Randomise_reference, sizeof( eg::reference ) );
+     }
+}
+
+
+__eg_root< void >::__eg_imgui< void > root_imgui_starter( eg::Instance _gid )
+{
+    //claim next free index
+    eg::Iterator iter, expected;
+    while( true )
+    {
+         iter = eg::Iterator( g_root[ _gid ].g_rootimgui_alloc_iter.load() );
+         if( iter.protection )
+             continue;
+         else if( iter.full )
+             break;
+         expected = iter;
+         eg::Instance nextCellIndex = static_cast< eg::Instance >( iter.head );
+         //claim the next free index
+         if( nextCellIndex == 0 )
+         {
+             iter.head = 0U;
+         }
+         else
+         {
+             ++iter.head;
+         }
+         if( static_cast< eg::Instance >( iter.head ) == static_cast< eg::Instance >( iter.tail ) )
+         {
+             iter.full = 1U;
+         }
+         eg::Instance nextInstance = g_root_imgui[ _gid * 1 + nextCellIndex ].g_root_imgui_alloc_data;
+         if( g_root_imgui[ nextInstance ].g_root_imgui_cycle < clock::cycle() )
+         {
+             //attempt to set the atomic
+             if( g_root[ _gid ].g_rootimgui_alloc_iter.compare_exchange_weak( expected.data, iter.data ) )
+             {
+                 //successfully claimed index so get the actual instance from the ring buffer
+                 const eg::Instance startCycle = clock::cycle();
+                 __eg_root< void >::__eg_imgui< void >& reference = g_root_imgui[ nextInstance ].g_root_imgui_reference;
+                 reference.data.timestamp = startCycle;
+                 g_root_imgui[ nextInstance ].g_root_imgui_state = ::eg::action_running;
+                 events::put( "start", startCycle, &reference.data, sizeof( eg::reference ) );
+                 return reference;
+             }
+         }
+         else
+         {
+             break;
+         }
+    }
+    //failure return null handle
+    __eg_root< void >::__eg_imgui< void > nullInstance;
+    return nullInstance;
+}
+
+void root_imgui_stopper( eg::Instance _gid )
+{
+     eg::Instance _parent_id = _gid / 1;
+     if( g_root_imgui[ _gid ].g_root_imgui_state != ::eg::action_stopped )
+     {
+         eg::Iterator iter, expected;
+         while( true )
+         {
+              iter = eg::Iterator( g_root[ _parent_id ].g_rootimgui_alloc_iter.load() );
+              if( iter.protection )
+                  continue;
+              expected = iter;
+              eg::Instance freeCellIndex = static_cast< eg::Instance >( iter.tail );
+              //if buffer is full then set the protection bit while freeing
+              if( iter.full )
+              {
+                  iter.protection = 1U;
+                  iter.full = 0U;
+              }
+              //claim the index to store free instance
+              if( static_cast< eg::Instance >( iter.tail ) == 1 - 1U )
+              {
+                  iter.tail = 0U;
+              }
+              else
+              {
+                  ++iter.tail;
+              }
+              //attempt to set the atomic
+              if( g_root[ _parent_id ].g_rootimgui_alloc_iter.compare_exchange_weak( expected.data, iter.data ) )
+              {
+                  //successfully freed index
+                  g_root_imgui[ freeCellIndex ].g_root_imgui_alloc_data = _gid;
+                  if( iter.protection )
+                  {
+                      //turn off the protection bit
+                      expected = iter;
+                      iter.protection = 0;
+                      while( g_root[ _parent_id ].g_rootimgui_alloc_iter.compare_exchange_weak( expected.data, iter.data ) );
+                  }
+                  break;
+              }
+         }
+         g_root_imgui[ _gid ].g_root_imgui_state = ::eg::action_stopped;
+         g_root_imgui[ _gid ].g_root_imgui_cycle = clock::cycle();
+         if( g_root_imgui[ _gid ].g_root_imgui_fiber.joinable() )
+             g_root_imgui[ _gid ].g_root_imgui_fiber.detach();
+         events::put( "stop", clock::cycle(), &g_root_imgui[ _gid ].g_root_imgui_reference, sizeof( eg::reference ) );
      }
 }
 
@@ -1295,6 +1405,41 @@ struct __invoke_impl{
 template<>
 struct __invoke_impl
 <
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_root< void >,
+    __eg_type_path< __eg_root< void >::__eg_imgui< void >, Start >,
+    Start
+>
+{
+    template< typename... Args >
+    __eg_root< void >::__eg_imgui< void > operator()( __eg_root< void > context, Args... args )
+    {
+        __eg_root< void >::__eg_imgui< void > ref = root_imgui_starter( context.data.instance );
+        if( ref )
+        {
+            g_root_imgui[ ref.data.instance ].g_root_imgui_fiber = boost::fibers::fiber
+            (
+                [ = ]()
+                {
+                    try
+                    {
+                        ref( args... );
+                    }
+                    catch( eg::termination_exception )
+                    {
+                    }
+                    root_imgui_stopper( ref.data.instance );
+                }
+            );
+            g_root_imgui[ ref.data.instance ].g_root_imgui_fiber.properties< eg::fiber_props >().setReference( ref.data );
+        }
+        return ref;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
     __eg_root< void >::__eg_Randomise< void >,
     __eg_root< void >,
     __eg_type_path< __eg_root< void >::__eg_Randomise< void > >,
@@ -1327,11 +1472,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 117: //root::Shape::Default
+            case 126: //root::Shape::Default
             {
                 g_root_StrokedCircle[ context.data.instance ].m_color = value;
             }
-            case 149: //root::Shape::Default
+            case 158: //root::Shape::Default
             {
                 g_root_Circle[ context.data.instance ].m_color = value;
             }
@@ -1352,11 +1497,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 117: //root::Shape::Default
+            case 126: //root::Shape::Default
             {
                 g_root_StrokedCircle[ context.data.instance ].m_position = value;
             }
-            case 149: //root::Shape::Default
+            case 158: //root::Shape::Default
             {
                 g_root_Circle[ context.data.instance ].m_position = value;
             }
@@ -1377,11 +1522,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 117: //root::Shape::Default
+            case 126: //root::Shape::Default
             {
                 g_root_StrokedCircle[ context.data.instance ].m_size = value;
             }
-            case 149: //root::Shape::Default
+            case 158: //root::Shape::Default
             {
                 g_root_Circle[ context.data.instance ].m_size = value;
             }
@@ -1402,11 +1547,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 122: //root::Shape::ColorChanger
+            case 131: //root::Shape::ColorChanger
             {
                 return g_root_StrokedCircle_ColorChanger[ context.data.instance ].m_f;
             }
-            case 154: //root::Shape::ColorChanger
+            case 163: //root::Shape::ColorChanger
             {
                 return g_root_Circle_ColorChanger[ context.data.instance ].m_f;
             }
@@ -1427,11 +1572,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 122: //root::Shape::ColorChanger
+            case 131: //root::Shape::ColorChanger
             {
                 g_root_StrokedCircle_ColorChanger[ context.data.instance ].m_f = value;
             }
-            case 154: //root::Shape::ColorChanger
+            case 163: //root::Shape::ColorChanger
             {
                 g_root_Circle_ColorChanger[ context.data.instance ].m_f = value;
             }
@@ -1452,11 +1597,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 122: //root::Shape::ColorChanger
+            case 131: //root::Shape::ColorChanger
             {
                 g_root_StrokedCircle[ context.data.instance ].m_color = value;
             }
-            case 154: //root::Shape::ColorChanger
+            case 163: //root::Shape::ColorChanger
             {
                 g_root_Circle[ context.data.instance ].m_color = value;
             }
@@ -1477,11 +1622,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 127: //root::Shape::Morph
+            case 136: //root::Shape::Morph
             {
                 return g_root_StrokedCircle[ context.data.instance ].m_positionActual;
             }
-            case 159: //root::Shape::Morph
+            case 168: //root::Shape::Morph
             {
                 return g_root_Circle[ context.data.instance ].m_positionActual;
             }
@@ -1502,11 +1647,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 127: //root::Shape::Morph
+            case 136: //root::Shape::Morph
             {
                 return g_root_StrokedCircle[ context.data.instance ].m_position;
             }
-            case 159: //root::Shape::Morph
+            case 168: //root::Shape::Morph
             {
                 return g_root_Circle[ context.data.instance ].m_position;
             }
@@ -1527,11 +1672,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 127: //root::Shape::Morph
+            case 136: //root::Shape::Morph
             {
                 return g_root_StrokedCircle_Morph[ context.data.instance ].m_speed;
             }
-            case 159: //root::Shape::Morph
+            case 168: //root::Shape::Morph
             {
                 return g_root_Circle_Morph[ context.data.instance ].m_speed;
             }
@@ -1552,11 +1697,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 127: //root::Shape::Morph
+            case 136: //root::Shape::Morph
             {
                 g_root_StrokedCircle[ context.data.instance ].m_positionActual = value;
             }
-            case 159: //root::Shape::Morph
+            case 168: //root::Shape::Morph
             {
                 g_root_Circle[ context.data.instance ].m_positionActual = value;
             }
@@ -1699,15 +1844,15 @@ struct __invoke_impl
         using MultiIterType = __eg_MultiIterator< __eg_root< void >::__eg_Shape< void >, 2 >;
         MultiIterType::IteratorArray iterators_begin = 
         {
-            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 90 ) ), //root::StrokedCircle
-            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 95 ) ), //root::Circle
+            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 94 ) ), //root::StrokedCircle
+            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 99 ) ), //root::Circle
         };
         ++iterators_begin[ 0 ];
         ++iterators_begin[ 1 ];
         MultiIterType::IteratorArray iterators_end = 
         {
-            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 90 ) ), //root::StrokedCircle
-            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 95 ) ), //root::Circle
+            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 94 ) ), //root::StrokedCircle
+            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 99 ) ), //root::Circle
         };
         return __eg_Range< MultiIterType >( MultiIterType( iterators_begin ), MultiIterType( iterators_end ) );
     }
@@ -1786,11 +1931,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 90: //root::StrokedCircle
+            case 94: //root::StrokedCircle
             {
                 g_root_StrokedCircle[ context.data.instance ].m_position = value;
             }
-            case 95: //root::Circle
+            case 99: //root::Circle
             {
                 g_root_Circle[ context.data.instance ].m_position = value;
             }
@@ -1811,11 +1956,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 90: //root::StrokedCircle
+            case 94: //root::StrokedCircle
             {
                 g_root_StrokedCircle_ColorChanger[ context.data.instance ].m_f = value;
             }
-            case 95: //root::Circle
+            case 99: //root::Circle
             {
                 g_root_Circle_ColorChanger[ context.data.instance ].m_f = value;
             }
@@ -1851,11 +1996,11 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 90: //root::StrokedCircle
+            case 94: //root::StrokedCircle
             {
                 return g_root_StrokedCircle[ context.data.instance ].m_position;
             }
-            case 95: //root::Circle
+            case 99: //root::Circle
             {
                 return g_root_Circle[ context.data.instance ].m_position;
             }
@@ -1893,6 +2038,225 @@ struct __invoke_impl
     }
 };
 
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Randomise< void >::__eg_range< void >::Get,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Randomise< void >, range, Get >,
+    Get
+>
+{
+    __eg_root< void >::__eg_Randomise< void >::__eg_range< void >::Get operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return g_root_Randomise[ context.data.instance ].m_range;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Spiral< void >::__eg_speed< void >::Get,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Spiral< void >, speed, Get >,
+    Get
+>
+{
+    __eg_root< void >::__eg_Spiral< void >::__eg_speed< void >::Get operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return g_root_Spiral[ context.data.instance ].m_speed;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Spiral< void >::__eg_curve< void >::Get,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Spiral< void >, curve, Get >,
+    Get
+>
+{
+    __eg_root< void >::__eg_Spiral< void >::__eg_curve< void >::Get operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return g_root_Spiral[ context.data.instance ].m_curve;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Spiral< void >::__eg_radius< void >::Get,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Spiral< void >, radius, Get >,
+    Get
+>
+{
+    __eg_root< void >::__eg_Spiral< void >::__eg_radius< void >::Get operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return g_root_Spiral[ context.data.instance ].m_radius;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Spiral< void >::__eg_relative< void >::Get,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Spiral< void >, relative, Get >,
+    Get
+>
+{
+    __eg_root< void >::__eg_Spiral< void >::__eg_relative< void >::Get operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return g_root_Spiral[ context.data.instance ].m_relative;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >, Get >,
+    Get
+>
+{
+    __eg_root< void > operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return g_root[ context.data.instance ].g_root_reference;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Spiral< void >::EGRangeType,
+    __eg_root< void >,
+    __eg_type_path< __eg_root< void >::__eg_Spiral< void >, Range >,
+    Range
+>
+{
+    __eg_root< void >::__eg_Spiral< void >::EGRangeType operator()( __eg_root< void > context )
+    {
+        const eg::Instance iBegin = context.data.instance * 1;
+        const eg::Instance iEnd = ( context.data.instance + 1 ) * 1;
+        __eg_root< void >::__eg_Spiral< void >::Iterator begin( iBegin - 1, iEnd, 104 ); //root::Spiral
+        ++begin;
+        __eg_root< void >::__eg_Spiral< void >::Iterator end( iEnd, iEnd, 104 );
+        return __eg_root< void >::__eg_Spiral< void >::EGRangeType( begin, end );
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    void,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Spiral< void >, Stop >,
+    Stop
+>
+{
+    void operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return root_Spiral_stopper( context.data.instance );
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Spiral< void >,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Spiral< void >, Start >,
+    Start
+>
+{
+    template< typename... Args >
+    __eg_root< void >::__eg_Spiral< void > operator()( __eg_root< void >::__eg_imgui< void > context, Args... args )
+    {
+        __eg_root< void >::__eg_Spiral< void > ref = root_Spiral_starter( context.data.instance );
+        if( ref )
+        {
+            g_root_Spiral[ ref.data.instance ].g_root_Spiral_fiber = boost::fibers::fiber
+            (
+                [ = ]()
+                {
+                    try
+                    {
+                        ref( args... );
+                    }
+                    catch( eg::termination_exception )
+                    {
+                    }
+                    root_Spiral_stopper( ref.data.instance );
+                }
+            );
+            g_root_Spiral[ ref.data.instance ].g_root_Spiral_fiber.properties< eg::fiber_props >().setReference( ref.data );
+        }
+        return ref;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Randomise< void >,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Randomise< void > >,
+    __eg_ImpNoParams
+>
+{
+    template< typename... Args >
+    __eg_root< void >::__eg_Randomise< void > operator()( __eg_root< void >::__eg_imgui< void > context, Args... args )
+    {
+        __eg_root< void >::__eg_Randomise< void > ref = root_Randomise_starter( context.data.instance );
+        if( ref )
+        {
+            ref( args... );
+            root_Randomise_stopper( ref.data.instance );
+        }
+        return ref;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    __eg_root< void >::__eg_Attract< void >,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >::__eg_Attract< void > >,
+    __eg_ImpNoParams
+>
+{
+    template< typename... Args >
+    __eg_root< void >::__eg_Attract< void > operator()( __eg_root< void >::__eg_imgui< void > context, Args... args )
+    {
+        __eg_root< void >::__eg_Attract< void > ref = root_Attract_starter( context.data.instance );
+        if( ref )
+        {
+            ref( args... );
+            root_Attract_stopper( ref.data.instance );
+        }
+        return ref;
+    }
+};
+
+template<>
+struct __invoke_impl
+<
+    void,
+    __eg_root< void >::__eg_imgui< void >,
+    __eg_type_path< __eg_root< void >, Stop >,
+    Stop
+>
+{
+    void operator()( __eg_root< void >::__eg_imgui< void > context )
+    {
+        return root_stopper( context.data.instance );
+    }
+};
+
 //generic variant invocation adaptor
 template< typename... Ts >
 template< typename TypePath, typename Operation, typename... Args >
@@ -1917,7 +2281,7 @@ __eg_root< __eg1 >::__eg_root( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 84: //root
+     case 88: //root
          data = from.data;
          break;
      default:
@@ -1932,7 +2296,7 @@ __eg_root< __eg1 >& __eg_root< __eg1 >::operator=( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 84: //root
+      case 88: //root
          data = from.data;
          break;
      default:
@@ -1984,8 +2348,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_Shape( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 90: //root::StrokedCircle
-     case 95: //root::Circle
+     case 94: //root::StrokedCircle
+     case 99: //root::Circle
          data = from.data;
          break;
      default:
@@ -2001,8 +2365,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >& __eg_root< __eg1 >::_
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 90: //root::StrokedCircle
-      case 95: //root::Circle
+      case 94: //root::StrokedCircle
+      case 99: //root::Circle
          data = from.data;
          break;
      default:
@@ -2016,9 +2380,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void > >( eg::
 {
     switch( type )
     {
-      case 90: //root::StrokedCircle
+      case 94: //root::StrokedCircle
          return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_reference.data.timestamp;
-      case 95: //root::Circle
+      case 99: //root::Circle
          return g_root_Circle[ instance ].g_root_Circle_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2029,9 +2393,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void > >( eg::
 {
     switch( type )
     {
-      case 90: //root::StrokedCircle
+      case 94: //root::StrokedCircle
          return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_cycle;
-      case 95: //root::Circle
+      case 99: //root::Circle
          return g_root_Circle[ instance ].g_root_Circle_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2042,9 +2406,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void > >( eg::Ty
 {
     switch( type )
     {
-      case 90: //root::StrokedCircle
+      case 94: //root::StrokedCircle
          return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_state;
-      case 95: //root::Circle
+      case 99: //root::Circle
          return g_root_Circle[ instance ].g_root_Circle_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2066,8 +2430,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_Default< __eg3 >::__eg_Default( co
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Default< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 117: //root::Shape::Default
-     case 149: //root::Shape::Default
+     case 126: //root::Shape::Default
+     case 158: //root::Shape::Default
          data = from.data;
          break;
      default:
@@ -2084,8 +2448,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >::template __eg_Default
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Default< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 117: //root::Shape::Default
-      case 149: //root::Shape::Default
+      case 126: //root::Shape::Default
+      case 158: //root::Shape::Default
          data = from.data;
          break;
      default:
@@ -2099,9 +2463,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void >::__eg_D
 {
     switch( type )
     {
-      case 117: //root::Shape::Default
+      case 126: //root::Shape::Default
          return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_reference.data.timestamp;
-      case 149: //root::Shape::Default
+      case 158: //root::Shape::Default
          return g_root_Circle_Default[ instance ].g_root_Circle_Default_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2112,9 +2476,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void >::__eg_D
 {
     switch( type )
     {
-      case 117: //root::Shape::Default
+      case 126: //root::Shape::Default
          return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_cycle;
-      case 149: //root::Shape::Default
+      case 158: //root::Shape::Default
          return g_root_Circle_Default[ instance ].g_root_Circle_Default_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2125,9 +2489,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void >::__eg_Def
 {
     switch( type )
     {
-      case 117: //root::Shape::Default
+      case 126: //root::Shape::Default
          return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_state;
-      case 149: //root::Shape::Default
+      case 158: //root::Shape::Default
          return g_root_Circle_Default[ instance ].g_root_Circle_Default_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2149,8 +2513,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_ColorChanger< __eg3 >::__eg_ColorC
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 122: //root::Shape::ColorChanger
-     case 154: //root::Shape::ColorChanger
+     case 131: //root::Shape::ColorChanger
+     case 163: //root::Shape::ColorChanger
          data = from.data;
          break;
      default:
@@ -2167,8 +2531,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >::template __eg_ColorCh
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 122: //root::Shape::ColorChanger
-      case 154: //root::Shape::ColorChanger
+      case 131: //root::Shape::ColorChanger
+      case 163: //root::Shape::ColorChanger
          data = from.data;
          break;
      default:
@@ -2182,9 +2546,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void >::__eg_C
 {
     switch( type )
     {
-      case 122: //root::Shape::ColorChanger
+      case 131: //root::Shape::ColorChanger
          return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_reference.data.timestamp;
-      case 154: //root::Shape::ColorChanger
+      case 163: //root::Shape::ColorChanger
          return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2195,9 +2559,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void >::__eg_C
 {
     switch( type )
     {
-      case 122: //root::Shape::ColorChanger
+      case 131: //root::Shape::ColorChanger
          return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_cycle;
-      case 154: //root::Shape::ColorChanger
+      case 163: //root::Shape::ColorChanger
          return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2208,9 +2572,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void >::__eg_Col
 {
     switch( type )
     {
-      case 122: //root::Shape::ColorChanger
+      case 131: //root::Shape::ColorChanger
          return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_state;
-      case 154: //root::Shape::ColorChanger
+      case 163: //root::Shape::ColorChanger
          return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2232,8 +2596,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_Morph< __eg3 >::__eg_Morph( const 
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 127: //root::Shape::Morph
-     case 159: //root::Shape::Morph
+     case 136: //root::Shape::Morph
+     case 168: //root::Shape::Morph
          data = from.data;
          break;
      default:
@@ -2250,8 +2614,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >::template __eg_Morph< 
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 127: //root::Shape::Morph
-      case 159: //root::Shape::Morph
+      case 136: //root::Shape::Morph
+      case 168: //root::Shape::Morph
          data = from.data;
          break;
      default:
@@ -2265,9 +2629,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void >::__eg_M
 {
     switch( type )
     {
-      case 127: //root::Shape::Morph
+      case 136: //root::Shape::Morph
          return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_reference.data.timestamp;
-      case 159: //root::Shape::Morph
+      case 168: //root::Shape::Morph
          return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2278,9 +2642,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void >::__eg_M
 {
     switch( type )
     {
-      case 127: //root::Shape::Morph
+      case 136: //root::Shape::Morph
          return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_cycle;
-      case 159: //root::Shape::Morph
+      case 168: //root::Shape::Morph
          return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2291,9 +2655,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void >::__eg_Mor
 {
     switch( type )
     {
-      case 127: //root::Shape::Morph
+      case 136: //root::Shape::Morph
          return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_state;
-      case 159: //root::Shape::Morph
+      case 168: //root::Shape::Morph
          return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2319,7 +2683,7 @@ __eg_root< __eg1 >::__eg_StrokedCircle< __eg2 >::__eg_StrokedCircle( const TFrom
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_StrokedCircle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 90: //root::StrokedCircle
+     case 94: //root::StrokedCircle
          data = from.data;
          break;
      default:
@@ -2335,7 +2699,7 @@ typename __eg_root< __eg1 >::template __eg_StrokedCircle< __eg2 >& __eg_root< __
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_StrokedCircle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 90: //root::StrokedCircle
+      case 94: //root::StrokedCircle
          data = from.data;
          break;
      default:
@@ -2382,7 +2746,7 @@ __eg_root< __eg1 >::__eg_Circle< __eg2 >::__eg_Circle( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Circle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 95: //root::Circle
+     case 99: //root::Circle
          data = from.data;
          break;
      default:
@@ -2398,7 +2762,7 @@ typename __eg_root< __eg1 >::template __eg_Circle< __eg2 >& __eg_root< __eg1 >::
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Circle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 95: //root::Circle
+      case 99: //root::Circle
          data = from.data;
          break;
      default:
@@ -2440,7 +2804,7 @@ __eg_root< __eg1 >::__eg_Spiral< __eg2 >::__eg_Spiral( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Spiral< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 100: //root::Spiral
+     case 104: //root::Spiral
          data = from.data;
          break;
      default:
@@ -2456,7 +2820,7 @@ typename __eg_root< __eg1 >::template __eg_Spiral< __eg2 >& __eg_root< __eg1 >::
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Spiral< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 100: //root::Spiral
+      case 104: //root::Spiral
          data = from.data;
          break;
      default:
@@ -2498,7 +2862,7 @@ __eg_root< __eg1 >::__eg_Attract< __eg2 >::__eg_Attract( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Attract< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 105: //root::Attract
+     case 109: //root::Attract
          data = from.data;
          break;
      default:
@@ -2514,7 +2878,7 @@ typename __eg_root< __eg1 >::template __eg_Attract< __eg2 >& __eg_root< __eg1 >:
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Attract< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 105: //root::Attract
+      case 109: //root::Attract
          data = from.data;
          break;
      default:
@@ -2556,7 +2920,7 @@ __eg_root< __eg1 >::__eg_Randomise< __eg2 >::__eg_Randomise( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Randomise< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 110: //root::Randomise
+     case 114: //root::Randomise
          data = from.data;
          break;
      default:
@@ -2572,7 +2936,7 @@ typename __eg_root< __eg1 >::template __eg_Randomise< __eg2 >& __eg_root< __eg1 
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Randomise< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 110: //root::Randomise
+      case 114: //root::Randomise
          data = from.data;
          break;
      default:
@@ -2597,6 +2961,64 @@ template<>
 inline eg::ActionState getState< __eg_root< void >::__eg_Randomise< void > >( eg::TypeID type, eg::Instance instance )
 {
     return g_root_Randomise[ instance ].g_root_Randomise_state;
+}
+
+
+//root::imgui
+template<>
+struct eg::is_convertible< __eg_root< void >::__eg_imgui< void >, __eg_root< void >::__eg_imgui< void > >
+{
+    static constexpr const bool value = true;
+};
+template< typename __eg1 >
+template< typename __eg2 >
+template< typename TFrom >
+__eg_root< __eg1 >::__eg_imgui< __eg2 >::__eg_imgui( const TFrom& from )
+{
+  static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_imgui< void > >::value, "Incompatible eg type conversion" );
+  switch( from.data.type )
+  {
+     case 119: //root::imgui
+         data = from.data;
+         break;
+     default:
+         data.timestamp = eg::INVALID_TIMESTAMP;
+         break;
+  }
+}
+template< typename __eg1 >
+template< typename __eg2 >
+template< typename TFrom >
+typename __eg_root< __eg1 >::template __eg_imgui< __eg2 >& __eg_root< __eg1 >::__eg_imgui< __eg2 >::operator=( const TFrom& from )
+{
+  static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_imgui< void > >::value, "Incompatible eg type conversion" );
+  switch( from.data.type )
+  {
+      case 119: //root::imgui
+         data = from.data;
+         break;
+     default:
+         data.timestamp = eg::INVALID_TIMESTAMP;
+         break;
+  }
+  return *this;
+}
+template<>
+inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_imgui< void > >( eg::TypeID type, eg::Instance instance )
+{
+    return g_root_imgui[ instance ].g_root_imgui_reference.data.timestamp;
+}
+
+template<>
+inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_imgui< void > >( eg::TypeID type, eg::Instance instance )
+{
+    return g_root_imgui[ instance ].g_root_imgui_cycle;
+}
+
+template<>
+inline eg::ActionState getState< __eg_root< void >::__eg_imgui< void > >( eg::TypeID type, eg::Instance instance )
+{
+    return g_root_imgui[ instance ].g_root_imgui_state;
 }
 
 
@@ -2710,6 +3132,17 @@ __eg_root< __eg1 >::__eg_Randomise< __eg2 >::invoke( Args... args ) const
 {
     using CanonicalTypePathType = typename eg::CanonicaliseTypePath< TypePath >::Type;
     return __invoke_impl< typename eg::result_type< __eg_root< __eg1 >::__eg_Randomise< __eg2 >, TypePath, Operation >::Type, __eg_root< __eg1 >::__eg_Randomise< __eg2 >, CanonicalTypePathType, Operation >()( *this, args... );
+}
+
+//root::imgui
+template< typename __eg1 >
+template< typename __eg2 >
+template< typename TypePath, typename Operation, typename... Args >
+typename eg::result_type< typename __eg_root< __eg1 >::template __eg_imgui< __eg2 >, TypePath, Operation >::Type
+__eg_root< __eg1 >::__eg_imgui< __eg2 >::invoke( Args... args ) const
+{
+    using CanonicalTypePathType = typename eg::CanonicaliseTypePath< TypePath >::Type;
+    return __invoke_impl< typename eg::result_type< __eg_root< __eg1 >::__eg_imgui< __eg2 >, TypePath, Operation >::Type, __eg_root< __eg1 >::__eg_imgui< __eg2 >, CanonicalTypePathType, Operation >()( *this, args... );
 }
 
 

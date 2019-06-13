@@ -108,7 +108,6 @@ int main( int argc, const char* argv[] )
     bool bCmdDebug  = false;
     
     {
-        
         std::vector< std::string > commandArgs;
     
         namespace po = boost::program_options;
@@ -129,9 +128,8 @@ int main( int argc, const char* argv[] )
                     ("create",  po::bool_switch( &bCmdCreate ),
                         "Start a new eg project" )
                         
-                    //("build",   po::bool_switch( &bCmdBuild ),
-                    //    "Build an eg project" )
-                    ("build", po::value< std::string >( &strBuildCommand ), "Build an eg project with the specified build command" )
+                    ("build", po::value< std::string >( &strBuildCommand )->implicit_value("release"), 
+                        "Build an eg project with the specified build command" )
                         
                     ("run",   po::bool_switch( &bCmdRun ),
                         "Run an eg project" )
@@ -178,6 +176,8 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
             
+            const bool bShowHelp = vm.count("help");
+            
             std::vector< std::string > commandArguments = 
                 po::collect_unrecognized( parsedOptions.options, po::include_positional );
             
@@ -188,7 +188,7 @@ int main( int argc, const char* argv[] )
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
                 }
-                command_create( vm.count("help"), commandArguments );
+                command_create( bShowHelp, commandArguments );
                 return 0;
             }
             else if( !strBuildCommand.empty() )
@@ -198,7 +198,7 @@ int main( int argc, const char* argv[] )
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
                 }
-                command_build( vm.count("help"), strBuildCommand, commandArguments );
+                command_build( bShowHelp, strBuildCommand, commandArguments );
                 return 0;
             }
             else if( bCmdRun )
@@ -208,7 +208,7 @@ int main( int argc, const char* argv[] )
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
                 }
-                command_run( vm.count("help"), commandArguments );
+                command_run( bShowHelp, commandArguments );
                 return 0;
             }
             else if( bCmdCMake )
@@ -218,7 +218,7 @@ int main( int argc, const char* argv[] )
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
                 }
-                command_cmake( vm.count("help"), commandArguments );
+                command_cmake( bShowHelp, commandArguments );
                 return 0;
             }
             else if( bCmdDebug )
@@ -228,7 +228,7 @@ int main( int argc, const char* argv[] )
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
                 }
-                command_debug( vm.count("help"), commandArguments );
+                command_debug( bShowHelp, commandArguments );
                 return 0;
             }
             else if( vm.count( "help" ) )

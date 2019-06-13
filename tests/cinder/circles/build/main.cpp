@@ -112,6 +112,7 @@ static std::array< b_root_Circle_Morph, 256 > g_root_Circle_Morph_array;
 static std::array< b_root_Spiral, 1 > g_root_Spiral_array;
 static std::array< b_root_Attract, 1 > g_root_Attract_array;
 static std::array< b_root_Randomise, 1 > g_root_Randomise_array;
+static std::array< b_root_imgui, 1 > g_root_imgui_array;
 b_root* g_root = g_root_array.data();
 b_root_StrokedCircle* g_root_StrokedCircle = g_root_StrokedCircle_array.data();
 b_root_StrokedCircle_Default* g_root_StrokedCircle_Default = g_root_StrokedCircle_Default_array.data();
@@ -124,6 +125,7 @@ b_root_Circle_Morph* g_root_Circle_Morph = g_root_Circle_Morph_array.data();
 b_root_Spiral* g_root_Spiral = g_root_Spiral_array.data();
 b_root_Attract* g_root_Attract = g_root_Attract_array.data();
 b_root_Randomise* g_root_Randomise = g_root_Randomise_array.data();
+b_root_imgui* g_root_imgui = g_root_imgui_array.data();
 
 void allocate_buffers()
 {
@@ -131,18 +133,19 @@ void allocate_buffers()
     {
         g_root[ i ].g_root_cycle = eg::INVALID_TIMESTAMP;
         g_root[ i ].g_root_state = ::eg::action_stopped;
-        g_root[ i ].g_root_reference = __eg_root< void >( eg::reference { i, 84, 0 } );
+        g_root[ i ].g_root_reference = __eg_root< void >( eg::reference { i, 88, 0 } );
         g_root[ i ].g_rootStrokedCircle_alloc_iter = 0UL;
         g_root[ i ].g_rootCircle_alloc_iter = 0UL;
         g_root[ i ].g_rootSpiral_alloc_iter = 0UL;
         g_root[ i ].g_rootAttract_alloc_iter = 0UL;
         g_root[ i ].g_rootRandomise_alloc_iter = 0UL;
+        g_root[ i ].g_rootimgui_alloc_iter = 0UL;
     }
     for( eg::Instance i = 0U; i != 256; ++i )
     {
         g_root_StrokedCircle[ i ].g_root_StrokedCircle_cycle = eg::INVALID_TIMESTAMP;
         g_root_StrokedCircle[ i ].g_root_StrokedCircle_state = ::eg::action_stopped;
-        g_root_StrokedCircle[ i ].g_root_StrokedCircle_reference = __eg_root< void >::__eg_StrokedCircle< void >( eg::reference { i, 90, 0 } );
+        g_root_StrokedCircle[ i ].g_root_StrokedCircle_reference = __eg_root< void >::__eg_StrokedCircle< void >( eg::reference { i, 94, 0 } );
         g_root_StrokedCircle[ i ].g_root_StrokedCircle_alloc_data = i;
         g_root_StrokedCircle[ i ].g_root_StrokedCircleDefault_alloc_iter = 0UL;
         g_root_StrokedCircle[ i ].g_root_StrokedCircleColorChanger_alloc_iter = 0UL;
@@ -152,28 +155,28 @@ void allocate_buffers()
     {
         g_root_StrokedCircle_Default[ i ].g_root_StrokedCircle_Default_cycle = eg::INVALID_TIMESTAMP;
         g_root_StrokedCircle_Default[ i ].g_root_StrokedCircle_Default_state = ::eg::action_stopped;
-        g_root_StrokedCircle_Default[ i ].g_root_StrokedCircle_Default_reference = __eg_root< void >::__eg_Shape< void >::__eg_Default< void >( eg::reference { i, 117, 0 } );
+        g_root_StrokedCircle_Default[ i ].g_root_StrokedCircle_Default_reference = __eg_root< void >::__eg_Shape< void >::__eg_Default< void >( eg::reference { i, 126, 0 } );
         g_root_StrokedCircle_Default[ i ].g_root_StrokedCircle_Default_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 256; ++i )
     {
         g_root_StrokedCircle_ColorChanger[ i ].g_root_StrokedCircle_ColorChanger_cycle = eg::INVALID_TIMESTAMP;
         g_root_StrokedCircle_ColorChanger[ i ].g_root_StrokedCircle_ColorChanger_state = ::eg::action_stopped;
-        g_root_StrokedCircle_ColorChanger[ i ].g_root_StrokedCircle_ColorChanger_reference = __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void >( eg::reference { i, 122, 0 } );
+        g_root_StrokedCircle_ColorChanger[ i ].g_root_StrokedCircle_ColorChanger_reference = __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void >( eg::reference { i, 131, 0 } );
         g_root_StrokedCircle_ColorChanger[ i ].g_root_StrokedCircle_ColorChanger_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 256; ++i )
     {
         g_root_StrokedCircle_Morph[ i ].g_root_StrokedCircle_Morph_cycle = eg::INVALID_TIMESTAMP;
         g_root_StrokedCircle_Morph[ i ].g_root_StrokedCircle_Morph_state = ::eg::action_stopped;
-        g_root_StrokedCircle_Morph[ i ].g_root_StrokedCircle_Morph_reference = __eg_root< void >::__eg_Shape< void >::__eg_Morph< void >( eg::reference { i, 127, 0 } );
+        g_root_StrokedCircle_Morph[ i ].g_root_StrokedCircle_Morph_reference = __eg_root< void >::__eg_Shape< void >::__eg_Morph< void >( eg::reference { i, 136, 0 } );
         g_root_StrokedCircle_Morph[ i ].g_root_StrokedCircle_Morph_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 256; ++i )
     {
         g_root_Circle[ i ].g_root_Circle_cycle = eg::INVALID_TIMESTAMP;
         g_root_Circle[ i ].g_root_Circle_state = ::eg::action_stopped;
-        g_root_Circle[ i ].g_root_Circle_reference = __eg_root< void >::__eg_Circle< void >( eg::reference { i, 95, 0 } );
+        g_root_Circle[ i ].g_root_Circle_reference = __eg_root< void >::__eg_Circle< void >( eg::reference { i, 99, 0 } );
         g_root_Circle[ i ].g_root_Circle_alloc_data = i;
         g_root_Circle[ i ].g_root_CircleDefault_alloc_iter = 0UL;
         g_root_Circle[ i ].g_root_CircleColorChanger_alloc_iter = 0UL;
@@ -183,48 +186,58 @@ void allocate_buffers()
     {
         g_root_Circle_Default[ i ].g_root_Circle_Default_cycle = eg::INVALID_TIMESTAMP;
         g_root_Circle_Default[ i ].g_root_Circle_Default_state = ::eg::action_stopped;
-        g_root_Circle_Default[ i ].g_root_Circle_Default_reference = __eg_root< void >::__eg_Shape< void >::__eg_Default< void >( eg::reference { i, 149, 0 } );
+        g_root_Circle_Default[ i ].g_root_Circle_Default_reference = __eg_root< void >::__eg_Shape< void >::__eg_Default< void >( eg::reference { i, 158, 0 } );
         g_root_Circle_Default[ i ].g_root_Circle_Default_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 256; ++i )
     {
         g_root_Circle_ColorChanger[ i ].g_root_Circle_ColorChanger_cycle = eg::INVALID_TIMESTAMP;
         g_root_Circle_ColorChanger[ i ].g_root_Circle_ColorChanger_state = ::eg::action_stopped;
-        g_root_Circle_ColorChanger[ i ].g_root_Circle_ColorChanger_reference = __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void >( eg::reference { i, 154, 0 } );
+        g_root_Circle_ColorChanger[ i ].g_root_Circle_ColorChanger_reference = __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void >( eg::reference { i, 163, 0 } );
         g_root_Circle_ColorChanger[ i ].g_root_Circle_ColorChanger_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 256; ++i )
     {
         g_root_Circle_Morph[ i ].g_root_Circle_Morph_cycle = eg::INVALID_TIMESTAMP;
         g_root_Circle_Morph[ i ].g_root_Circle_Morph_state = ::eg::action_stopped;
-        g_root_Circle_Morph[ i ].g_root_Circle_Morph_reference = __eg_root< void >::__eg_Shape< void >::__eg_Morph< void >( eg::reference { i, 159, 0 } );
+        g_root_Circle_Morph[ i ].g_root_Circle_Morph_reference = __eg_root< void >::__eg_Shape< void >::__eg_Morph< void >( eg::reference { i, 168, 0 } );
         g_root_Circle_Morph[ i ].g_root_Circle_Morph_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 1; ++i )
     {
         g_root_Spiral[ i ].g_root_Spiral_cycle = eg::INVALID_TIMESTAMP;
         g_root_Spiral[ i ].g_root_Spiral_state = ::eg::action_stopped;
-        g_root_Spiral[ i ].g_root_Spiral_reference = __eg_root< void >::__eg_Spiral< void >( eg::reference { i, 100, 0 } );
+        g_root_Spiral[ i ].g_root_Spiral_reference = __eg_root< void >::__eg_Spiral< void >( eg::reference { i, 104, 0 } );
         g_root_Spiral[ i ].g_root_Spiral_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 1; ++i )
     {
         g_root_Attract[ i ].g_root_Attract_cycle = eg::INVALID_TIMESTAMP;
         g_root_Attract[ i ].g_root_Attract_state = ::eg::action_stopped;
-        g_root_Attract[ i ].g_root_Attract_reference = __eg_root< void >::__eg_Attract< void >( eg::reference { i, 105, 0 } );
+        g_root_Attract[ i ].g_root_Attract_reference = __eg_root< void >::__eg_Attract< void >( eg::reference { i, 109, 0 } );
         g_root_Attract[ i ].g_root_Attract_alloc_data = i;
     }
     for( eg::Instance i = 0U; i != 1; ++i )
     {
         g_root_Randomise[ i ].g_root_Randomise_cycle = eg::INVALID_TIMESTAMP;
         g_root_Randomise[ i ].g_root_Randomise_state = ::eg::action_stopped;
-        g_root_Randomise[ i ].g_root_Randomise_reference = __eg_root< void >::__eg_Randomise< void >( eg::reference { i, 110, 0 } );
+        g_root_Randomise[ i ].g_root_Randomise_reference = __eg_root< void >::__eg_Randomise< void >( eg::reference { i, 114, 0 } );
         g_root_Randomise[ i ].g_root_Randomise_alloc_data = i;
+    }
+    for( eg::Instance i = 0U; i != 1; ++i )
+    {
+        g_root_imgui[ i ].g_root_imgui_cycle = eg::INVALID_TIMESTAMP;
+        g_root_imgui[ i ].g_root_imgui_state = ::eg::action_stopped;
+        g_root_imgui[ i ].g_root_imgui_reference = __eg_root< void >::__eg_imgui< void >( eg::reference { i, 119, 0 } );
+        g_root_imgui[ i ].g_root_imgui_alloc_data = i;
     }
 }
 
 void deallocate_buffers()
 {
+    for( eg::Instance i = 0U; i != 1; ++i )
+    {
+    }
     for( eg::Instance i = 0U; i != 1; ++i )
     {
     }
@@ -276,6 +289,8 @@ extern __eg_root< void >::__eg_Attract< void > root_Attract_starter( eg::Instanc
 extern void root_Attract_stopper( eg::Instance _gid );
 extern __eg_root< void >::__eg_Randomise< void > root_Randomise_starter( eg::Instance _gid );
 extern void root_Randomise_stopper( eg::Instance _gid );
+extern __eg_root< void >::__eg_imgui< void > root_imgui_starter( eg::Instance _gid );
+extern void root_imgui_stopper( eg::Instance _gid );
 extern __eg_root< void >::__eg_Shape< void >::__eg_Default< void > root_StrokedCircle_Default_starter( eg::Instance _gid );
 extern void root_StrokedCircle_Default_stopper( eg::Instance _gid );
 extern __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > root_StrokedCircle_ColorChanger_starter( eg::Instance _gid );
@@ -295,18 +310,19 @@ eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance )
 {
     switch( typeID )
     {
-        case 84: return g_root[ instance ].g_root_reference.data.timestamp;
-        case 90: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_reference.data.timestamp;
-        case 95: return g_root_Circle[ instance ].g_root_Circle_reference.data.timestamp;
-        case 100: return g_root_Spiral[ instance ].g_root_Spiral_reference.data.timestamp;
-        case 105: return g_root_Attract[ instance ].g_root_Attract_reference.data.timestamp;
-        case 110: return g_root_Randomise[ instance ].g_root_Randomise_reference.data.timestamp;
-        case 117: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_reference.data.timestamp;
-        case 122: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_reference.data.timestamp;
-        case 127: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_reference.data.timestamp;
-        case 149: return g_root_Circle_Default[ instance ].g_root_Circle_Default_reference.data.timestamp;
-        case 154: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_reference.data.timestamp;
-        case 159: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_reference.data.timestamp;
+        case 88: return g_root[ instance ].g_root_reference.data.timestamp;
+        case 94: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_reference.data.timestamp;
+        case 99: return g_root_Circle[ instance ].g_root_Circle_reference.data.timestamp;
+        case 104: return g_root_Spiral[ instance ].g_root_Spiral_reference.data.timestamp;
+        case 109: return g_root_Attract[ instance ].g_root_Attract_reference.data.timestamp;
+        case 114: return g_root_Randomise[ instance ].g_root_Randomise_reference.data.timestamp;
+        case 119: return g_root_imgui[ instance ].g_root_imgui_reference.data.timestamp;
+        case 126: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_reference.data.timestamp;
+        case 131: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_reference.data.timestamp;
+        case 136: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_reference.data.timestamp;
+        case 158: return g_root_Circle_Default[ instance ].g_root_Circle_Default_reference.data.timestamp;
+        case 163: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_reference.data.timestamp;
+        case 168: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_reference.data.timestamp;
         default: throw std::runtime_error( "Invalid action instance" );
     }
 }
@@ -314,18 +330,19 @@ eg::ActionState getState( eg::TypeID typeID, eg::Instance instance )
 {
     switch( typeID )
     {
-        case 84: return g_root[ instance ].g_root_state;
-        case 90: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_state;
-        case 95: return g_root_Circle[ instance ].g_root_Circle_state;
-        case 100: return g_root_Spiral[ instance ].g_root_Spiral_state;
-        case 105: return g_root_Attract[ instance ].g_root_Attract_state;
-        case 110: return g_root_Randomise[ instance ].g_root_Randomise_state;
-        case 117: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_state;
-        case 122: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_state;
-        case 127: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_state;
-        case 149: return g_root_Circle_Default[ instance ].g_root_Circle_Default_state;
-        case 154: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_state;
-        case 159: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_state;
+        case 88: return g_root[ instance ].g_root_state;
+        case 94: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_state;
+        case 99: return g_root_Circle[ instance ].g_root_Circle_state;
+        case 104: return g_root_Spiral[ instance ].g_root_Spiral_state;
+        case 109: return g_root_Attract[ instance ].g_root_Attract_state;
+        case 114: return g_root_Randomise[ instance ].g_root_Randomise_state;
+        case 119: return g_root_imgui[ instance ].g_root_imgui_state;
+        case 126: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_state;
+        case 131: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_state;
+        case 136: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_state;
+        case 158: return g_root_Circle_Default[ instance ].g_root_Circle_Default_state;
+        case 163: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_state;
+        case 168: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_state;
         default: throw std::runtime_error( "Invalid action instance" );
     }
 }
@@ -333,18 +350,19 @@ boost::fibers::fiber& getFiber( eg::TypeID typeID, eg::Instance instance )
 {
     switch( typeID )
     {
-        case 84: return g_root[ instance ].g_root_fiber;
-        case 90: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_fiber;
-        case 95: return g_root_Circle[ instance ].g_root_Circle_fiber;
-        case 100: return g_root_Spiral[ instance ].g_root_Spiral_fiber;
-        case 105: return g_root_Attract[ instance ].g_root_Attract_fiber;
-        case 110: return g_root_Randomise[ instance ].g_root_Randomise_fiber;
-        case 117: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_fiber;
-        case 122: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_fiber;
-        case 127: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_fiber;
-        case 149: return g_root_Circle_Default[ instance ].g_root_Circle_Default_fiber;
-        case 154: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_fiber;
-        case 159: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_fiber;
+        case 88: return g_root[ instance ].g_root_fiber;
+        case 94: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_fiber;
+        case 99: return g_root_Circle[ instance ].g_root_Circle_fiber;
+        case 104: return g_root_Spiral[ instance ].g_root_Spiral_fiber;
+        case 109: return g_root_Attract[ instance ].g_root_Attract_fiber;
+        case 114: return g_root_Randomise[ instance ].g_root_Randomise_fiber;
+        case 119: return g_root_imgui[ instance ].g_root_imgui_fiber;
+        case 126: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_fiber;
+        case 131: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_fiber;
+        case 136: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_fiber;
+        case 158: return g_root_Circle_Default[ instance ].g_root_Circle_Default_fiber;
+        case 163: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_fiber;
+        case 168: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_fiber;
         default: throw std::runtime_error( "Invalid action instance" );
     }
 }
@@ -352,24 +370,25 @@ eg::TimeStamp getStopCycle( eg::TypeID typeID, eg::Instance instance )
 {
     switch( typeID )
     {
-        case 84: return g_root[ instance ].g_root_cycle;
-        case 90: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_cycle;
-        case 95: return g_root_Circle[ instance ].g_root_Circle_cycle;
-        case 100: return g_root_Spiral[ instance ].g_root_Spiral_cycle;
-        case 105: return g_root_Attract[ instance ].g_root_Attract_cycle;
-        case 110: return g_root_Randomise[ instance ].g_root_Randomise_cycle;
-        case 117: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_cycle;
-        case 122: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_cycle;
-        case 127: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_cycle;
-        case 149: return g_root_Circle_Default[ instance ].g_root_Circle_Default_cycle;
-        case 154: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_cycle;
-        case 159: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_cycle;
+        case 88: return g_root[ instance ].g_root_cycle;
+        case 94: return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_cycle;
+        case 99: return g_root_Circle[ instance ].g_root_Circle_cycle;
+        case 104: return g_root_Spiral[ instance ].g_root_Spiral_cycle;
+        case 109: return g_root_Attract[ instance ].g_root_Attract_cycle;
+        case 114: return g_root_Randomise[ instance ].g_root_Randomise_cycle;
+        case 119: return g_root_imgui[ instance ].g_root_imgui_cycle;
+        case 126: return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_cycle;
+        case 131: return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_cycle;
+        case 136: return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_cycle;
+        case 158: return g_root_Circle_Default[ instance ].g_root_Circle_Default_cycle;
+        case 163: return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_cycle;
+        case 168: return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_cycle;
         default: throw std::runtime_error( "Invalid action instance" );
     }
 }
 __eg_root< void > get_root()
 {
-    return  __eg_root< void >( eg::reference{ 0, 84, getTimestamp( 84, 0 ) } );
+    return  __eg_root< void >( eg::reference{ 0, 88, getTimestamp( 88, 0 ) } );
 }
 
 
@@ -559,6 +578,24 @@ namespace pybind11
                 return g_pEGRefType->create( src.data );
             }
         };
+        template <> struct type_caster< __eg_root< void >::__eg_imgui< void > >
+        {
+        public:
+            PYBIND11_TYPE_CASTER( __eg_root< void >::__eg_imgui< void >, _("pyeg.reference"));
+        
+            bool load( handle src, bool )
+            {
+                const eg::PythonEGReference* pEGReference =
+                    eg::PythonEGReferenceType::getReference( src.ptr() );
+                value.data = pEGReference->getEGReference();
+                return !PyErr_Occurred();
+            }
+        
+            static handle cast( __eg_root< void >::__eg_imgui< void > src, return_value_policy /* policy */, handle /* parent */)
+            {
+                return g_pEGRefType->create( src.data );
+            }
+        };
     }   //namespace detail
 } // namespace pybind11
 
@@ -726,6 +763,8 @@ bool root_done( eg::Instance instance )
     if( iter.full || ( iter.head != iter.tail ) ) return false;
     iter = eg::Iterator( g_root[ instance ].g_rootRandomise_alloc_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
+    iter = eg::Iterator( g_root[ instance ].g_rootimgui_alloc_iter.load() );
+    if( iter.full || ( iter.head != iter.tail ) ) return false;
     return true;
 }
 void root_StrokedCircle_stop( eg::Instance instance )
@@ -770,11 +809,11 @@ void root_Circle_resume( eg::Instance instance )
 bool root_Circle_done( eg::Instance instance )
 {
     eg::Iterator iter;
-    iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleMorph_alloc_iter.load() );
+    iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleDefault_alloc_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
     iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleColorChanger_alloc_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
-    iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleDefault_alloc_iter.load() );
+    iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleMorph_alloc_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
     return true;
 }
@@ -831,6 +870,25 @@ void root_Randomise_resume( eg::Instance instance )
         g_root_Randomise[ instance ].g_root_Randomise_state = ::eg::action_running;
 }
 bool root_Randomise_done( eg::Instance instance )
+{
+    eg::Iterator iter;
+    return true;
+}
+void root_imgui_stop( eg::Instance instance )
+{
+    root_imgui_stopper( instance );
+}
+void root_imgui_pause( eg::Instance instance )
+{
+    if( g_root_imgui[ instance ].g_root_imgui_state == ::eg::action_running )
+        g_root_imgui[ instance ].g_root_imgui_state = ::eg::action_paused;
+}
+void root_imgui_resume( eg::Instance instance )
+{
+    if( g_root_imgui[ instance ].g_root_imgui_state == ::eg::action_paused )
+        g_root_imgui[ instance ].g_root_imgui_state = ::eg::action_running;
+}
+bool root_imgui_done( eg::Instance instance )
 {
     eg::Iterator iter;
     return true;
@@ -1026,6 +1084,11 @@ PYBIND11_EMBEDDED_MODULE( pyeg, module )
     module.def( "root_Randomise_pause", root_Randomise_pause);
     module.def( "root_Randomise_resume", root_Randomise_resume);
     module.def( "root_Randomise_done", root_Randomise_done);
+    module.def( "root_imgui_operator", &__eg_root< void >::__eg_imgui< void >::operator() );
+    module.def( "root_imgui_stop", root_imgui_stop);
+    module.def( "root_imgui_pause", root_imgui_pause);
+    module.def( "root_imgui_resume", root_imgui_resume);
+    module.def( "root_imgui_done", root_imgui_done);
     module.def( "root_StrokedCircle_Default_operator", &__eg_root< void >::__eg_Shape< void >::__eg_Default< void >::operator() );
     module.def( "root_StrokedCircle_Default_stop", root_StrokedCircle_Default_stop);
     module.def( "root_StrokedCircle_Default_pause", root_StrokedCircle_Default_pause);
@@ -1096,55 +1159,55 @@ public:
         {
             switch( dimensionType )
             {
-                case 132:
+                case 141:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_position_read" )( reference.instance );
                     break;
-                case 134:
+                case 143:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_positionActual_read" )( reference.instance );
                     break;
-                case 136:
+                case 145:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_color_read" )( reference.instance );
                     break;
-                case 138:
+                case 147:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_size_read" )( reference.instance );
                     break;
-                case 142:
+                case 151:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_ColorChanger_m_f_read" )( reference.instance );
                     break;
-                case 145:
+                case 154:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_Morph_m_speed_read" )( reference.instance );
                     break;
-                case 164:
+                case 173:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_position_read" )( reference.instance );
                     break;
-                case 166:
+                case 175:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_positionActual_read" )( reference.instance );
                     break;
-                case 168:
+                case 177:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_color_read" )( reference.instance );
                     break;
-                case 170:
+                case 179:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_size_read" )( reference.instance );
                     break;
-                case 174:
+                case 183:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_ColorChanger_m_f_read" )( reference.instance );
                     break;
-                case 177:
+                case 186:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_Morph_m_speed_read" )( reference.instance );
                     break;
-                case 180:
+                case 189:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_curve_read" )( reference.instance );
                     break;
-                case 182:
+                case 191:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_radius_read" )( reference.instance );
                     break;
-                case 184:
+                case 193:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_relative_read" )( reference.instance );
                     break;
-                case 186:
+                case 195:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_speed_read" )( reference.instance );
                     break;
-                case 190:
+                case 199:
                     pStack->m_result = m_module_eg.attr( "g_root_Randomise_m_range_read" )( reference.instance );
                     break;
                 default:
@@ -1159,55 +1222,55 @@ public:
             pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
             switch( dimensionType )
             {
-                case 132:
+                case 141:
                      pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_position_write" )( reference.instance, args );
                      break;
-                case 134:
+                case 143:
                      pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_positionActual_write" )( reference.instance, args );
                      break;
-                case 136:
+                case 145:
                      pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_color_write" )( reference.instance, args );
                      break;
-                case 138:
+                case 147:
                      pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_size_write" )( reference.instance, args );
                      break;
-                case 142:
+                case 151:
                      pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_ColorChanger_m_f_write" )( reference.instance, args );
                      break;
-                case 145:
+                case 154:
                      pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_Morph_m_speed_write" )( reference.instance, args );
                      break;
-                case 164:
+                case 173:
                      pStack->m_result = m_module_eg.attr( "g_root_Circle_m_position_write" )( reference.instance, args );
                      break;
-                case 166:
+                case 175:
                      pStack->m_result = m_module_eg.attr( "g_root_Circle_m_positionActual_write" )( reference.instance, args );
                      break;
-                case 168:
+                case 177:
                      pStack->m_result = m_module_eg.attr( "g_root_Circle_m_color_write" )( reference.instance, args );
                      break;
-                case 170:
+                case 179:
                      pStack->m_result = m_module_eg.attr( "g_root_Circle_m_size_write" )( reference.instance, args );
                      break;
-                case 174:
+                case 183:
                      pStack->m_result = m_module_eg.attr( "g_root_Circle_ColorChanger_m_f_write" )( reference.instance, args );
                      break;
-                case 177:
+                case 186:
                      pStack->m_result = m_module_eg.attr( "g_root_Circle_Morph_m_speed_write" )( reference.instance, args );
                      break;
-                case 180:
+                case 189:
                      pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_curve_write" )( reference.instance, args );
                      break;
-                case 182:
+                case 191:
                      pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_radius_write" )( reference.instance, args );
                      break;
-                case 184:
+                case 193:
                      pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_relative_write" )( reference.instance, args );
                      break;
-                case 186:
+                case 195:
                      pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_speed_write" )( reference.instance, args );
                      break;
-                case 190:
+                case 199:
                      pStack->m_result = m_module_eg.attr( "g_root_Randomise_m_range_write" )( reference.instance, args );
                      break;
                 default:
@@ -1222,7 +1285,7 @@ public:
             pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
             switch( actionType )
             {
-                case 90:
+                case 94:
                     {
                         __eg_root< void >::__eg_StrokedCircle< void > ref = root_StrokedCircle_starter( reference.instance );
                         if( ref )
@@ -1246,7 +1309,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 95:
+                case 99:
                     {
                         __eg_root< void >::__eg_Circle< void > ref = root_Circle_starter( reference.instance );
                         if( ref )
@@ -1270,7 +1333,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 100:
+                case 104:
                     {
                         __eg_root< void >::__eg_Spiral< void > ref = root_Spiral_starter( reference.instance );
                         if( ref )
@@ -1294,7 +1357,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 105:
+                case 109:
                     {
                         __eg_root< void >::__eg_Attract< void > ref = root_Attract_starter( reference.instance );
                         if( ref )
@@ -1318,7 +1381,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 110:
+                case 114:
                     {
                         __eg_root< void >::__eg_Randomise< void > ref = root_Randomise_starter( reference.instance );
                         if( ref )
@@ -1342,7 +1405,31 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 117:
+                case 119:
+                    {
+                        __eg_root< void >::__eg_imgui< void > ref = root_imgui_starter( reference.instance );
+                        if( ref )
+                        {
+                            switch( args.size() )
+                            {
+                                case 0: m_module_eg.attr( "root_imgui_operator" )( ref ); break;
+                                case 1: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ] ); break;
+                                case 2: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ] ); break;
+                                case 3: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ] ); break;
+                                case 4: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ] ); break;
+                                case 5: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ] ); break;
+                                case 6: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ] ); break;
+                                case 7: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ], args[ 6 ] ); break;
+                                case 8: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ], args[ 6 ], args[ 7 ] ); break;
+                                case 9: m_module_eg.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ], args[ 6 ], args[ 7 ], args[ 8 ] ); break;
+                                 default: break;
+                            }
+                            root_imgui_stopper( ref.data.instance );
+                        }
+                        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
+                    }
+                    break;
+                case 126:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Default< void > ref = root_StrokedCircle_Default_starter( reference.instance );
                         if( ref )
@@ -1366,7 +1453,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 122:
+                case 131:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > ref = root_StrokedCircle_ColorChanger_starter( reference.instance );
                         if( ref )
@@ -1390,7 +1477,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 127:
+                case 136:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > ref = root_StrokedCircle_Morph_starter( reference.instance );
                         if( ref )
@@ -1414,7 +1501,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 149:
+                case 158:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Default< void > ref = root_Circle_Default_starter( reference.instance );
                         if( ref )
@@ -1438,7 +1525,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 154:
+                case 163:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > ref = root_Circle_ColorChanger_starter( reference.instance );
                         if( ref )
@@ -1462,7 +1549,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 159:
+                case 168:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > ref = root_Circle_Morph_starter( reference.instance );
                         if( ref )
@@ -1497,7 +1584,7 @@ public:
         {
             switch( actionType )
             {
-                case 90:
+                case 94:
                     {
                         __eg_root< void >::__eg_StrokedCircle< void > ref = root_StrokedCircle_starter( reference.instance );
                         if( ref )
@@ -1535,7 +1622,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 95:
+                case 99:
                     {
                         __eg_root< void >::__eg_Circle< void > ref = root_Circle_starter( reference.instance );
                         if( ref )
@@ -1573,7 +1660,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 100:
+                case 104:
                     {
                         __eg_root< void >::__eg_Spiral< void > ref = root_Spiral_starter( reference.instance );
                         if( ref )
@@ -1611,7 +1698,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 105:
+                case 109:
                     {
                         __eg_root< void >::__eg_Attract< void > ref = root_Attract_starter( reference.instance );
                         if( ref )
@@ -1649,7 +1736,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 110:
+                case 114:
                     {
                         __eg_root< void >::__eg_Randomise< void > ref = root_Randomise_starter( reference.instance );
                         if( ref )
@@ -1687,7 +1774,45 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 117:
+                case 119:
+                    {
+                        __eg_root< void >::__eg_imgui< void > ref = root_imgui_starter( reference.instance );
+                        if( ref )
+                        {
+                            getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber
+                            (
+                                [ pStack, ref, m = m_module_eg ]()
+                                {
+                                    pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
+                                    try
+                                    {
+                                        switch( args.size() )
+                                        {
+                                            case 0: m.attr( "root_imgui_operator" )( ref ); break;
+                                            case 1: m.attr( "root_imgui_operator" )( ref, args[ 0 ] ); break;
+                                            case 2: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ] ); break;
+                                            case 3: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ] ); break;
+                                            case 4: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ] ); break;
+                                            case 5: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ] ); break;
+                                            case 6: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ] ); break;
+                                            case 7: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ], args[ 6 ] ); break;
+                                            case 8: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ], args[ 6 ], args[ 7 ] ); break;
+                                            case 9: m.attr( "root_imgui_operator" )( ref, args[ 0 ], args[ 1 ], args[ 2 ], args[ 3 ], args[ 4 ], args[ 5 ], args[ 6 ], args[ 7 ], args[ 8 ] ); break;
+                                             default: break;
+                                        }
+                                    }
+                                    catch( eg::termination_exception )
+                                    {
+                                    }
+                                    root_imgui_stopper( ref.data.instance );
+                                }
+                            );
+                            getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );
+                        }
+                        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
+                    }
+                    break;
+                case 126:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Default< void > ref = root_StrokedCircle_Default_starter( reference.instance );
                         if( ref )
@@ -1725,7 +1850,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 122:
+                case 131:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > ref = root_StrokedCircle_ColorChanger_starter( reference.instance );
                         if( ref )
@@ -1763,7 +1888,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 127:
+                case 136:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > ref = root_StrokedCircle_Morph_starter( reference.instance );
                         if( ref )
@@ -1801,7 +1926,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 149:
+                case 158:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Default< void > ref = root_Circle_Default_starter( reference.instance );
                         if( ref )
@@ -1839,7 +1964,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 154:
+                case 163:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > ref = root_Circle_ColorChanger_starter( reference.instance );
                         if( ref )
@@ -1877,7 +2002,7 @@ public:
                         pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                     }
                     break;
-                case 159:
+                case 168:
                     {
                         __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > ref = root_Circle_Morph_starter( reference.instance );
                         if( ref )
@@ -1926,40 +2051,43 @@ public:
         {
             switch( reference.type )
             {
-                case 84:
+                case 88:
                     pStack->m_result = m_module_eg.attr( "root_stop" )( reference.instance );
                     break;
-                case 90:
+                case 94:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_stop" )( reference.instance );
                     break;
-                case 95:
+                case 99:
                     pStack->m_result = m_module_eg.attr( "root_Circle_stop" )( reference.instance );
                     break;
-                case 100:
+                case 104:
                     pStack->m_result = m_module_eg.attr( "root_Spiral_stop" )( reference.instance );
                     break;
-                case 105:
+                case 109:
                     pStack->m_result = m_module_eg.attr( "root_Attract_stop" )( reference.instance );
                     break;
-                case 110:
+                case 114:
                     pStack->m_result = m_module_eg.attr( "root_Randomise_stop" )( reference.instance );
                     break;
-                case 117:
+                case 119:
+                    pStack->m_result = m_module_eg.attr( "root_imgui_stop" )( reference.instance );
+                    break;
+                case 126:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Default_stop" )( reference.instance );
                     break;
-                case 122:
+                case 131:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_ColorChanger_stop" )( reference.instance );
                     break;
-                case 127:
+                case 136:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Morph_stop" )( reference.instance );
                     break;
-                case 149:
+                case 158:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Default_stop" )( reference.instance );
                     break;
-                case 154:
+                case 163:
                     pStack->m_result = m_module_eg.attr( "root_Circle_ColorChanger_stop" )( reference.instance );
                     break;
-                case 159:
+                case 168:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Morph_stop" )( reference.instance );
                     break;
                 default:
@@ -1973,40 +2101,43 @@ public:
         {
             switch( reference.type )
             {
-                case 84:
+                case 88:
                     pStack->m_result = m_module_eg.attr( "root_pause" )( reference.instance );
                     break;
-                case 90:
+                case 94:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_pause" )( reference.instance );
                     break;
-                case 95:
+                case 99:
                     pStack->m_result = m_module_eg.attr( "root_Circle_pause" )( reference.instance );
                     break;
-                case 100:
+                case 104:
                     pStack->m_result = m_module_eg.attr( "root_Spiral_pause" )( reference.instance );
                     break;
-                case 105:
+                case 109:
                     pStack->m_result = m_module_eg.attr( "root_Attract_pause" )( reference.instance );
                     break;
-                case 110:
+                case 114:
                     pStack->m_result = m_module_eg.attr( "root_Randomise_pause" )( reference.instance );
                     break;
-                case 117:
+                case 119:
+                    pStack->m_result = m_module_eg.attr( "root_imgui_pause" )( reference.instance );
+                    break;
+                case 126:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Default_pause" )( reference.instance );
                     break;
-                case 122:
+                case 131:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_ColorChanger_pause" )( reference.instance );
                     break;
-                case 127:
+                case 136:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Morph_pause" )( reference.instance );
                     break;
-                case 149:
+                case 158:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Default_pause" )( reference.instance );
                     break;
-                case 154:
+                case 163:
                     pStack->m_result = m_module_eg.attr( "root_Circle_ColorChanger_pause" )( reference.instance );
                     break;
-                case 159:
+                case 168:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Morph_pause" )( reference.instance );
                     break;
                 default:
@@ -2020,40 +2151,43 @@ public:
         {
             switch( reference.type )
             {
-                case 84:
+                case 88:
                     pStack->m_result = m_module_eg.attr( "root_resume" )( reference.instance );
                     break;
-                case 90:
+                case 94:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_resume" )( reference.instance );
                     break;
-                case 95:
+                case 99:
                     pStack->m_result = m_module_eg.attr( "root_Circle_resume" )( reference.instance );
                     break;
-                case 100:
+                case 104:
                     pStack->m_result = m_module_eg.attr( "root_Spiral_resume" )( reference.instance );
                     break;
-                case 105:
+                case 109:
                     pStack->m_result = m_module_eg.attr( "root_Attract_resume" )( reference.instance );
                     break;
-                case 110:
+                case 114:
                     pStack->m_result = m_module_eg.attr( "root_Randomise_resume" )( reference.instance );
                     break;
-                case 117:
+                case 119:
+                    pStack->m_result = m_module_eg.attr( "root_imgui_resume" )( reference.instance );
+                    break;
+                case 126:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Default_resume" )( reference.instance );
                     break;
-                case 122:
+                case 131:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_ColorChanger_resume" )( reference.instance );
                     break;
-                case 127:
+                case 136:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Morph_resume" )( reference.instance );
                     break;
-                case 149:
+                case 158:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Default_resume" )( reference.instance );
                     break;
-                case 154:
+                case 163:
                     pStack->m_result = m_module_eg.attr( "root_Circle_ColorChanger_resume" )( reference.instance );
                     break;
-                case 159:
+                case 168:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Morph_resume" )( reference.instance );
                     break;
                 default:
@@ -2067,40 +2201,43 @@ public:
         {
             switch( reference.type )
             {
-                case 84:
+                case 88:
                     pStack->m_result = m_module_eg.attr( "root_done" )( reference.instance );
                     break;
-                case 90:
+                case 94:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_done" )( reference.instance );
                     break;
-                case 95:
+                case 99:
                     pStack->m_result = m_module_eg.attr( "root_Circle_done" )( reference.instance );
                     break;
-                case 100:
+                case 104:
                     pStack->m_result = m_module_eg.attr( "root_Spiral_done" )( reference.instance );
                     break;
-                case 105:
+                case 109:
                     pStack->m_result = m_module_eg.attr( "root_Attract_done" )( reference.instance );
                     break;
-                case 110:
+                case 114:
                     pStack->m_result = m_module_eg.attr( "root_Randomise_done" )( reference.instance );
                     break;
-                case 117:
+                case 119:
+                    pStack->m_result = m_module_eg.attr( "root_imgui_done" )( reference.instance );
+                    break;
+                case 126:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Default_done" )( reference.instance );
                     break;
-                case 122:
+                case 131:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_ColorChanger_done" )( reference.instance );
                     break;
-                case 127:
+                case 136:
                     pStack->m_result = m_module_eg.attr( "root_StrokedCircle_Morph_done" )( reference.instance );
                     break;
-                case 149:
+                case 158:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Default_done" )( reference.instance );
                     break;
-                case 154:
+                case 163:
                     pStack->m_result = m_module_eg.attr( "root_Circle_ColorChanger_done" )( reference.instance );
                     break;
-                case 159:
+                case 168:
                     pStack->m_result = m_module_eg.attr( "root_Circle_Morph_done" )( reference.instance );
                     break;
                 default:
@@ -2121,55 +2258,55 @@ public:
         {
             switch( dimensionType )
             {
-                case 132:
+                case 141:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_position_read" )( reference.instance );
                     break;
-                case 134:
+                case 143:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_positionActual_read" )( reference.instance );
                     break;
-                case 136:
+                case 145:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_color_read" )( reference.instance );
                     break;
-                case 138:
+                case 147:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_size_read" )( reference.instance );
                     break;
-                case 142:
+                case 151:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_ColorChanger_m_f_read" )( reference.instance );
                     break;
-                case 145:
+                case 154:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_Morph_m_speed_read" )( reference.instance );
                     break;
-                case 164:
+                case 173:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_position_read" )( reference.instance );
                     break;
-                case 166:
+                case 175:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_positionActual_read" )( reference.instance );
                     break;
-                case 168:
+                case 177:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_color_read" )( reference.instance );
                     break;
-                case 170:
+                case 179:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_size_read" )( reference.instance );
                     break;
-                case 174:
+                case 183:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_ColorChanger_m_f_read" )( reference.instance );
                     break;
-                case 177:
+                case 186:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_Morph_m_speed_read" )( reference.instance );
                     break;
-                case 180:
+                case 189:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_curve_read" )( reference.instance );
                     break;
-                case 182:
+                case 191:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_radius_read" )( reference.instance );
                     break;
-                case 184:
+                case 193:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_relative_read" )( reference.instance );
                     break;
-                case 186:
+                case 195:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_speed_read" )( reference.instance );
                     break;
-                case 190:
+                case 199:
                     pStack->m_result = m_module_eg.attr( "g_root_Randomise_m_range_read" )( reference.instance );
                     break;
                 default:
@@ -2190,55 +2327,55 @@ public:
         {
             switch( dimensionType )
             {
-                case 132:
+                case 141:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_position_read" )( reference.instance );
                     break;
-                case 134:
+                case 143:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_positionActual_read" )( reference.instance );
                     break;
-                case 136:
+                case 145:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_color_read" )( reference.instance );
                     break;
-                case 138:
+                case 147:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_m_size_read" )( reference.instance );
                     break;
-                case 142:
+                case 151:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_ColorChanger_m_f_read" )( reference.instance );
                     break;
-                case 145:
+                case 154:
                     pStack->m_result = m_module_eg.attr( "g_root_StrokedCircle_Morph_m_speed_read" )( reference.instance );
                     break;
-                case 164:
+                case 173:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_position_read" )( reference.instance );
                     break;
-                case 166:
+                case 175:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_positionActual_read" )( reference.instance );
                     break;
-                case 168:
+                case 177:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_color_read" )( reference.instance );
                     break;
-                case 170:
+                case 179:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_m_size_read" )( reference.instance );
                     break;
-                case 174:
+                case 183:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_ColorChanger_m_f_read" )( reference.instance );
                     break;
-                case 177:
+                case 186:
                     pStack->m_result = m_module_eg.attr( "g_root_Circle_Morph_m_speed_read" )( reference.instance );
                     break;
-                case 180:
+                case 189:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_curve_read" )( reference.instance );
                     break;
-                case 182:
+                case 191:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_radius_read" )( reference.instance );
                     break;
-                case 184:
+                case 193:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_relative_read" )( reference.instance );
                     break;
-                case 186:
+                case 195:
                     pStack->m_result = m_module_eg.attr( "g_root_Spiral_m_speed_read" )( reference.instance );
                     break;
-                case 190:
+                case 199:
                     pStack->m_result = m_module_eg.attr( "g_root_Randomise_m_range_read" )( reference.instance );
                     break;
                 default:
@@ -2417,7 +2554,7 @@ void BasicApp::setup()
 {
     boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
-    //ImGui::initialize();
+    ImGui::initialize();
         
     pythonFunctions = loadPythonScripts( g_strPythonScripts, g_strDatabase );
         
