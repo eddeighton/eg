@@ -1,0 +1,14 @@
+<EG>
+  <Project>
+    <Name>input</Name>
+    <Host>cinder</Host>
+    <Build>
+      <Name>release</Name>
+      <CompilerFlags>-D_MD -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override</CompilerFlags>
+      <LinkerFlags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:CONSOLE</LinkerFlags>
+    </Build>
+    <Run>
+      <Name>${PROJECT}/program.exe</Name>
+    </Run>
+  </Project>
+</EG>
