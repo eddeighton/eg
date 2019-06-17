@@ -306,6 +306,9 @@ namespace egxml
     virtual ::std::string
     Name ();
 
+    virtual ::std::string
+    Command ();
+
     virtual bool
     Argument_next ();
 

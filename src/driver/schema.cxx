@@ -516,6 +516,24 @@ namespace egxml
     this->Name_ = x;
   }
 
+  const ::std::string& Run::
+  Command () const
+  {
+    return this->Command_;
+  }
+
+  ::std::string& Run::
+  Command ()
+  {
+    return this->Command_;
+  }
+
+  void Run::
+  Command (const ::std::string& x)
+  {
+    this->Command_ = x;
+  }
+
   const Run::Argument_sequence& Run::
   Argument () const
   {

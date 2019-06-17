@@ -430,6 +430,12 @@ namespace egxml
   }
 
   void Run_sskel::
+  Command_serializer (::xml_schema::string_sskel& s)
+  {
+    this->Command_serializer_ = &s;
+  }
+
+  void Run_sskel::
   Argument_serializer (::xml_schema::string_sskel& s)
   {
     this->Argument_serializer_ = &s;
@@ -437,9 +443,11 @@ namespace egxml
 
   void Run_sskel::
   serializers (::xml_schema::string_sskel& Name,
+               ::xml_schema::string_sskel& Command,
                ::xml_schema::string_sskel& Argument)
   {
     this->Name_serializer_ = &Name;
+    this->Command_serializer_ = &Command;
     this->Argument_serializer_ = &Argument;
   }
 
@@ -447,6 +455,7 @@ namespace egxml
   Run_sskel ()
   : Run_impl_ (0),
     Name_serializer_ (0),
+    Command_serializer_ (0),
     Argument_serializer_ (0)
   {
   }
@@ -456,6 +465,7 @@ namespace egxml
   : ::xsde::cxx::serializer::validating::complex_content (impl, 0),
     Run_impl_ (impl),
     Name_serializer_ (0),
+    Command_serializer_ (0),
     Argument_serializer_ (0)
   {
   }
@@ -793,6 +803,9 @@ namespace egxml
 
     if (this->Name_serializer_)
       this->Name_serializer_->_reset ();
+
+    if (this->Command_serializer_)
+      this->Command_serializer_->_reset ();
 
     if (this->Argument_serializer_)
       this->Argument_serializer_->_reset ();
@@ -1836,6 +1849,45 @@ namespace egxml
 
         this->_end_element ();
         this->Name_serializer_->post ();
+      }
+      else
+      {
+        this->_schema_error (::xsde::cxx::schema_error::expected_element);
+        return;
+      }
+    }
+
+    // Command
+    //
+    {
+      const ::std::string& r = this->Command ();
+
+      if (this->Command_serializer_)
+      {
+        this->Command_serializer_->pre (r);
+        this->_start_element ("Command");
+        this->Command_serializer_->_pre_impl (ctx);
+
+        if (ctx.error_type ())
+          return;
+
+        this->Command_serializer_->_serialize_attributes ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Command_serializer_->_serialize_content ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Command_serializer_->_post_impl ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->_end_element ();
+        this->Command_serializer_->post ();
       }
       else
       {

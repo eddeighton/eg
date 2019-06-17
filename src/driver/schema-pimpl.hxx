@@ -348,6 +348,9 @@ namespace egxml
     Name (const ::std::string&);
 
     virtual void
+    Command (const ::std::string&);
+
+    virtual void
     Argument (const ::std::string&);
 
     virtual ::egxml::Run*

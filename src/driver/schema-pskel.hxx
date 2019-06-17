@@ -1082,6 +1082,9 @@ namespace egxml
     Name (const ::std::string&);
 
     virtual void
+    Command (const ::std::string&);
+
+    virtual void
     Argument (const ::std::string&);
 
     virtual ::egxml::Run*
@@ -1091,12 +1094,16 @@ namespace egxml
     //
     void
     parsers (::xml_schema::string_pskel& /* Name */,
+             ::xml_schema::string_pskel& /* Command */,
              ::xml_schema::string_pskel& /* Argument */);
 
     // Individual element parsers.
     //
     void
     Name_parser (::xml_schema::string_pskel&);
+
+    void
+    Command_parser (::xml_schema::string_pskel&);
 
     void
     Argument_parser (::xml_schema::string_pskel&);
@@ -1125,6 +1132,7 @@ namespace egxml
 
     protected:
     ::xml_schema::string_pskel* Name_parser_;
+    ::xml_schema::string_pskel* Command_parser_;
     ::xml_schema::string_pskel* Argument_parser_;
 
     public:

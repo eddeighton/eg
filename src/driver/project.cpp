@@ -45,6 +45,7 @@ XMLManager::XMLDocPtr XMLManager::load( const boost::filesystem::path& docPath )
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 const boost::filesystem::path Environment::EG_FILE_EXTENSION = std::string( ".eg" );
+const boost::filesystem::path Environment::PYTHON_FILE_EXTENSION = std::string( ".py" );
 const std::string Environment::EG_INSTALLATION = "EG";
 const std::string Environment::CURRENT_PROJECT = "PROJECT";
 const std::string Environment::WINDOWS_10_SDK = "WINDOWS_10_SDK";

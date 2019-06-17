@@ -8,7 +8,10 @@
       <LinkerFlags>-nostdlib -lmsvcrt -lopengl32 -Xlinker /SUBSYSTEM:CONSOLE</LinkerFlags>
     </Build>
     <Run>
-      <Name>${PROJECT}/program.exe</Name>
+      <Name>default</Name>
+      <Command>${PROJECT}/program.exe</Command>
+      <Argument>--database ${PROJECT}/build/database.db</Argument>
+      <Argument>--python ${PROJECT}/imgui.py</Argument>
     </Run>
   </Project>
 </EG>

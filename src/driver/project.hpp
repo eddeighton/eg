@@ -39,6 +39,7 @@ class Environment
 {
 public:
     static const boost::filesystem::path EG_FILE_EXTENSION;
+    static const boost::filesystem::path PYTHON_FILE_EXTENSION;
     
     static const std::string EG_INSTALLATION;
     static const std::string CURRENT_PROJECT;

@@ -78,16 +78,12 @@ extern void command_create( bool bHelp, const std::vector< std::string >& args )
 
 extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
 
-void command_run( bool bHelp, const std::vector< std::string >& args )
-{
-    
-}
+extern void command_run( bool bHelp, const std::vector< std::string >& args );
 
 void command_cmake( bool bHelp, const std::vector< std::string >& args )
 {
     
 }
-
 void command_debug( bool bHelp, const std::vector< std::string >& args )
 {
     

@@ -809,11 +809,11 @@ void root_Circle_resume( eg::Instance instance )
 bool root_Circle_done( eg::Instance instance )
 {
     eg::Iterator iter;
+    iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleMorph_alloc_iter.load() );
+    if( iter.full || ( iter.head != iter.tail ) ) return false;
     iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleDefault_alloc_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
     iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleColorChanger_alloc_iter.load() );
-    if( iter.full || ( iter.head != iter.tail ) ) return false;
-    iter = eg::Iterator( g_root_Circle[ instance ].g_root_CircleMorph_alloc_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
     return true;
 }

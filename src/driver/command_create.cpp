@@ -6,6 +6,7 @@
 #include "schema-simpl.hxx"
 
 #include "common/file.hpp"
+#include "common/assert_verify.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -35,7 +36,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        
+        VERIFY_RTE_MSG( !strHost.empty(), "No host specified" );
         
         const boost::filesystem::path projectDirectory = 
             boost::filesystem::edsCannonicalise(
@@ -43,25 +44,55 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
         
         const boost::filesystem::path projectFile = 
             projectDirectory / Environment::EG_FILE_EXTENSION;
+            
+        const std::string strName = projectDirectory.stem().string();
+        VERIFY_RTE_MSG( !strName.empty(), "Project name cannot be empty: " << projectDirectory.generic_string() );
         
+        //create main.eg
+        {
+            std::ostringstream osFile;
+            osFile << strName << Environment::EG_FILE_EXTENSION.string();
+            const boost::filesystem::path mainEGFile = 
+                projectDirectory / osFile.str();
+            std::unique_ptr< boost::filesystem::ofstream > pFileStream =
+                createNewFileStream( mainEGFile );
+        }
+        //create main.py
+        {
+            std::ostringstream osFile;
+            osFile << strName << Environment::PYTHON_FILE_EXTENSION.string();
+            const boost::filesystem::path mainPythonScript = 
+                projectDirectory / osFile.str();
+            std::unique_ptr< boost::filesystem::ofstream > pFileStream =
+                createNewFileStream( mainPythonScript );
+        }
+            
         Environment environment( projectFile );
         
         egxml::EG newEG;
         {
             egxml::Project* pProject = new egxml::Project;
             {
-                pProject->Name( "test" );
+                pProject->Name( strName );
                 pProject->Host( strHost );
                 egxml::Build build;
                 {
                     build.Name( "release" );
-                    build.CompilerFlags( "--donothing" );
-                    build.LinkerFlags( "--dontlink" );
+                    build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                    build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
                 }
                 pProject->Build().push_back( build );
                 egxml::Run* pRun = new egxml::Run;
                 {
                     pRun->Name( "default" );
+                    pRun->Command( "${PROJECT}/program.exe" );
+                    pRun->Argument().push_back( "--database ${PROJECT}/build/database.db" );
+                    
+                    {
+                        std::ostringstream osCmd;
+                        osCmd << "--python ${PROJECT}/" << strName << ".py";
+                        pRun->Argument().push_back( osCmd.str() );
+                    }
                 }
                 pProject->Run().push_back( pRun );
             }

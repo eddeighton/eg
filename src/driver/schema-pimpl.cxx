@@ -548,6 +548,12 @@ namespace egxml
   }
 
   void Run_pimpl::
+  Command (const ::std::string& x)
+  {
+    this->Run_pimpl_state_.Run_->Command (x);
+  }
+
+  void Run_pimpl::
   Argument (const ::std::string& x)
   {
     this->Run_pimpl_state_.Run_->Argument ().push_back (x);
@@ -597,6 +603,7 @@ namespace egxml
                             this->string_p_);
 
     this->Run_p_.parsers (this->string_p_,
+                          this->string_p_,
                           this->string_p_);
 
     this->EG_p_.parsers (this->Package_p_,

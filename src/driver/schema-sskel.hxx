@@ -854,6 +854,9 @@ namespace egxml
     virtual ::std::string
     Name () = 0;
 
+    virtual ::std::string
+    Command () = 0;
+
     virtual bool
     Argument_next ();
 
@@ -867,12 +870,16 @@ namespace egxml
     //
     void
     serializers (::xml_schema::string_sskel& /* Name */,
+                 ::xml_schema::string_sskel& /* Command */,
                  ::xml_schema::string_sskel& /* Argument */);
 
     // Individual element serializers.
     //
     void
     Name_serializer (::xml_schema::string_sskel&);
+
+    void
+    Command_serializer (::xml_schema::string_sskel&);
 
     void
     Argument_serializer (::xml_schema::string_sskel&);
@@ -896,6 +903,7 @@ namespace egxml
 
     protected:
     ::xml_schema::string_sskel* Name_serializer_;
+    ::xml_schema::string_sskel* Command_serializer_;
     ::xml_schema::string_sskel* Argument_serializer_;
   };
 }

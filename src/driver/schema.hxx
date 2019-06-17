@@ -650,6 +650,17 @@ namespace egxml
     void
     Name (const ::std::string&);
 
+    // Command
+    //
+    const ::std::string&
+    Command () const;
+
+    ::std::string&
+    Command ();
+
+    void
+    Command (const ::std::string&);
+
     // Argument
     //
     typedef ::xsde::cxx::string_sequence Argument_sequence;
@@ -664,6 +675,7 @@ namespace egxml
 
     private:
     ::std::string Name_;
+    ::std::string Command_;
     Argument_sequence Argument_;
   };
 }

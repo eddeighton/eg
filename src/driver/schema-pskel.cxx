@@ -444,6 +444,12 @@ namespace egxml
   }
 
   void Run_pskel::
+  Command_parser (::xml_schema::string_pskel& p)
+  {
+    this->Command_parser_ = &p;
+  }
+
+  void Run_pskel::
   Argument_parser (::xml_schema::string_pskel& p)
   {
     this->Argument_parser_ = &p;
@@ -451,9 +457,11 @@ namespace egxml
 
   void Run_pskel::
   parsers (::xml_schema::string_pskel& Name,
+           ::xml_schema::string_pskel& Command,
            ::xml_schema::string_pskel& Argument)
   {
     this->Name_parser_ = &Name;
+    this->Command_parser_ = &Command;
     this->Argument_parser_ = &Argument;
   }
 
@@ -461,6 +469,7 @@ namespace egxml
   Run_pskel ()
   : Run_impl_ (0),
     Name_parser_ (0),
+    Command_parser_ (0),
     Argument_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
@@ -471,6 +480,7 @@ namespace egxml
   : ::xsde::cxx::parser::validating::complex_content (impl, 0),
     Run_impl_ (impl),
     Name_parser_ (0),
+    Command_parser_ (0),
     Argument_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
@@ -879,6 +889,13 @@ namespace egxml
   }
 
   void Run_pskel::
+  Command (const ::std::string& x)
+  {
+    if (this->Run_impl_)
+      this->Run_impl_->Command (x);
+  }
+
+  void Run_pskel::
   Argument (const ::std::string& x)
   {
     if (this->Run_impl_)
@@ -900,6 +917,9 @@ namespace egxml
 
     if (this->Name_parser_)
       this->Name_parser_->_reset ();
+
+    if (this->Command_parser_)
+      this->Command_parser_->_reset ();
 
     if (this->Argument_parser_)
       this->Argument_parser_->_reset ();
@@ -3012,6 +3032,46 @@ namespace egxml
         }
       }
       case 1UL:
+      {
+        if (n == "Command" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Command_parser_)
+            {
+              this->Command_parser_->pre ();
+              ctx.nested_parser (this->Command_parser_);
+            }
+          }
+          else
+          {
+            if (this->Command_parser_ != 0)
+            {
+              const ::std::string& tmp = this->Command_parser_->post_string ();
+              this->Command (tmp);
+            }
+
+            count = 0;
+            state = 2UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          if (count < 1UL)
+          {
+            this->_schema_error (::xsde::cxx::schema_error::expected_element);
+            break;
+          }
+
+          count = 0;
+          state = 2UL;
+          // Fall through.
+        }
+      }
+      case 2UL:
       {
         if (n == "Argument" && ns.empty ())
         {

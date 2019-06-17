@@ -393,6 +393,12 @@ namespace egxml
     return this->Run_simpl_state_.Run_->Name ();
   }
 
+  ::std::string Run_simpl::
+  Command ()
+  {
+    return this->Run_simpl_state_.Run_->Command ();
+  }
+
   bool Run_simpl::
   Argument_next ()
   {
@@ -442,6 +448,7 @@ namespace egxml
                                 this->string_s_);
 
     this->Run_s_.serializers (this->string_s_,
+                              this->string_s_,
                               this->string_s_);
 
     this->EG_s_.serializers (this->Package_s_,
