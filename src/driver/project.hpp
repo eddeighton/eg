@@ -86,6 +86,7 @@ public:
     boost::filesystem::path getIntermediateFolder() const;
     boost::filesystem::path getTreeFileName() const;
     boost::filesystem::path getIncludeHeader() const;
+    boost::filesystem::path getPreprocessedFile() const;
     boost::filesystem::path getIncludePCH() const;
     boost::filesystem::path getInterfaceHeader() const;
     boost::filesystem::path getInterfacePCH() const;
@@ -99,6 +100,7 @@ public:
     boost::filesystem::path getImplementationSource( int szUnitID ) const;
     
     boost::filesystem::path getObjectName( int szUnitID ) const;
+    boost::filesystem::path getObjectFile( const boost::filesystem::path& sourceFile ) const;
     
     boost::filesystem::path getHostCommand() const;
     boost::filesystem::path getProgramName() const;

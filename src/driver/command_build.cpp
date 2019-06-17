@@ -59,26 +59,27 @@ class EGDiagConsumer : public clang::DiagnosticConsumer
 
 struct LogEntry
 {
+private:
     std::ostream& os;
+    const std::string msg;
     boost::timer::cpu_timer timer_internal;
     bool bBenchCommands;
-    
-    LogEntry( std::ostream& os, const char* pszMsg, bool bBenchCommands )
+public:
+    LogEntry( std::ostream& os, const std::string& pszMsg, bool bBenchCommands )
         :   os( os ),
+            msg( pszMsg ),
             bBenchCommands( bBenchCommands )
     {
-        if( bBenchCommands )
-            os << "\n" << pszMsg << std::endl;
     }
     
     ~LogEntry()
     {
         if( bBenchCommands )
-            os << timer_internal.format();
+            os << timer_internal.format( 3, "%w seconds" ) << ": " << msg << "\n";
     }
 };
 
-void build_parser_session( const Environment& environment, const Project& project, bool bBenchCommands, bool bLogCommands )
+void build_parser_session( const Environment& environment, const Project& project, bool bBenchCommands, bool bLogCommands, bool bUsePCH )
 {
     //create clang file manager
     clang::FileSystemOptions fileSystemOptions = { boost::filesystem::current_path().string() };
@@ -109,7 +110,13 @@ void build_parser_session( const Environment& environment, const Project& projec
     }
     
     //TODO detect existing pch file here if includes.hpp has not changed...
+    if( bUsePCH )
+    {
+        //check pch exists
+        VERIFY_RTE_MSG( boost::filesystem::exists( project.getIncludePCH() ), "Precompiled header file is missing" );
+    }
     
+    if( !bUsePCH )
     {
         LogEntry log( std::cout, "Compiling includes to pch", bBenchCommands );
         
@@ -123,6 +130,37 @@ void build_parser_session( const Environment& environment, const Project& projec
                 project.getHostSystemIncludes(), 
                 project.getHostUserIncludes() );
         }
+        
+        //run the preprocess on the include file
+        /*{
+            std::ostringstream osCmd;
+            environment.startCompilationCommand( osCmd );
+            osCmd << " " << project.getCompilerFlags() << " ";
+            
+            osCmd << environment.printPath( project.getIncludeHeader() ) << " ";
+            
+            osCmd << "-I " << environment.getEGLibraryInclude().generic_string() << " ";
+            
+            for( const boost::filesystem::path& includeDirectory : project.getIncludeDirectories() )
+            {
+                osCmd << "-I " << environment.printPath( includeDirectory ) << " ";
+            }
+            
+            osCmd << " -E -o " << environment.printPath( project.getPreprocessedFile() ) << " ";
+            
+            if( bLogCommands )
+            {
+                std::cout << "\n" << osCmd.str() << std::endl;
+            }
+            
+            {
+                const int iResult = boost::process::system( osCmd.str() );
+                if( iResult )
+                {
+                    THROW_RTE( "Error invoking clang++ " << iResult );
+                }
+            }
+        }*/
         
         //compile the includes header to pch file
         {
@@ -392,25 +430,74 @@ void build_program( const Environment& environment, const Project& project, bool
         }
     }
             
-    //finally compile and link executable
+    //compile all object files
+    std::vector< boost::filesystem::path > objectFiles;
     {
-        LogEntry log( std::cout, "Compiling and linking program", bBenchCommands );
+        for( const boost::filesystem::path& strSourceFile : project.getCPPSourceCode() )
+        {
+            boost::filesystem::path objectFilePath = project.getObjectFile( strSourceFile );
+            objectFiles.push_back( objectFilePath );
+            
+            std::ostringstream os;
+            os << "Compiling: " << objectFilePath.generic_string();
+            LogEntry log( std::cout, os.str(), bBenchCommands );
+                
+            std::ostringstream osCmd;
+            environment.startCompilationCommand( osCmd );
+            osCmd << " " << project.getCompilerFlags() << " ";
+            
+            osCmd << "-c -o " << environment.printPath( objectFilePath ) << " ";
+            
+            osCmd << "-Xclang -include-pch ";
+            osCmd << "-Xclang " << environment.printPath( project.getIncludePCH() ) << " ";
+            
+            osCmd << "-Xclang -include-pch ";
+            osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
+        
+            osCmd << "-I " << environment.printPath( environment.getEGLibraryInclude() ) << " ";
+            osCmd << "-I " << environment.printPath( project.getIntermediateFolder() ) << " ";
+            
+            for( const boost::filesystem::path& includeDirectory : project.getIncludeDirectories() )
+            {
+                osCmd << "-I " << environment.printPath( includeDirectory ) << " ";
+            }
+            
+            osCmd << environment.printPath( strSourceFile ) << " ";
+                
+            if( bLogCommands )
+            {
+                std::cout << "\n" << osCmd.str() << std::endl;
+            }
+            
+            {
+                const int iResult = boost::process::system( osCmd.str() );
+                if( iResult )
+                {
+                    THROW_RTE( "Error invoking clang++ " << iResult );
+                }
+            }
+        }
+    }
+    
+    //link the program
+    {
+        LogEntry log( std::cout, "Linking", bBenchCommands );
+        
         std::ostringstream osCmd;
         environment.startCompilationCommand( osCmd );
         osCmd << " " << project.getCompilerFlags() << " " << project.getLinkerFlags() << " ";
         
         osCmd << "-o " << environment.printPath( project.getProgramName() ) << " ";
         
-        osCmd << "-Xclang -include-pch ";
-        osCmd << "-Xclang " << environment.printPath( project.getIncludePCH() ) << " ";
-        
-        osCmd << "-Xclang -include-pch ";
-        osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
-    
         for( std::size_t szUnitIndex = 0U; szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
         {
             const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
             osCmd << environment.printPath( project.getObjectName( szUnitID ) ) << " ";
+        }
+        
+        for( const boost::filesystem::path& objectFile : objectFiles )
+        {
+            osCmd << environment.printPath( objectFile ) << " ";
         }
         
         for( const boost::filesystem::path& strLibraryPath : project.getLibraryDirectories() )
@@ -418,24 +505,11 @@ void build_program( const Environment& environment, const Project& project, bool
             osCmd << "-L" << environment.printPath( strLibraryPath ) << " ";
         }
         
-        for( const boost::filesystem::path& strSourceFile : project.getCPPSourceCode() )
-        {
-            osCmd << environment.printPath( strSourceFile ) << " ";
-        }
-        
         for( const boost::filesystem::path& strSourceFile : project.getCPPLibs() )
         {
             osCmd << environment.printPath( strSourceFile ) << " ";
         }
-        
-        osCmd << "-I " << environment.printPath( environment.getEGLibraryInclude() ) << " ";
-        osCmd << "-I " << environment.printPath( project.getIntermediateFolder() ) << " ";
-        
-        for( const boost::filesystem::path& includeDirectory : project.getIncludeDirectories() )
-        {
-            osCmd << "-I " << environment.printPath( includeDirectory ) << " ";
-        }
-            
+
         if( bLogCommands )
         {
             std::cout << "\n" << osCmd.str() << std::endl;
@@ -457,6 +531,7 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
     std::string strDirectory;
     bool bBenchCommands = false;
     bool bLogCommands = false;
+    bool bUsePCH = false;
     
     namespace po = boost::program_options;
     po::options_description commandOptions(" Create Project Command");
@@ -464,7 +539,8 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
             ("bench",   po::bool_switch( &bBenchCommands ), "Benchmark compilation steps" )
-            ("log",   po::bool_switch( &bLogCommands ), "Log compilation commands" )
+            ("log",     po::bool_switch( &bLogCommands ), "Log compilation commands" )
+            ("pch",     po::bool_switch( &bUsePCH ), "Attempt to use precompiled header from previous build" )
         ;
     }
     
@@ -507,13 +583,15 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
             THROW_RTE( "Could not locate " << Environment::EG_FILE_EXTENSION << " file in directory: " << projectDirectory.generic_string() );
         }
         
+        LogEntry log( std::cout, "Total time", bBenchCommands );
+        
         XMLManager::XMLDocPtr pDocument = XMLManager::load( projectFile );
         
         Environment environment( projectDirectory );
         
         Project project( environment, pDocument->Project(), strBuildCommand );
         
-        build_parser_session( environment, project, bBenchCommands, bLogCommands );
+        build_parser_session( environment, project, bBenchCommands, bLogCommands, bUsePCH );
         
         build_operations( environment, project, bBenchCommands, bLogCommands );
         

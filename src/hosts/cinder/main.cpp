@@ -109,15 +109,7 @@ int main( int argc, const char* argv[] )
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
     
     os << "#include \"structures.hpp\"\n";
-    os << "#include \"pybind11/embed.h\"\n";
-    os << "#include \"pybind11/numpy.h\"\n";
-    os << "#include \"pybind11/stl.h\"\n";
-    os << "#include \"pybind11/stl_bind.h\"\n";
     os << "#include \"hosts/py_eg_reference.hpp\"\n";
-    os << "#include \"eg_runtime/eg_runtime.hpp\"\n";
-    os << "#include \"eventlog/eventlog_api.hpp\"\n";
-    os << "#include <boost/program_options.hpp>\n";
-    os << "#include <boost/filesystem.hpp>\n";
     
     
     const char* pszClock = R"(

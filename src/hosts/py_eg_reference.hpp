@@ -21,13 +21,13 @@
 #ifndef PYTHON_EG_REFERENCE_TYPE_22_04_2019
 #define PYTHON_EG_REFERENCE_TYPE_22_04_2019
 
-#include "eg_common.hpp"
+//#include "eg_common.hpp" //rely on the precompiled header for this
 
-#include "eg_runtime/eg_runtime.hpp"
+//#include "eg_runtime/eg_runtime.hpp" //rely on the precompiled header for this
 
-#include <pybind11/embed.h> // everything needed for embedding
+//#include <pybind11/pybind11.h> //rely on the precompiled header for this
 
-#include <vector>
+//#include <vector> //rely on the precompiled header for this
 
 extern eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
 extern eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );
@@ -141,7 +141,7 @@ public:
     
     inline PythonIterator& operator++()
     {
-        ASSERT( m_subRange != m_pRange->getSize() );
+        //ASSERT( m_subRange != m_pRange->getSize() );
         ++m_position;
         scanToNextOrEnd();
         return *this;

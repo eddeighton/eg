@@ -696,15 +696,15 @@ void runPythonScript( const std::string& strPythonFile, const std::string& strDa
     {
         std::string strScript;
         {
-            const boost::filesystem::path pythonFilePath = 
-                boost::filesystem::edsCannonicalise(
-                    boost::filesystem::absolute( strPythonFile ) );
+            const boost::filesystem::path pythonFilePath( strPythonFile );
             if( !boost::filesystem::exists( pythonFilePath ) )
             {
                 std::cout << "Cannot locate file: " << pythonFilePath.string() << std::endl;
                 return;
             } 
-            boost::filesystem::loadAsciiFile( pythonFilePath, strScript );
+            std::ifstream inputFileStream( pythonFilePath.native().c_str(), std::ios::in );
+            strScript = std::move( std::string( (std::istreambuf_iterator<char>( inputFileStream )),
+                                       std::istreambuf_iterator<char>() ) );
         }
 
         if( !strScript.empty() )
@@ -735,9 +735,7 @@ std::vector< std::function< void() > > loadPythonScripts( const std::vector< std
             std::cout << "Missing database file path" << std::endl;
             return pythonFunctions;
         }
-        const boost::filesystem::path databaseFilePath = 
-            boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( strDatabaseFile ) );
+        const boost::filesystem::path databaseFilePath( strDatabaseFile );
         if( !boost::filesystem::exists( databaseFilePath ) )
         {
             std::cout << "Cannot locate file: " << databaseFilePath.string() << std::endl;

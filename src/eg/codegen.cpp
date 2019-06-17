@@ -31,11 +31,7 @@
 #include "invocation.hpp"
 
 #include <boost/bind.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include <sstream>
 #include <cctype>
@@ -81,31 +77,13 @@ namespace eg
                               !boost::bind( &eds_isalnum, _1 ), r );
         return strResult;
     }
-
-    static const char DELIM = '_';
-    std::string getUUIDString()
+    
+    void generateIncludeGuard( std::ostream& os, const char* pszName )
     {
-        boost::uuids::random_generator gen;
-        std::string strUUID = boost::to_upper_copy( boost::uuids::to_string( gen() ) );
-        return style_replace_non_alpha_numeric( strUUID, DELIM );
-    }
-    std::string getDateAsNiceString()
-    {
-        return style_replace_non_alpha_numeric(
-            boost::posix_time::to_simple_string(
-                boost::posix_time::second_clock::universal_time() ), DELIM );
-    }
-
-    void generateIncludeGuard( std::ostream& os )
-    {
-        const std::string strGUIID = getUUIDString();
-        const std::string strDate = getDateAsNiceString();
-        
-        os << "#ifndef EG_INTERFACE_GUARD_" << strGUIID << "__" << strDate << "\n";
-        os << "#define EG_INTERFACE_GUARD_" << strGUIID << "__" << strDate << "\n";
+        os << "#ifndef EG_INTERFACE_GUARD_" << pszName << "\n";
+        os << "#define EG_INTERFACE_GUARD_" << pszName << "\n";
         os << pszLine << pszLine << "\n";
     }
-    
     
     //generate include directives
     void generateInterfaceIncludes( std::ostream& os, const interface::Root* pRoot, 
@@ -517,7 +495,7 @@ namespace eg
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser )
     {
-        generateIncludeGuard( os );
+        generateIncludeGuard( os, "INCLUDES" );
         
         generateInterfaceIncludes( os, pRoot, hostIncludesSystem, hostIncludesUser );
         
@@ -527,7 +505,7 @@ namespace eg
     
     void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers )
     {
-        generateIncludeGuard( os );
+        generateIncludeGuard( os, "INTERFACE" );
         
         generateForwardDeclarations( os, pIdentifiers );
         
@@ -658,7 +636,7 @@ namespace eg
     
     void generateOperationSource( std::ostream& os, const interface::Root* pRoot )
     {
-        generateIncludeGuard( os );
+        generateIncludeGuard( os, "OPERATIONS" );
         
         //generate operations
         {
@@ -675,7 +653,7 @@ namespace eg
     {
         const Layout& layout = program.getLayout();
         
-        generateIncludeGuard( os );
+        generateIncludeGuard( os, "STRUCTURES" );
         
         os << "//data structures\n";
         for( const Buffer* pBuffer : layout.getBuffers() )

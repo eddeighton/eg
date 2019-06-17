@@ -486,6 +486,15 @@ boost::filesystem::path Project::getIncludeHeader() const
                 getIntermediateFolder() / os.str() ) );
 }
 
+boost::filesystem::path Project::getPreprocessedFile() const
+{
+    std::ostringstream os;
+    os << "includes_pre.hpp";
+    return boost::filesystem::edsCannonicalise(
+            boost::filesystem::absolute( 
+                getIntermediateFolder() / os.str() ) );
+}
+
 boost::filesystem::path Project::getIncludePCH() const
 {
     std::ostringstream os;
@@ -577,6 +586,15 @@ boost::filesystem::path Project::getObjectName( int szUnitID ) const
                     getIntermediateFolder() / os.str() ) );
 }
 
+boost::filesystem::path Project::getObjectFile( const boost::filesystem::path& sourceFile ) const
+{
+    std::ostringstream os;
+    os << "object_" << sourceFile.stem().string() << ".obj";
+    return boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( 
+                    getIntermediateFolder() / os.str() ) );
+}
+    
 boost::filesystem::path Project::getHostCommand() const
 {
     return m_environment.expand( m_host.Command() );
