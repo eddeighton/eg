@@ -1,6 +1,10 @@
 
 include( "glm/vec2.hpp" );
 
+
+dim float morphSpeed;
+morphSpeed( 0.1 );
+
 abstract Shape
 {
     dim glm::vec2 position;
@@ -28,12 +32,11 @@ abstract Shape
     
     action Morph
     {
-        dim float speed;
         
         while( true )
         {
             positionActual( positionActual() + 
-                ( position() - positionActual() ) * clock::dt() * speed() );
+                ( position() - positionActual() ) * clock::dt() * morphSpeed() );
             eg::sleep();        
         }
     }
@@ -66,7 +69,6 @@ action Spiral
     dim float radius;
     dim float relative;
     dim float speed;
-    relative( 1.0f );
     
     while( true )
     {
@@ -101,11 +103,11 @@ action Attract
         {
             if( bFirst )
             {
-                center = circle.position();
+                center = circle.positionActual();
                 bFirst = false;
             }
             else
-                circle.position( center );
+                circle.positionActual( center );
         }
     }
 }
@@ -120,7 +122,7 @@ action Randomise
         {
             glm::vec2 vRand( center.x + center.x * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ),
                         center.y + center.y * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ) );
-            s.position( vRand );
+            s.positionActual( vRand );
         }
     }
 }
@@ -131,11 +133,12 @@ action imgui
     {
         ImGui::Begin( "Settings" );
         ImGui::TextColored( ImVec4(1,1,1,1), "Tweakatron 9000" );
-        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 200 );
+        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 2000 );
         ImGui::SliderFloat( "speed", &Spiral.speed.Get(), 0.0f, 2.0f );
-        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 200.0f );
+        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 10.0f );
         ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
         ImGui::SliderFloat( "relative", &Spiral.relative.Get(), -10.0f, 10.0f );
+        ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 1.0f );
     
         if( ImGui::Button( "Spiral" ) )
         {

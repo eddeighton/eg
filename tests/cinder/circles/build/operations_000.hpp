@@ -1,5 +1,5 @@
-#ifndef EG_INTERFACE_GUARD_EBC1FEF7_26CA_4EFB_9F8E_8A5374FE895F__2019_Jun_17_08_32_42
-#define EG_INTERFACE_GUARD_EBC1FEF7_26CA_4EFB_9F8E_8A5374FE895F__2019_Jun_17_08_32_42
+#ifndef EG_INTERFACE_GUARD_OPERATIONS
+#define EG_INTERFACE_GUARD_OPERATIONS
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -8,6 +8,7 @@
 template<>
 void __eg_root< void >::operator()() const
 {
+  morphSpeed( 0.1 );
   imgui.Start();
 
 bool bContinue = true;
@@ -78,7 +79,7 @@ void __eg_root< void >::__eg_Shape< void >::__eg_Morph< void >::operator()() con
   while( true )
         {
             positionActual( positionActual() + 
-                ( position() - positionActual() ) * clock::dt() * speed() );
+                ( position() - positionActual() ) * clock::dt() * morphSpeed() );
             eg::sleep();        
         }
 }
@@ -114,9 +115,7 @@ template<>
 template<>
 void __eg_root< void >::__eg_Spiral< void >::operator()() const
 {
-  relative( 1.0f );
-    
-    while( true )
+  while( true )
     {
         const int numCircles = eg::count( root.Get().Shape.Range() );
         
@@ -151,11 +150,11 @@ void __eg_root< void >::__eg_Attract< void >::operator()() const
         {
             if( bFirst )
             {
-                center = circle.position();
+                center = circle.positionActual();
                 bFirst = false;
             }
             else
-                circle.position( center );
+                circle.positionActual( center );
         }
     }
 }
@@ -172,7 +171,7 @@ void __eg_root< void >::__eg_Randomise< void >::operator()() const
         {
             glm::vec2 vRand( center.x + center.x * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ),
                         center.y + center.y * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ) );
-            s.position( vRand );
+            s.positionActual( vRand );
         }
     }
 }
@@ -186,11 +185,12 @@ void __eg_root< void >::__eg_imgui< void >::operator()() const
     {
         ImGui::Begin( "Settings" );
         ImGui::TextColored( ImVec4(1,1,1,1), "Tweakatron 9000" );
-        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 200 );
+        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 2000 );
         ImGui::SliderFloat( "speed", &Spiral.speed.Get(), 0.0f, 2.0f );
-        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 200.0f );
+        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 10.0f );
         ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
         ImGui::SliderFloat( "relative", &Spiral.relative.Get(), -10.0f, 10.0f );
+        ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 1.0f );
     
         if( ImGui::Button( "Spiral" ) )
         {

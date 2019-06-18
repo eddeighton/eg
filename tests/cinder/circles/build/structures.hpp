@@ -1,17 +1,18 @@
-#ifndef EG_INTERFACE_GUARD_198CF19D_6BA6_472C_BFED_190B4C8F6B35__2019_Jun_17_08_32_42
-#define EG_INTERFACE_GUARD_198CF19D_6BA6_472C_BFED_190B4C8F6B35__2019_Jun_17_08_32_42
+#ifndef EG_INTERFACE_GUARD_STRUCTURES
+#define EG_INTERFACE_GUARD_STRUCTURES
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
 //data structures
 
-//Buffer: b_root type: 88 size: 1
+//Buffer: b_root type: 90 size: 1
 struct b_root
 {
     eg::TimeStamp g_root_cycle;
     eg::ActionState g_root_state;
     boost::fibers::fiber g_root_fiber;
     __eg_root< void > g_root_reference;
+    float m_morphSpeed;
     std::atomic< std::uint64_t > g_rootStrokedCircle_alloc_iter;
     std::atomic< std::uint64_t > g_rootCircle_alloc_iter;
     std::atomic< std::uint64_t > g_rootSpiral_alloc_iter;
@@ -21,7 +22,7 @@ struct b_root
 };
 extern b_root *g_root;
 
-//Buffer: b_root_StrokedCircle type: 94 size: 256
+//Buffer: b_root_StrokedCircle type: 96 size: 256
 struct b_root_StrokedCircle
 {
     eg::TimeStamp g_root_StrokedCircle_cycle;
@@ -39,7 +40,7 @@ struct b_root_StrokedCircle
 };
 extern b_root_StrokedCircle *g_root_StrokedCircle;
 
-//Buffer: b_root_StrokedCircle_Default type: 126 size: 256
+//Buffer: b_root_StrokedCircle_Default type: 130 size: 256
 struct b_root_StrokedCircle_Default
 {
     eg::TimeStamp g_root_StrokedCircle_Default_cycle;
@@ -50,7 +51,7 @@ struct b_root_StrokedCircle_Default
 };
 extern b_root_StrokedCircle_Default *g_root_StrokedCircle_Default;
 
-//Buffer: b_root_StrokedCircle_ColorChanger type: 131 size: 256
+//Buffer: b_root_StrokedCircle_ColorChanger type: 135 size: 256
 struct b_root_StrokedCircle_ColorChanger
 {
     eg::TimeStamp g_root_StrokedCircle_ColorChanger_cycle;
@@ -62,19 +63,18 @@ struct b_root_StrokedCircle_ColorChanger
 };
 extern b_root_StrokedCircle_ColorChanger *g_root_StrokedCircle_ColorChanger;
 
-//Buffer: b_root_StrokedCircle_Morph type: 136 size: 256
+//Buffer: b_root_StrokedCircle_Morph type: 140 size: 256
 struct b_root_StrokedCircle_Morph
 {
     eg::TimeStamp g_root_StrokedCircle_Morph_cycle;
     eg::ActionState g_root_StrokedCircle_Morph_state;
     boost::fibers::fiber g_root_StrokedCircle_Morph_fiber;
     __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > g_root_StrokedCircle_Morph_reference;
-    float m_speed;
     eg::Instance g_root_StrokedCircle_Morph_alloc_data;
 };
 extern b_root_StrokedCircle_Morph *g_root_StrokedCircle_Morph;
 
-//Buffer: b_root_Circle type: 99 size: 256
+//Buffer: b_root_Circle type: 101 size: 256
 struct b_root_Circle
 {
     eg::TimeStamp g_root_Circle_cycle;
@@ -92,7 +92,7 @@ struct b_root_Circle
 };
 extern b_root_Circle *g_root_Circle;
 
-//Buffer: b_root_Circle_Default type: 158 size: 256
+//Buffer: b_root_Circle_Default type: 160 size: 256
 struct b_root_Circle_Default
 {
     eg::TimeStamp g_root_Circle_Default_cycle;
@@ -103,7 +103,7 @@ struct b_root_Circle_Default
 };
 extern b_root_Circle_Default *g_root_Circle_Default;
 
-//Buffer: b_root_Circle_ColorChanger type: 163 size: 256
+//Buffer: b_root_Circle_ColorChanger type: 165 size: 256
 struct b_root_Circle_ColorChanger
 {
     eg::TimeStamp g_root_Circle_ColorChanger_cycle;
@@ -115,19 +115,18 @@ struct b_root_Circle_ColorChanger
 };
 extern b_root_Circle_ColorChanger *g_root_Circle_ColorChanger;
 
-//Buffer: b_root_Circle_Morph type: 168 size: 256
+//Buffer: b_root_Circle_Morph type: 170 size: 256
 struct b_root_Circle_Morph
 {
     eg::TimeStamp g_root_Circle_Morph_cycle;
     eg::ActionState g_root_Circle_Morph_state;
     boost::fibers::fiber g_root_Circle_Morph_fiber;
     __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > g_root_Circle_Morph_reference;
-    float m_speed;
     eg::Instance g_root_Circle_Morph_alloc_data;
 };
 extern b_root_Circle_Morph *g_root_Circle_Morph;
 
-//Buffer: b_root_Spiral type: 104 size: 1
+//Buffer: b_root_Spiral type: 106 size: 1
 struct b_root_Spiral
 {
     eg::TimeStamp g_root_Spiral_cycle;
@@ -142,7 +141,7 @@ struct b_root_Spiral
 };
 extern b_root_Spiral *g_root_Spiral;
 
-//Buffer: b_root_Attract type: 109 size: 1
+//Buffer: b_root_Attract type: 111 size: 1
 struct b_root_Attract
 {
     eg::TimeStamp g_root_Attract_cycle;
@@ -153,7 +152,7 @@ struct b_root_Attract
 };
 extern b_root_Attract *g_root_Attract;
 
-//Buffer: b_root_Randomise type: 114 size: 1
+//Buffer: b_root_Randomise type: 116 size: 1
 struct b_root_Randomise
 {
     eg::TimeStamp g_root_Randomise_cycle;
@@ -165,7 +164,7 @@ struct b_root_Randomise
 };
 extern b_root_Randomise *g_root_Randomise;
 
-//Buffer: b_root_imgui type: 119 size: 1
+//Buffer: b_root_imgui type: 121 size: 1
 struct b_root_imgui
 {
     eg::TimeStamp g_root_imgui_cycle;
