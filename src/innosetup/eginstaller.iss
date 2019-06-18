@@ -40,12 +40,16 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
 
-[Files]
-Source: "W:\workspace\eg\bin\eg.exe"; DestDir: "{app}"; Flags: ignoreversion                       
-Source: "W:\workspace\eg\api\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "W:\workspace\eg\bin\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "W:\workspace\eg\library\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs    
-Source: "W:\workspace\eg\third_party\install\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+[Files]                    
+Source: "W:\workspace\eg\api\*"; DestDir: "{app}\api"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\library\*"; DestDir: "{app}\library"; Flags: ignoreversion recursesubdirs createallsubdirs    
+Source: "W:\workspace\eg\third_party\install\basic\*"; DestDir: "{app}\third_party\install\basic"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\boost\*"; DestDir: "{app}\third_party\install\boost"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\cinder\*"; DestDir: "{app}\third_party\install\cinder"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\imgui\*"; DestDir: "{app}\third_party\install\imgui"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\llvm\*"; DestDir: "{app}\third_party\install\llvm"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\pybind11\*"; DestDir: "{app}\third_party\install\pybind11"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
