@@ -24,12 +24,12 @@
 #include "eg_event.hpp"
 #include "eg_clock.hpp"
 
-#include "common/require_semicolon.hpp"
-
 #include <sstream>
 
+#define EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( stuff ) do{ stuff } while( (void)0,0 )
+    
 #define LOG( __msg )\
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( \
+    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         std::ostringstream os;\
         os << __msg;\
         std::string __str = os.str();\
@@ -37,12 +37,12 @@
         )
         
 #define ERR( __msg )\
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( \
+    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         events::put( "error", clock::cycle(), __msg, strlen( __msg ) + 1 );\
         )
         
 #define TEST( __expr )\
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( \
+    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         std::string __str = #__expr;\
         if( !( __expr ) )\
         {\
@@ -55,7 +55,7 @@
     )
         
 #define TEST_MSG( __expr, __msg )\
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( \
+    EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
         std::ostringstream os;\
         os << #__expr << " " << __msg;\
         std::string __str = os.str();\
