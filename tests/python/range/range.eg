@@ -1,0 +1,9 @@
+
+action A[ 64 ]
+{
+    dim int x;
+    eg::sleep();
+}
+
+A();
+

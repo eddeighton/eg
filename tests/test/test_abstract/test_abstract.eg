@@ -1,0 +1,41 @@
+abstract A
+{
+    abstract B
+    {
+        TEST_MSG( false, "Uh oh B was run" );//this one should NOT get created
+    }
+}
+
+action C[ 5 ] : A
+{
+    action D : A::B
+    {
+        TEST_MSG( false, "Uh oh D was run" );//this one should NOT get created
+    }
+}
+
+action E[ 5 ] : A
+{
+    action F : A::B
+    {
+        TEST( true );//this one should get created
+    }
+}
+
+{
+    E e = E();
+    e.B();
+}
+
+{
+    A a = E();
+    a.B();
+}
+
+{
+    A a = E.Start();
+    a.B.Start();
+}
+    
+while( !Done() )
+    eg::sleep();

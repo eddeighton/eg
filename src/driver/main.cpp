@@ -80,6 +80,8 @@ extern void command_build( bool bHelp, const std::string& strBuildCommand, const
 
 extern void command_run( bool bHelp, const std::vector< std::string >& args );
 
+extern void command_log( bool bHelp, const std::vector< std::string >& args );
+
 void command_cmake( bool bHelp, const std::vector< std::string >& args )
 {
     
@@ -100,6 +102,7 @@ int main( int argc, const char* argv[] )
     //bool bCmdBuild  = false;
     std::string strBuildCommand;
     bool bCmdRun    = false;
+    bool bCmdLog    = false;
     bool bCmdCMake  = false;
     bool bCmdDebug  = false;
     
@@ -130,6 +133,9 @@ int main( int argc, const char* argv[] )
                     ("run",   po::bool_switch( &bCmdRun ),
                         "Run an eg project" )
                         
+                    ("log",   po::bool_switch( &bCmdLog ),
+                        "Run an eg project" )
+                        
                     ("cmake",   po::bool_switch( &bCmdCMake ),
                         "Generate a cmake build for an eg project" )
                         
@@ -143,7 +149,7 @@ int main( int argc, const char* argv[] )
             {
                 commandHiddenOptions.add_options()
                     ( "args", po::value< std::vector< std::string > >( &commandArgs ) )
-                    ( "wait",   po::bool_switch( &bWait ) )
+                    //( "wait",   po::bool_switch( &bWait ) )
                     ;
             }
 
@@ -179,7 +185,7 @@ int main( int argc, const char* argv[] )
             
             if( bCmdCreate )
             {
-                if( !strBuildCommand.empty() || bCmdRun || bCmdCMake || bCmdDebug )
+                if( !strBuildCommand.empty() || bCmdRun || bCmdLog || bCmdCMake || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -189,7 +195,7 @@ int main( int argc, const char* argv[] )
             }
             else if( !strBuildCommand.empty() )
             {
-                if( bCmdCreate || bCmdRun || bCmdCMake || bCmdDebug )
+                if( bCmdCreate || bCmdRun || bCmdLog || bCmdCMake || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -199,7 +205,7 @@ int main( int argc, const char* argv[] )
             }
             else if( bCmdRun )
             {
-                if( !strBuildCommand.empty() || bCmdCreate || bCmdCMake || bCmdDebug )
+                if( !strBuildCommand.empty() || bCmdCreate || bCmdLog || bCmdCMake || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -207,9 +213,19 @@ int main( int argc, const char* argv[] )
                 command_run( bShowHelp, commandArguments );
                 return 0;
             }
+            else if( bCmdLog )
+            {
+                if( !strBuildCommand.empty() || bCmdCreate || bCmdRun || bCmdCMake || bCmdDebug )
+                {
+                    std::cout << "Invalid command combination. Type '--help' for options\n";
+                    return 1;
+                }
+                command_log( bShowHelp, commandArguments );
+                return 0;
+            }
             else if( bCmdCMake )
             {
-                if( !strBuildCommand.empty() || bCmdRun || bCmdCreate || bCmdDebug )
+                if( !strBuildCommand.empty() || bCmdRun || bCmdLog || bCmdCreate || bCmdDebug )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;
@@ -219,7 +235,7 @@ int main( int argc, const char* argv[] )
             }
             else if( bCmdDebug )
             {
-                if( !strBuildCommand.empty() || bCmdRun || bCmdCMake || bCmdCreate )
+                if( !strBuildCommand.empty() || bCmdRun || bCmdLog || bCmdCMake || bCmdCreate )
                 {
                     std::cout << "Invalid command combination. Type '--help' for options\n";
                     return 1;

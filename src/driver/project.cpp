@@ -118,6 +118,16 @@ void Environment::startCompilationCommand( std::ostream& os ) const
     os << printPath( CLANG ) << " ";
 }
 
+void Environment::startLogCommand( std::ostream& os ) const
+{
+    static boost::filesystem::path EGLOG;
+    if( EGLOG.empty() )
+    {
+        EGLOG = boost::filesystem::path( get( EG_INSTALLATION ) ) / "bin/eglog.exe";
+    }
+    os << printPath( EGLOG ) << " ";
+}
+
 const boost::filesystem::path& Environment::getEGLibraryInclude() const
 {
     static boost::filesystem::path EG_LIBRARY;

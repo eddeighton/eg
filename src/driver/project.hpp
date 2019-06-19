@@ -49,6 +49,7 @@ public:
     
     std::string printPath( const boost::filesystem::path& thePath ) const;
     void startCompilationCommand( std::ostream& os ) const;
+    void startLogCommand( std::ostream& os ) const;
     const boost::filesystem::path& getEGLibraryInclude() const;
     
     std::string expand( const std::string& strPath ) const;

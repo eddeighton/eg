@@ -3,6 +3,7 @@
     <Name>circles</Name>
     <Host>cinder</Host>
     <Package>pybind11</Package>
+    <Package>py_glm</Package>
     <Build>
       <Name>release</Name>
       <CompilerFlags>-D_MD -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override</CompilerFlags>

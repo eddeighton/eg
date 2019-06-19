@@ -141,7 +141,19 @@ eg::event_iterator events::getIterator()
 
 bool events::get( eg::event_iterator& iterator, Event& event )
 {
-    return false;//g_eventLogServer->read( iterator, event.type, event.timestamp, event.value, event.size );
+    const char* type;
+    eg::TimeStamp timestamp;
+    const void* value;
+    std::size_t size;
+    while( g_eventLogServer->read( iterator, type, timestamp, value, size ) )
+    {
+        if( 0U == strcmp( type, "stop" ) )
+        {
+            event.data = *reinterpret_cast< const eg::reference* >( value );
+            return true;
+        }
+    }  
+    return false;
 }
 
 void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )

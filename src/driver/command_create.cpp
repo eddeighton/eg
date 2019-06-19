@@ -16,6 +16,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
 {
     std::string strDirectory;
     std::string strHost;
+    std::vector< std::string > packages;
     
     namespace po = boost::program_options;
     po::options_description commandOptions(" Create Project Command");
@@ -23,6 +24,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
             ("host",    po::value< std::string >( &strHost ), "Host type: test, basic, cinder" )
+            ("package", po::value< std::vector< std::string > >( &packages ), "Packages" )
         ;
     }
     
@@ -54,8 +56,11 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
             osFile << strName << Environment::EG_FILE_EXTENSION.string();
             const boost::filesystem::path mainEGFile = 
                 projectDirectory / osFile.str();
-            std::unique_ptr< boost::filesystem::ofstream > pFileStream =
-                createNewFileStream( mainEGFile );
+            if( !boost::filesystem::exists( mainEGFile ) )
+            {
+                std::unique_ptr< boost::filesystem::ofstream > pFileStream =
+                    createNewFileStream( mainEGFile );
+            }
         }
         //create main.py
         {
@@ -63,8 +68,11 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
             osFile << strName << Environment::PYTHON_FILE_EXTENSION.string();
             const boost::filesystem::path mainPythonScript = 
                 projectDirectory / osFile.str();
-            std::unique_ptr< boost::filesystem::ofstream > pFileStream =
-                createNewFileStream( mainPythonScript );
+            if( !boost::filesystem::exists( mainPythonScript ) )
+            {
+                std::unique_ptr< boost::filesystem::ofstream > pFileStream =
+                    createNewFileStream( mainPythonScript );
+            }
         }
             
         Environment environment( projectFile );
@@ -75,6 +83,9 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
             {
                 pProject->Name( strName );
                 pProject->Host( strHost );
+                
+                for( const std::string& strPackage : packages )
+                    pProject->Package().push_back( strPackage );
                 
                 //release build
                 {

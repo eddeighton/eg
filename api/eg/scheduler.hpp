@@ -224,28 +224,23 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
             Event e;
             while( events::get( m_eventIterator, e ) )
             {
-                //if( 0U == strcmp( ev.type, "stop" ) )
-                //{
-                //    Event e( *reinterpret_cast< const reference* >( ev.value ) );
-                
-                    for( rqueue_t::iterator 
-                        i = m_queue_resume.begin(),
-                        iEnd = m_queue_resume.end(); i!=iEnd; )
+                for( rqueue_t::iterator 
+                    i = m_queue_resume.begin(),
+                    iEnd = m_queue_resume.end(); i!=iEnd; )
+                {
+                    boost::fibers::context* pContext( &*i );
+                    fiber_props& props = properties( pContext );
+                    if( props.getResumption()( e ) )
                     {
-                        boost::fibers::context* pContext( &*i );
-                        fiber_props& props = properties( pContext );
-                        if( props.getResumption()( e ) )
-                        {
-                            props.resetResumption();
-                            i = m_queue_resume.erase( i );
-                            m_queue_ready.push_back( *pContext );
-                        }
-                        else
-                        {
-                            ++i;
-                        }
+                        props.resetResumption();
+                        i = m_queue_resume.erase( i );
+                        m_queue_ready.push_back( *pContext );
                     }
-                //}
+                    else
+                    {
+                        ++i;
+                    }
+                }
             }
         }
         /*else if( !m_queue_ready.empty() )
@@ -367,6 +362,7 @@ inline void sleep( Event event )
     (  
         [ event ]( Event e )
         {
+            //return ( event.data.type == 0 ) || ( getState( event.data.type, event.data.instance ) == action_stopped ) || ( e == event );
             return ( e == event );
         }
     );

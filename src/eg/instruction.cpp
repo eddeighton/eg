@@ -1109,7 +1109,7 @@ namespace eg
     }
     void CallOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        os << generator.getIndent() << m_pInterface->getStaticType() << " ref = " << m_pTarget->getName() << 
+        os << generator.getIndent() << m_pTarget->getAction()->getStaticType() << " ref = " << m_pTarget->getName() << 
             "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
         os << generator.getIndent() << "if( ref )\n";
         os << generator.getIndent() << "{\n";
@@ -1143,7 +1143,7 @@ namespace eg
     }
     void StartOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        os << generator.getIndent() << m_pInterface->getStaticType() << " ref = " << m_pTarget->getName() << 
+        os << generator.getIndent() << m_pTarget->getAction()->getStaticType() << " ref = " << m_pTarget->getName() << 
             "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
             
         const DataMember* pFiberData = generator.getLayout().getDataMember( m_pTarget->getFiber() );

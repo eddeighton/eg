@@ -1,0 +1,48 @@
+
+action A[ 4 ]
+{
+    eg::sleep();
+}
+action B
+{
+    eg::sleep();
+}
+
+A a = A.Start();
+
+eg::sleep( a );
+
+TEST( true );//got here
+
+action Test
+{
+    eg::sleep
+    (
+        eg::fiber_props::ResumptionFunctor
+        (
+            [ this ]( Event e )
+            {
+                //use invocation within a lambda no problemo
+                return B.Get() == e;
+            }
+        )
+    );
+    TEST( true );//got here
+}
+
+B.Start();
+Test.Start();
+
+a = A.Start();
+
+eg::sleep
+( 
+    eg::fiber_props::ResumptionFunctor
+    (
+        [ a ]( Event e )
+        { 
+            return a == e;
+        } 
+    )
+);
+TEST( true );//got here

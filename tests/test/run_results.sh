@@ -1,14 +1,8 @@
 #!/bin/bash
 
-
-for f in *.eg
+for f in test_*
 do
-    NAME=`echo "$f" | cut -d'.' -f1`
-    
-    EXE=${NAME}.exe
-    
-    echo Test: $NAME
-    eglog --data ${NAME}_build/database.db --log ${NAME}_log fail pass
-    
+    cd $f
+    eg --log fail
+    cd ..
 done
-

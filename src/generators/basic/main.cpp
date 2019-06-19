@@ -51,6 +51,31 @@ int main( int argc, const char* argv[] )
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
     
     os << "#include \"structures.hpp\"\n";
+    
+    //detect if we want scripting package support
+    if( cmdLine.packages.count( "pybind11" ) )
+    {
+    const char pszPythonScripts[] = R"(
+extern std::vector< std::function< void() > > loadPythonScripts( const std::vector< std::string >& scripts, const std::string& strDatabaseFile );
+std::vector< std::function< void() > > loadScripts( const std::vector< std::string >& scripts, const std::string& strDatabase )
+{
+    return loadPythonScripts( scripts, strDatabase );
+}
+    )";
+    os << pszPythonScripts;
+    }
+    else
+    {
+    const char pszPythonScripts[] = R"(
+std::vector< std::function< void() > > loadScripts( const std::vector< std::string >& scripts, const std::string& strDatabase )
+{
+    std::vector< std::function< void() > > doNothing;
+    return doNothing;
+}
+    )";
+    os << pszPythonScripts;
+    }
+    
         
     const char* pszClock = R"(
 
@@ -118,7 +143,19 @@ eg::event_iterator events::getIterator()
 
 bool events::get( eg::event_iterator& iterator, Event& event )
 {
-    return false;//g_eventLogServer->read( iterator, event.type, event.timestamp, event.value, event.size );
+    const char* type;
+    eg::TimeStamp timestamp;
+    const void* value;
+    std::size_t size;
+    while( g_eventLogServer->read( iterator, type, timestamp, value, size ) )
+    {
+        if( 0U == strcmp( type, "stop" ) )
+        {
+            event.data = *reinterpret_cast< const eg::reference* >( value );
+            return true;
+        }
+    }  
+    return false;
 }
 
 void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
@@ -206,12 +243,12 @@ int main( int argc, const char* argv[] )
                 ("debug",       po::value< bool >( &bDebug )->implicit_value( true ), 
                     "Wait at startup to allow attaching a debugger" )
                 ("database",    po::value< std::string >( &strDatabaseFile ), "Program Database" )
-                ("python",      po::value< std::vector< std::string > >( &scripts ), "Python scripts" )
+                ("script",      po::value< std::vector< std::string > >( &scripts ), "Scripts" )
                 ("rate",        po::value< int >( &iMilliseconds ), "Simulation rate in milliseconds" )
             ;
 
             po::positional_options_description p;
-            p.add( "python", -1 );
+            p.add( "script", -1 );
 
             po::store( po::command_line_parser( argc, argv).
                         options( desc ).
@@ -254,13 +291,11 @@ int main( int argc, const char* argv[] )
         //be sure to initialise the clock before the scheduler
         boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
-        //pybind11::scoped_interpreter guard{}; // start the python interpreter
-        
         //start the root
-        //std::vector< std::function< void() > > pythonFunctions = 
-        //    loadPythonScripts( scripts, strDatabaseFile );
+        std::vector< std::function< void() > > scriptFunctions = 
+            loadScripts( scripts, strDatabaseFile );
         
-        root_starter( pythonFunctions );
+        root_starter( scriptFunctions );
         
         boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
         

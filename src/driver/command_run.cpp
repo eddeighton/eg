@@ -19,6 +19,7 @@ void command_run( bool bHelp, const std::vector< std::string >& args )
 {
     std::string strDirectory;
     std::string strCommand = "default";
+    bool bWait = false;
     
     namespace po = boost::program_options;
     po::options_description commandOptions(" Create Project Command");
@@ -26,6 +27,7 @@ void command_run( bool bHelp, const std::vector< std::string >& args )
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
             ("cmd",     po::value< std::string >( &strCommand ), "Run command name" )
+            ("wait",    po::bool_switch( &bWait ), "Wait at startup to attach debugger" )
         ;
     }
     
@@ -86,6 +88,8 @@ void command_run( bool bHelp, const std::vector< std::string >& args )
             {
                 osCmd << " " << environment.expand( arg );
             }
+            
+            if( bWait ) osCmd << " --debug";
             
             {
                 const int iResult = boost::process::system( osCmd.str() );

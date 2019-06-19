@@ -40,6 +40,7 @@
 #include <string>
 #include <sstream>
 #include <thread>
+#include <iomanip>
 
 struct CmdLine
 {
@@ -173,11 +174,15 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
             if( pDatabase )
             {
                 const eg::concrete::Action* pAction = pDatabase->getConcreteAction( pRef->type );
-                os << "start " << pAction->getName() << " " << pRef->instance << " " << pRef->timestamp << std::endl;
+                os << "start " << " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->instance << 
+                                  " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->timestamp << 
+                                  " " << pAction->getName() << std::endl;
             }
             else
             {
-                os << "start " << pRef->type << " " << pRef->instance << " " << pRef->timestamp << std::endl;
+                os << "start " << " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->instance << 
+                                  " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->timestamp << 
+                                  " " << pRef->type << std::endl;
             }
         }
     }
@@ -193,11 +198,16 @@ void printEvent( const CmdLine& cmdLine, std::shared_ptr< eg::ReadSession > pDat
             if( pDatabase )
             {
                 const eg::concrete::Action* pAction = pDatabase->getConcreteAction( pRef->type );
-                os << "stop  " << pAction->getName() << " " << pRef->instance << " " << pRef->timestamp << std::endl;
+                
+                os << "stop  " << " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->instance << 
+                                  " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->timestamp << 
+                                  " " << pAction->getName() << std::endl;
             }
             else
             {
-                os << "stop  " << pRef->type << " " << pRef->instance << " " << pRef->timestamp << std::endl;
+                os << "stop  " << " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->instance << 
+                                  " " << std::setw( 8 ) << std::setfill( '0' ) << pRef->timestamp << 
+                                  " " << pRef->type << std::endl;
             }
         }
     }

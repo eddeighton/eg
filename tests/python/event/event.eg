@@ -1,0 +1,12 @@
+
+action A
+{
+    eg::sleep();
+    //std::cout << "A finishing: " << clock::cycle() << std::endl;
+}
+
+A a = A.Start();
+
+eg::sleep( a );
+
+//std::cout << "Got a" << std::endl;

@@ -1,0 +1,27 @@
+<EG>
+  <Project>
+    <Name>test_basic</Name>
+    <Host>basic</Host>
+    <Build>
+      <Name>release</Name>
+      <CompilerFlags>-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override</CompilerFlags>
+      <LinkerFlags>-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE</LinkerFlags>
+    </Build>
+    <Build>
+      <Name>quick</Name>
+      <CompilerFlags>-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override</CompilerFlags>
+      <LinkerFlags>-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE</LinkerFlags>
+    </Build>
+    <Build>
+      <Name>debug</Name>
+      <CompilerFlags>-g -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override</CompilerFlags>
+      <LinkerFlags>-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE</LinkerFlags>
+    </Build>
+    <Run>
+      <Name>default</Name>
+      <Command>${PROJECT}/program.exe</Command>
+      <Argument>--database ${PROJECT}/build/database.db</Argument>
+      <Argument>--script ${PROJECT}/test_basic.py</Argument>
+    </Run>
+  </Project>
+</EG>
