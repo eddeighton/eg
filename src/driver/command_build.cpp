@@ -201,7 +201,7 @@ void build_parser_session( const Environment& environment, const Project& projec
         std::unique_ptr< boost::filesystem::ofstream > pInterfaceFileStream =
                 boost::filesystem::createNewFileStream( project.getInterfaceHeader() );
         eg::generateInterface( *pInterfaceFileStream, 
-            pParserSession->getTreeRoot(), pParserSession->getIdentifiers() );
+            pParserSession->getTreeRoot(), pParserSession->getIdentifiers(), project.getFiberStackSize() );
     }
     
     {
@@ -576,7 +576,7 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
             ("bench",   po::bool_switch( &bBenchCommands ), "Benchmark compilation steps" )
-            ("log",     po::bool_switch( &bLogCommands ), "Log compilation commands" )
+            ("trace",     po::bool_switch( &bLogCommands ), "Trace compilation commands" )
             ("pch",     po::bool_switch( &bUsePCH ), "Attempt to use precompiled header from previous build" )
         ;
     }

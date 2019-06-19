@@ -131,36 +131,10 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "\n";
     os << "//Python Interface\n";
     
-    
-    for( const eg::Buffer* pBuffer : layout.getBuffers() )
-    {
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
-        {
-            if( const eg::concrete::Dimension_User* pDimension = 
-                dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
-            {
-                pDimension->printType( os );
-                os << " " << getFuncName( pDataMember, "read" ) << "( " << eg::EG_INSTANCE << " instance )\n";
-                os << "{\n";
-                os << "    return " << eg::Printer( pDataMember, "instance" ) << ";\n";
-                os << "}\n";
-                os << "void " << getFuncName( pDataMember, "write" ) << "( " << eg::EG_INSTANCE << " instance, pybind11::tuple args )\n";
-                os << "{\n";
-                os << "    " << eg::Printer( pDataMember, "instance" ) << " = pybind11::cast< "; pDimension->printType( os ); os << " >( args[ 0 ] );\n";
-                os << "}\n";
-            }
-        }
-    }
-    
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() )
         {
-            os << "void " << getFuncName( pAction, "stop" ) << "( " << eg::EG_INSTANCE << " instance )\n";
-            os << "{\n";
-            os << "    " << pAction->getName() << "_stopper( instance );\n";
-            os << "}\n";
-            
             os << "void " << getFuncName( pAction, "pause" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
             os << "    if( " << eg::Printer( layout.getDataMember( pAction->getState() ), "instance" ) << " == " << eg::getActionState( eg::action_running ) << " )\n";
@@ -205,45 +179,11 @@ void python_sleep_cycle()
     os << "\n//Embedded Python Module\n";
     os << "PYBIND11_EMBEDDED_MODULE( pyeg, module ) \n";
     os << "{\n";
-    os << "    module.def( \"get_root\", get_root );\n";
+    os << "    module.def( \"root\", get_root );\n";
     
     os << "    module.def( \"sleep\", python_sleep_cycle );\n";
     os << "    module.def( \"wait\", eg::wait );\n";
-    
-    for( const eg::Buffer* pBuffer : layout.getBuffers() )
-    {
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
-        {
-            if( const eg::concrete::Dimension_User* pDimension = 
-                dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
-            {
-    os << "    module.def( \"" << getFuncName( pDataMember, "read" )    << "\", " << getFuncName( pDataMember, "read" )     << " );\n";
-    os << "    module.def( \"" << getFuncName( pDataMember, "write" )   << "\", " << getFuncName( pDataMember, "write" )    << " );\n";
-            }
-        }
-    }
-    
-    for( const eg::concrete::Action* pAction : actions )
-    {
-        if( pAction->getParent() && pAction->getParent()->getParent() )
-        {
-    //os << "    module.def( \"" << getFuncName( pAction, "start" )   << "\", " << getFuncName( pAction, "start" )    << ");\n";
-    //os << "    module.def( \"" << getFuncName( pAction, "call" )    << "\", " << getFuncName( pAction, "call" )    << ");\n";
-    
-    
-    os << "    module.def( \"" << getFuncName( pAction, "operator" ) << "\", &" << pAction->getAction()->getStaticType() << "::operator() );\n";
-    
-    
-        }
-        if( pAction->getParent() )
-        {
-    os << "    module.def( \"" << getFuncName( pAction, "stop" )    << "\", " << getFuncName( pAction, "stop" )     << ");\n";
-    os << "    module.def( \"" << getFuncName( pAction, "pause" )   << "\", " << getFuncName( pAction, "pause" )    << ");\n";
-    os << "    module.def( \"" << getFuncName( pAction, "resume" )  << "\", " << getFuncName( pAction, "resume" )   << ");\n";
-    os << "    module.def( \"" << getFuncName( pAction, "done" )    << "\", " << getFuncName( pAction, "done" )     << ");\n";
-        }
-    }
-    
+        
     os << "}\n";
         
     os << "\n";
@@ -343,7 +283,8 @@ void python_sleep_cycle()
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
     os << "                case " << pDimension->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
+    //os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
+    os << "                    pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
     os << "                    break;\n";
             }
         }
@@ -371,7 +312,7 @@ void python_sleep_cycle()
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
     os << "                case " << pDimension->getIndex() << ":\n";
-    os << "                     pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "write" ) << "\" )( reference.instance, args );\n";
+    os << "                     " << eg::Printer( pDataMember, "reference.instance" ) << " = pybind11::cast< "; pDimension->printType( os ); os << " >( args[ 0 ] );\n";
     os << "                     break;\n";
             }
         }
@@ -397,25 +338,22 @@ void python_sleep_cycle()
     os << "                        " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                        if( ref )\n";
     os << "                        {\n";
-    os << "                            switch( args.size() )\n";
-    os << "                            {\n";
     
-    for( int numArgs = 0; numArgs < 10; ++numArgs )
+    const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
+    os << "                            ref(";
+    bool bFirst = true;
+    int iIndex = 0;
+    for( const std::string& strParamType : parameters )
     {
-        if( numArgs == 0 )
-    os << "                                case " << numArgs << ": m_module_eg.attr( \"" << 
-                                            getFuncName( pAction, "operator" ) << "\" )( ref ); break;\n";
-        else
+        if( bFirst ) 
         {
-    os << "                                case " << numArgs << ": m_module_eg.attr( \"" << 
-                                            getFuncName( pAction, "operator" ) << "\" )( ref";
-            for( int i = 0; i != numArgs; ++i )
-                os << ", args[ " << i << " ]";
-            os << " ); break;\n";
+            bFirst = false;
+            os << " ";
         }
+        else os << ", ";
+        os << "pybind11::cast< " << strParamType << " >( args[ " << iIndex++ << " ] )";
     }
-    os << "                                 default: break;\n";
-    os << "                            }\n";
+    os << ");\n";
     os << "                            " << pAction->getName() << "_stopper( ref.data.instance );\n";
     
     os << "                        }\n";
@@ -433,6 +371,7 @@ void python_sleep_cycle()
     os << "    {\n";
     os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "        {\n";
+    os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
     os << "            switch( actionType )\n";
     os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
@@ -444,32 +383,26 @@ void python_sleep_cycle()
     os << "                        " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                        if( ref )\n";
     os << "                        {\n";
+    
+    const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
+    
+    os << "                            std::function< void() > functor = std::bind( &" << pAction->getAction()->getStaticType() << "::operator(), ref";
+    int iIndex = 0;
+    for( const std::string& strParamType : parameters )
+    {
+        os << ", pybind11::cast< " << strParamType << " >( args[ " << iIndex++ << " ] )";
+    }
+    os << ");\n";
+    
     os << "                            getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber\n";
     os << "                            (\n";
-    os << "                                [ pStack, ref, m = m_module_eg ]()\n";
+    os << "                                std::allocator_arg,\n";
+    os << "                                " << eg::EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
+    os << "                                [ functor, ref ]()\n";
     os << "                                {\n";
-    os << "                                    pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
     os << "                                    try\n";
     os << "                                    {\n";
-    os << "                                        switch( args.size() )\n";
-    os << "                                        {\n";
-    
-    for( int numArgs = 0; numArgs < 10; ++numArgs )
-    {
-        if( numArgs == 0 )
-    os << "                                            case " << numArgs << ": m.attr( \"" << 
-                                            getFuncName( pAction, "operator" ) << "\" )( ref ); break;\n";
-        else
-        {
-    os << "                                            case " << numArgs << ": m.attr( \"" << 
-                                            getFuncName( pAction, "operator" ) << "\" )( ref";
-            for( int i = 0; i != numArgs; ++i )
-                os << ", args[ " << i << " ]";
-            os << " ); break;\n";
-        }
-    }
-    os << "                                             default: break;\n";
-    os << "                                        }\n";
+    os << "                                        functor();\n";
     os << "                                    }\n";
     os << "                                    catch( eg::termination_exception )\n";
     os << "                                    {\n";
@@ -493,7 +426,6 @@ void python_sleep_cycle()
     os << "    {\n";
     os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "        {\n";
-    //os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
     os << "            switch( reference.type )\n";
     os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
@@ -501,7 +433,7 @@ void python_sleep_cycle()
         if( pAction->getParent() )
         {
     os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pAction, "stop" ) << "\" )( reference.instance );\n";
+    os << "                    " << pAction->getName() << "_stopper( reference.instance );\n";
     os << "                    break;\n";
         }
     }
@@ -522,7 +454,7 @@ void python_sleep_cycle()
         if( pAction->getParent() )
         {
     os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pAction, "pause" ) << "\" )( reference.instance );\n";
+    os << "                    " << getFuncName( pAction, "pause" ) << "( reference.instance );\n";
     os << "                    break;\n";
         }
     }
@@ -543,7 +475,7 @@ void python_sleep_cycle()
         if( pAction->getParent() )
         {
     os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pAction, "resume" ) << "\" )( reference.instance );\n";
+    os << "                    " << getFuncName( pAction, "resume" ) << "( reference.instance );\n";
     os << "                    break;\n";
         }
     }
@@ -564,7 +496,7 @@ void python_sleep_cycle()
         if( pAction->getParent() )
         {
     os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pAction, "done" ) << "\" )( reference.instance );\n";
+    os << "                    pStack->m_result = pybind11::cast( " << getFuncName( pAction, "done" ) << "( reference.instance ) );\n";
     os << "                    break;\n";
         }
     }
@@ -595,7 +527,7 @@ void python_sleep_cycle()
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
     os << "                case " << pDimension->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
+    //os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
     os << "                    break;\n";
             }
         }
@@ -628,7 +560,7 @@ void python_sleep_cycle()
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
     os << "                case " << pDimension->getIndex() << ":\n";
-    os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
+    os << "                    pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
     os << "                    break;\n";
             }
         }

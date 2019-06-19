@@ -3,7 +3,7 @@ import pyeg
 
 #print( "python started" )
 
-r = pyeg.get_root()
+r = pyeg.root()
 
 r.A()
 

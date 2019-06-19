@@ -2,7 +2,7 @@
 
 import pyeg
 
-r = pyeg.get_root()
+r = pyeg.root()
 
 a = r.A();
 a.x( 123 );

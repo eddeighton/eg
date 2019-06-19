@@ -43,6 +43,8 @@
 
 #pragma warning( pop ) 
 
+#include <iostream>
+
 namespace clang
 {
 
@@ -689,6 +691,15 @@ namespace clang
         {
             action.m_strDependency = strType;
         }
+        
+        static void setParameters( ::eg::interface::Action& action, const ArrayRef< ParmVarDecl * >& parameters )
+        {
+            for( const ParmVarDecl* pParam : parameters )
+            {
+                action.m_parameterTypes.push_back( pParam->getType().getCanonicalType().getAsString() );
+            }
+        }
+        
     };
     
     bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session, 
@@ -700,6 +711,45 @@ namespace clang
             pContext, loc, ::eg::getInterfaceType( pAction->getIdentifier() ), true );
         if( result.pContext )
         {
+            //get the parameter list
+            //if( !dynamic_cast< eg::interface::Root* >( pAction ) )
+            
+            CXXRecordDecl* pInterface = dyn_cast< CXXRecordDecl >( result.pContext );
+            if( !pInterface )
+            {
+                std::ostringstream os;
+                os << "Failed to locate interface type: " << pAction->getFriendlyName();
+                pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
+                return false;
+            }
+            else
+            {
+                CXXMethodDecl* pApplicationOperator = nullptr;
+                for( CXXRecordDecl::method_iterator i = pInterface->method_begin(),
+                    iEnd = pInterface->method_end(); i!=iEnd; ++i )
+                {
+                    CXXMethodDecl* pMethod = *i;
+                    if( pMethod->getNameInfo().getName().getAsString() == "operator()" )
+                    {
+                        pApplicationOperator = pMethod;
+                        break;
+                    }
+                }
+                
+                if( !pApplicationOperator )
+                {
+                    std::ostringstream os;
+                    os << "Failed to locate interface member operator() for " << pAction->getFriendlyName();
+                    pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
+                    return false;
+                }
+                else
+                {
+                    AbstractMutator::setParameters( *pAction, pApplicationOperator->parameters() );
+                }
+            }
+            
+            //get the optional allocation size
             if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, result.pContext, result.loc, "SIZE" ) )
             {
                 AbstractMutator::setSize( *pAction, static_cast< std::size_t >( sizeOpt.value() ) );

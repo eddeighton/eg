@@ -1152,6 +1152,8 @@ namespace eg
         os << generator.getIndent() << "{\n";
         os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << " = " << EG_FIBER_TYPE << "\n";
         os << generator.getIndent() << "    (\n";
+        os << generator.getIndent() << "        std::allocator_arg,\n";
+        os << generator.getIndent() << "        " << EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
         os << generator.getIndent() << "        [ = ]()\n";
         os << generator.getIndent() << "        {\n";
         os << generator.getIndent() << "            try\n";

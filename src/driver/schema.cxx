@@ -252,6 +252,108 @@ namespace egxml
     this->LinkerFlags_ = x;
   }
 
+  // Stack
+  //
+
+  bool Stack::
+  Size_present () const
+  {
+    return this->Size_present_;
+  }
+
+  void Stack::
+  Size_present (bool x)
+  {
+    this->Size_present_ = x;
+  }
+
+  unsigned int Stack::
+  Size () const
+  {
+    return this->Size_;
+  }
+
+  unsigned int& Stack::
+  Size ()
+  {
+    return this->Size_;
+  }
+
+  void Stack::
+  Size (unsigned int x)
+  {
+    this->Size_ = x;
+    this->Size_present_ = true;
+  }
+
+  // Fibers
+  //
+
+  bool Fibers::
+  Stack_present () const
+  {
+    return this->Stack_present_;
+  }
+
+  void Fibers::
+  Stack_present (bool x)
+  {
+    this->Stack_present_ = x;
+  }
+
+  const ::egxml::Stack& Fibers::
+  Stack () const
+  {
+    return this->Stack_;
+  }
+
+  ::egxml::Stack& Fibers::
+  Stack ()
+  {
+    return this->Stack_;
+  }
+
+  void Fibers::
+  Stack (const ::egxml::Stack& x)
+  {
+    this->Stack_ = x;
+    this->Stack_present_ = true;
+  }
+
+  // Defaults
+  //
+
+  bool Defaults::
+  Fibers_present () const
+  {
+    return this->Fibers_present_;
+  }
+
+  void Defaults::
+  Fibers_present (bool x)
+  {
+    this->Fibers_present_ = x;
+  }
+
+  const ::egxml::Fibers& Defaults::
+  Fibers () const
+  {
+    return this->Fibers_;
+  }
+
+  ::egxml::Fibers& Defaults::
+  Fibers ()
+  {
+    return this->Fibers_;
+  }
+
+  void Defaults::
+  Fibers (const ::egxml::Fibers& x)
+  {
+    this->Fibers_ = x;
+    this->Fibers_present_ = true;
+  }
+
   // Project
   //
 
@@ -325,6 +427,37 @@ namespace egxml
   Run ()
   {
     return this->Run_;
+  }
+
+  bool Project::
+  Defaults_present () const
+  {
+    return this->Defaults_present_;
+  }
+
+  void Project::
+  Defaults_present (bool x)
+  {
+    this->Defaults_present_ = x;
+  }
+
+  const ::egxml::Defaults& Project::
+  Defaults () const
+  {
+    return this->Defaults_;
+  }
+
+  ::egxml::Defaults& Project::
+  Defaults ()
+  {
+    return this->Defaults_;
+  }
+
+  void Project::
+  Defaults (const ::egxml::Defaults& x)
+  {
+    this->Defaults_ = x;
+    this->Defaults_present_ = true;
   }
 
   // EG
@@ -610,12 +743,112 @@ namespace egxml
     return *this;
   }
 
+  // Stack
+  //
+
+  Stack::
+  Stack ()
+  {
+    this->Size_present_ = false;
+  }
+
+  Stack::
+  ~Stack ()
+  {
+  }
+
+  Stack::
+  Stack (const Stack& x)
+  {
+    XSDE_UNUSED (x);
+    this->Size_present_ = x.Size_present_;
+    if (this->Size_present_)
+      this->Size_ = x.Size_;
+  }
+
+  Stack& Stack::
+  operator= (const Stack& x)
+  {
+    XSDE_UNUSED (x);
+    this->Size_present_ = x.Size_present_;
+    if (this->Size_present_)
+      this->Size_ = x.Size_;
+    return *this;
+  }
+
+  // Fibers
+  //
+
+  Fibers::
+  Fibers ()
+  {
+    this->Stack_present_ = false;
+  }
+
+  Fibers::
+  ~Fibers ()
+  {
+  }
+
+  Fibers::
+  Fibers (const Fibers& x)
+  {
+    XSDE_UNUSED (x);
+    this->Stack_present_ = x.Stack_present_;
+    if (this->Stack_present_)
+      this->Stack_ = x.Stack_;
+  }
+
+  Fibers& Fibers::
+  operator= (const Fibers& x)
+  {
+    XSDE_UNUSED (x);
+    this->Stack_present_ = x.Stack_present_;
+    if (this->Stack_present_)
+      this->Stack_ = x.Stack_;
+    return *this;
+  }
+
+  // Defaults
+  //
+
+  Defaults::
+  Defaults ()
+  {
+    this->Fibers_present_ = false;
+  }
+
+  Defaults::
+  ~Defaults ()
+  {
+  }
+
+  Defaults::
+  Defaults (const Defaults& x)
+  {
+    XSDE_UNUSED (x);
+    this->Fibers_present_ = x.Fibers_present_;
+    if (this->Fibers_present_)
+      this->Fibers_ = x.Fibers_;
+  }
+
+  Defaults& Defaults::
+  operator= (const Defaults& x)
+  {
+    XSDE_UNUSED (x);
+    this->Fibers_present_ = x.Fibers_present_;
+    if (this->Fibers_present_)
+      this->Fibers_ = x.Fibers_;
+    return *this;
+  }
+
   // Project
   //
 
   Project::
   Project ()
   {
+    this->Defaults_present_ = false;
   }
 
   Project::

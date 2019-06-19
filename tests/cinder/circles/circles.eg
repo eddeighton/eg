@@ -14,9 +14,9 @@ abstract Shape
     dim cinder::Color color;
     dim float size;
     
-    action Default
+    action Default( float fColour )
     {
-        color( cinder::Color( cinder::CM_HSV, 0.5f, 1, 1 ) );
+        color( cinder::Color( cinder::CM_HSV, fColour, 1, 1 ) );
         position( cinder::app::getWindowCenter() );
         size( 25.0f );
     }
@@ -44,7 +44,7 @@ abstract Shape
 }
 
 
-action StrokedCircle[ 256 ] : Shape
+action StrokedCircle[ 4096 ] : Shape
 {
     while( true )
     {
@@ -54,7 +54,7 @@ action StrokedCircle[ 256 ] : Shape
     }
 }
 
-action Circle[ 256 ] : Shape
+action Circle[ 4096 ] : Shape
 {
     while( true )
     {
@@ -165,6 +165,15 @@ action imgui
     }
 }
 imgui.Start();
+
+/*
+for( int i = 0; i < 2048; ++i )
+{
+    StrokedCircle c = StrokedCircle.Start();
+    c.Morph.Start();
+    c.size( 25 );
+    c.ColorChanger.Start();
+}*/
 
 while( true )
 {

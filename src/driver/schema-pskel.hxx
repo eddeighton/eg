@@ -93,6 +93,9 @@ namespace egxml
   class Package_pskel;
   class Host_pskel;
   class Build_pskel;
+  class Stack_pskel;
+  class Fibers_pskel;
+  class Defaults_pskel;
   class Project_pskel;
   class EG_pskel;
   class Directories_pskel;
@@ -562,6 +565,270 @@ namespace egxml
                 bool);
   };
 
+  class Stack_pskel: public ::xsde::cxx::parser::validating::complex_content
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    // Elements.
+    //
+    virtual void
+    Size (unsigned int);
+
+    virtual ::egxml::Stack
+    post_Stack () = 0;
+
+    // Parser construction API.
+    //
+    void
+    parsers (::xml_schema::unsigned_int_pskel& /* Size */);
+
+    // Individual element parsers.
+    //
+    void
+    Size_parser (::xml_schema::unsigned_int_pskel&);
+
+    virtual void
+    _reset ();
+
+    // Constructor.
+    //
+    Stack_pskel ();
+
+    // Implementation details.
+    //
+    protected:
+    Stack_pskel* Stack_impl_;
+    Stack_pskel (Stack_pskel*, void*);
+
+    protected:
+    virtual bool
+    _start_element_impl (const ::xsde::cxx::ro_string&,
+                         const ::xsde::cxx::ro_string&);
+
+    virtual bool
+    _end_element_impl (const ::xsde::cxx::ro_string&,
+                       const ::xsde::cxx::ro_string&);
+
+    protected:
+    ::xml_schema::unsigned_int_pskel* Size_parser_;
+
+    public:
+    struct v_state_descr_
+    {
+      void (::egxml::Stack_pskel::*func) (
+        unsigned long&,
+        unsigned long&,
+        const ::xsde::cxx::ro_string&,
+        const ::xsde::cxx::ro_string&,
+        bool);
+      unsigned long state;
+      unsigned long count;
+    };
+
+    struct v_state_
+    {
+      v_state_descr_ data[2UL];
+      unsigned long size;
+    };
+
+    protected:
+    v_state_ v_state_first_;
+    ::xsde::cxx::stack v_state_stack_;
+
+    virtual void
+    _pre_e_validate ();
+
+    virtual void
+    _post_e_validate ();
+
+    void
+    sequence_0 (unsigned long&,
+                unsigned long&,
+                const ::xsde::cxx::ro_string&,
+                const ::xsde::cxx::ro_string&,
+                bool);
+  };
+
+  class Fibers_pskel: public ::xsde::cxx::parser::validating::complex_content
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    // Elements.
+    //
+    virtual void
+    Stack (const ::egxml::Stack&);
+
+    virtual ::egxml::Fibers
+    post_Fibers () = 0;
+
+    // Parser construction API.
+    //
+    void
+    parsers (::egxml::Stack_pskel& /* Stack */);
+
+    // Individual element parsers.
+    //
+    void
+    Stack_parser (::egxml::Stack_pskel&);
+
+    virtual void
+    _reset ();
+
+    // Constructor.
+    //
+    Fibers_pskel ();
+
+    // Implementation details.
+    //
+    protected:
+    Fibers_pskel* Fibers_impl_;
+    Fibers_pskel (Fibers_pskel*, void*);
+
+    protected:
+    virtual bool
+    _start_element_impl (const ::xsde::cxx::ro_string&,
+                         const ::xsde::cxx::ro_string&);
+
+    virtual bool
+    _end_element_impl (const ::xsde::cxx::ro_string&,
+                       const ::xsde::cxx::ro_string&);
+
+    protected:
+    ::egxml::Stack_pskel* Stack_parser_;
+
+    public:
+    struct v_state_descr_
+    {
+      void (::egxml::Fibers_pskel::*func) (
+        unsigned long&,
+        unsigned long&,
+        const ::xsde::cxx::ro_string&,
+        const ::xsde::cxx::ro_string&,
+        bool);
+      unsigned long state;
+      unsigned long count;
+    };
+
+    struct v_state_
+    {
+      v_state_descr_ data[2UL];
+      unsigned long size;
+    };
+
+    protected:
+    v_state_ v_state_first_;
+    ::xsde::cxx::stack v_state_stack_;
+
+    virtual void
+    _pre_e_validate ();
+
+    virtual void
+    _post_e_validate ();
+
+    void
+    sequence_0 (unsigned long&,
+                unsigned long&,
+                const ::xsde::cxx::ro_string&,
+                const ::xsde::cxx::ro_string&,
+                bool);
+  };
+
+  class Defaults_pskel: public ::xsde::cxx::parser::validating::complex_content
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    // Elements.
+    //
+    virtual void
+    Fibers (const ::egxml::Fibers&);
+
+    virtual ::egxml::Defaults
+    post_Defaults () = 0;
+
+    // Parser construction API.
+    //
+    void
+    parsers (::egxml::Fibers_pskel& /* Fibers */);
+
+    // Individual element parsers.
+    //
+    void
+    Fibers_parser (::egxml::Fibers_pskel&);
+
+    virtual void
+    _reset ();
+
+    // Constructor.
+    //
+    Defaults_pskel ();
+
+    // Implementation details.
+    //
+    protected:
+    Defaults_pskel* Defaults_impl_;
+    Defaults_pskel (Defaults_pskel*, void*);
+
+    protected:
+    virtual bool
+    _start_element_impl (const ::xsde::cxx::ro_string&,
+                         const ::xsde::cxx::ro_string&);
+
+    virtual bool
+    _end_element_impl (const ::xsde::cxx::ro_string&,
+                       const ::xsde::cxx::ro_string&);
+
+    protected:
+    ::egxml::Fibers_pskel* Fibers_parser_;
+
+    public:
+    struct v_state_descr_
+    {
+      void (::egxml::Defaults_pskel::*func) (
+        unsigned long&,
+        unsigned long&,
+        const ::xsde::cxx::ro_string&,
+        const ::xsde::cxx::ro_string&,
+        bool);
+      unsigned long state;
+      unsigned long count;
+    };
+
+    struct v_state_
+    {
+      v_state_descr_ data[2UL];
+      unsigned long size;
+    };
+
+    protected:
+    v_state_ v_state_first_;
+    ::xsde::cxx::stack v_state_stack_;
+
+    virtual void
+    _pre_e_validate ();
+
+    virtual void
+    _post_e_validate ();
+
+    void
+    sequence_0 (unsigned long&,
+                unsigned long&,
+                const ::xsde::cxx::ro_string&,
+                const ::xsde::cxx::ro_string&,
+                bool);
+  };
+
   class Project_pskel: public ::xsde::cxx::parser::validating::complex_content
   {
     public:
@@ -587,6 +854,9 @@ namespace egxml
     virtual void
     Run (::egxml::Run*);
 
+    virtual void
+    Defaults (const ::egxml::Defaults&);
+
     virtual ::egxml::Project*
     post_Project () = 0;
 
@@ -597,7 +867,8 @@ namespace egxml
              ::xml_schema::string_pskel& /* Host */,
              ::xml_schema::string_pskel& /* Package */,
              ::egxml::Build_pskel& /* Build */,
-             ::egxml::Run_pskel& /* Run */);
+             ::egxml::Run_pskel& /* Run */,
+             ::egxml::Defaults_pskel& /* Defaults */);
 
     // Individual element parsers.
     //
@@ -615,6 +886,9 @@ namespace egxml
 
     void
     Run_parser (::egxml::Run_pskel&);
+
+    void
+    Defaults_parser (::egxml::Defaults_pskel&);
 
     virtual void
     _reset ();
@@ -644,6 +918,7 @@ namespace egxml
     ::xml_schema::string_pskel* Package_parser_;
     ::egxml::Build_pskel* Build_parser_;
     ::egxml::Run_pskel* Run_parser_;
+    ::egxml::Defaults_pskel* Defaults_parser_;
 
     public:
     struct v_state_descr_

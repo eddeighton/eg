@@ -184,6 +184,96 @@ namespace egxml
   {
   }
 
+  // Stack_sskel
+  //
+
+  void Stack_sskel::
+  Size_serializer (::xml_schema::unsigned_int_sskel& s)
+  {
+    this->Size_serializer_ = &s;
+  }
+
+  void Stack_sskel::
+  serializers (::xml_schema::unsigned_int_sskel& Size)
+  {
+    this->Size_serializer_ = &Size;
+  }
+
+  Stack_sskel::
+  Stack_sskel ()
+  : Stack_impl_ (0),
+    Size_serializer_ (0)
+  {
+  }
+
+  Stack_sskel::
+  Stack_sskel (Stack_sskel* impl, void*)
+  : ::xsde::cxx::serializer::validating::complex_content (impl, 0),
+    Stack_impl_ (impl),
+    Size_serializer_ (0)
+  {
+  }
+
+  // Fibers_sskel
+  //
+
+  void Fibers_sskel::
+  Stack_serializer (::egxml::Stack_sskel& s)
+  {
+    this->Stack_serializer_ = &s;
+  }
+
+  void Fibers_sskel::
+  serializers (::egxml::Stack_sskel& Stack)
+  {
+    this->Stack_serializer_ = &Stack;
+  }
+
+  Fibers_sskel::
+  Fibers_sskel ()
+  : Fibers_impl_ (0),
+    Stack_serializer_ (0)
+  {
+  }
+
+  Fibers_sskel::
+  Fibers_sskel (Fibers_sskel* impl, void*)
+  : ::xsde::cxx::serializer::validating::complex_content (impl, 0),
+    Fibers_impl_ (impl),
+    Stack_serializer_ (0)
+  {
+  }
+
+  // Defaults_sskel
+  //
+
+  void Defaults_sskel::
+  Fibers_serializer (::egxml::Fibers_sskel& s)
+  {
+    this->Fibers_serializer_ = &s;
+  }
+
+  void Defaults_sskel::
+  serializers (::egxml::Fibers_sskel& Fibers)
+  {
+    this->Fibers_serializer_ = &Fibers;
+  }
+
+  Defaults_sskel::
+  Defaults_sskel ()
+  : Defaults_impl_ (0),
+    Fibers_serializer_ (0)
+  {
+  }
+
+  Defaults_sskel::
+  Defaults_sskel (Defaults_sskel* impl, void*)
+  : ::xsde::cxx::serializer::validating::complex_content (impl, 0),
+    Defaults_impl_ (impl),
+    Fibers_serializer_ (0)
+  {
+  }
+
   // Project_sskel
   //
 
@@ -218,17 +308,25 @@ namespace egxml
   }
 
   void Project_sskel::
+  Defaults_serializer (::egxml::Defaults_sskel& s)
+  {
+    this->Defaults_serializer_ = &s;
+  }
+
+  void Project_sskel::
   serializers (::xml_schema::string_sskel& Name,
                ::xml_schema::string_sskel& Host,
                ::xml_schema::string_sskel& Package,
                ::egxml::Build_sskel& Build,
-               ::egxml::Run_sskel& Run)
+               ::egxml::Run_sskel& Run,
+               ::egxml::Defaults_sskel& Defaults)
   {
     this->Name_serializer_ = &Name;
     this->Host_serializer_ = &Host;
     this->Package_serializer_ = &Package;
     this->Build_serializer_ = &Build;
     this->Run_serializer_ = &Run;
+    this->Defaults_serializer_ = &Defaults;
   }
 
   Project_sskel::
@@ -238,7 +336,8 @@ namespace egxml
     Host_serializer_ (0),
     Package_serializer_ (0),
     Build_serializer_ (0),
-    Run_serializer_ (0)
+    Run_serializer_ (0),
+    Defaults_serializer_ (0)
   {
   }
 
@@ -250,7 +349,8 @@ namespace egxml
     Host_serializer_ (0),
     Package_serializer_ (0),
     Build_serializer_ (0),
-    Run_serializer_ (0)
+    Run_serializer_ (0),
+    Defaults_serializer_ (0)
   {
   }
 
@@ -612,6 +712,84 @@ namespace egxml
     this->resetting_ = false;
   }
 
+  // Stack_sskel
+  //
+
+  bool Stack_sskel::
+  Size_present ()
+  {
+    return this->Stack_impl_ ? this->Stack_impl_->Size_present () : false;
+  }
+
+  void Stack_sskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::xsde::cxx::serializer::validating::complex_content base;
+    base::_reset ();
+
+    this->resetting_ = true;
+
+    if (this->Size_serializer_)
+      this->Size_serializer_->_reset ();
+
+    this->resetting_ = false;
+  }
+
+  // Fibers_sskel
+  //
+
+  bool Fibers_sskel::
+  Stack_present ()
+  {
+    return this->Fibers_impl_ ? this->Fibers_impl_->Stack_present () : false;
+  }
+
+  void Fibers_sskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::xsde::cxx::serializer::validating::complex_content base;
+    base::_reset ();
+
+    this->resetting_ = true;
+
+    if (this->Stack_serializer_)
+      this->Stack_serializer_->_reset ();
+
+    this->resetting_ = false;
+  }
+
+  // Defaults_sskel
+  //
+
+  bool Defaults_sskel::
+  Fibers_present ()
+  {
+    return this->Defaults_impl_ ? this->Defaults_impl_->Fibers_present () : false;
+  }
+
+  void Defaults_sskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::xsde::cxx::serializer::validating::complex_content base;
+    base::_reset ();
+
+    this->resetting_ = true;
+
+    if (this->Fibers_serializer_)
+      this->Fibers_serializer_->_reset ();
+
+    this->resetting_ = false;
+  }
+
   // Project_sskel
   //
 
@@ -619,6 +797,12 @@ namespace egxml
   Package_next ()
   {
     return this->Project_impl_ ? this->Project_impl_->Package_next () : false;
+  }
+
+  bool Project_sskel::
+  Defaults_present ()
+  {
+    return this->Project_impl_ ? this->Project_impl_->Defaults_present () : false;
   }
 
   void Project_sskel::
@@ -646,6 +830,9 @@ namespace egxml
 
     if (this->Run_serializer_)
       this->Run_serializer_->_reset ();
+
+    if (this->Defaults_serializer_)
+      this->Defaults_serializer_->_reset ();
 
     this->resetting_ = false;
   }
@@ -1185,6 +1372,135 @@ namespace egxml
     }
   }
 
+  // Element validation and serialization for Stack_sskel.
+  //
+  void Stack_sskel::
+  _serialize_content ()
+  {
+    ::xsde::cxx::serializer::context& ctx = this->_context ();
+
+    // Size
+    //
+    if (this->Size_present ())
+    {
+      unsigned int r = this->Size ();
+
+      if (this->Size_serializer_)
+      {
+        this->Size_serializer_->pre (r);
+        this->_start_element ("Size");
+        this->Size_serializer_->_pre_impl (ctx);
+
+        if (ctx.error_type ())
+          return;
+
+        this->Size_serializer_->_serialize_attributes ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Size_serializer_->_serialize_content ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Size_serializer_->_post_impl ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->_end_element ();
+        this->Size_serializer_->post ();
+      }
+    }
+  }
+
+  // Element validation and serialization for Fibers_sskel.
+  //
+  void Fibers_sskel::
+  _serialize_content ()
+  {
+    ::xsde::cxx::serializer::context& ctx = this->_context ();
+
+    // Stack
+    //
+    if (this->Stack_present ())
+    {
+      const ::egxml::Stack& r = this->Stack ();
+
+      if (this->Stack_serializer_)
+      {
+        this->Stack_serializer_->pre (r);
+        this->_start_element ("Stack");
+        this->Stack_serializer_->_pre_impl (ctx);
+
+        if (ctx.error_type ())
+          return;
+
+        this->Stack_serializer_->_serialize_attributes ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Stack_serializer_->_serialize_content ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Stack_serializer_->_post_impl ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->_end_element ();
+        this->Stack_serializer_->post ();
+      }
+    }
+  }
+
+  // Element validation and serialization for Defaults_sskel.
+  //
+  void Defaults_sskel::
+  _serialize_content ()
+  {
+    ::xsde::cxx::serializer::context& ctx = this->_context ();
+
+    // Fibers
+    //
+    if (this->Fibers_present ())
+    {
+      const ::egxml::Fibers& r = this->Fibers ();
+
+      if (this->Fibers_serializer_)
+      {
+        this->Fibers_serializer_->pre (r);
+        this->_start_element ("Fibers");
+        this->Fibers_serializer_->_pre_impl (ctx);
+
+        if (ctx.error_type ())
+          return;
+
+        this->Fibers_serializer_->_serialize_attributes ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Fibers_serializer_->_serialize_content ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Fibers_serializer_->_post_impl ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->_end_element ();
+        this->Fibers_serializer_->post ();
+      }
+    }
+  }
+
   // Element validation and serialization for Project_sskel.
   //
   void Project_sskel::
@@ -1400,6 +1716,41 @@ namespace egxml
       {
         this->_schema_error (::xsde::cxx::schema_error::expected_element);
         return;
+      }
+    }
+
+    // Defaults
+    //
+    if (this->Defaults_present ())
+    {
+      const ::egxml::Defaults& r = this->Defaults ();
+
+      if (this->Defaults_serializer_)
+      {
+        this->Defaults_serializer_->pre (r);
+        this->_start_element ("Defaults");
+        this->Defaults_serializer_->_pre_impl (ctx);
+
+        if (ctx.error_type ())
+          return;
+
+        this->Defaults_serializer_->_serialize_attributes ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Defaults_serializer_->_serialize_content ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Defaults_serializer_->_post_impl ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->_end_element ();
+        this->Defaults_serializer_->post ();
       }
     }
   }

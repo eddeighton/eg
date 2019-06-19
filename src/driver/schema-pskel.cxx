@@ -188,6 +188,102 @@ namespace egxml
   {
   }
 
+  // Stack_pskel
+  //
+
+  void Stack_pskel::
+  Size_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->Size_parser_ = &p;
+  }
+
+  void Stack_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& Size)
+  {
+    this->Size_parser_ = &Size;
+  }
+
+  Stack_pskel::
+  Stack_pskel ()
+  : Stack_impl_ (0),
+    Size_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
+  Stack_pskel::
+  Stack_pskel (Stack_pskel* impl, void*)
+  : ::xsde::cxx::parser::validating::complex_content (impl, 0),
+    Stack_impl_ (impl),
+    Size_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
+  // Fibers_pskel
+  //
+
+  void Fibers_pskel::
+  Stack_parser (::egxml::Stack_pskel& p)
+  {
+    this->Stack_parser_ = &p;
+  }
+
+  void Fibers_pskel::
+  parsers (::egxml::Stack_pskel& Stack)
+  {
+    this->Stack_parser_ = &Stack;
+  }
+
+  Fibers_pskel::
+  Fibers_pskel ()
+  : Fibers_impl_ (0),
+    Stack_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
+  Fibers_pskel::
+  Fibers_pskel (Fibers_pskel* impl, void*)
+  : ::xsde::cxx::parser::validating::complex_content (impl, 0),
+    Fibers_impl_ (impl),
+    Stack_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
+  // Defaults_pskel
+  //
+
+  void Defaults_pskel::
+  Fibers_parser (::egxml::Fibers_pskel& p)
+  {
+    this->Fibers_parser_ = &p;
+  }
+
+  void Defaults_pskel::
+  parsers (::egxml::Fibers_pskel& Fibers)
+  {
+    this->Fibers_parser_ = &Fibers;
+  }
+
+  Defaults_pskel::
+  Defaults_pskel ()
+  : Defaults_impl_ (0),
+    Fibers_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
+  Defaults_pskel::
+  Defaults_pskel (Defaults_pskel* impl, void*)
+  : ::xsde::cxx::parser::validating::complex_content (impl, 0),
+    Defaults_impl_ (impl),
+    Fibers_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
   // Project_pskel
   //
 
@@ -222,17 +318,25 @@ namespace egxml
   }
 
   void Project_pskel::
+  Defaults_parser (::egxml::Defaults_pskel& p)
+  {
+    this->Defaults_parser_ = &p;
+  }
+
+  void Project_pskel::
   parsers (::xml_schema::string_pskel& Name,
            ::xml_schema::string_pskel& Host,
            ::xml_schema::string_pskel& Package,
            ::egxml::Build_pskel& Build,
-           ::egxml::Run_pskel& Run)
+           ::egxml::Run_pskel& Run,
+           ::egxml::Defaults_pskel& Defaults)
   {
     this->Name_parser_ = &Name;
     this->Host_parser_ = &Host;
     this->Package_parser_ = &Package;
     this->Build_parser_ = &Build;
     this->Run_parser_ = &Run;
+    this->Defaults_parser_ = &Defaults;
   }
 
   Project_pskel::
@@ -243,6 +347,7 @@ namespace egxml
     Package_parser_ (0),
     Build_parser_ (0),
     Run_parser_ (0),
+    Defaults_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
   }
@@ -256,6 +361,7 @@ namespace egxml
     Package_parser_ (0),
     Build_parser_ (0),
     Run_parser_ (0),
+    Defaults_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
   }
@@ -621,6 +727,93 @@ namespace egxml
     this->resetting_ = false;
   }
 
+  // Stack_pskel
+  //
+
+  void Stack_pskel::
+  Size (unsigned int x)
+  {
+    if (this->Stack_impl_)
+      this->Stack_impl_->Size (x);
+  }
+
+  void Stack_pskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    base::_reset ();
+
+    this->v_state_stack_.clear ();
+
+    this->resetting_ = true;
+
+    if (this->Size_parser_)
+      this->Size_parser_->_reset ();
+
+    this->resetting_ = false;
+  }
+
+  // Fibers_pskel
+  //
+
+  void Fibers_pskel::
+  Stack (const ::egxml::Stack& x)
+  {
+    if (this->Fibers_impl_)
+      this->Fibers_impl_->Stack (x);
+  }
+
+  void Fibers_pskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    base::_reset ();
+
+    this->v_state_stack_.clear ();
+
+    this->resetting_ = true;
+
+    if (this->Stack_parser_)
+      this->Stack_parser_->_reset ();
+
+    this->resetting_ = false;
+  }
+
+  // Defaults_pskel
+  //
+
+  void Defaults_pskel::
+  Fibers (const ::egxml::Fibers& x)
+  {
+    if (this->Defaults_impl_)
+      this->Defaults_impl_->Fibers (x);
+  }
+
+  void Defaults_pskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    base::_reset ();
+
+    this->v_state_stack_.clear ();
+
+    this->resetting_ = true;
+
+    if (this->Fibers_parser_)
+      this->Fibers_parser_->_reset ();
+
+    this->resetting_ = false;
+  }
+
   // Project_pskel
   //
 
@@ -660,6 +853,13 @@ namespace egxml
   }
 
   void Project_pskel::
+  Defaults (const ::egxml::Defaults& x)
+  {
+    if (this->Project_impl_)
+      this->Project_impl_->Defaults (x);
+  }
+
+  void Project_pskel::
   _reset ()
   {
     if (this->resetting_)
@@ -686,6 +886,9 @@ namespace egxml
 
     if (this->Run_parser_)
       this->Run_parser_->_reset ();
+
+    if (this->Defaults_parser_)
+      this->Defaults_parser_->_reset ();
 
     this->resetting_ = false;
   }
@@ -1573,6 +1776,543 @@ namespace egxml
     }
   }
 
+  // Element validation and dispatch functions for Stack_pskel.
+  //
+  bool Stack_pskel::
+  _start_element_impl (const ::xsde::cxx::ro_string& ns,
+                       const ::xsde::cxx::ro_string& n)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    if (vd->func == 0 && vd->state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (base::_start_element_impl (ns, n))
+        return true;
+      else
+        vd->state = 1;
+    }
+
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+      vd = vs.data + (vs.size - 1);
+
+      if (vd->state == ~0UL && !ctx.error_type ())
+        vd = vs.data + (--vs.size - 1);
+      else
+        break;
+    }
+
+    if (vd->func == 0)
+    {
+      if (vd->state != ~0UL)
+      {
+        unsigned long s = ~0UL;
+
+        if (n == "Size" && ns.empty ())
+          s = 0UL;
+
+        if (s != ~0UL)
+        {
+          vd->count++;
+          vd->state = ~0UL;
+
+          vd = vs.data + vs.size++;
+          vd->func = &Stack_pskel::sequence_0;
+          vd->state = s;
+          vd->count = 0;
+
+          this->sequence_0 (vd->state, vd->count, ns, n, true);
+        }
+        else
+        {
+          return false;
+        }
+      }
+      else
+        return false;
+    }
+
+    return true;
+  }
+
+  bool Stack_pskel::
+  _end_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+  {
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size - 1];
+
+    if (vd.func == 0 && vd.state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (!base::_end_element_impl (ns, n))
+        assert (false);
+      return true;
+    }
+
+    assert (vd.func != 0);
+    (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+    if (vd.state == ~0UL)
+      vs.size--;
+
+    return true;
+  }
+
+  void Stack_pskel::
+  _pre_e_validate ()
+  {
+    this->v_state_stack_.push ();
+    static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size++];
+
+    vd.func = 0;
+    vd.state = 0;
+    vd.count = 0;
+  }
+
+  void Stack_pskel::
+  _post_e_validate ()
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    ::xsde::cxx::ro_string empty;
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+      if (ctx.error_type ())
+        return;
+
+      assert (vd->state == ~0UL);
+      vd = vs.data + (--vs.size - 1);
+    }
+
+
+    this->v_state_stack_.pop ();
+  }
+
+  void Stack_pskel::
+  sequence_0 (unsigned long& state,
+              unsigned long& count,
+              const ::xsde::cxx::ro_string& ns,
+              const ::xsde::cxx::ro_string& n,
+              bool start)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    XSDE_UNUSED (ctx);
+
+    switch (state)
+    {
+      case 0UL:
+      {
+        if (n == "Size" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Size_parser_)
+            {
+              this->Size_parser_->pre ();
+              ctx.nested_parser (this->Size_parser_);
+            }
+          }
+          else
+          {
+            if (this->Size_parser_ != 0)
+            {
+              unsigned int tmp = this->Size_parser_->post_unsigned_int ();
+              this->Size (tmp);
+            }
+
+            count = 0;
+            state = ~0UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = ~0UL;
+          // Fall through.
+        }
+      }
+      case ~0UL:
+        break;
+    }
+  }
+
+  // Element validation and dispatch functions for Fibers_pskel.
+  //
+  bool Fibers_pskel::
+  _start_element_impl (const ::xsde::cxx::ro_string& ns,
+                       const ::xsde::cxx::ro_string& n)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    if (vd->func == 0 && vd->state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (base::_start_element_impl (ns, n))
+        return true;
+      else
+        vd->state = 1;
+    }
+
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+      vd = vs.data + (vs.size - 1);
+
+      if (vd->state == ~0UL && !ctx.error_type ())
+        vd = vs.data + (--vs.size - 1);
+      else
+        break;
+    }
+
+    if (vd->func == 0)
+    {
+      if (vd->state != ~0UL)
+      {
+        unsigned long s = ~0UL;
+
+        if (n == "Stack" && ns.empty ())
+          s = 0UL;
+
+        if (s != ~0UL)
+        {
+          vd->count++;
+          vd->state = ~0UL;
+
+          vd = vs.data + vs.size++;
+          vd->func = &Fibers_pskel::sequence_0;
+          vd->state = s;
+          vd->count = 0;
+
+          this->sequence_0 (vd->state, vd->count, ns, n, true);
+        }
+        else
+        {
+          return false;
+        }
+      }
+      else
+        return false;
+    }
+
+    return true;
+  }
+
+  bool Fibers_pskel::
+  _end_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+  {
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size - 1];
+
+    if (vd.func == 0 && vd.state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (!base::_end_element_impl (ns, n))
+        assert (false);
+      return true;
+    }
+
+    assert (vd.func != 0);
+    (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+    if (vd.state == ~0UL)
+      vs.size--;
+
+    return true;
+  }
+
+  void Fibers_pskel::
+  _pre_e_validate ()
+  {
+    this->v_state_stack_.push ();
+    static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size++];
+
+    vd.func = 0;
+    vd.state = 0;
+    vd.count = 0;
+  }
+
+  void Fibers_pskel::
+  _post_e_validate ()
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    ::xsde::cxx::ro_string empty;
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+      if (ctx.error_type ())
+        return;
+
+      assert (vd->state == ~0UL);
+      vd = vs.data + (--vs.size - 1);
+    }
+
+
+    this->v_state_stack_.pop ();
+  }
+
+  void Fibers_pskel::
+  sequence_0 (unsigned long& state,
+              unsigned long& count,
+              const ::xsde::cxx::ro_string& ns,
+              const ::xsde::cxx::ro_string& n,
+              bool start)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    XSDE_UNUSED (ctx);
+
+    switch (state)
+    {
+      case 0UL:
+      {
+        if (n == "Stack" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Stack_parser_)
+            {
+              this->Stack_parser_->pre ();
+              ctx.nested_parser (this->Stack_parser_);
+            }
+          }
+          else
+          {
+            if (this->Stack_parser_ != 0)
+            {
+              const ::egxml::Stack& tmp = this->Stack_parser_->post_Stack ();
+              this->Stack (tmp);
+            }
+
+            count = 0;
+            state = ~0UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = ~0UL;
+          // Fall through.
+        }
+      }
+      case ~0UL:
+        break;
+    }
+  }
+
+  // Element validation and dispatch functions for Defaults_pskel.
+  //
+  bool Defaults_pskel::
+  _start_element_impl (const ::xsde::cxx::ro_string& ns,
+                       const ::xsde::cxx::ro_string& n)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    if (vd->func == 0 && vd->state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (base::_start_element_impl (ns, n))
+        return true;
+      else
+        vd->state = 1;
+    }
+
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+      vd = vs.data + (vs.size - 1);
+
+      if (vd->state == ~0UL && !ctx.error_type ())
+        vd = vs.data + (--vs.size - 1);
+      else
+        break;
+    }
+
+    if (vd->func == 0)
+    {
+      if (vd->state != ~0UL)
+      {
+        unsigned long s = ~0UL;
+
+        if (n == "Fibers" && ns.empty ())
+          s = 0UL;
+
+        if (s != ~0UL)
+        {
+          vd->count++;
+          vd->state = ~0UL;
+
+          vd = vs.data + vs.size++;
+          vd->func = &Defaults_pskel::sequence_0;
+          vd->state = s;
+          vd->count = 0;
+
+          this->sequence_0 (vd->state, vd->count, ns, n, true);
+        }
+        else
+        {
+          return false;
+        }
+      }
+      else
+        return false;
+    }
+
+    return true;
+  }
+
+  bool Defaults_pskel::
+  _end_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+  {
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size - 1];
+
+    if (vd.func == 0 && vd.state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (!base::_end_element_impl (ns, n))
+        assert (false);
+      return true;
+    }
+
+    assert (vd.func != 0);
+    (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+    if (vd.state == ~0UL)
+      vs.size--;
+
+    return true;
+  }
+
+  void Defaults_pskel::
+  _pre_e_validate ()
+  {
+    this->v_state_stack_.push ();
+    static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size++];
+
+    vd.func = 0;
+    vd.state = 0;
+    vd.count = 0;
+  }
+
+  void Defaults_pskel::
+  _post_e_validate ()
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    ::xsde::cxx::ro_string empty;
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+      if (ctx.error_type ())
+        return;
+
+      assert (vd->state == ~0UL);
+      vd = vs.data + (--vs.size - 1);
+    }
+
+
+    this->v_state_stack_.pop ();
+  }
+
+  void Defaults_pskel::
+  sequence_0 (unsigned long& state,
+              unsigned long& count,
+              const ::xsde::cxx::ro_string& ns,
+              const ::xsde::cxx::ro_string& n,
+              bool start)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    XSDE_UNUSED (ctx);
+
+    switch (state)
+    {
+      case 0UL:
+      {
+        if (n == "Fibers" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Fibers_parser_)
+            {
+              this->Fibers_parser_->pre ();
+              ctx.nested_parser (this->Fibers_parser_);
+            }
+          }
+          else
+          {
+            if (this->Fibers_parser_ != 0)
+            {
+              const ::egxml::Fibers& tmp = this->Fibers_parser_->post_Fibers ();
+              this->Fibers (tmp);
+            }
+
+            count = 0;
+            state = ~0UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = ~0UL;
+          // Fall through.
+        }
+      }
+      case ~0UL:
+        break;
+    }
+  }
+
   // Element validation and dispatch functions for Project_pskel.
   //
   bool Project_pskel::
@@ -1907,6 +2647,40 @@ namespace egxml
             break;
           }
 
+          count = 0;
+          state = 5UL;
+          // Fall through.
+        }
+      }
+      case 5UL:
+      {
+        if (n == "Defaults" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Defaults_parser_)
+            {
+              this->Defaults_parser_->pre ();
+              ctx.nested_parser (this->Defaults_parser_);
+            }
+          }
+          else
+          {
+            if (this->Defaults_parser_ != 0)
+            {
+              const ::egxml::Defaults& tmp = this->Defaults_parser_->post_Defaults ();
+              this->Defaults (tmp);
+            }
+
+            count = 0;
+            state = ~0UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
           count = 0;
           state = ~0UL;
           // Fall through.

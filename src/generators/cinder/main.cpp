@@ -66,6 +66,10 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
     const char pszPythonScripts[] = R"(
 std::vector< std::function< void() > > loadScripts( const std::vector< std::string >& scripts, const std::string& strDatabase )
 {
+    if( !scripts.empty() )
+    {
+        throw std::runtime_error( "Scripts specified when no scripting package enabled" );
+    }
     std::vector< std::function< void() > > doNothing;
     return doNothing;
 }

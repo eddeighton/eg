@@ -154,6 +154,75 @@ namespace egxml
     Build_pimpl_state Build_pimpl_state_;
   };
 
+  class Stack_pimpl: public Stack_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Size (unsigned int);
+
+    virtual ::egxml::Stack
+    post_Stack ();
+
+    public:
+    struct Stack_pimpl_state
+    {
+      ::egxml::Stack Stack_;
+    };
+
+    Stack_pimpl_state Stack_pimpl_state_;
+  };
+
+  class Fibers_pimpl: public Fibers_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Stack (const ::egxml::Stack&);
+
+    virtual ::egxml::Fibers
+    post_Fibers ();
+
+    public:
+    struct Fibers_pimpl_state
+    {
+      ::egxml::Fibers Fibers_;
+    };
+
+    Fibers_pimpl_state Fibers_pimpl_state_;
+  };
+
+  class Defaults_pimpl: public Defaults_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    Fibers (const ::egxml::Fibers&);
+
+    virtual ::egxml::Defaults
+    post_Defaults ();
+
+    public:
+    struct Defaults_pimpl_state
+    {
+      ::egxml::Defaults Defaults_;
+    };
+
+    Defaults_pimpl_state Defaults_pimpl_state_;
+  };
+
   class Project_pimpl: public Project_pskel
   {
     public:
@@ -183,6 +252,9 @@ namespace egxml
 
     virtual void
     Run (::egxml::Run*);
+
+    virtual void
+    Defaults (const ::egxml::Defaults&);
 
     virtual ::egxml::Project*
     post_Project ();
@@ -415,15 +487,19 @@ namespace egxml
     }
 
     public:
-    ::egxml::Directories_pimpl Directories_p_;
+    ::egxml::Build_pimpl Build_p_;
+    ::egxml::Run_pimpl Run_p_;
+    ::egxml::Defaults_pimpl Defaults_p_;
+    ::egxml::Fibers_pimpl Fibers_p_;
+    ::xml_schema::unsigned_int_pimpl unsigned_int_p_;
+    ::xml_schema::string_pimpl string_p_;
+    ::egxml::EG_pimpl EG_p_;
+    ::egxml::Package_pimpl Package_p_;
     ::egxml::Files_pimpl Files_p_;
     ::egxml::Host_pimpl Host_p_;
     ::egxml::Project_pimpl Project_p_;
-    ::egxml::Build_pimpl Build_p_;
-    ::egxml::Run_pimpl Run_p_;
-    ::egxml::EG_pimpl EG_p_;
-    ::egxml::Package_pimpl Package_p_;
-    ::xml_schema::string_pimpl string_p_;
+    ::egxml::Stack_pimpl Stack_p_;
+    ::egxml::Directories_pimpl Directories_p_;
   };
 }
 

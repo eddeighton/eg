@@ -332,6 +332,7 @@ namespace interface
         loader.loadObjectVector( m_baseActions );
         loader.load( m_strBaseType );
         loader.load( m_strDependency );
+        loader.load( m_parameterTypes );
         loader.loadObjectVector( m_inheriters );
         loader.loadObjectVector( m_linkers );
     }
@@ -343,6 +344,7 @@ namespace interface
         storer.storeObjectVector( m_baseActions );
         storer.store( m_strBaseType );
         storer.store( m_strDependency );
+        storer.store( m_parameterTypes );
         storer.storeObjectVector( m_inheriters );
         storer.storeObjectVector( m_linkers );
     }

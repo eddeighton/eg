@@ -64,6 +64,8 @@ namespace eg
     static const char* EG_EVENT_LOG_EVENT_TYPE = "eg::_event";
     static const char* EG_EVENT_ITERATOR = "eg::event_iterator";
     static const char* EG_DEPENDENCY_PROVIDER_TYPE = "eg::DependencyProvider";
+    //static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::pooled_fixedsize_stack( 1024 * 8 )";//bytes
+    static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE )";//bytes
     
     class Identifiers;
     
@@ -75,7 +77,7 @@ namespace eg
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser );
     
-    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers );
+    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize );
 
     void generateOperationSource( std::ostream& os, const interface::Root* pRoot );
     

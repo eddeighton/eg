@@ -1,7 +1,7 @@
 
 import pyeg
 
-r = pyeg.get_root()
+r = pyeg.root()
 
 r.x( 1 )
 

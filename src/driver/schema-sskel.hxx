@@ -93,6 +93,9 @@ namespace egxml
   class Package_sskel;
   class Host_sskel;
   class Build_sskel;
+  class Stack_sskel;
+  class Fibers_sskel;
+  class Defaults_sskel;
   class Project_sskel;
   class EG_sskel;
   class Directories_sskel;
@@ -515,6 +518,159 @@ namespace egxml
     ::xml_schema::string_sskel* LinkerFlags_serializer_;
   };
 
+  class Stack_sskel: public ::xsde::cxx::serializer::validating::complex_content
+  {
+    public:
+    // Serializer callbacks. Override them in your implementation.
+    //
+
+    virtual void
+    pre (const ::egxml::Stack&) = 0;
+
+    // Elements.
+    //
+    virtual bool
+    Size_present ();
+
+    virtual unsigned int
+    Size () = 0;
+
+    // virtual void
+    // post ();
+
+    // Serializer construction API.
+    //
+    void
+    serializers (::xml_schema::unsigned_int_sskel& /* Size */);
+
+    // Individual element serializers.
+    //
+    void
+    Size_serializer (::xml_schema::unsigned_int_sskel&);
+
+    virtual void
+    _reset ();
+
+    // Constructor.
+    //
+    Stack_sskel ();
+
+    // Implementation.
+    //
+    public:
+    virtual void
+    _serialize_content ();
+
+    protected:
+    Stack_sskel* Stack_impl_;
+    Stack_sskel (Stack_sskel*, void*);
+
+    protected:
+    ::xml_schema::unsigned_int_sskel* Size_serializer_;
+  };
+
+  class Fibers_sskel: public ::xsde::cxx::serializer::validating::complex_content
+  {
+    public:
+    // Serializer callbacks. Override them in your implementation.
+    //
+
+    virtual void
+    pre (const ::egxml::Fibers&) = 0;
+
+    // Elements.
+    //
+    virtual bool
+    Stack_present ();
+
+    virtual const ::egxml::Stack&
+    Stack () = 0;
+
+    // virtual void
+    // post ();
+
+    // Serializer construction API.
+    //
+    void
+    serializers (::egxml::Stack_sskel& /* Stack */);
+
+    // Individual element serializers.
+    //
+    void
+    Stack_serializer (::egxml::Stack_sskel&);
+
+    virtual void
+    _reset ();
+
+    // Constructor.
+    //
+    Fibers_sskel ();
+
+    // Implementation.
+    //
+    public:
+    virtual void
+    _serialize_content ();
+
+    protected:
+    Fibers_sskel* Fibers_impl_;
+    Fibers_sskel (Fibers_sskel*, void*);
+
+    protected:
+    ::egxml::Stack_sskel* Stack_serializer_;
+  };
+
+  class Defaults_sskel: public ::xsde::cxx::serializer::validating::complex_content
+  {
+    public:
+    // Serializer callbacks. Override them in your implementation.
+    //
+
+    virtual void
+    pre (const ::egxml::Defaults&) = 0;
+
+    // Elements.
+    //
+    virtual bool
+    Fibers_present ();
+
+    virtual const ::egxml::Fibers&
+    Fibers () = 0;
+
+    // virtual void
+    // post ();
+
+    // Serializer construction API.
+    //
+    void
+    serializers (::egxml::Fibers_sskel& /* Fibers */);
+
+    // Individual element serializers.
+    //
+    void
+    Fibers_serializer (::egxml::Fibers_sskel&);
+
+    virtual void
+    _reset ();
+
+    // Constructor.
+    //
+    Defaults_sskel ();
+
+    // Implementation.
+    //
+    public:
+    virtual void
+    _serialize_content ();
+
+    protected:
+    Defaults_sskel* Defaults_impl_;
+    Defaults_sskel (Defaults_sskel*, void*);
+
+    protected:
+    ::egxml::Fibers_sskel* Fibers_serializer_;
+  };
+
   class Project_sskel: public ::xsde::cxx::serializer::validating::complex_content
   {
     public:
@@ -550,6 +706,12 @@ namespace egxml
     virtual const ::egxml::Run&
     Run () = 0;
 
+    virtual bool
+    Defaults_present ();
+
+    virtual const ::egxml::Defaults&
+    Defaults () = 0;
+
     // virtual void
     // post ();
 
@@ -560,7 +722,8 @@ namespace egxml
                  ::xml_schema::string_sskel& /* Host */,
                  ::xml_schema::string_sskel& /* Package */,
                  ::egxml::Build_sskel& /* Build */,
-                 ::egxml::Run_sskel& /* Run */);
+                 ::egxml::Run_sskel& /* Run */,
+                 ::egxml::Defaults_sskel& /* Defaults */);
 
     // Individual element serializers.
     //
@@ -578,6 +741,9 @@ namespace egxml
 
     void
     Run_serializer (::egxml::Run_sskel&);
+
+    void
+    Defaults_serializer (::egxml::Defaults_sskel&);
 
     virtual void
     _reset ();
@@ -602,6 +768,7 @@ namespace egxml
     ::xml_schema::string_sskel* Package_serializer_;
     ::egxml::Build_sskel* Build_serializer_;
     ::egxml::Run_sskel* Run_serializer_;
+    ::egxml::Defaults_sskel* Defaults_serializer_;
   };
 
   class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content

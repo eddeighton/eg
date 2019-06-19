@@ -239,6 +239,7 @@ namespace interface
         std::size_t getBaseCount() const;
         const std::vector< Action* >& getBaseActions() const { return m_baseActions; }
         const std::string& getBaseType() const { return m_strBaseType; }
+        const std::vector< std::string >& getParameters() const { return m_parameterTypes; }
         void getChildActions( std::vector< Action* >& actions ) const;
         bool isAbstract() const;
         bool isLink() const;
@@ -253,6 +254,7 @@ namespace interface
         std::vector< Action* > m_baseActions;
         std::string m_strBaseType;
         std::string m_strDependency;
+        std::vector< std::string > m_parameterTypes;
         
         std::vector< Action* > m_inheriters;
         std::vector< Action* > m_linkers;

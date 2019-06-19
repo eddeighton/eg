@@ -204,6 +204,29 @@ const std::string& Project::getLinkerFlags() const
     THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_environment.getProjectDir() );
 }
 
+std::size_t Project::getFiberStackSize() const
+{
+    static const std::size_t szDefaultStackSize = 1024 * 8;
+    
+    std::size_t szStackSize = szDefaultStackSize;
+    
+    if( m_project.Defaults_present() )
+    {
+        if( m_project.Defaults().Fibers_present() )
+        {
+            if( m_project.Defaults().Fibers().Stack_present() )
+            {
+                if( m_project.Defaults().Fibers().Stack().Size_present() )
+                {
+                    szStackSize = m_project.Defaults().Fibers().Stack().Size();
+                }
+            }
+        }
+    }
+    
+    return szStackSize;
+}
+    
 std::vector< boost::filesystem::path > Project::getEGSourceCode() const
 {
     std::vector< boost::filesystem::path > egSourceCode;

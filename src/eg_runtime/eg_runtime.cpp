@@ -219,10 +219,9 @@ namespace eg
     };
     
     
-    EGRT_EXPORT EGRuntime* constructRuntime( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath )
+    EGRT_EXPORT EGRuntimePtr constructRuntime( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath )
     {
-        EGRuntime* pRuntime = new EGRuntimeImpl( hostAccessor, pszDatabaseFilePath );
-        
+        static EGRuntimePtr pRuntime = std::make_shared< EGRuntimeImpl >( hostAccessor, pszDatabaseFilePath );
         return pRuntime;
     }
     

@@ -495,9 +495,11 @@ namespace eg
         os << "#endif\n";
     }
     
-    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers )
+    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize )
     {
         generateIncludeGuard( os, "INTERFACE" );
+        
+        os << "\n\n#define EG_FIBER_STACK_SIZE ( " << szFiberStackSize << " )\n\n";
         
         generateForwardDeclarations( os, pIdentifiers );
         
@@ -1720,15 +1722,7 @@ namespace eg
         const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
         
         os << "#include \"structures.hpp\"\n\n";
-        
-        //os << "//eg implementation source code\n";
-        //os << "\n//buffers\n";
-        //for( const Buffer* pBuffer : layout.getBuffers() )
-        //{
-        //    os << "static " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
-        //    //os << "static_assert( sizeof( " << pBuffer->getTypeName() << " ) == " << szBufferSize << ", \"Incorrect buffer size\" );\n";
-        //}
-        
+                
         os << "\n";
         os << "//input::Action function forward declarations\n";
         std::vector< const concrete::Action* > actions = 
@@ -1742,58 +1736,7 @@ namespace eg
             }
         }
         os << "\n";
-        
-     
-//   const char* pszDefaultInterfaces = R"(
-////global dependencies
-//static eg::_clock* g_eg_clock;
-//
-////clock impl\n";
-//eg::TimeStamp clock::cycle()    { return g_eg_clock->cycle(); }
-//float clock::ct()               { return g_eg_clock->ct(); }
-//float clock::dt()               { return g_eg_clock->dt(); }
-//
-//static eg::_event_log* g_eg_event_log;
-//
-//eg::event_iterator events::getIterator()
-//{
-//    return g_eg_event_log->GetEventIterator();
-//}
-//
-//bool events::get( eg::event_iterator& iterator, eg::_event& event )
-//{
-//    return g_eg_event_log->GetEvent( iterator, event );
-//}
-//    
-//void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
-//{
-//    eg::_event ev = { type, timestamp, value, size };
-//    g_eg_event_log->PutEvent( ev );
-//}
-//)";
-        //os << pszDefaultInterfaces;
-        
-        //initialiser
-        //os << "void initialise( " << EG_DEPENDENCY_PROVIDER_TYPE << "* pDependencyProvider )\n";
-        //os << "{    \n";
-        //os << "    //buffers\n";
-        //for( const Buffer* pBuffer : layout.getBuffers() )
-        //{
-        //os << "    " << pBuffer->getVariableName() << " = reinterpret_cast< " << pBuffer->getTypeName() << 
-        //    "* >( pDependencyProvider->getBuffer( \"" << pBuffer->getVariableName() << "\" ) );\n";
-        //}
-        //os << "    //global dependencies\n";
-        //os << "    g_eg_clock = reinterpret_cast< eg::_clock* >( pDependencyProvider->getInterface( \"_clock\" ) );\n";
-        //os << "    g_eg_event_log = reinterpret_cast< eg::_event_log* >( pDependencyProvider->getInterface( \"_event_log\" ) );\n";
-        //for( const std::string& strDependency : dependencies )
-        //{
-        //    std::string strVariable = strDependency;
-        //    strVariable[ 0 ] = 'g';
-        //os << "    " << strVariable << " = reinterpret_cast< " << strDependency << "* >( pDependencyProvider->getInterface( \"" << strDependency << "\" ) );\n";
-        //}            
-        //os << "}\n";
-        //os << "\n";
-        
+                
         os << "//input::Action Function Implementations\n";
         for( const concrete::Action* pAction : actions )
         {

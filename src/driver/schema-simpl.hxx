@@ -140,6 +140,75 @@ namespace egxml
     Build_simpl_state Build_simpl_state_;
   };
 
+  class Stack_simpl: public Stack_sskel
+  {
+    public:
+    virtual void
+    pre (const ::egxml::Stack&);
+
+    // Elements.
+    //
+    virtual bool
+    Size_present ();
+
+    virtual unsigned int
+    Size ();
+
+    public:
+    struct Stack_simpl_state
+    {
+      const ::egxml::Stack* Stack_;
+    };
+
+    Stack_simpl_state Stack_simpl_state_;
+  };
+
+  class Fibers_simpl: public Fibers_sskel
+  {
+    public:
+    virtual void
+    pre (const ::egxml::Fibers&);
+
+    // Elements.
+    //
+    virtual bool
+    Stack_present ();
+
+    virtual const ::egxml::Stack&
+    Stack ();
+
+    public:
+    struct Fibers_simpl_state
+    {
+      const ::egxml::Fibers* Fibers_;
+    };
+
+    Fibers_simpl_state Fibers_simpl_state_;
+  };
+
+  class Defaults_simpl: public Defaults_sskel
+  {
+    public:
+    virtual void
+    pre (const ::egxml::Defaults&);
+
+    // Elements.
+    //
+    virtual bool
+    Fibers_present ();
+
+    virtual const ::egxml::Fibers&
+    Fibers ();
+
+    public:
+    struct Defaults_simpl_state
+    {
+      const ::egxml::Defaults* Defaults_;
+    };
+
+    Defaults_simpl_state Defaults_simpl_state_;
+  };
+
   class Project_simpl: public Project_sskel
   {
     public:
@@ -171,6 +240,12 @@ namespace egxml
 
     virtual const ::egxml::Run&
     Run ();
+
+    virtual bool
+    Defaults_present ();
+
+    virtual const ::egxml::Defaults&
+    Defaults ();
 
     public:
     struct Project_simpl_state
@@ -376,15 +451,19 @@ namespace egxml
     }
 
     public:
-    ::egxml::Directories_simpl Directories_s_;
+    ::egxml::Build_simpl Build_s_;
+    ::egxml::Run_simpl Run_s_;
+    ::egxml::Defaults_simpl Defaults_s_;
+    ::egxml::Fibers_simpl Fibers_s_;
+    ::xml_schema::unsigned_int_simpl unsigned_int_s_;
+    ::xml_schema::string_simpl string_s_;
+    ::egxml::EG_simpl EG_s_;
+    ::egxml::Package_simpl Package_s_;
     ::egxml::Files_simpl Files_s_;
     ::egxml::Host_simpl Host_s_;
     ::egxml::Project_simpl Project_s_;
-    ::egxml::Build_simpl Build_s_;
-    ::egxml::Run_simpl Run_s_;
-    ::egxml::EG_simpl EG_s_;
-    ::egxml::Package_simpl Package_s_;
-    ::xml_schema::string_simpl string_s_;
+    ::egxml::Stack_simpl Stack_s_;
+    ::egxml::Directories_simpl Directories_s_;
   };
 }
 

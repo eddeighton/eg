@@ -68,6 +68,25 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+			<xs:element name="Defaults" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="Fibers" minOccurs="0">
+							<xs:complexType>
+								<xs:sequence>
+									<xs:element name="Stack" minOccurs="0">
+										<xs:complexType>
+											<xs:sequence>
+												<xs:element name="Size" type="xs:unsignedInt" minOccurs="0"/>
+											</xs:sequence>
+										</xs:complexType>
+									</xs:element>
+								</xs:sequence>
+							</xs:complexType>
+						</xs:element>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
 </xs:schema>

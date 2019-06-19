@@ -208,6 +208,69 @@ namespace egxml
     return this->Build_pimpl_state_.Build_;
   }
 
+  // Stack_pimpl
+  //
+
+  void Stack_pimpl::
+  pre ()
+  {
+    this->Stack_pimpl_state_.Stack_ = ::egxml::Stack ();
+  }
+
+  void Stack_pimpl::
+  Size (unsigned int x)
+  {
+    this->Stack_pimpl_state_.Stack_.Size (x);
+  }
+
+  ::egxml::Stack Stack_pimpl::
+  post_Stack ()
+  {
+    return this->Stack_pimpl_state_.Stack_;
+  }
+
+  // Fibers_pimpl
+  //
+
+  void Fibers_pimpl::
+  pre ()
+  {
+    this->Fibers_pimpl_state_.Fibers_ = ::egxml::Fibers ();
+  }
+
+  void Fibers_pimpl::
+  Stack (const ::egxml::Stack& x)
+  {
+    this->Fibers_pimpl_state_.Fibers_.Stack (x);
+  }
+
+  ::egxml::Fibers Fibers_pimpl::
+  post_Fibers ()
+  {
+    return this->Fibers_pimpl_state_.Fibers_;
+  }
+
+  // Defaults_pimpl
+  //
+
+  void Defaults_pimpl::
+  pre ()
+  {
+    this->Defaults_pimpl_state_.Defaults_ = ::egxml::Defaults ();
+  }
+
+  void Defaults_pimpl::
+  Fibers (const ::egxml::Fibers& x)
+  {
+    this->Defaults_pimpl_state_.Defaults_.Fibers (x);
+  }
+
+  ::egxml::Defaults Defaults_pimpl::
+  post_Defaults ()
+  {
+    return this->Defaults_pimpl_state_.Defaults_;
+  }
+
   // Project_pimpl
   //
 
@@ -278,6 +341,12 @@ namespace egxml
   Run (::egxml::Run* x)
   {
     this->Project_pimpl_state_.Project_->Run ().push_back (x);
+  }
+
+  void Project_pimpl::
+  Defaults (const ::egxml::Defaults& x)
+  {
+    this->Project_pimpl_state_.Project_->Defaults (x);
   }
 
   ::egxml::Project* Project_pimpl::
@@ -576,8 +645,29 @@ namespace egxml
   EG_paggr::
   EG_paggr ()
   {
-    this->Directories_p_.parsers (this->string_p_,
-                                  this->string_p_);
+    this->Build_p_.parsers (this->string_p_,
+                            this->string_p_,
+                            this->string_p_);
+
+    this->Run_p_.parsers (this->string_p_,
+                          this->string_p_,
+                          this->string_p_);
+
+    this->Defaults_p_.parsers (this->Fibers_p_);
+
+    this->Fibers_p_.parsers (this->Stack_p_);
+
+    this->EG_p_.parsers (this->Package_p_,
+                         this->Host_p_,
+                         this->Project_p_);
+
+    this->Package_p_.parsers (this->string_p_,
+                              this->string_p_,
+                              this->string_p_,
+                              this->string_p_,
+                              this->Directories_p_,
+                              this->Files_p_,
+                              this->string_p_);
 
     this->Files_p_.parsers (this->string_p_,
                             this->string_p_,
@@ -596,27 +686,13 @@ namespace egxml
                               this->string_p_,
                               this->string_p_,
                               this->Build_p_,
-                              this->Run_p_);
+                              this->Run_p_,
+                              this->Defaults_p_);
 
-    this->Build_p_.parsers (this->string_p_,
-                            this->string_p_,
-                            this->string_p_);
+    this->Stack_p_.parsers (this->unsigned_int_p_);
 
-    this->Run_p_.parsers (this->string_p_,
-                          this->string_p_,
-                          this->string_p_);
-
-    this->EG_p_.parsers (this->Package_p_,
-                         this->Host_p_,
-                         this->Project_p_);
-
-    this->Package_p_.parsers (this->string_p_,
-                              this->string_p_,
-                              this->string_p_,
-                              this->string_p_,
-                              this->Directories_p_,
-                              this->Files_p_,
-                              this->string_p_);
+    this->Directories_p_.parsers (this->string_p_,
+                                  this->string_p_);
   }
 
   const char* EG_paggr::

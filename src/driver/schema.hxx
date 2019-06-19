@@ -169,6 +169,9 @@ namespace egxml
   class Package;
   class Host;
   class Build;
+  class Stack;
+  class Fibers;
+  class Defaults;
   class Project;
   class EG;
   class Directories;
@@ -367,6 +370,108 @@ namespace egxml
     ::std::string LinkerFlags_;
   };
 
+  // Stack (fixed-length)
+  //
+  class Stack
+  {
+    public:
+    Stack ();
+
+    Stack (const Stack&);
+    Stack& operator= (const Stack&);
+
+    ~Stack ();
+
+    // Size
+    //
+    bool
+    Size_present () const;
+
+    void
+    Size_present (bool);
+
+    unsigned int
+    Size () const;
+
+    unsigned int&
+    Size ();
+
+    void
+    Size (unsigned int);
+
+    private:
+    unsigned int Size_;
+    unsigned char Size_present_;
+  };
+
+  // Fibers (fixed-length)
+  //
+  class Fibers
+  {
+    public:
+    Fibers ();
+
+    Fibers (const Fibers&);
+    Fibers& operator= (const Fibers&);
+
+    ~Fibers ();
+
+    // Stack
+    //
+    bool
+    Stack_present () const;
+
+    void
+    Stack_present (bool);
+
+    const ::egxml::Stack&
+    Stack () const;
+
+    ::egxml::Stack&
+    Stack ();
+
+    void
+    Stack (const ::egxml::Stack&);
+
+    private:
+    ::egxml::Stack Stack_;
+    unsigned char Stack_present_;
+  };
+
+  // Defaults (fixed-length)
+  //
+  class Defaults
+  {
+    public:
+    Defaults ();
+
+    Defaults (const Defaults&);
+    Defaults& operator= (const Defaults&);
+
+    ~Defaults ();
+
+    // Fibers
+    //
+    bool
+    Fibers_present () const;
+
+    void
+    Fibers_present (bool);
+
+    const ::egxml::Fibers&
+    Fibers () const;
+
+    ::egxml::Fibers&
+    Fibers ();
+
+    void
+    Fibers (const ::egxml::Fibers&);
+
+    private:
+    ::egxml::Fibers Fibers_;
+    unsigned char Fibers_present_;
+  };
+
   // Project (variable-length)
   //
   class Project
@@ -438,12 +543,31 @@ namespace egxml
     Run_sequence&
     Run ();
 
+    // Defaults
+    //
+    bool
+    Defaults_present () const;
+
+    void
+    Defaults_present (bool);
+
+    const ::egxml::Defaults&
+    Defaults () const;
+
+    ::egxml::Defaults&
+    Defaults ();
+
+    void
+    Defaults (const ::egxml::Defaults&);
+
     private:
     ::std::string Name_;
     ::std::string Host_;
     Package_sequence Package_;
     Build_sequence Build_;
     Run_sequence Run_;
+    ::egxml::Defaults Defaults_;
+    unsigned char Defaults_present_;
   };
 
   // EG (variable-length)

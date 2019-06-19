@@ -1,27 +1,24 @@
 
 import pyeg
 
-r = pyeg.get_root()
+r = pyeg.root()
 
 pyeg.sleep()
 
 print( "creating circles" )
 
-for i in range( 256 ):
-    if i % 2 == 0:
-        c = r.Circle.Start()
-        c.Morph.Start()
-        c.size( 50 )
-        c.ColorChanger.Start()
-    else:
-        c = r.StrokedCircle.Start()
-        c.Morph.Start()
-        c.size( 75 )
-        c.ColorChanger.Start()
-   
+#configure some dimensions - dont need to have started anything yet
+#keep all the magic numbers in script...
+r.Randomise.range( 1000 )
+r.Spiral.speed( 0.05 )
+r.Spiral.curve( 0.5 )
+r.Spiral.relative( 3 )
+r.morphSpeed( 0.75 )
 
-#sp = r.Spiral.Start()
-#sp.curve( 4.0 )
-#sp.radius( 100.0 )
-#sp.relative( 10.0 )
-#sp.speed( 0.2 )
+for i in range( 1024 ):
+    c = r.StrokedCircle.Start()
+    c.Morph.Start()
+    c.size( 10 )
+    c.ColorChanger.Start()
+
+r.Spiral.Start()

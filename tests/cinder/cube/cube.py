@@ -2,7 +2,7 @@
 import sys
 import pyeg
 
-r = pyeg.get_root()
+r = pyeg.root()
         
 for i in range( 9 ):
     r.CreateCube()

@@ -78,7 +78,8 @@ namespace eg
         virtual void invoke( const reference& context, const std::vector< TypeID >& typePath, bool bHasParameters ) = 0;
     };
 
-    EGRT_EXPORT EGRuntime* constructRuntime( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath );
+    using EGRuntimePtr = std::shared_ptr< EGRuntime >;
+    EGRT_EXPORT EGRuntimePtr constructRuntime( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath );
 
 }
 

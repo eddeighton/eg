@@ -131,6 +131,21 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     }
                 }
                 pProject->Run().push_back( pRun );
+                
+                
+                egxml::Defaults defaults;
+                {
+                    egxml::Fibers fibers;
+                    {
+                        egxml::Stack stack;
+                        {
+                            stack.Size( 8192 );
+                        }
+                        fibers.Stack( stack );
+                    }
+                    defaults.Fibers( fibers );
+                }
+                pProject->Defaults( defaults );
             }
             newEG.Project( pProject );
         }
