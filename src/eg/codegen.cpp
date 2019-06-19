@@ -1495,7 +1495,8 @@ namespace eg
         std::ostringstream osNextIndex;
         osNextIndex << "_gid * " << pAction->getLocalDomainSize() << " + nextCellIndex";
         os << "         " << EG_INSTANCE << " nextInstance = " << Printer( pAllocatorData, osNextIndex.str().c_str() ) << ";\n";
-        os << "         if( " << Printer( pCycleData, "nextInstance" ) << " < clock::cycle() )\n";
+        os << "         //test if the stop cycle is less than or equal to current cyclen\n";
+        os << "         if( " << Printer( pCycleData, "nextInstance" ) << " <= clock::cycle() )\n";
         os << "         {\n";
         os << "             //attempt to set the atomic\n";
         os << "             if( " << Printer( pIteratorData, "_gid" ) << ".compare_exchange_weak( expected.data, iter.data ) )\n";
@@ -1521,6 +1522,9 @@ namespace eg
         os << "         }\n";
         os << "    }\n";   
         os << "    //failure return null handle\n";
+        std::ostringstream osError;
+        osError << "Failed to allocate " << pAction->getFriendlyName();
+        os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
         os << "    "; pAction->printType( os ); os << " nullInstance;\n";
         os << "    return nullInstance;\n";
         os << "}\n";
