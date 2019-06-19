@@ -26,7 +26,7 @@
 #include "concrete.hpp"
 #include "session.hpp"
 
-#include "library/eg_common.hpp"
+#include "eg/common.hpp"
 
 #include <map>
 #include <set>

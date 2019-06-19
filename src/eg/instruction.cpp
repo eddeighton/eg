@@ -1010,7 +1010,7 @@ namespace eg
         {
             pChild->generate( generator, os );
         }
-        //os << generator.getIndent() << "default: return " << generator.getFailureReturnType() << ";\n";
+        os << generator.getIndent() << "default: throw std::runtime_error( \"runtime type error\" );\n";
         generator.popIndent();
         os << generator.getIndent() << "}\n";
     }
@@ -1068,6 +1068,7 @@ namespace eg
         }
         generator.popIndent();
         os << generator.getIndent() << "}\n";
+        os << generator.getIndent() << "break;\n";
     }
     void PolymorphicCaseInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {

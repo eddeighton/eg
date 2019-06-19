@@ -107,6 +107,12 @@ namespace egxml
     this->Package_pimpl_state_.Package_->Files (x);
   }
 
+  void Package_pimpl::
+  Command (const ::std::string& x)
+  {
+    this->Package_pimpl_state_.Package_->Command ().push_back (x);
+  }
+
   ::egxml::Package* Package_pimpl::
   post_Package ()
   {
@@ -158,12 +164,6 @@ namespace egxml
   {
     ::egxml::Host* x = new ::egxml::Host;
     this->pre_impl (x);
-  }
-
-  void Host_pimpl::
-  Command (const ::std::string& x)
-  {
-    this->Host_pimpl_state_.Host_->Command (x);
   }
 
   ::egxml::Host* Host_pimpl::
@@ -615,7 +615,8 @@ namespace egxml
                               this->string_p_,
                               this->string_p_,
                               this->Directories_p_,
-                              this->Files_p_);
+                              this->Files_p_,
+                              this->string_p_);
   }
 
   const char* EG_paggr::

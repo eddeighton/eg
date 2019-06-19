@@ -72,6 +72,9 @@ namespace egxml
     virtual void
     Files (::egxml::Files*);
 
+    virtual void
+    Command (const ::std::string&);
+
     virtual ::egxml::Package*
     post_Package ();
 
@@ -101,11 +104,6 @@ namespace egxml
 
     virtual void
     pre ();
-
-    // Elements.
-    //
-    virtual void
-    Command (const ::std::string&);
 
     virtual ::egxml::Host*
     post_Host ();

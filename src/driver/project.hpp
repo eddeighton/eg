@@ -102,7 +102,8 @@ public:
     boost::filesystem::path getObjectName( int szUnitID ) const;
     boost::filesystem::path getObjectFile( const boost::filesystem::path& sourceFile ) const;
     
-    boost::filesystem::path getHostCommand() const;
+    std::vector< boost::filesystem::path > getCommands() const;
+    std::vector< std::string > getPackages() const;
     boost::filesystem::path getProgramName() const;
 private:
     const Environment& m_environment;

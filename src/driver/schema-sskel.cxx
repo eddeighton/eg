@@ -67,56 +67,12 @@ namespace egxml
   }
 
   void Package_sskel::
-  serializers (::xml_schema::string_sskel& Name,
-               ::xml_schema::string_sskel& Repository,
-               ::xml_schema::string_sskel& License,
-               ::xml_schema::string_sskel& Description,
-               ::egxml::Directories_sskel& Directories,
-               ::egxml::Files_sskel& Files)
-  {
-    this->Name_serializer_ = &Name;
-    this->Repository_serializer_ = &Repository;
-    this->License_serializer_ = &License;
-    this->Description_serializer_ = &Description;
-    this->Directories_serializer_ = &Directories;
-    this->Files_serializer_ = &Files;
-  }
-
-  Package_sskel::
-  Package_sskel ()
-  : Package_impl_ (0),
-    Name_serializer_ (0),
-    Repository_serializer_ (0),
-    License_serializer_ (0),
-    Description_serializer_ (0),
-    Directories_serializer_ (0),
-    Files_serializer_ (0)
-  {
-  }
-
-  Package_sskel::
-  Package_sskel (Package_sskel* impl, void*)
-  : ::xsde::cxx::serializer::validating::complex_content (impl, 0),
-    Package_impl_ (impl),
-    Name_serializer_ (0),
-    Repository_serializer_ (0),
-    License_serializer_ (0),
-    Description_serializer_ (0),
-    Directories_serializer_ (0),
-    Files_serializer_ (0)
-  {
-  }
-
-  // Host_sskel
-  //
-
-  void Host_sskel::
   Command_serializer (::xml_schema::string_sskel& s)
   {
     this->Command_serializer_ = &s;
   }
 
-  void Host_sskel::
+  void Package_sskel::
   serializers (::xml_schema::string_sskel& Name,
                ::xml_schema::string_sskel& Repository,
                ::xml_schema::string_sskel& License,
@@ -134,19 +90,47 @@ namespace egxml
     this->Command_serializer_ = &Command;
   }
 
+  Package_sskel::
+  Package_sskel ()
+  : Package_impl_ (0),
+    Name_serializer_ (0),
+    Repository_serializer_ (0),
+    License_serializer_ (0),
+    Description_serializer_ (0),
+    Directories_serializer_ (0),
+    Files_serializer_ (0),
+    Command_serializer_ (0)
+  {
+  }
+
+  Package_sskel::
+  Package_sskel (Package_sskel* impl, void*)
+  : ::xsde::cxx::serializer::validating::complex_content (impl, 0),
+    Package_impl_ (impl),
+    Name_serializer_ (0),
+    Repository_serializer_ (0),
+    License_serializer_ (0),
+    Description_serializer_ (0),
+    Directories_serializer_ (0),
+    Files_serializer_ (0),
+    Command_serializer_ (0)
+  {
+  }
+
+  // Host_sskel
+  //
+
   Host_sskel::
   Host_sskel (::egxml::Package_sskel* tiein)
   : ::egxml::Package_sskel (tiein, 0),
-    Host_impl_ (0),
-    Command_serializer_ (0)
+    Host_impl_ (0)
   {
   }
 
   Host_sskel::
   Host_sskel (Host_sskel* impl, void*)
   : ::egxml::Package_sskel (impl, 0),
-    Host_impl_ (impl),
-    Command_serializer_ (0)
+    Host_impl_ (impl)
   {
   }
 
@@ -502,6 +486,12 @@ namespace egxml
     return this->Package_impl_ ? this->Package_impl_->Files_present () : false;
   }
 
+  bool Package_sskel::
+  Command_next ()
+  {
+    return this->Package_impl_ ? this->Package_impl_->Command_next () : false;
+  }
+
   void Package_sskel::
   _reset ()
   {
@@ -531,28 +521,14 @@ namespace egxml
     if (this->Files_serializer_)
       this->Files_serializer_->_reset ();
 
-    this->resetting_ = false;
-  }
-
-  // Host_sskel
-  //
-
-  void Host_sskel::
-  _reset ()
-  {
-    if (this->resetting_)
-      return;
-
-    typedef ::egxml::Package_sskel base;
-    base::_reset ();
-
-    this->resetting_ = true;
-
     if (this->Command_serializer_)
       this->Command_serializer_->_reset ();
 
     this->resetting_ = false;
   }
+
+  // Host_sskel
+  //
 
   void Host_sskel::
   pre (const ::egxml::Package& x)
@@ -601,6 +577,13 @@ namespace egxml
   {
     assert (this->Package_impl_);
     return this->Package_impl_->Files ();
+  }
+
+  ::std::string Host_sskel::
+  Command ()
+  {
+    assert (this->Package_impl_);
+    return this->Package_impl_->Command ();
   }
 
   // Build_sskel
@@ -1040,23 +1023,10 @@ namespace egxml
         this->Files_serializer_->post ();
       }
     }
-  }
-
-  // Element validation and serialization for Host_sskel.
-  //
-  void Host_sskel::
-  _serialize_content ()
-  {
-    ::xsde::cxx::serializer::context& ctx = this->_context ();
-
-    typedef ::egxml::Package_sskel base;
-    base::_serialize_content ();
-
-    if (ctx.error_type ())
-      return;
 
     // Command
     //
+    while (this->Command_next ())
     {
       const ::std::string& r = this->Command ();
 
@@ -1086,11 +1056,6 @@ namespace egxml
 
         this->_end_element ();
         this->Command_serializer_->post ();
-      }
-      else
-      {
-        this->_schema_error (::xsde::cxx::schema_error::expected_element);
-        return;
       }
     }
   }

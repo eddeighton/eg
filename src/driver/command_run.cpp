@@ -89,10 +89,11 @@ void command_run( bool bHelp, const std::vector< std::string >& args )
             
             {
                 const int iResult = boost::process::system( osCmd.str() );
-                if( iResult )
-                {
-                    THROW_RTE( "Error invoking clang++ " << iResult );
-                }
+                //cinder does not call PostQuitMessage so you can the last windows message as return code...
+                //if( iResult )
+                //{
+                //    THROW_RTE( "Error invoking eg program " << iResult );
+                //}
             }
         }
         else

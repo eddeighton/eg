@@ -27,7 +27,7 @@
     #define EGRT_EXPORT __declspec( dllimport )
 #endif
 
-#include "library/eg_common.hpp"
+#include "eg/common.hpp"
 
 #include <vector>
 #include <memory>

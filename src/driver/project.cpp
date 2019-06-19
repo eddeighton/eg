@@ -595,11 +595,37 @@ boost::filesystem::path Project::getObjectFile( const boost::filesystem::path& s
                     getIntermediateFolder() / os.str() ) );
 }
     
-boost::filesystem::path Project::getHostCommand() const
+std::vector< boost::filesystem::path > Project::getCommands() const
 {
-    return m_environment.expand( m_host.Command() );
+    std::vector< boost::filesystem::path > result;
+    for( const std::string& strCommand : m_host.Command() )
+    {
+        result.push_back( m_environment.expand( strCommand ) );
+    }
+    
+    for( const egxml::Package& package : m_packages )
+    {
+        for( const std::string& strCommand : package.Command() )
+        {
+            result.push_back( m_environment.expand( strCommand ) );
+        }
+    }
+    
+    return result;
 }
         
+std::vector< std::string > Project::getPackages() const
+{
+    std::vector< std::string > packages;
+    
+    for( const std::string& strPackage : m_project.Package() )
+    {
+        packages.push_back( strPackage );
+    }
+    
+    return packages;
+}
+
 boost::filesystem::path Project::getProgramName() const
 {
     std::ostringstream os;

@@ -1455,28 +1455,6 @@ struct __invoke_impl
 template<>
 struct __invoke_impl
 <
-    __eg_root< void >::__eg_Randomise< void >,
-    __eg_root< void >,
-    __eg_type_path< __eg_root< void >::__eg_Randomise< void > >,
-    __eg_ImpNoParams
->
-{
-    template< typename... Args >
-    __eg_root< void >::__eg_Randomise< void > operator()( __eg_root< void > context, Args... args )
-    {
-        __eg_root< void >::__eg_Randomise< void > ref = root_Randomise_starter( context.data.instance );
-        if( ref )
-        {
-            ref( args... );
-            root_Randomise_stopper( ref.data.instance );
-        }
-        return ref;
-    }
-};
-
-template<>
-struct __invoke_impl
-<
     void,
     __eg_root< void >::__eg_Shape< void >::__eg_Default< void >,
     __eg_type_path< color >,
@@ -1487,14 +1465,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 130: //root::Shape::Default
+            case 132: //root::Shape::Default
             {
                 g_root_StrokedCircle[ context.data.instance ].m_color = value;
             }
-            case 160: //root::Shape::Default
+            break;
+            case 162: //root::Shape::Default
             {
                 g_root_Circle[ context.data.instance ].m_color = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1512,14 +1493,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 130: //root::Shape::Default
+            case 132: //root::Shape::Default
             {
                 g_root_StrokedCircle[ context.data.instance ].m_position = value;
             }
-            case 160: //root::Shape::Default
+            break;
+            case 162: //root::Shape::Default
             {
                 g_root_Circle[ context.data.instance ].m_position = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1537,14 +1521,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 130: //root::Shape::Default
+            case 132: //root::Shape::Default
             {
                 g_root_StrokedCircle[ context.data.instance ].m_size = value;
             }
-            case 160: //root::Shape::Default
+            break;
+            case 162: //root::Shape::Default
             {
                 g_root_Circle[ context.data.instance ].m_size = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1562,14 +1549,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 135: //root::Shape::ColorChanger
+            case 137: //root::Shape::ColorChanger
             {
                 return g_root_StrokedCircle_ColorChanger[ context.data.instance ].m_f;
             }
-            case 165: //root::Shape::ColorChanger
+            break;
+            case 167: //root::Shape::ColorChanger
             {
                 return g_root_Circle_ColorChanger[ context.data.instance ].m_f;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1587,14 +1577,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 135: //root::Shape::ColorChanger
+            case 137: //root::Shape::ColorChanger
             {
                 g_root_StrokedCircle_ColorChanger[ context.data.instance ].m_f = value;
             }
-            case 165: //root::Shape::ColorChanger
+            break;
+            case 167: //root::Shape::ColorChanger
             {
                 g_root_Circle_ColorChanger[ context.data.instance ].m_f = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1612,14 +1605,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 135: //root::Shape::ColorChanger
+            case 137: //root::Shape::ColorChanger
             {
                 g_root_StrokedCircle[ context.data.instance ].m_color = value;
             }
-            case 165: //root::Shape::ColorChanger
+            break;
+            case 167: //root::Shape::ColorChanger
             {
                 g_root_Circle[ context.data.instance ].m_color = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1637,14 +1633,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 140: //root::Shape::Morph
+            case 142: //root::Shape::Morph
             {
                 return g_root_StrokedCircle[ context.data.instance ].m_positionActual;
             }
-            case 170: //root::Shape::Morph
+            break;
+            case 172: //root::Shape::Morph
             {
                 return g_root_Circle[ context.data.instance ].m_positionActual;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1662,14 +1661,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 140: //root::Shape::Morph
+            case 142: //root::Shape::Morph
             {
                 return g_root_StrokedCircle[ context.data.instance ].m_position;
             }
-            case 170: //root::Shape::Morph
+            break;
+            case 172: //root::Shape::Morph
             {
                 return g_root_Circle[ context.data.instance ].m_position;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1687,14 +1689,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 140: //root::Shape::Morph
+            case 142: //root::Shape::Morph
             {
                 return g_root[ ( context.data.instance ) / 256 ].m_morphSpeed;
             }
-            case 170: //root::Shape::Morph
+            break;
+            case 172: //root::Shape::Morph
             {
                 return g_root[ ( context.data.instance ) / 256 ].m_morphSpeed;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1712,14 +1717,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 140: //root::Shape::Morph
+            case 142: //root::Shape::Morph
             {
                 g_root_StrokedCircle[ context.data.instance ].m_positionActual = value;
             }
-            case 170: //root::Shape::Morph
+            break;
+            case 172: //root::Shape::Morph
             {
                 g_root_Circle[ context.data.instance ].m_positionActual = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1844,15 +1852,15 @@ struct __invoke_impl
         using MultiIterType = __eg_MultiIterator< __eg_root< void >::__eg_Shape< void >, 2 >;
         MultiIterType::IteratorArray iterators_begin = 
         {
-            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 96 ) ), //root::StrokedCircle
-            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 101 ) ), //root::Circle
+            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 98 ) ), //root::StrokedCircle
+            IterType( ( context.data.instance * 256 ) - 1U, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 103 ) ), //root::Circle
         };
         ++iterators_begin[ 0 ];
         ++iterators_begin[ 1 ];
         MultiIterType::IteratorArray iterators_end = 
         {
-            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 96 ) ), //root::StrokedCircle
-            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 101 ) ), //root::Circle
+            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 98 ) ), //root::StrokedCircle
+            IterType( ( context.data.instance + 1 ) * 256, ( context.data.instance + 1 ) * 256, static_cast< eg::TypeID >( 103 ) ), //root::Circle
         };
         return __eg_Range< MultiIterType >( MultiIterType( iterators_begin ), MultiIterType( iterators_end ) );
     }
@@ -1931,14 +1939,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 96: //root::StrokedCircle
+            case 98: //root::StrokedCircle
             {
                 g_root_StrokedCircle[ context.data.instance ].m_position = value;
             }
-            case 101: //root::Circle
+            break;
+            case 103: //root::Circle
             {
                 g_root_Circle[ context.data.instance ].m_position = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1956,14 +1967,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 96: //root::StrokedCircle
+            case 98: //root::StrokedCircle
             {
                 g_root_StrokedCircle_ColorChanger[ context.data.instance ].m_f = value;
             }
-            case 101: //root::Circle
+            break;
+            case 103: //root::Circle
             {
                 g_root_Circle_ColorChanger[ context.data.instance ].m_f = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -1996,14 +2010,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 96: //root::StrokedCircle
+            case 98: //root::StrokedCircle
             {
                 return g_root_StrokedCircle[ context.data.instance ].m_positionActual;
             }
-            case 101: //root::Circle
+            break;
+            case 103: //root::Circle
             {
                 return g_root_Circle[ context.data.instance ].m_positionActual;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -2021,14 +2038,17 @@ struct __invoke_impl
     {
         switch( context.data.type )
         {
-            case 96: //root::StrokedCircle
+            case 98: //root::StrokedCircle
             {
                 g_root_StrokedCircle[ context.data.instance ].m_positionActual = value;
             }
-            case 101: //root::Circle
+            break;
+            case 103: //root::Circle
             {
                 g_root_Circle[ context.data.instance ].m_positionActual = value;
             }
+            break;
+            default: throw std::runtime_error( "runtime type error" );
         }
     }
 };
@@ -2181,9 +2201,9 @@ struct __invoke_impl
     {
         const eg::Instance iBegin = context.data.instance * 1;
         const eg::Instance iEnd = ( context.data.instance + 1 ) * 1;
-        __eg_root< void >::__eg_Spiral< void >::Iterator begin( iBegin - 1, iEnd, 106 ); //root::Spiral
+        __eg_root< void >::__eg_Spiral< void >::Iterator begin( iBegin - 1, iEnd, 108 ); //root::Spiral
         ++begin;
-        __eg_root< void >::__eg_Spiral< void >::Iterator end( iEnd, iEnd, 106 );
+        __eg_root< void >::__eg_Spiral< void >::Iterator end( iEnd, iEnd, 108 );
         return __eg_root< void >::__eg_Spiral< void >::EGRangeType( begin, end );
     }
 };
@@ -2321,7 +2341,7 @@ __eg_root< __eg1 >::__eg_root( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 90: //root
+     case 92: //root
          data = from.data;
          break;
      default:
@@ -2336,7 +2356,7 @@ __eg_root< __eg1 >& __eg_root< __eg1 >::operator=( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 90: //root
+      case 92: //root
          data = from.data;
          break;
      default:
@@ -2388,8 +2408,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_Shape( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 96: //root::StrokedCircle
-     case 101: //root::Circle
+     case 98: //root::StrokedCircle
+     case 103: //root::Circle
          data = from.data;
          break;
      default:
@@ -2405,8 +2425,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >& __eg_root< __eg1 >::_
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 96: //root::StrokedCircle
-      case 101: //root::Circle
+      case 98: //root::StrokedCircle
+      case 103: //root::Circle
          data = from.data;
          break;
      default:
@@ -2420,9 +2440,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void > >( eg::
 {
     switch( type )
     {
-      case 96: //root::StrokedCircle
+      case 98: //root::StrokedCircle
          return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_reference.data.timestamp;
-      case 101: //root::Circle
+      case 103: //root::Circle
          return g_root_Circle[ instance ].g_root_Circle_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2433,9 +2453,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void > >( eg::
 {
     switch( type )
     {
-      case 96: //root::StrokedCircle
+      case 98: //root::StrokedCircle
          return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_cycle;
-      case 101: //root::Circle
+      case 103: //root::Circle
          return g_root_Circle[ instance ].g_root_Circle_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2446,9 +2466,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void > >( eg::Ty
 {
     switch( type )
     {
-      case 96: //root::StrokedCircle
+      case 98: //root::StrokedCircle
          return g_root_StrokedCircle[ instance ].g_root_StrokedCircle_state;
-      case 101: //root::Circle
+      case 103: //root::Circle
          return g_root_Circle[ instance ].g_root_Circle_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2470,8 +2490,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_Default< __eg3 >::__eg_Default( co
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Default< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 130: //root::Shape::Default
-     case 160: //root::Shape::Default
+     case 132: //root::Shape::Default
+     case 162: //root::Shape::Default
          data = from.data;
          break;
      default:
@@ -2488,8 +2508,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >::template __eg_Default
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Default< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 130: //root::Shape::Default
-      case 160: //root::Shape::Default
+      case 132: //root::Shape::Default
+      case 162: //root::Shape::Default
          data = from.data;
          break;
      default:
@@ -2503,9 +2523,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void >::__eg_D
 {
     switch( type )
     {
-      case 130: //root::Shape::Default
+      case 132: //root::Shape::Default
          return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_reference.data.timestamp;
-      case 160: //root::Shape::Default
+      case 162: //root::Shape::Default
          return g_root_Circle_Default[ instance ].g_root_Circle_Default_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2516,9 +2536,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void >::__eg_D
 {
     switch( type )
     {
-      case 130: //root::Shape::Default
+      case 132: //root::Shape::Default
          return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_cycle;
-      case 160: //root::Shape::Default
+      case 162: //root::Shape::Default
          return g_root_Circle_Default[ instance ].g_root_Circle_Default_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2529,9 +2549,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void >::__eg_Def
 {
     switch( type )
     {
-      case 130: //root::Shape::Default
+      case 132: //root::Shape::Default
          return g_root_StrokedCircle_Default[ instance ].g_root_StrokedCircle_Default_state;
-      case 160: //root::Shape::Default
+      case 162: //root::Shape::Default
          return g_root_Circle_Default[ instance ].g_root_Circle_Default_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2553,8 +2573,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_ColorChanger< __eg3 >::__eg_ColorC
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 135: //root::Shape::ColorChanger
-     case 165: //root::Shape::ColorChanger
+     case 137: //root::Shape::ColorChanger
+     case 167: //root::Shape::ColorChanger
          data = from.data;
          break;
      default:
@@ -2571,8 +2591,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >::template __eg_ColorCh
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_ColorChanger< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 135: //root::Shape::ColorChanger
-      case 165: //root::Shape::ColorChanger
+      case 137: //root::Shape::ColorChanger
+      case 167: //root::Shape::ColorChanger
          data = from.data;
          break;
      default:
@@ -2586,9 +2606,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void >::__eg_C
 {
     switch( type )
     {
-      case 135: //root::Shape::ColorChanger
+      case 137: //root::Shape::ColorChanger
          return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_reference.data.timestamp;
-      case 165: //root::Shape::ColorChanger
+      case 167: //root::Shape::ColorChanger
          return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2599,9 +2619,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void >::__eg_C
 {
     switch( type )
     {
-      case 135: //root::Shape::ColorChanger
+      case 137: //root::Shape::ColorChanger
          return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_cycle;
-      case 165: //root::Shape::ColorChanger
+      case 167: //root::Shape::ColorChanger
          return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2612,9 +2632,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void >::__eg_Col
 {
     switch( type )
     {
-      case 135: //root::Shape::ColorChanger
+      case 137: //root::Shape::ColorChanger
          return g_root_StrokedCircle_ColorChanger[ instance ].g_root_StrokedCircle_ColorChanger_state;
-      case 165: //root::Shape::ColorChanger
+      case 167: //root::Shape::ColorChanger
          return g_root_Circle_ColorChanger[ instance ].g_root_Circle_ColorChanger_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2636,8 +2656,8 @@ __eg_root< __eg1 >::__eg_Shape< __eg2 >::__eg_Morph< __eg3 >::__eg_Morph( const 
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 140: //root::Shape::Morph
-     case 170: //root::Shape::Morph
+     case 142: //root::Shape::Morph
+     case 172: //root::Shape::Morph
          data = from.data;
          break;
      default:
@@ -2654,8 +2674,8 @@ typename __eg_root< __eg1 >::template __eg_Shape< __eg2 >::template __eg_Morph< 
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Shape< void >::__eg_Morph< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 140: //root::Shape::Morph
-      case 170: //root::Shape::Morph
+      case 142: //root::Shape::Morph
+      case 172: //root::Shape::Morph
          data = from.data;
          break;
      default:
@@ -2669,9 +2689,9 @@ inline eg::TimeStamp getTimestamp< __eg_root< void >::__eg_Shape< void >::__eg_M
 {
     switch( type )
     {
-      case 140: //root::Shape::Morph
+      case 142: //root::Shape::Morph
          return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_reference.data.timestamp;
-      case 170: //root::Shape::Morph
+      case 172: //root::Shape::Morph
          return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_reference.data.timestamp;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2682,9 +2702,9 @@ inline eg::TimeStamp getStopCycle< __eg_root< void >::__eg_Shape< void >::__eg_M
 {
     switch( type )
     {
-      case 140: //root::Shape::Morph
+      case 142: //root::Shape::Morph
          return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_cycle;
-      case 170: //root::Shape::Morph
+      case 172: //root::Shape::Morph
          return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_cycle;
       default: return eg::INVALID_TIMESTAMP;
     }
@@ -2695,9 +2715,9 @@ inline eg::ActionState getState< __eg_root< void >::__eg_Shape< void >::__eg_Mor
 {
     switch( type )
     {
-      case 140: //root::Shape::Morph
+      case 142: //root::Shape::Morph
          return g_root_StrokedCircle_Morph[ instance ].g_root_StrokedCircle_Morph_state;
-      case 170: //root::Shape::Morph
+      case 172: //root::Shape::Morph
          return g_root_Circle_Morph[ instance ].g_root_Circle_Morph_state;
       default: return eg::TOTAL_ACTION_STATES;
     }
@@ -2723,7 +2743,7 @@ __eg_root< __eg1 >::__eg_StrokedCircle< __eg2 >::__eg_StrokedCircle( const TFrom
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_StrokedCircle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 96: //root::StrokedCircle
+     case 98: //root::StrokedCircle
          data = from.data;
          break;
      default:
@@ -2739,7 +2759,7 @@ typename __eg_root< __eg1 >::template __eg_StrokedCircle< __eg2 >& __eg_root< __
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_StrokedCircle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 96: //root::StrokedCircle
+      case 98: //root::StrokedCircle
          data = from.data;
          break;
      default:
@@ -2786,7 +2806,7 @@ __eg_root< __eg1 >::__eg_Circle< __eg2 >::__eg_Circle( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Circle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 101: //root::Circle
+     case 103: //root::Circle
          data = from.data;
          break;
      default:
@@ -2802,7 +2822,7 @@ typename __eg_root< __eg1 >::template __eg_Circle< __eg2 >& __eg_root< __eg1 >::
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Circle< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 101: //root::Circle
+      case 103: //root::Circle
          data = from.data;
          break;
      default:
@@ -2844,7 +2864,7 @@ __eg_root< __eg1 >::__eg_Spiral< __eg2 >::__eg_Spiral( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Spiral< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 106: //root::Spiral
+     case 108: //root::Spiral
          data = from.data;
          break;
      default:
@@ -2860,7 +2880,7 @@ typename __eg_root< __eg1 >::template __eg_Spiral< __eg2 >& __eg_root< __eg1 >::
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Spiral< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 106: //root::Spiral
+      case 108: //root::Spiral
          data = from.data;
          break;
      default:
@@ -2902,7 +2922,7 @@ __eg_root< __eg1 >::__eg_Attract< __eg2 >::__eg_Attract( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Attract< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 111: //root::Attract
+     case 113: //root::Attract
          data = from.data;
          break;
      default:
@@ -2918,7 +2938,7 @@ typename __eg_root< __eg1 >::template __eg_Attract< __eg2 >& __eg_root< __eg1 >:
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Attract< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 111: //root::Attract
+      case 113: //root::Attract
          data = from.data;
          break;
      default:
@@ -2960,7 +2980,7 @@ __eg_root< __eg1 >::__eg_Randomise< __eg2 >::__eg_Randomise( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Randomise< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 116: //root::Randomise
+     case 118: //root::Randomise
          data = from.data;
          break;
      default:
@@ -2976,7 +2996,7 @@ typename __eg_root< __eg1 >::template __eg_Randomise< __eg2 >& __eg_root< __eg1 
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_Randomise< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 116: //root::Randomise
+      case 118: //root::Randomise
          data = from.data;
          break;
      default:
@@ -3018,7 +3038,7 @@ __eg_root< __eg1 >::__eg_imgui< __eg2 >::__eg_imgui( const TFrom& from )
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_imgui< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-     case 121: //root::imgui
+     case 123: //root::imgui
          data = from.data;
          break;
      default:
@@ -3034,7 +3054,7 @@ typename __eg_root< __eg1 >::template __eg_imgui< __eg2 >& __eg_root< __eg1 >::_
   static_assert( eg::is_convertible< TFrom, __eg_root< void >::__eg_imgui< void > >::value, "Incompatible eg type conversion" );
   switch( from.data.type )
   {
-      case 121: //root::imgui
+      case 123: //root::imgui
          data = from.data;
          break;
      default:

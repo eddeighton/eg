@@ -27,7 +27,7 @@
 #include "derivation.hpp"
 #include "invocation.hpp"
 
-#include "library/eg_common.hpp"
+#include "eg/common.hpp"
 
 #include <vector>
 

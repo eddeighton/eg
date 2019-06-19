@@ -357,23 +357,90 @@ void generate_objects( const Environment& environment, const Project& project, b
             }
         }
     }
+    
+    std::ostringstream osPackages;
+    bool bHasPackages = false;
+    {
+        const std::vector< std::string > packages = project.getPackages();
+        std::copy( packages.begin(), packages.end(),
+            std::ostream_iterator< std::string >( osPackages, " " ) );
+        bHasPackages = !packages.empty();
+    }
+    
+    //executing all commands
+    std::vector< boost::filesystem::path > commands =  project.getCommands();
+    for( const boost::filesystem::path& strCommand : commands )
+    {
+        std::ostringstream os;
+        os << "Executing command: " << strCommand;
+        LogEntry log( std::cout, os.str(), bBenchCommands );
+        
+        std::ostringstream osCmd;
+        osCmd << strCommand << " ";
+        
+        osCmd << "--name " << project.getProject().Name() << " ";
+        osCmd << "--database " << project.getAnalysisFileName() << " ";
+        osCmd << "--dir " << project.getIntermediateFolder().generic_string() << " ";
+        if( bHasPackages )
+        {
+            osCmd << "--package " << osPackages.str() << " ";
+        }
+        
+        if( bLogCommands )
+        {
+            std::cout << "\n" << osCmd.str() << std::endl;
+        }
+        
+        {
+            const int iResult = boost::process::system( osCmd.str() );
+            if( iResult )
+            {
+                THROW_RTE( "Error invoking host command " << iResult );
+            }
+        }
+    }
 }
 
-void build_objects( const Environment& environment, const Project& project, bool bBenchCommands, bool bLogCommands )
+void objectCompilationCommand( std::string strMsg, std::string strCommand, bool bBenchCommands, std::mutex& logMutex )
 {
-    std::size_t szTotalTranslationUnits = 1U;
+    boost::timer::cpu_timer timer_internal;
     
+    const int iResult = boost::process::system( strCommand );
+    if( iResult )
+    {
+        THROW_RTE( "Error invoking clang++ " << iResult );
+    }
+    if( bBenchCommands )
+    {
+        std::lock_guard g( logMutex );
+        std::cout << timer_internal.format( 3, "%w seconds" ) << ": " << strMsg << "\n";
+    }
+}
+
+std::vector< boost::filesystem::path > 
+    build_objects( const Environment& environment, const Project& project, bool bBenchCommands, bool bLogCommands )
+{
+    std::vector< boost::filesystem::path > objectFiles;
+    
+    std::mutex logMutex;
+    std::vector< std::function< void() > > commands;
+    
+    std::size_t szTotalTranslationUnits = 1U;
     for( std::size_t szUnitIndex = 0U; szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
     {
         const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
 
-        //compile the object file
-        LogEntry log( std::cout, "Compiling implementation", bBenchCommands );
+        boost::filesystem::path objectFilePath = project.getObjectName( szUnitID );
+        objectFiles.push_back( objectFilePath );
+        
+        std::ostringstream os;
+        os << "Compiling: " << objectFilePath.generic_string();
+        
         std::ostringstream osCmd;
         environment.startCompilationCommand( osCmd );
         osCmd << " " << project.getCompilerFlags() << " ";
         
-        osCmd << "-c -o " << environment.printPath( project.getObjectName( szUnitID ) ) << " ";
+        osCmd << "-c -o " << environment.printPath( objectFilePath ) << " ";
             
         osCmd << "-Xclang -include-pch ";
         osCmd << "-Xclang " << environment.printPath( project.getIncludePCH() ) << " ";
@@ -391,47 +458,9 @@ void build_objects( const Environment& environment, const Project& project, bool
             std::cout << "\n" << osCmd.str() << std::endl;
         }
         
-        {
-            const int iResult = boost::process::system( osCmd.str() );
-            if( iResult )
-            {
-                THROW_RTE( "Error invoking clang++ " << iResult );
-            }
-        }
+        commands.push_back( std::bind( objectCompilationCommand, os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
     }
-}
-
-void build_program( const Environment& environment, const Project& project, bool bBenchCommands, bool bLogCommands )
-{
-    std::size_t szTotalTranslationUnits = 1U;
     
-    //generate the host code
-    {
-        LogEntry log( std::cout, "Executing Host Command", bBenchCommands );
-        
-        std::ostringstream osCmd;
-        osCmd << project.getHostCommand() << " ";
-        
-        osCmd << "--program " << project.getAnalysisFileName() << " ";
-        osCmd << "--log log ";
-        osCmd << "--dir " << project.getIntermediateFolder().generic_string() << " ";
-        
-        if( bLogCommands )
-        {
-            std::cout << "\n" << osCmd.str() << std::endl;
-        }
-        
-        {
-            const int iResult = boost::process::system( osCmd.str() );
-            if( iResult )
-            {
-                THROW_RTE( "Error invoking host command " << iResult );
-            }
-        }
-    }
-            
-    //compile all object files
-    std::vector< boost::filesystem::path > objectFiles;
     {
         for( const boost::filesystem::path& strSourceFile : project.getCPPSourceCode() )
         {
@@ -440,7 +469,6 @@ void build_program( const Environment& environment, const Project& project, bool
             
             std::ostringstream os;
             os << "Compiling: " << objectFilePath.generic_string();
-            LogEntry log( std::cout, os.str(), bBenchCommands );
                 
             std::ostringstream osCmd;
             environment.startCompilationCommand( osCmd );
@@ -469,16 +497,31 @@ void build_program( const Environment& environment, const Project& project, bool
                 std::cout << "\n" << osCmd.str() << std::endl;
             }
             
-            {
-                const int iResult = boost::process::system( osCmd.str() );
-                if( iResult )
-                {
-                    THROW_RTE( "Error invoking clang++ " << iResult );
-                }
-            }
+            commands.push_back( std::bind( objectCompilationCommand, os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
         }
     }
     
+    //brute force attempt to do all compilations at once
+    std::vector< std::thread > threads;
+    for( std::function< void() >& compilation : commands )
+    {
+        threads.push_back( std::thread( compilation ) );
+    }
+    
+    for( std::thread& th : threads )
+    {
+        if( th.joinable() )
+            th.join();
+    }
+    
+    return objectFiles;
+}
+
+void link_program( const Environment& environment, const Project& project, bool bBenchCommands, bool bLogCommands, 
+    const std::vector< boost::filesystem::path >& objectFiles )
+{
+    std::size_t szTotalTranslationUnits = 1U;
+        
     //link the program
     {
         LogEntry log( std::cout, "Linking", bBenchCommands );
@@ -488,12 +531,6 @@ void build_program( const Environment& environment, const Project& project, bool
         osCmd << " " << project.getCompilerFlags() << " " << project.getLinkerFlags() << " ";
         
         osCmd << "-o " << environment.printPath( project.getProgramName() ) << " ";
-        
-        for( std::size_t szUnitIndex = 0U; szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
-        {
-            const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
-            osCmd << environment.printPath( project.getObjectName( szUnitID ) ) << " ";
-        }
         
         for( const boost::filesystem::path& objectFile : objectFiles )
         {
@@ -597,9 +634,10 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         
         generate_objects( environment, project, bBenchCommands, bLogCommands );
         
-        build_objects( environment, project, bBenchCommands, bLogCommands );
-        
-        build_program( environment, project, bBenchCommands, bLogCommands );
+        std::vector< boost::filesystem::path > objectFiles = 
+            build_objects( environment, project, bBenchCommands, bLogCommands );
+            
+        link_program( environment, project, bBenchCommands, bLogCommands, objectFiles );
         
     }
     

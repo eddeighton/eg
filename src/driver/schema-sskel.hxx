@@ -333,6 +333,12 @@ namespace egxml
     virtual const ::egxml::Files&
     Files () = 0;
 
+    virtual bool
+    Command_next ();
+
+    virtual ::std::string
+    Command () = 0;
+
     // virtual void
     // post ();
 
@@ -344,7 +350,8 @@ namespace egxml
                  ::xml_schema::string_sskel& /* License */,
                  ::xml_schema::string_sskel& /* Description */,
                  ::egxml::Directories_sskel& /* Directories */,
-                 ::egxml::Files_sskel& /* Files */);
+                 ::egxml::Files_sskel& /* Files */,
+                 ::xml_schema::string_sskel& /* Command */);
 
     // Individual element serializers.
     //
@@ -365,6 +372,9 @@ namespace egxml
 
     void
     Files_serializer (::egxml::Files_sskel&);
+
+    void
+    Command_serializer (::xml_schema::string_sskel&);
 
     virtual void
     _reset ();
@@ -390,6 +400,7 @@ namespace egxml
     ::xml_schema::string_sskel* Description_serializer_;
     ::egxml::Directories_sskel* Directories_serializer_;
     ::egxml::Files_sskel* Files_serializer_;
+    ::xml_schema::string_sskel* Command_serializer_;
   };
 
   class Host_sskel: public ::egxml::Package_sskel
@@ -401,32 +412,8 @@ namespace egxml
     virtual void
     pre (const ::egxml::Host&) = 0;
 
-    // Elements.
-    //
-    virtual ::std::string
-    Command () = 0;
-
     // virtual void
     // post ();
-
-    // Serializer construction API.
-    //
-    void
-    serializers (::xml_schema::string_sskel& /* Name */,
-                 ::xml_schema::string_sskel& /* Repository */,
-                 ::xml_schema::string_sskel& /* License */,
-                 ::xml_schema::string_sskel& /* Description */,
-                 ::egxml::Directories_sskel& /* Directories */,
-                 ::egxml::Files_sskel& /* Files */,
-                 ::xml_schema::string_sskel& /* Command */);
-
-    // Individual element serializers.
-    //
-    void
-    Command_serializer (::xml_schema::string_sskel&);
-
-    virtual void
-    _reset ();
 
     // Constructor.
     //
@@ -456,15 +443,12 @@ namespace egxml
     virtual const ::egxml::Files&
     Files ();
 
-    virtual void
-    _serialize_content ();
+    virtual ::std::string
+    Command ();
 
     protected:
     Host_sskel* Host_impl_;
     Host_sskel (Host_sskel*, void*);
-
-    protected:
-    ::xml_schema::string_sskel* Command_serializer_;
   };
 
   class Build_sskel: public ::xsde::cxx::serializer::validating::complex_content

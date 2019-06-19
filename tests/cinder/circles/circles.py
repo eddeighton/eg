@@ -10,12 +10,12 @@ print( "creating circles" )
 for i in range( 256 ):
     if i % 2 == 0:
         c = r.Circle.Start()
-        c.Morph.Start().speed( 4 )
+        c.Morph.Start()
         c.size( 50 )
         c.ColorChanger.Start()
     else:
         c = r.StrokedCircle.Start()
-        c.Morph.Start().speed( 4 )
+        c.Morph.Start()
         c.size( 75 )
         c.ColorChanger.Start()
    

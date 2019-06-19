@@ -180,26 +180,20 @@ namespace egxml
     this->Files_ = x;
   }
 
-  // Host
-  //
-
-  const ::std::string& Host::
+  const Package::Command_sequence& Package::
   Command () const
   {
     return this->Command_;
   }
 
-  ::std::string& Host::
+  Package::Command_sequence& Package::
   Command ()
   {
     return this->Command_;
   }
 
-  void Host::
-  Command (const ::std::string& x)
-  {
-    this->Command_ = x;
-  }
+  // Host
+  //
 
   // Build
   //

@@ -8,31 +8,13 @@
 template<>
 void __eg_root< void >::operator()() const
 {
+  cinder::app::getWindow()->setSize( 1024, 1024 );
+cinder::app::setWindowPos( 100, 100 );
   morphSpeed( 0.1 );
   imgui.Start();
 
-bool bContinue = true;
-while( bContinue )
+while( true )
 {
-    while( std::optional< cinder::app::InputEvent > eOpt = Input::getEvent() )
-    {
-        const cinder::app::InputEvent& e = eOpt.value();
-        switch( e.type )
-        {
-            case cinder::app::InputEvent::eKeyDown:
-                if( e.keyEvent.getChar() == 's')
-                {
-                    bContinue = false;
-                }
-                else if(  e.keyEvent.getChar() == 'r' )
-                {
-                    Randomise();
-                }
-                break;
-            default:
-                break;
-        }
-    }
 	cinder::gl::clear();
     eg::sleep();
 }

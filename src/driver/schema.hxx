@@ -276,6 +276,18 @@ namespace egxml
     void
     Files (::egxml::Files*);
 
+    // Command
+    //
+    typedef ::xsde::cxx::string_sequence Command_sequence;
+    typedef Command_sequence::iterator Command_iterator;
+    typedef Command_sequence::const_iterator Command_const_iterator;
+
+    const Command_sequence&
+    Command () const;
+
+    Command_sequence&
+    Command ();
+
     private:
     ::std::string Name_;
     ::std::string Repository_;
@@ -285,6 +297,7 @@ namespace egxml
     unsigned char Description_present_;
     ::egxml::Directories* Directories_;
     ::egxml::Files* Files_;
+    Command_sequence Command_;
   };
 
   // Host (variable-length)
@@ -300,19 +313,7 @@ namespace egxml
 
     ~Host ();
 
-    // Command
-    //
-    const ::std::string&
-    Command () const;
-
-    ::std::string&
-    Command ();
-
-    void
-    Command (const ::std::string&);
-
     private:
-    ::std::string Command_;
   };
 
   // Build (fixed-length)

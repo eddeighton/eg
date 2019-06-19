@@ -75,13 +75,38 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
             {
                 pProject->Name( strName );
                 pProject->Host( strHost );
-                egxml::Build build;
+                
+                //release build
                 {
-                    build.Name( "release" );
-                    build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
-                    build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
+                    egxml::Build build;
+                    {
+                        build.Name( "release" );
+                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
+                    }
+                    pProject->Build().push_back( build );
                 }
-                pProject->Build().push_back( build );
+                //quick build
+                {
+                    egxml::Build build;
+                    {
+                        build.Name( "quick" );
+                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
+                    }
+                    pProject->Build().push_back( build );
+                }
+                //debug build
+                {
+                    egxml::Build build;
+                    {
+                        build.Name( "debug" );
+                        build.CompilerFlags( "-g -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
+                    }
+                    pProject->Build().push_back( build );
+                }
+                
                 egxml::Run* pRun = new egxml::Run;
                 {
                     pRun->Name( "default" );
@@ -90,7 +115,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     
                     {
                         std::ostringstream osCmd;
-                        osCmd << "--python ${PROJECT}/" << strName << ".py";
+                        osCmd << "--script ${PROJECT}/" << strName << ".py";
                         pRun->Argument().push_back( osCmd.str() );
                     }
                 }

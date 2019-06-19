@@ -22,7 +22,7 @@
 
 #include "concrete.hpp"
 
-#include "library/eg_common.hpp"
+#include "eg/common.hpp"
 
 #include "eg_runtime/eg_runtime.hpp"
 

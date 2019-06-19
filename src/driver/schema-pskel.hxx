@@ -325,6 +325,9 @@ namespace egxml
     virtual void
     Files (::egxml::Files*);
 
+    virtual void
+    Command (const ::std::string&);
+
     virtual ::egxml::Package*
     post_Package () = 0;
 
@@ -336,7 +339,8 @@ namespace egxml
              ::xml_schema::string_pskel& /* License */,
              ::xml_schema::string_pskel& /* Description */,
              ::egxml::Directories_pskel& /* Directories */,
-             ::egxml::Files_pskel& /* Files */);
+             ::egxml::Files_pskel& /* Files */,
+             ::xml_schema::string_pskel& /* Command */);
 
     // Individual element parsers.
     //
@@ -357,6 +361,9 @@ namespace egxml
 
     void
     Files_parser (::egxml::Files_pskel&);
+
+    void
+    Command_parser (::xml_schema::string_pskel&);
 
     virtual void
     _reset ();
@@ -387,6 +394,7 @@ namespace egxml
     ::xml_schema::string_pskel* Description_parser_;
     ::egxml::Directories_pskel* Directories_parser_;
     ::egxml::Files_pskel* Files_parser_;
+    ::xml_schema::string_pskel* Command_parser_;
 
     public:
     struct v_state_descr_
@@ -433,32 +441,8 @@ namespace egxml
     // virtual void
     // pre ();
 
-    // Elements.
-    //
-    virtual void
-    Command (const ::std::string&);
-
     virtual ::egxml::Host*
     post_Host () = 0;
-
-    // Parser construction API.
-    //
-    void
-    parsers (::xml_schema::string_pskel& /* Name */,
-             ::xml_schema::string_pskel& /* Repository */,
-             ::xml_schema::string_pskel& /* License */,
-             ::xml_schema::string_pskel& /* Description */,
-             ::egxml::Directories_pskel& /* Directories */,
-             ::egxml::Files_pskel& /* Files */,
-             ::xml_schema::string_pskel& /* Command */);
-
-    // Individual element parsers.
-    //
-    void
-    Command_parser (::xml_schema::string_pskel&);
-
-    virtual void
-    _reset ();
 
     // Constructor.
     //
@@ -472,54 +456,6 @@ namespace egxml
     protected:
     Host_pskel* Host_impl_;
     Host_pskel (Host_pskel*, void*);
-
-    protected:
-    virtual bool
-    _start_element_impl (const ::xsde::cxx::ro_string&,
-                         const ::xsde::cxx::ro_string&);
-
-    virtual bool
-    _end_element_impl (const ::xsde::cxx::ro_string&,
-                       const ::xsde::cxx::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* Command_parser_;
-
-    public:
-    struct v_state_descr_
-    {
-      void (::egxml::Host_pskel::*func) (
-        unsigned long&,
-        unsigned long&,
-        const ::xsde::cxx::ro_string&,
-        const ::xsde::cxx::ro_string&,
-        bool);
-      unsigned long state;
-      unsigned long count;
-    };
-
-    struct v_state_
-    {
-      v_state_descr_ data[2UL];
-      unsigned long size;
-    };
-
-    protected:
-    v_state_ v_state_first_;
-    ::xsde::cxx::stack v_state_stack_;
-
-    virtual void
-    _pre_e_validate ();
-
-    virtual void
-    _post_e_validate ();
-
-    void
-    sequence_0 (unsigned long&,
-                unsigned long&,
-                const ::xsde::cxx::ro_string&,
-                const ::xsde::cxx::ro_string&,
-                bool);
   };
 
   class Build_pskel: public ::xsde::cxx::parser::validating::complex_content

@@ -12,7 +12,6 @@ set(CMAKE_INSTALL_PREFIX ${EG_ROOT_DIR} CACHE STRING INTERNAL FORCE)
 
 set( EG_API_DIR ${EG_ROOT_DIR}/api )
 set( EG_SRC_DIR ${EG_ROOT_DIR}/src )
-set( EG_RUNTIME_DIR ${EG_ROOT_DIR}/runtime )
 set( EG_THIRD_PARTY_DIR ${EG_ROOT_DIR}/third_party )
 
 
@@ -57,5 +56,5 @@ add_subdirectory(eg)
 add_subdirectory(eg_runtime)
 add_subdirectory(clang_plugin)
 add_subdirectory(driver)
-add_subdirectory(hosts)
+add_subdirectory(generators)
 add_subdirectory(tests)

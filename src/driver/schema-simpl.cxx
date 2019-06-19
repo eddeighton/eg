@@ -36,6 +36,10 @@ namespace egxml
   pre (const ::egxml::Package& x)
   {
     this->Package_simpl_state_.Package_ = &x;
+    this->Package_simpl_state_.Command_ = 
+    this->Package_simpl_state_.Package_->Command ().begin ();
+    this->Package_simpl_state_.Command_end_ = 
+    this->Package_simpl_state_.Package_->Command ().end ();
   }
 
   ::std::string Package_simpl::
@@ -98,6 +102,19 @@ namespace egxml
     return this->Package_simpl_state_.Package_->Files ();
   }
 
+  bool Package_simpl::
+  Command_next ()
+  {
+    return this->Package_simpl_state_.Command_ != 
+    this->Package_simpl_state_.Command_end_;
+  }
+
+  ::std::string Package_simpl::
+  Command ()
+  {
+    return *this->Package_simpl_state_.Command_++;
+  }
+
   // Host_simpl
   //
 
@@ -112,12 +129,6 @@ namespace egxml
   {
     this->base_impl_.pre (x);
     this->Host_simpl_state_.Host_ = &x;
-  }
-
-  ::std::string Host_simpl::
-  Command ()
-  {
-    return this->Host_simpl_state_.Host_->Command ();
   }
 
   // Build_simpl
@@ -460,7 +471,8 @@ namespace egxml
                                   this->string_s_,
                                   this->string_s_,
                                   this->Directories_s_,
-                                  this->Files_s_);
+                                  this->Files_s_,
+                                  this->string_s_);
   }
 
   const char* EG_saggr::

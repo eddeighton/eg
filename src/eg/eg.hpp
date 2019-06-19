@@ -21,7 +21,7 @@
 #ifndef EG_18_04_2019
 #define EG_18_04_2019
 
-#include "library/eg_common.hpp"
+#include "eg/common.hpp"
 
 #include <cstddef>
 #include <cstdint>

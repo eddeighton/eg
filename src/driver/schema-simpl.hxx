@@ -77,10 +77,18 @@ namespace egxml
     virtual const ::egxml::Files&
     Files ();
 
+    virtual bool
+    Command_next ();
+
+    virtual ::std::string
+    Command ();
+
     public:
     struct Package_simpl_state
     {
       const ::egxml::Package* Package_;
+      ::egxml::Package::Command_const_iterator Command_;
+      ::egxml::Package::Command_const_iterator Command_end_;
     };
 
     Package_simpl_state Package_simpl_state_;
@@ -93,11 +101,6 @@ namespace egxml
 
     virtual void
     pre (const ::egxml::Host&);
-
-    // Elements.
-    //
-    virtual ::std::string
-    Command ();
 
     public:
     ::egxml::Package_simpl base_impl_;

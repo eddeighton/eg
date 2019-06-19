@@ -95,14 +95,6 @@ namespace eg
         std::set< boost::filesystem::path > systemIncludes, userIncludes;
         std::vector< boost::filesystem::path > systemIncludesOrdered, userIncludesOrdered;
         
-        //always include <cstddef>
-        //systemIncludes.insert( "<cstddef>" );
-        //systemIncludesOrdered.push_back( "<cstddef>" );
-        
-        //always include eg.hpp
-        userIncludes.insert( "eg.hpp" );
-        userIncludesOrdered.push_back( "eg.hpp" );
-        
         for( const boost::filesystem::path& hostIncludePath : hostIncludesUser )
         {
             if( userIncludes.find( hostIncludePath ) == userIncludes.end() )

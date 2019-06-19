@@ -3,30 +3,30 @@
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
-struct [[clang::eg_type( -77 )]]Attract;
-struct [[clang::eg_type( -69 )]]Circle;
-struct [[clang::eg_type( -62 )]]ColorChanger;
-struct [[clang::eg_type( -60 )]]Default;
-struct [[clang::eg_type( -65 )]]Morph;
-struct [[clang::eg_type( -79 )]]Randomise;
-struct [[clang::eg_type( -55 )]]Shape;
-struct [[clang::eg_type( -71 )]]Spiral;
-struct [[clang::eg_type( -67 )]]StrokedCircle;
-struct [[clang::eg_type( -58 )]]color;
-struct [[clang::eg_type( -72 )]]curve;
-struct [[clang::eg_type( -63 )]]f;
-struct [[clang::eg_type( -83 )]]imgui;
-struct [[clang::eg_type( -53 )]]morphSpeed;
-struct [[clang::eg_type( -56 )]]position;
-struct [[clang::eg_type( -57 )]]positionActual;
-struct [[clang::eg_type( -73 )]]radius;
-struct [[clang::eg_type( -81 )]]range;
-struct [[clang::eg_type( -74 )]]relative;
-struct [[clang::eg_type( -59 )]]size;
-struct [[clang::eg_type( -75 )]]speed;
+struct [[clang::eg_type( -79 )]]Attract;
+struct [[clang::eg_type( -71 )]]Circle;
+struct [[clang::eg_type( -64 )]]ColorChanger;
+struct [[clang::eg_type( -62 )]]Default;
+struct [[clang::eg_type( -67 )]]Morph;
+struct [[clang::eg_type( -81 )]]Randomise;
+struct [[clang::eg_type( -57 )]]Shape;
+struct [[clang::eg_type( -73 )]]Spiral;
+struct [[clang::eg_type( -69 )]]StrokedCircle;
+struct [[clang::eg_type( -60 )]]color;
+struct [[clang::eg_type( -74 )]]curve;
+struct [[clang::eg_type( -65 )]]f;
+struct [[clang::eg_type( -85 )]]imgui;
+struct [[clang::eg_type( -55 )]]morphSpeed;
+struct [[clang::eg_type( -58 )]]position;
+struct [[clang::eg_type( -59 )]]positionActual;
+struct [[clang::eg_type( -75 )]]radius;
+struct [[clang::eg_type( -83 )]]range;
+struct [[clang::eg_type( -76 )]]relative;
+struct [[clang::eg_type( -61 )]]size;
+struct [[clang::eg_type( -77 )]]speed;
 
 //EG Interface
-template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
+template< typename __eg1 >struct [[clang::eg_type(52)]]__eg_root
 {
   __eg_root()
   {
@@ -74,8 +74,8 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
   using Iterator = __eg_ReferenceIterator< __eg_root >;
   using EGRangeType = __eg_Range< Iterator >;
   eg::reference data;
-  template< typename __eg2 >struct [[clang::eg_type(53)]]__eg_morphSpeed;
-  template< typename __eg2 >struct [[clang::eg_type(55)]]__eg_Shape
+  template< typename __eg2 >struct [[clang::eg_type(55)]]__eg_morphSpeed;
+  template< typename __eg2 >struct [[clang::eg_type(57)]]__eg_Shape
   {
     __eg_Shape()
     {
@@ -123,11 +123,11 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
     using Iterator = __eg_ReferenceIterator< __eg_Shape >;
     using EGRangeType = __eg_Range< Iterator >;
     eg::reference data;
-    template< typename __eg3 >struct [[clang::eg_type(56)]]__eg_position;
-    template< typename __eg3 >struct [[clang::eg_type(57)]]__eg_positionActual;
-    template< typename __eg3 >struct [[clang::eg_type(58)]]__eg_color;
-    template< typename __eg3 >struct [[clang::eg_type(59)]]__eg_size;
-    template< typename __eg3 >struct [[clang::eg_type(60)]]__eg_Default
+    template< typename __eg3 >struct [[clang::eg_type(58)]]__eg_position;
+    template< typename __eg3 >struct [[clang::eg_type(59)]]__eg_positionActual;
+    template< typename __eg3 >struct [[clang::eg_type(60)]]__eg_color;
+    template< typename __eg3 >struct [[clang::eg_type(61)]]__eg_size;
+    template< typename __eg3 >struct [[clang::eg_type(62)]]__eg_Default
     {
       __eg_Default()
       {
@@ -177,7 +177,7 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
       eg::reference data;
     };
     using Default = __eg_Default< __eg2 >;
-    template< typename __eg3 >struct [[clang::eg_type(62)]]__eg_ColorChanger
+    template< typename __eg3 >struct [[clang::eg_type(64)]]__eg_ColorChanger
     {
       __eg_ColorChanger()
       {
@@ -225,10 +225,10 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
       using Iterator = __eg_ReferenceIterator< __eg_ColorChanger >;
       using EGRangeType = __eg_Range< Iterator >;
       eg::reference data;
-      template< typename __eg4 >struct [[clang::eg_type(63)]]__eg_f;
+      template< typename __eg4 >struct [[clang::eg_type(65)]]__eg_f;
     };
     using ColorChanger = __eg_ColorChanger< __eg2 >;
-    template< typename __eg3 >struct [[clang::eg_type(65)]]__eg_Morph
+    template< typename __eg3 >struct [[clang::eg_type(67)]]__eg_Morph
     {
       __eg_Morph()
       {
@@ -280,7 +280,7 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
     using Morph = __eg_Morph< __eg2 >;
   };
   using Shape = __eg_Shape< __eg1 >;
-  template< typename __eg2 >struct [[clang::eg_type(67)]]__eg_StrokedCircle
+  template< typename __eg2 >struct [[clang::eg_type(69)]]__eg_StrokedCircle
   {
     __eg_StrokedCircle()
     {
@@ -329,10 +329,10 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
     using EGRangeType = __eg_Range< Iterator >;
     eg::reference data;
     static const eg::Instance SIZE = 256;
-    template< typename __eg2 >struct [[clang::eg_type(24)]]__eg_Base_0;
+    template< typename __eg2 >struct [[clang::eg_type(25)]]__eg_Base_0;
   };
   using StrokedCircle = __eg_StrokedCircle< __eg1 >;
-  template< typename __eg2 >struct [[clang::eg_type(69)]]__eg_Circle
+  template< typename __eg2 >struct [[clang::eg_type(71)]]__eg_Circle
   {
     __eg_Circle()
     {
@@ -381,10 +381,10 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
     using EGRangeType = __eg_Range< Iterator >;
     eg::reference data;
     static const eg::Instance SIZE = 256;
-    template< typename __eg2 >struct [[clang::eg_type(28)]]__eg_Base_0;
+    template< typename __eg2 >struct [[clang::eg_type(29)]]__eg_Base_0;
   };
   using Circle = __eg_Circle< __eg1 >;
-  template< typename __eg2 >struct [[clang::eg_type(71)]]__eg_Spiral
+  template< typename __eg2 >struct [[clang::eg_type(73)]]__eg_Spiral
   {
     __eg_Spiral()
     {
@@ -432,13 +432,13 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
     using Iterator = __eg_ReferenceIterator< __eg_Spiral >;
     using EGRangeType = __eg_Range< Iterator >;
     eg::reference data;
-    template< typename __eg3 >struct [[clang::eg_type(72)]]__eg_curve;
-    template< typename __eg3 >struct [[clang::eg_type(73)]]__eg_radius;
-    template< typename __eg3 >struct [[clang::eg_type(74)]]__eg_relative;
-    template< typename __eg3 >struct [[clang::eg_type(75)]]__eg_speed;
+    template< typename __eg3 >struct [[clang::eg_type(74)]]__eg_curve;
+    template< typename __eg3 >struct [[clang::eg_type(75)]]__eg_radius;
+    template< typename __eg3 >struct [[clang::eg_type(76)]]__eg_relative;
+    template< typename __eg3 >struct [[clang::eg_type(77)]]__eg_speed;
   };
   using Spiral = __eg_Spiral< __eg1 >;
-  template< typename __eg2 >struct [[clang::eg_type(77)]]__eg_Attract
+  template< typename __eg2 >struct [[clang::eg_type(79)]]__eg_Attract
   {
     __eg_Attract()
     {
@@ -488,7 +488,7 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
     eg::reference data;
   };
   using Attract = __eg_Attract< __eg1 >;
-  template< typename __eg2 >struct [[clang::eg_type(79)]]__eg_Randomise
+  template< typename __eg2 >struct [[clang::eg_type(81)]]__eg_Randomise
   {
     __eg_Randomise()
     {
@@ -536,10 +536,10 @@ template< typename __eg1 >struct [[clang::eg_type(51)]]__eg_root
     using Iterator = __eg_ReferenceIterator< __eg_Randomise >;
     using EGRangeType = __eg_Range< Iterator >;
     eg::reference data;
-    template< typename __eg3 >struct [[clang::eg_type(81)]]__eg_range;
+    template< typename __eg3 >struct [[clang::eg_type(83)]]__eg_range;
   };
   using Randomise = __eg_Randomise< __eg1 >;
-  template< typename __eg2 >struct [[clang::eg_type(83)]]__eg_imgui
+  template< typename __eg2 >struct [[clang::eg_type(85)]]__eg_imgui
   {
     __eg_imgui()
     {
