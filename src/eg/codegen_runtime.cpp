@@ -7,7 +7,7 @@
 
 namespace eg
 {
-    void generate_dynamic_interface( std::ostream& os, ReadSession& session )
+    void generate_dynamic_interface( std::ostream& os, ImplementationSession& session )
     {
         const interface::Root* pRoot = session.getTreeRoot();
         const concrete::Action* pInstanceRoot = nullptr;
@@ -391,7 +391,7 @@ namespace eg
         
     }
 
-    void generateActionInstanceFunctions( std::ostream& os, const ReadSession& program )
+    void generateActionInstanceFunctions( std::ostream& os, const ImplementationSession& program )
     {
         const interface::Root* pRoot = program.getTreeRoot();
         

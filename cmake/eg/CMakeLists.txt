@@ -41,6 +41,7 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/concrete.cpp
     ${EG_SRC_DIR}/eg/codegen.hpp
     ${EG_SRC_DIR}/eg/codegen.cpp
+    ${EG_SRC_DIR}/eg/codegen_runtime.cpp
     ${EG_SRC_DIR}/eg/derivation.hpp
     ${EG_SRC_DIR}/eg/derivation.cpp
     ${EG_SRC_DIR}/eg/interface_session.hpp

@@ -39,6 +39,11 @@ action Circle[ 128 ]
     }*/
 }
 
+for( Circle c : root.Circle.Range() )
+{
+    //neat!
+}
+
 bool bContinue = true;
 while( bContinue )
 {

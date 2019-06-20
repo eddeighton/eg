@@ -2,7 +2,7 @@
 
 filter=$1
 
-for f in test_${filter}*
+for f in test_*${filter}*
 do
     echo Test: $f
     cd $f

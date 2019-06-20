@@ -61,6 +61,30 @@ template< typename ReferenceType >
 inline eg::TimeStamp getStopCycle( eg::TypeID type, eg::Instance instance );
 
 template< class ReferenceType >
+class __eg_ReferenceRawIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
+{
+public:
+    using value_type = ReferenceType;
+    eg::Instance instance;
+    eg::Instance sentinal;
+    eg::TypeID type;
+    inline __eg_ReferenceRawIterator( eg::Instance instance, eg::Instance sentinal, eg::TypeID type ) : instance( instance ), sentinal( sentinal ), type( type ) {}
+    inline __eg_ReferenceRawIterator( const __eg_ReferenceRawIterator& from ) : instance( from.instance ), sentinal( from.sentinal ), type( from.type ) {}
+    inline __eg_ReferenceRawIterator& operator++()
+    {
+        ++instance;
+        return *this;
+    }
+    inline __eg_ReferenceRawIterator operator++(int) {__eg_ReferenceRawIterator tmp(*this); operator++(); return tmp;}
+    inline bool operator==(const __eg_ReferenceRawIterator& rhs) const {return (instance==rhs.instance) && (type==rhs.type);}
+    inline bool operator!=(const __eg_ReferenceRawIterator& rhs) const {return !(rhs==*this);}
+    inline const value_type operator*()
+    {
+        return eg::reference{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
+    }
+};
+
+template< class ReferenceType >
 class __eg_ReferenceIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
 {
 public:
@@ -77,7 +101,7 @@ public:
             ++instance;
             if( ( instance == sentinal ) || 
                 ( getState< ReferenceType >( type, instance ) != eg::action_stopped ) ||
-                ( getStopCycle< ReferenceType >( type, instance ) >= clock::cycle() ) )
+                ( getStopCycle< ReferenceType >( type, instance ) == clock::cycle() ) )
                 break;
         }
         return *this;
@@ -91,13 +115,12 @@ public:
     }
 };
 
-template< class ReferenceType, std::size_t SIZE >
-class __eg_MultiIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
+template< class IteratorType, std::size_t SIZE >
+class __eg_MultiIterator : public std::iterator< std::forward_iterator_tag, typename IteratorType::value_type >
 {
 public:
-    using IteratorType = __eg_ReferenceIterator< ReferenceType >;
     using IteratorArray = std::array< IteratorType, SIZE >;
-    using value_type = ReferenceType;
+    using value_type = typename IteratorType::value_type;
 private:
     IteratorArray iterators;
     std::size_t szIndex = 0U;
@@ -155,7 +178,7 @@ public:
     }
     inline bool operator!=(const __eg_MultiIterator& rhs) const {return !(rhs==*this);}
     
-    inline const ReferenceType operator*()
+    inline const value_type operator*()
     {
         return *iterators[ szIndex ];
     }

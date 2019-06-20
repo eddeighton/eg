@@ -610,6 +610,15 @@ boost::filesystem::path Project::getImplementationSource( int szUnitID ) const
                     getIntermediateFolder() / os.str() ) );
 }
 
+boost::filesystem::path Project::getRuntimeSource() const
+{
+    std::ostringstream os;
+    os << "runtime.cpp";
+    return boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( 
+                    getIntermediateFolder() / os.str() ) );
+}
+    
 boost::filesystem::path Project::getObjectName( int szUnitID ) const
 {
     std::ostringstream os;

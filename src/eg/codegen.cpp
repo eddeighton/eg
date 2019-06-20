@@ -966,6 +966,7 @@ namespace eg
             os << "}\n";
             os << "\n";
             }
+            
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
@@ -1218,7 +1219,8 @@ namespace eg
                     if( returnTypes.size() == 1 )
                     {
                         os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
-                            returnTypes.front()->getStaticType() << ", " << invocation.getRoot()->getMaxRanges() << "U > >";
+                            EG_REFERENCE_ITERATOR_TYPE << "< " << returnTypes.front()->getStaticType() << " >, " 
+                                << invocation.getRoot()->getMaxRanges() << "U > >";
                     }
                     else
                     {
@@ -1237,7 +1239,8 @@ namespace eg
                             osType << " >";
                         }
                         os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
-                            osType.str() << ", " << invocation.getRoot()->getMaxRanges() << "U > >";
+                            EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >, " << 
+                            invocation.getRoot()->getMaxRanges() << "U > >";
                     }
                 }
                 break;
@@ -1336,7 +1339,7 @@ namespace eg
         return Printer( m_layout.getDataMember( pDimension ), strIndex.c_str() );
     }
     
-    inline std::ostream& operator<<( std::ostream& os, const Printer& printer )
+    std::ostream& operator<<( std::ostream& os, const Printer& printer )
     {
         printer.m_pDataMember->printVariableAccess( os, printer.pszIndex );
         return os;

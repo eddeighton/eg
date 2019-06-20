@@ -765,8 +765,7 @@ namespace eg
             }
             
             os << generator.getIndent() << "using IterType = " << osIterType.str() << ";\n";
-            os << generator.getIndent() << "using MultiIterType = " << EG_MULTI_ITERATOR_TYPE << "< " << 
-                osReturnType.str() << ", " << m_iMaxRanges << " >;\n";
+            os << generator.getIndent() << "using MultiIterType = " << EG_MULTI_ITERATOR_TYPE << "< IterType, " << m_iMaxRanges << " >;\n";
             
             //begin iterators
             os << generator.getIndent() << "MultiIterType::IteratorArray iterators_begin = \n";

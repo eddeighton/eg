@@ -101,6 +101,7 @@ public:
     boost::filesystem::path getAnalysisFileName() const;
     boost::filesystem::path getDataStructureSource() const;
     boost::filesystem::path getImplementationSource( int szUnitID ) const;
+    boost::filesystem::path getRuntimeSource() const;
     
     boost::filesystem::path getObjectName( int szUnitID ) const;
     boost::filesystem::path getObjectFile( const boost::filesystem::path& sourceFile ) const;

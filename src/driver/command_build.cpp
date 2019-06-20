@@ -352,11 +352,23 @@ void generate_objects( const Environment& environment, const Project& project, b
                 LogEntry log( std::cout, "Generating implementation", bBenchCommands );
                 std::unique_ptr< boost::filesystem::ofstream > pImplFile =
                         boost::filesystem::createNewFileStream( project.getImplementationSource( szUnitID ) );
-                        
                 eg::generateImplementationSource( *pImplFile, *pImplementationSession, szUnitID );
             }
         }
+        
+        //generate the runtime code
+        {
+            std::unique_ptr< boost::filesystem::ofstream > pRuntimeFileStream =
+                    boost::filesystem::createNewFileStream( project.getRuntimeSource() );
+            
+            std::ostream& os = *pRuntimeFileStream;
+            
+            os << "#include \"structures.hpp\"\n";
+            eg::generate_dynamic_interface( os, *pImplementationSession );
+            eg::generateActionInstanceFunctions( os, *pImplementationSession );
+        }
     }
+    
     
     std::ostringstream osPackages;
     bool bHasPackages = false;
@@ -452,6 +464,45 @@ std::vector< boost::filesystem::path >
         osCmd << "-Xclang " << environment.printPath( project.getOperationsPCH( szUnitID ) ) << " ";
             
         osCmd << environment.printPath( project.getImplementationSource( szUnitID ) ) << " ";
+            
+        if( bLogCommands )
+        {
+            std::cout << "\n" << osCmd.str() << std::endl;
+        }
+        
+        commands.push_back( std::bind( objectCompilationCommand, os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
+    }
+    
+    {
+        const boost::filesystem::path strSourceFile = project.getRuntimeSource();
+        
+        boost::filesystem::path objectFilePath = project.getObjectFile( strSourceFile );
+        objectFiles.push_back( objectFilePath );
+        
+        std::ostringstream os;
+        os << "Compiling: " << objectFilePath.generic_string();
+            
+        std::ostringstream osCmd;
+        environment.startCompilationCommand( osCmd );
+        osCmd << " " << project.getCompilerFlags() << " ";
+        
+        osCmd << "-c -o " << environment.printPath( objectFilePath ) << " ";
+        
+        osCmd << "-Xclang -include-pch ";
+        osCmd << "-Xclang " << environment.printPath( project.getIncludePCH() ) << " ";
+        
+        osCmd << "-Xclang -include-pch ";
+        osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
+    
+        osCmd << "-I " << environment.printPath( environment.getEGLibraryInclude() ) << " ";
+        osCmd << "-I " << environment.printPath( project.getIntermediateFolder() ) << " ";
+        
+        for( const boost::filesystem::path& includeDirectory : project.getIncludeDirectories() )
+        {
+            osCmd << "-I " << environment.printPath( includeDirectory ) << " ";
+        }
+        
+        osCmd << environment.printPath( strSourceFile ) << " ";
             
         if( bLogCommands )
         {

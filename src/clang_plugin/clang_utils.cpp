@@ -426,10 +426,10 @@ namespace clang
     }
     
     QualType getIteratorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
-        const clang::QualType& iteratorType )
+        const clang::QualType& interfaceType, const char* pszIteratorTypeName )
     {
         SourceLocation iterLoc;
-        IdentifierInfo& identifierInfo = pASTContext->Idents.get( eg::EG_REFERENCE_ITERATOR_TYPE );
+        IdentifierInfo& identifierInfo = pASTContext->Idents.get( pszIteratorTypeName );
         LookupResult result( *pSema, &identifierInfo, iterLoc, Sema::LookupAnyName );
         if( pSema->LookupQualifiedName( result, pDeclContext ) )
         {
@@ -442,40 +442,51 @@ namespace clang
                 {
                     TemplateArgs.addArgument( 
                         TemplateArgumentLoc( 
-                            TemplateArgument( iteratorType ), 
-                            pASTContext->getTrivialTypeSourceInfo( iteratorType, loc ) ) );
+                            TemplateArgument( interfaceType ), 
+                            pASTContext->getTrivialTypeSourceInfo( interfaceType, loc ) ) );
                 }                
                 
                 TemplateName templateName( pDecl );
-                QualType IteratorType = pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
-                
-                SourceLocation rangeLoc;
-                IdentifierInfo& rangeIdentifierInfo = pASTContext->Idents.get( eg::EG_RANGE_TYPE );
-                LookupResult result( *pSema, &rangeIdentifierInfo, rangeLoc, Sema::LookupAnyName );
-                if( pSema->LookupQualifiedName( result, pDeclContext ) )
-                {
-                    if( ClassTemplateDecl* pDecl = llvm::dyn_cast< ClassTemplateDecl >( result.getFoundDecl() ) )
-                    {
-                        rangeLoc = pDecl->getTemplatedDecl()->getBeginLoc();
-                        TemplateArgumentListInfo TemplateArgs( rangeLoc, rangeLoc );
-                        
-                        TemplateArgs.addArgument( 
-                            TemplateArgumentLoc( 
-                                TemplateArgument( IteratorType ), 
-                                pASTContext->getTrivialTypeSourceInfo( IteratorType, loc ) ) );
-                        TemplateName templateName( pDecl );
-                        return pSema->CheckTemplateIdType( templateName, rangeLoc, TemplateArgs );
-                    }
-                }
-                
+                return pSema->CheckTemplateIdType( templateName, iterLoc, TemplateArgs );
             }
         }
         return QualType();
     }
-        
-    QualType getMultiIteratorType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
-        const clang::QualType& iteratorType, std::size_t szTargetTypes )
+    
+    QualType getIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
+        const clang::QualType& interfaceType, const char* pszIteratorTypeName )
     {
+        QualType iteratorType = 
+            getIteratorType( pASTContext, pSema, pDeclContext, loc, interfaceType, pszIteratorTypeName );
+        
+        SourceLocation rangeLoc;
+        IdentifierInfo& rangeIdentifierInfo = pASTContext->Idents.get( eg::EG_RANGE_TYPE );
+        LookupResult result( *pSema, &rangeIdentifierInfo, rangeLoc, Sema::LookupAnyName );
+        if( pSema->LookupQualifiedName( result, pDeclContext ) )
+        {
+            if( ClassTemplateDecl* pDecl = llvm::dyn_cast< ClassTemplateDecl >( result.getFoundDecl() ) )
+            {
+                rangeLoc = pDecl->getTemplatedDecl()->getBeginLoc();
+                TemplateArgumentListInfo TemplateArgs( rangeLoc, rangeLoc );
+                
+                TemplateArgs.addArgument( 
+                    TemplateArgumentLoc( 
+                        TemplateArgument( iteratorType ), 
+                        pASTContext->getTrivialTypeSourceInfo( iteratorType, loc ) ) );
+                TemplateName templateName( pDecl );
+                return pSema->CheckTemplateIdType( templateName, rangeLoc, TemplateArgs );
+            }
+        }
+                
+        return QualType();
+    }
+        
+    QualType getMultiIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
+        const clang::QualType& interfaceType, std::size_t szTargetTypes, const char* pszIteratorTypeName )
+    {
+        QualType iteratorType = 
+            getIteratorType( pASTContext, pSema, pDeclContext, loc, interfaceType, pszIteratorTypeName );
+        
         SourceLocation iterLoc;
         IdentifierInfo& identifierInfo = pASTContext->Idents.get( eg::EG_MULTI_ITERATOR_TYPE );
         LookupResult result( *pSema, &identifierInfo, iterLoc, Sema::LookupAnyName );

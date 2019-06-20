@@ -85,6 +85,8 @@ namespace eg
 
     void generateImplementationSource( std::ostream& os, const ImplementationSession& program, std::size_t szTranslationUnitID );
         
+    void generate_dynamic_interface( std::ostream& os, ImplementationSession& session );
+    void generateActionInstanceFunctions( std::ostream& os, const ImplementationSession& program );
             
     class DataMember;
 
@@ -95,7 +97,7 @@ namespace eg
         Printer( const DataMember* pDataMember, const char* pszIndex ) : m_pDataMember( pDataMember ), pszIndex( pszIndex ) {}
     };
     
-    inline std::ostream& operator<<( std::ostream& os, const Printer& printer );
+    std::ostream& operator<<( std::ostream& os, const Printer& printer );
 
     class Layout;
     class CodeGenerator

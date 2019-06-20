@@ -541,9 +541,9 @@ namespace eg
                         if( std::optional< clang::QualType > resultOpt = 
                                 buildActionReturnType( returnTypes, pDeclContext, loc ) )
                         {
-                            resultType = clang::getIteratorType( g_pASTContext, g_pSema, 
+                            resultType = clang::getIteratorRangeType( g_pASTContext, g_pSema, 
                                 g_pASTContext->getTranslationUnitDecl(), 
-                                loc, resultOpt.value() );
+                                loc, resultOpt.value(), eg::EG_REFERENCE_ITERATOR_TYPE );
                         }
                     }
                     else
@@ -551,9 +551,9 @@ namespace eg
                         if( std::optional< clang::QualType > resultOpt = 
                                 buildActionReturnType( returnTypes, pDeclContext, loc ) )
                         {
-                            resultType = clang::getMultiIteratorType( g_pASTContext, g_pSema, 
+                            resultType = clang::getMultiIteratorRangeType( g_pASTContext, g_pSema, 
                                 g_pASTContext->getTranslationUnitDecl(), 
-                                loc, resultOpt.value(), pSolution->getRoot()->getMaxRanges() );
+                                loc, resultOpt.value(), pSolution->getRoot()->getMaxRanges(), eg::EG_REFERENCE_ITERATOR_TYPE );
                         }
                     }
                 }
