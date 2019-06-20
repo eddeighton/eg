@@ -4,19 +4,9 @@ include( "glm/vec3.hpp" );
 
 dim float colourRate;
 
-abstract CircleGraphic
+abstract HasColour
 {
-    //draw the circle
-    action Draw
-    {
-        eg::wait();
-        while( true )
-        {
-            cinder::gl::color( color() ); // red
-            cinder::gl::drawSolidCircle( position(), size() );
-            eg::sleep();
-        }
-    }
+    dim cinder::Color color;
     
     action ColourChanger
     {
@@ -29,36 +19,41 @@ abstract CircleGraphic
     }
 }
 
-
-action Circle[ 4096 ] : CircleGraphic
+abstract Lifetime
 {
-    dim cinder::vec2 position;
-    dim cinder::Color color;
-    dim float size;
-    dim float lifetime;
     dim float starttime;
+    dim float lifetime;
     
     //constructor like stuff
+    action initLife
     {
         starttime( clock::ct() );
     }
-    
-    //construct like nested action
-    action Init( const cinder::vec2 pos )
-    {
-        position( pos );
-        offset( 1.0f - fmod( clock::ct(), 1.0f ) );
-    }
-    
     //accessor like action
     action check
     {
         dim int TimeLeft;
         TimeLeft( clock::ct() < starttime() + lifetime() );
     }
+}
+
+abstract HasPosition
+{
+    dim cinder::vec2 position;
+    dim float size;
+}
+
+action Circle[ 4096 ] : HasColour, Lifetime, HasPosition
+{
+    //construct like nested action
+    action Init( const cinder::vec2 pos );
+    
+    //draw the circle
+    action Draw;
     
     //main action code
     {
+        initLife();
         Draw.Start();
         ColourChanger.Start();
         
@@ -68,74 +63,4 @@ action Circle[ 4096 ] : CircleGraphic
         }
     }
     
-}
-
-eg::wait(); //wait for initialisation script
-
-bool bContinue = true;
-while( bContinue )
-{
-	cinder::gl::clear();
-    
-    dim std::optional< cinder::vec2 > lastPos;
-    
-    while( std::optional< cinder::app::InputEvent > eventOpt = Input::getEvent() )
-    {
-        const cinder::app::InputEvent& e = eventOpt.value();
-        switch( e.type )
-        {
-            case cinder::app::InputEvent::eMouseDown:
-                {
-                    lastPos( std::optional< cinder::vec2 >( e.mouseEvent.getPos() ) );
-                    if( Circle c = Circle.Start() )
-                    {
-                        c.Init( lastPos().value() );
-                    }
-                }
-                break;
-            case cinder::app::InputEvent::eMouseUp:
-                {
-                    lastPos( std::optional< cinder::vec2 >() );
-                }
-                break;
-            case cinder::app::InputEvent::eMouseMove:
-                break;
-            case cinder::app::InputEvent::eMouseDrag:
-                if( lastPos() )
-                {
-                    const cinder::vec2 mousePos( e.mouseEvent.getPos() );
-                    
-                    const cinder::vec2 dir = mousePos - lastPos().value();
-                    dim float smoothing;
-                    const float fSteps = glm::length( dir ) * smoothing();
-                    for( float i = 0.0f; i < fSteps; ++i )
-                    {
-                        if( Circle c = Circle.Start() )
-                        {
-                            c.Init( lastPos().value() );
-                        }
-                    }
-                    lastPos( std::optional< cinder::vec2 >( mousePos ) );
-                    
-                    //try to start a circle
-                    if( Circle c = Circle.Start() )
-                    {
-                        c.Init( lastPos().value() );
-                    }
-                }
-                else
-                {
-                    LOG( "Mouse Drag: no lastpos"  );
-                }
-                break;
-            case cinder::app::InputEvent::eMouseWheel:
-                break;
-            case cinder::app::InputEvent::eKeyDown:
-                break;
-            case cinder::app::InputEvent::eKeyUp:
-                break;
-        }
-    }
-    
-    eg::sleep();
 }

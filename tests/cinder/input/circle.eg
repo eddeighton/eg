@@ -1,0 +1,21 @@
+
+
+
+
+action Circle::Init( const cinder::vec2 pos )
+{
+    position( pos );
+    offset( 1.0f - fmod( clock::ct(), 1.0f ) );
+}
+
+//draw the circle
+action Circle::Draw
+{
+    eg::wait();
+    while( true )
+    {
+        cinder::gl::color( color() ); // red
+        cinder::gl::drawSolidCircle( position(), size() );
+        eg::sleep();
+    }
+}
