@@ -1,0 +1,16 @@
+
+
+action A( int iValue )
+{
+    dim int i;
+    i( iValue );
+}
+
+TEST( i() == 0 ); //default initialisation
+
+//A a = A( 123 ); //sync call to A - A has stopped once it returns.
+//a.i() //reads i on reference
+TEST( A( 1 ).i() == 1 );
+TEST( A( 2 ).i() == 2 );
+TEST( A( 3 ).i() == 3 );
+TEST( A( 4 ).i() == 4 );
