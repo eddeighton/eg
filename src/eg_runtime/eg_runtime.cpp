@@ -85,6 +85,10 @@ namespace eg
         {
             return range.ranges[ szIndex ].end;
         }
+        virtual bool raw()
+        {
+            return range.raw;
+        }
     };
     
     class EGRuntimeImpl : public EGRuntime, public RuntimeEvaluator, public CreatingSession

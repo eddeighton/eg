@@ -1244,6 +1244,68 @@ namespace eg
                     }
                 }
                 break;
+            case id_Raw      : 
+                if( invocation.getRoot()->getMaxRanges() == 1 )
+                {
+                    if( returnTypes.size() == 1 )
+                    {
+                        os << EG_RANGE_TYPE << "< " << 
+                            EG_REFERENCE_RAW_ITERATOR_TYPE << "< " << 
+                                returnTypes.front()->getStaticType() << " > >";
+                    }
+                    else
+                    {
+                        std::ostringstream osType;
+                        {
+                            osType << EG_VARIANT_TYPE << "< ";
+                            for( const interface::Element* pElement : returnTypes )
+                            {
+                                const interface::Action* pReturnType = 
+                                    dynamic_cast< const interface::Action* >( pElement );
+                                ASSERT( pReturnType );
+                                if( pElement != *returnTypes.begin())
+                                    osType << ", ";
+                                osType << pReturnType->getStaticType();
+                            }
+                            osType << " >";
+                        }
+                        std::ostringstream osIterType;
+                        {
+                            osIterType << EG_REFERENCE_RAW_ITERATOR_TYPE << "< " << osType.str() << " >";
+                        }
+                        os << EG_RANGE_TYPE << "< " << osIterType.str() << " >";
+                    }
+                }
+                else
+                {
+                    if( returnTypes.size() == 1 )
+                    {
+                        os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
+                            EG_REFERENCE_RAW_ITERATOR_TYPE << "< " << returnTypes.front()->getStaticType() << " >, " 
+                                << invocation.getRoot()->getMaxRanges() << "U > >";
+                    }
+                    else
+                    {
+                        std::ostringstream osType;
+                        {
+                            osType << EG_VARIANT_TYPE << "< ";
+                            for( const interface::Element* pElement : returnTypes )
+                            {
+                                const interface::Action* pReturnType = 
+                                    dynamic_cast< const interface::Action* >( pElement );
+                                ASSERT( pReturnType );
+                                if( pElement != *returnTypes.begin())
+                                    osType << ", ";
+                                osType << pReturnType->getStaticType();
+                            }
+                            osType << " >";
+                        }
+                        os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
+                            EG_REFERENCE_RAW_ITERATOR_TYPE << "< " << osType.str() << " >, " << 
+                            invocation.getRoot()->getMaxRanges() << "U > >";
+                    }
+                }
+                break;
             default:
                 THROW_RTE( "Unknown operation type" );
                 break;
@@ -1279,6 +1341,7 @@ namespace eg
             case id_Get        :
             case id_Done       :
             case id_Range      : 
+            case id_Raw        : 
                 break;
             default:
                 THROW_RTE( "Unknown operation type" );
@@ -1385,6 +1448,7 @@ namespace eg
             case id_Get        :
             case id_Done       :
             case id_Range      :
+            case id_Raw        : 
                 break;
             case TOTAL_OPERATION_TYPES : 
             default:
@@ -1422,7 +1486,8 @@ namespace eg
             case id_Wait       : 
             case id_Get        :
             case id_Done       :
-            case id_Range      :   
+            case id_Range      : 
+            case id_Raw        :   
                 os << " )\n";
                 break;
             case TOTAL_OPERATION_TYPES : 

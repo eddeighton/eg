@@ -44,6 +44,7 @@ namespace eg
         virtual TypeID getType( std::size_t szIndex ) = 0;
         virtual Instance getBegin( std::size_t szIndex ) = 0;
         virtual Instance getEnd( std::size_t szIndex ) = 0;
+        virtual bool raw() = 0;
     };
     
     using EGRangeDescriptionPtr = std::shared_ptr< EGRangeDescription >;

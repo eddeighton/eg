@@ -31,5 +31,6 @@ struct [[clang::eg_type( eg::id_Wait            )]] Wait;               //id_Wai
 struct [[clang::eg_type( eg::id_Get             )]] Get;                //id_Get          (-2147483641)
 struct [[clang::eg_type( eg::id_Done            )]] Done;               //id_Done         (-2147483640)
 struct [[clang::eg_type( eg::id_Range           )]] Range;              //id_Range        (-2147483639)
+struct [[clang::eg_type( eg::id_Raw             )]] Raw;                //id_Raw          (-2147483638)
 
 #endif //EG_OPERATION_TYPES

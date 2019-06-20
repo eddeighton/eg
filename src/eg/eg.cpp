@@ -34,6 +34,7 @@ namespace eg
         std::string( "Get"),                //id_Get          (-2147483641) 
         std::string( "Done"),               //id_Done         (-2147483640)
         std::string( "Range"),              //id_Range        (-2147483639)
+        std::string( "Raw"),                //id_Raw          (-2147483638)
     };
     const std::string& getOperationString( OperationID op )
     {

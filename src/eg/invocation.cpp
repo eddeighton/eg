@@ -647,9 +647,15 @@ namespace eg
                     dynamic_cast< const interface::Action* >( current.getInterface() );
                 switch( m_solution.getOperation() )
                 {
+                    case id_Raw               :
+                        {
+                            RangeOperation* pRangeOp = new RangeOperation( pVariable, pInterfaceAction, pAction, RangeOperation::eRaw );
+                            pInstruction->append( pRangeOp );
+                        }
+                        break;
                     case id_Range               :
                         {
-                            RangeOperation* pRangeOp = new RangeOperation( pVariable, pInterfaceAction, pAction );
+                            RangeOperation* pRangeOp = new RangeOperation( pVariable, pInterfaceAction, pAction, RangeOperation::eRange );
                             pInstruction->append( pRangeOp );
                         }
                         break;
@@ -809,7 +815,7 @@ namespace eg
         }
         m_returnTypes = uniquify_without_reorder( m_returnTypes );
         ASSERT( std::set< const interface::Element* >( m_returnTypes.begin(), m_returnTypes.end() ).size() == m_returnTypes.size() );
-        if( getOperation() == id_Range )
+        if( isOperationEnumeration( getOperation() ) )
         {
             const int iMaxRanges = m_pRoot->setReturnTypes( m_returnTypes );
             m_pRoot->setMaxRanges( iMaxRanges );
@@ -876,6 +882,7 @@ namespace eg
                     builder( m_pRoot, pContextVariable );
                 }
                 break;
+            case id_Raw                 :
             case id_Range               :
                 {
                     EnumerationOperationVisitor builder( *this, resolution );
@@ -895,18 +902,30 @@ namespace eg
                 THROW_INVOCATION_EXCEPTION( "No possible derivation for: " << m_invocationID );
             case Instruction::eAmbiguous :
                 {
-                    //if starter then accept explicit concrete action type over deriving
-                    if( !isReturnTypeDimensions() )
+                    //get the operations
+                    std::vector< const Operation* > operations;
+                    m_pRoot->getOperations( operations );
+                    Context returnTypes;
+                    for( const Operation* pOperation : operations )
                     {
-                        //get the operations
-                        std::vector< const Operation* > operations;
-                        m_pRoot->getOperations( operations );
-                        Context returnTypes;
-                        for( const Operation* pOperation : operations )
+                        pOperation->getTargetAbstractTypes( returnTypes );
+                    }
+                    
+                    //temp calculate if dimension return types
+                    std::vector< const interface::Dimension* > dimensions;
+                    {
+                        for( const interface::Element* pReturnType : returnTypes )
                         {
-                            pOperation->getTargetAbstractTypes( returnTypes );
+                            if( const interface::Dimension* pDimension = dynamic_cast< const interface::Dimension* >( pReturnType ) )
+                            {
+                                dimensions.push_back( pDimension );
+                            }
                         }
-                        
+                    }
+                    
+                    //if starter then accept explicit concrete action type over deriving
+                    if( dimensions.empty() )
+                    {
                         //determine if there are target elements that are concrete 
                         //and have a corresponding concrete type
                         ASSERT( !m_typePath.empty() );

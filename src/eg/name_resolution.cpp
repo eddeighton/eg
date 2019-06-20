@@ -212,6 +212,8 @@ namespace eg
                 break;
             case id_Range                 :
                 break;
+            case id_Raw                   :
+                break;
             case HIGHEST_OPERATION_TYPE   :
             default                       :
                 THROW_RTE( "Invalid operation type" );

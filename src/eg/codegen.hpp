@@ -51,6 +51,7 @@ namespace eg
     static const char* EG_INVOKE_MEMBER_FUNCTION_NAME = "invoke";
     static const char* EG_INVOKE_IMPL_TYPE = "__invoke_impl";
     static const char* EG_REFERENCE_ITERATOR_TYPE = "__eg_ReferenceIterator";
+    static const char* EG_REFERENCE_RAW_ITERATOR_TYPE = "__eg_ReferenceRawIterator";
     static const char* EG_MULTI_ITERATOR_TYPE = "__eg_MultiIterator";
     static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
     static const char* EG_RANGE_TYPE = "__eg_Range";

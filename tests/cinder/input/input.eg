@@ -2,47 +2,75 @@
 include( "glm/vec2.hpp" );
 include( "glm/vec3.hpp" );
 
-action Circle[ 128 ]
+dim float colourRate;
+
+abstract CircleGraphic
 {
-    dim cinder::vec2 position;
-    dim cinder::Color color;
-    dim float size;
-    dim float starttime;
-    dim float lifetime;
-    dim float max_size;
-    dim float max_lifetime;
-    
-    max_size( 80.0f );
-    max_lifetime( 1.0f );
-    
-    size( max_size() / 2.0f );
-    starttime( clock::ct() );
-    lifetime( clock::ct() + max_lifetime() + rand() % 3 );
-    
     //draw the circle
-    while( clock::ct() < lifetime() )
+    action Draw
     {
-        cinder::gl::color( color() ); // red
-        cinder::gl::drawSolidCircle( position(), size() );
-        eg::sleep();
+        eg::wait();
+        while( true )
+        {
+            cinder::gl::color( color() ); // red
+            cinder::gl::drawSolidCircle( position(), size() );
+            eg::sleep();
+        }
     }
     
-    /*
     action ColourChanger
     {
         dim float offset;
         while( true )
         {
-            color( cinder::Color( cinder::CM_HSV, fmod( clock::ct() + offset(), 1.0f ), 1, 1 ) );
+            color( cinder::Color( cinder::CM_HSV, fmod( clock::ct() * colourRate() + offset(), 1.0f ), 1, 1 ) );
             eg::sleep();
         }
-    }*/
+    }
 }
 
-for( Circle c : root.Circle.Range() )
+
+action Circle[ 4096 ] : CircleGraphic
 {
-    //neat!
+    dim cinder::vec2 position;
+    dim cinder::Color color;
+    dim float size;
+    dim float lifetime;
+    dim float starttime;
+    
+    //constructor like stuff
+    {
+        starttime( clock::ct() );
+    }
+    
+    //construct like nested action
+    action Init( const cinder::vec2 pos )
+    {
+        position( pos );
+        offset( 1.0f - fmod( clock::ct(), 1.0f ) );
+    }
+    
+    //accessor like action
+    action check
+    {
+        dim int TimeLeft;
+        TimeLeft( clock::ct() < starttime() + lifetime() );
+    }
+    
+    //main action code
+    {
+        Draw.Start();
+        ColourChanger.Start();
+        
+        while( check().TimeLeft() )
+        {
+            eg::sleep();
+        }
+    }
+    
 }
+
+eg::wait(); //wait for initialisation script
 
 bool bContinue = true;
 while( bContinue )
@@ -61,8 +89,7 @@ while( bContinue )
                     lastPos( std::optional< cinder::vec2 >( e.mouseEvent.getPos() ) );
                     if( Circle c = Circle.Start() )
                     {
-                        c.position( lastPos().value() );
-                        c.color( cinder::Color( cinder::CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                        c.Init( lastPos().value() );
                     }
                 }
                 break;
@@ -79,13 +106,13 @@ while( bContinue )
                     const cinder::vec2 mousePos( e.mouseEvent.getPos() );
                     
                     const cinder::vec2 dir = mousePos - lastPos().value();
-                    const float fSteps = glm::length( dir ) * 0.05f;
+                    dim float smoothing;
+                    const float fSteps = glm::length( dir ) * smoothing();
                     for( float i = 0.0f; i < fSteps; ++i )
                     {
                         if( Circle c = Circle.Start() )
                         {
-                            c.position( lastPos().value() + ( dir * ( i / fSteps ) ) );
-                            c.color( cinder::Color( cinder::CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                            c.Init( lastPos().value() );
                         }
                     }
                     lastPos( std::optional< cinder::vec2 >( mousePos ) );
@@ -93,8 +120,7 @@ while( bContinue )
                     //try to start a circle
                     if( Circle c = Circle.Start() )
                     {
-                        c.position( lastPos().value() );
-                        c.color( cinder::Color( cinder::CM_HSV, fmod( clock::ct(), 1.0f ), 1, 1 ) );
+                        c.Init( lastPos().value() );
                     }
                 }
                 else

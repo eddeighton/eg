@@ -188,34 +188,14 @@ void python_sleep_cycle()
         
     os << "\n";
     
-    os << "struct HostFunctions : public eg::HostFunctionAccessor, public eg::HostEvaluator\n";
+    
+    os << "HostFunctions::HostFunctions( const std::string& strDatabaseFile, pybind11::module module_eg )\n";
+    os << "    :   m_pRuntime( std::shared_ptr< eg::EGRuntime >( \n";
+    os << "            eg::constructRuntime( *this, strDatabaseFile.c_str() ) ) ),\n";
+    os << "        m_module_eg( module_eg )\n";
     os << "{\n";
-    os << "private:\n";
-    os << "    struct Stack\n";
-    os << "    {\n";
-    os << "        PyObject *args;\n";
-    os << "        PyObject *kwargs;\n";
-    os << "        pybind11::object m_result;\n";
-    os << "        Stack( PyObject *args, PyObject *kwargs )\n";
-    os << "            :   args( args ), kwargs( kwargs )\n";
-    os << "        {\n";
-    os << "            Py_INCREF( args );\n";
-    os << "        }\n";
-    os << "        ~Stack()\n";
-    os << "        {\n";
-    os << "            Py_DECREF( args );\n";
-    os << "        }\n";
-    os << "        using WeakPtr = std::weak_ptr< Stack >;\n";
-    os << "        using SharedPtr = std::shared_ptr< Stack >;\n";
-    os << "    };\n";
-    os << "public:\n";
-    os << "    HostFunctions( const std::string& strDatabaseFile, pybind11::module module_eg )\n";
-    os << "        :   m_pRuntime( std::shared_ptr< eg::EGRuntime >( \n";
-    os << "                eg::constructRuntime( *this, strDatabaseFile.c_str() ) ) ),\n";
-    os << "            m_module_eg( module_eg )\n";
-    os << "    {\n";
-    os << "    }\n";
-    os << "    //HostFunctionAccessor\n";
+    os << "}\n";
+    os << "//HostFunctionAccessor\n";
     
     
     std::vector< const eg::DataMember* > referenceDimensions;
@@ -234,14 +214,14 @@ void python_sleep_cycle()
         }
     }
     
-    os << "    virtual " << eg::EG_REFERENCE_TYPE << " dereferenceDimension( const " << eg::EG_REFERENCE_TYPE << "& action, const " << eg::EG_TYPE_ID << "& dimensionType )\n";
-    os << "    {\n";
+    os << "" << eg::EG_REFERENCE_TYPE << " HostFunctions::dereferenceDimension( const " << eg::EG_REFERENCE_TYPE << "& action, const " << eg::EG_TYPE_ID << "& dimensionType )\n";
+    os << "{\n";
     if( !referenceDimensions.empty() )
     {
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "    {\n";
+    os << "        switch( dimensionType )\n";
     os << "        {\n";
-    os << "            switch( dimensionType )\n";
-    os << "            {\n";
     
         for( const eg::DataMember* pDataMember : referenceDimensions )
         {
@@ -250,30 +230,30 @@ void python_sleep_cycle()
             {
                 if( pDimension->isEGType() )
                 {
-    os << "                case " << pDimension->getIndex() << ":\n";
-    os << "                    return " << eg::Printer( pDataMember, "action.instance" ) << ".data;\n";
+    os << "            case " << pDimension->getIndex() << ":\n";
+    os << "                return " << eg::Printer( pDataMember, "action.instance" ) << ".data;\n";
                 }
             }
         }
     
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
-    os << "        return " << eg::EG_REFERENCE_TYPE << "{ 0, 0, 0 };\n";
+    os << "    }\n";
+    os << "    return " << eg::EG_REFERENCE_TYPE << "{ 0, 0, 0 };\n";
     }
     else
     {
-    os << "        throw std::runtime_error( \"Unreachable\" );\n";
+    os << "    throw std::runtime_error( \"Unreachable\" );\n";
     }
-    os << "    }\n";
-    os << "    virtual void doRead( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
-    os << "    {\n";
+    os << "}\n";
+    os << "void HostFunctions::doRead( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+    os << "{\n";
     
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "    {\n";
+    os << "        switch( dimensionType )\n";
     os << "        {\n";
-    os << "            switch( dimensionType )\n";
-    os << "            {\n";
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
@@ -282,27 +262,26 @@ void python_sleep_cycle()
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "                case " << pDimension->getIndex() << ":\n";
-    //os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
-    os << "                    pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
-    os << "                    break;\n";
+    os << "            case " << pDimension->getIndex() << ":\n";
+    os << "                pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
+    os << "                break;\n";
             }
         }
     }
     
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
-               
     os << "    }\n";
-    os << "    virtual void doWrite( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+           
+    os << "}\n";
+    os << "void HostFunctions::doWrite( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
+    os << "        switch( dimensionType )\n";
     os << "        {\n";
-    os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
-    os << "            switch( dimensionType )\n";
-    os << "            {\n";
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
@@ -311,33 +290,33 @@ void python_sleep_cycle()
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "                case " << pDimension->getIndex() << ":\n";
-    os << "                     " << eg::Printer( pDataMember, "reference.instance" ) << " = pybind11::cast< "; pDimension->printType( os ); os << " >( args[ 0 ] );\n";
-    os << "                     break;\n";
+    os << "            case " << pDimension->getIndex() << ":\n";
+    os << "                 " << eg::Printer( pDataMember, "reference.instance" ) << " = pybind11::cast< "; pDimension->printType( os ); os << " >( args[ 0 ] );\n";
+    os << "                 break;\n";
             }
         }
     }
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doCall( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " actionType )\n";
+    os << "}\n";
+    os << "void HostFunctions::doCall( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " actionType )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
+    os << "        switch( actionType )\n";
     os << "        {\n";
-    os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
-    os << "            switch( actionType )\n";
-    os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() && pAction->getParent()->getParent() )
         {
-    os << "                case " << pAction->getIndex() << ":\n";
+    os << "            case " << pAction->getIndex() << ":\n";
+    os << "                {\n";
+    os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                    if( ref )\n";
     os << "                    {\n";
-    os << "                        " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
-    os << "                        if( ref )\n";
-    os << "                        {\n";
     
     const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
     os << "                            ref(";
@@ -354,39 +333,39 @@ void python_sleep_cycle()
         os << "pybind11::cast< " << strParamType << " >( args[ " << iIndex++ << " ] )";
     }
     os << ");\n";
-    os << "                            " << pAction->getName() << "_stopper( ref.data.instance );\n";
+    os << "                        " << pAction->getName() << "_stopper( ref.data.instance );\n";
     
-    os << "                        }\n";
-    os << "                        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );\n";
     os << "                    }\n";
-    os << "                    break;\n";
+    os << "                    pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );\n";
+    os << "                }\n";
+    os << "                break;\n";
         }
     }
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doStart( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " actionType )\n";
+    os << "}\n";
+    os << "void HostFunctions::doStart( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " actionType )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
+    os << "        switch( actionType )\n";
     os << "        {\n";
-    os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
-    os << "            switch( actionType )\n";
-    os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() && pAction->getParent()->getParent() )
         {
-    os << "                case " << pAction->getIndex() << ":\n";
+    os << "            case " << pAction->getIndex() << ":\n";
+    os << "                {\n";
+    os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                    if( ref )\n";
     os << "                    {\n";
-    os << "                        " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
-    os << "                        if( ref )\n";
-    os << "                        {\n";
     
     const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
     
-    os << "                            std::function< void() > functor = std::bind( &" << pAction->getAction()->getStaticType() << "::operator(), ref";
+    os << "                        std::function< void() > functor = std::bind( &" << pAction->getAction()->getStaticType() << "::operator(), ref";
     int iIndex = 0;
     for( const std::string& strParamType : parameters )
     {
@@ -394,130 +373,127 @@ void python_sleep_cycle()
     }
     os << ");\n";
     
-    os << "                            getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber\n";
-    os << "                            (\n";
-    os << "                                std::allocator_arg,\n";
-    os << "                                " << eg::EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
-    os << "                                [ functor, ref ]()\n";
+    os << "                        getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber\n";
+    os << "                        (\n";
+    os << "                            std::allocator_arg,\n";
+    os << "                            " << eg::EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
+    os << "                            [ functor, ref ]()\n";
+    os << "                            {\n";
+    os << "                                try\n";
     os << "                                {\n";
-    os << "                                    try\n";
-    os << "                                    {\n";
-    os << "                                        functor();\n";
-    os << "                                    }\n";
-    os << "                                    catch( eg::termination_exception )\n";
-    os << "                                    {\n";
-    os << "                                    }\n";
-    os << "                                    " << pAction->getName() << "_stopper( ref.data.instance );\n";
+    os << "                                    functor();\n";
     os << "                                }\n";
-    os << "                            );\n";
-    os << "                            getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );\n";
-    os << "                        }\n";
-    os << "                        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );\n";
+    os << "                                catch( eg::termination_exception )\n";
+    os << "                                {\n";
+    os << "                                }\n";
+    os << "                                " << pAction->getName() << "_stopper( ref.data.instance );\n";
+    os << "                            }\n";
+    os << "                        );\n";
+    os << "                        getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );\n";
     os << "                    }\n";
-    os << "                    break;\n";
+    os << "                    pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );\n";
+    os << "                }\n";
+    os << "                break;\n";
         }
     }
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doStop( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "}\n";
+    os << "void HostFunctions::doStop( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        switch( reference.type )\n";
     os << "        {\n";
-    os << "            switch( reference.type )\n";
-    os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() )
         {
-    os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    " << pAction->getName() << "_stopper( reference.instance );\n";
-    os << "                    break;\n";
+    os << "            case " << pAction->getIndex() << ":\n";
+    os << "                " << pAction->getName() << "_stopper( reference.instance );\n";
+    os << "                break;\n";
         }
     }
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doPause( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "}\n";
+    os << "void HostFunctions::doPause( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        switch( reference.type )\n";
     os << "        {\n";
-    //os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
-    os << "            switch( reference.type )\n";
-    os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() )
         {
-    os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    " << getFuncName( pAction, "pause" ) << "( reference.instance );\n";
-    os << "                    break;\n";
+    os << "            case " << pAction->getIndex() << ":\n";
+    os << "                " << getFuncName( pAction, "pause" ) << "( reference.instance );\n";
+    os << "                break;\n";
         }
     }
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doResume( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "}\n";
+    os << "void HostFunctions::doResume( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        switch( reference.type )\n";
     os << "        {\n";
-    //os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
-    os << "            switch( reference.type )\n";
-    os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() )
         {
-    os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    " << getFuncName( pAction, "resume" ) << "( reference.instance );\n";
-    os << "                    break;\n";
+    os << "            case " << pAction->getIndex() << ":\n";
+    os << "                " << getFuncName( pAction, "resume" ) << "( reference.instance );\n";
+    os << "                break;\n";
         }
     }
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doDone( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "}\n";
+    os << "void HostFunctions::doDone( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        switch( reference.type )\n";
     os << "        {\n";
-    //os << "            pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );\n";
-    os << "            switch( reference.type )\n";
-    os << "            {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getParent() )
         {
-    os << "                case " << pAction->getIndex() << ":\n";
-    os << "                    pStack->m_result = pybind11::cast( " << getFuncName( pAction, "done" ) << "( reference.instance ) );\n";
-    os << "                    break;\n";
+    os << "            case " << pAction->getIndex() << ":\n";
+    os << "                pStack->m_result = pybind11::cast( " << getFuncName( pAction, "done" ) << "( reference.instance ) );\n";
+    os << "                break;\n";
         }
     }
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doWaitAction( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "}\n";
+    os << "void HostFunctions::doWaitAction( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
-    os << "        {\n";
-    os << "            pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( reference ) );\n";
-    os << "        }\n";
+    os << "        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( reference ) );\n";
     os << "    }\n";
-    os << "    virtual void doWaitDimension( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+    os << "}\n";
+    os << "void HostFunctions::doWaitDimension( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        switch( dimensionType )\n";
     os << "        {\n";
-    os << "            switch( dimensionType )\n";
-    os << "            {\n";
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
@@ -526,31 +502,31 @@ void python_sleep_cycle()
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "                case " << pDimension->getIndex() << ":\n";
-    //os << "                    pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
-    os << "                    break;\n";
+    os << "            case " << pDimension->getIndex() << ":\n";
+    //os << "                pStack->m_result = m_module_eg.attr( \"" << getFuncName( pDataMember, "read" ) << "\" )( reference.instance );\n";
+    os << "                break;\n";
             }
         }
     }
     
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
-    os << "    virtual void doGetAction( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "}\n";
+    os << "void HostFunctions::doGetAction( const " << eg::EG_REFERENCE_TYPE << "& reference )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
-    os << "        {\n";
-    os << "            pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( reference ) );\n";
-    os << "        }\n";
+    os << "        pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( reference ) );\n";
     os << "    }\n";
-    os << "    virtual void doGetDimension( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+    os << "}\n";
+    os << "void HostFunctions::doGetDimension( const " << eg::EG_REFERENCE_TYPE << "& reference, " << eg::EG_TYPE_ID << " dimensionType )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
+    os << "        switch( dimensionType )\n";
     os << "        {\n";
-    os << "            switch( dimensionType )\n";
-    os << "            {\n";
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
@@ -559,65 +535,60 @@ void python_sleep_cycle()
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "                case " << pDimension->getIndex() << ":\n";
-    os << "                    pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
-    os << "                    break;\n";
+    os << "            case " << pDimension->getIndex() << ":\n";
+    os << "                pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
+    os << "                break;\n";
             }
         }
     }
     
-    os << "                default:\n";
-    os << "                    break;\n";
-    os << "            }\n";
+    os << "            default:\n";
+    os << "                break;\n";
     os << "        }\n";
     os << "    }\n";
+    os << "}\n";
     
-    os << "    virtual void doRange( eg::EGRangeDescriptionPtr pRange )\n";
+    os << "void HostFunctions::doRange( eg::EGRangeDescriptionPtr pRange )\n";
+    os << "{\n";
+    os << "    if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
     os << "    {\n";
-    os << "        if( Stack::SharedPtr pStack = m_pStack.lock() )\n";
-    os << "        {\n";
-    os << "            pStack->m_result = pybind11::make_iterator( eg::PythonIterator( *g_pEGRefType, pRange, false ), eg::PythonIterator( *g_pEGRefType, pRange, true ) );\n";
+    os << "        pStack->m_result = pybind11::make_iterator( eg::PythonIterator( *g_pEGRefType, pRange, false ), eg::PythonIterator( *g_pEGRefType, pRange, true ) );\n";
     
-    os << "        }\n";
     os << "    }\n";
+    os << "}\n";
     
-    os << "    //HostEvaluator\n";
-    os << "    virtual void getIdentities( std::vector< const char* >& identities )\n";
+    
+    os << "void HostFunctions::getIdentities( std::vector< const char* >& identities )\n";
+    os << "{\n";
+    os << "    m_pRuntime->getIdentities( identities );\n";
+    os << "}\n";
+    os << "" << eg::EG_TYPE_ID << " HostFunctions::getTypeID( const char* pszIdentity )\n";
+    os << "{\n";
+    os << "    return m_pRuntime->getTypeID( pszIdentity );\n";
+    os << "}\n";
+    os << "PyObject* HostFunctions::invoke( const " << eg::EG_REFERENCE_TYPE << "& reference, const std::vector< " << eg::EG_TYPE_ID << " >& typePath, PyObject *args, PyObject *kwargs )\n";
+    os << "{\n";
+    os << "    if( reference.type != 0 )\n";
     os << "    {\n";
-    os << "        m_pRuntime->getIdentities( identities );\n";
-    os << "    }\n";
-    os << "    virtual " << eg::EG_TYPE_ID << " getTypeID( const char* pszIdentity )\n";
-    os << "    {\n";
-    os << "        return m_pRuntime->getTypeID( pszIdentity );\n";
-    os << "    }\n";
-    os << "    virtual PyObject* invoke( const " << eg::EG_REFERENCE_TYPE << "& reference, const std::vector< " << eg::EG_TYPE_ID << " >& typePath, PyObject *args, PyObject *kwargs )\n";
-    os << "    {\n";
-    os << "        if( ( getState( reference.type, reference.instance ) != eg::action_stopped  ) || \n";
-    os << "            ( getStopCycle( reference.type, reference.instance ) >= clock::cycle() ) )\n";
+    os << "        Stack::SharedPtr pStack = std::make_shared< Stack >( args, kwargs );\n";
+    os << "        m_pStack = pStack;\n";
+    os << "        pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );\n";
+    os << "        m_pRuntime->invoke( reference, typePath, pyArgs.size() != 0 );\n";
+    os << "        if( pStack->m_result )\n";
     os << "        {\n";
-    os << "            Stack::SharedPtr pStack = std::make_shared< Stack >( args, kwargs );\n";
-    os << "            m_pStack = pStack;\n";
-    os << "            pybind11::args pyArgs = pybind11::reinterpret_borrow< pybind11::args >( args );\n";
-    os << "            m_pRuntime->invoke( reference, typePath, pyArgs.size() != 0 );\n";
-    os << "            if( pStack->m_result )\n";
-    os << "            {\n";
-    os << "                pybind11::handle h = pStack->m_result;\n";
-    os << "                h.inc_ref();\n";
-    os << "                return h.ptr();\n";
-    os << "            }\n";
+    os << "            pybind11::handle h = pStack->m_result;\n";
+    os << "            h.inc_ref();\n";
+    os << "            return h.ptr();\n";
     os << "        }\n";
-    os << "        else\n";
-    os << "        {\n";
-    os << "            throw std::runtime_error( \"Invalid reference used in invocation\" );\n";
-    os << "        }\n";
-    os << "        Py_INCREF( Py_None );\n";
-    os << "        return Py_None;\n";
     os << "    }\n";
-    os << "private:\n";
-    os << "    pybind11::module m_module_eg;\n";
-    os << "    Stack::WeakPtr m_pStack;\n";
-    os << "    std::shared_ptr< eg::EGRuntime > m_pRuntime;\n";
-    os << "};\n";
+    os << "    else\n";
+    os << "    {\n";
+    os << "        throw std::runtime_error( \"Invalid reference used in invocation\" );\n";
+    os << "    }\n";
+    os << "    Py_INCREF( Py_None );\n";
+    os << "    return Py_None;\n";
+    os << "}\n";
+    
     os << "\n";
     
 }

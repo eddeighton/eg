@@ -558,6 +558,31 @@ namespace eg
                     }
                 }
                 break;
+            case id_Raw      : 
+                if( !returnTypes.empty() )
+                {
+                    if( pSolution->getRoot()->getMaxRanges() == 1 )
+                    {
+                        if( std::optional< clang::QualType > resultOpt = 
+                                buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                        {
+                            resultType = clang::getIteratorRangeType( g_pASTContext, g_pSema, 
+                                g_pASTContext->getTranslationUnitDecl(), 
+                                loc, resultOpt.value(), eg::EG_REFERENCE_RAW_ITERATOR_TYPE );
+                        }
+                    }
+                    else
+                    {
+                        if( std::optional< clang::QualType > resultOpt = 
+                                buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                        {
+                            resultType = clang::getMultiIteratorRangeType( g_pASTContext, g_pSema, 
+                                g_pASTContext->getTranslationUnitDecl(), 
+                                loc, resultOpt.value(), pSolution->getRoot()->getMaxRanges(), eg::EG_REFERENCE_RAW_ITERATOR_TYPE );
+                        }
+                    }
+                }
+                break;
             default:
                 break;
         }

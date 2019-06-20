@@ -68,7 +68,8 @@ namespace eg
         id_Get                      ,                                       //id_Get          (-2147483641)
         id_Done                     ,                                       //id_Done         (-2147483640)
         id_Range                    ,                                       //id_Range        (-2147483639)
-        HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483638)
+        id_Raw                      ,                                       //id_Raw          (-2147483638)
+        HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483637)
     };
 
     static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();
@@ -88,6 +89,7 @@ namespace eg
         switch( id )
         {
             case id_Range:
+            case id_Raw:
                 return true;
             default:
                 return false;

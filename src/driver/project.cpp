@@ -112,9 +112,17 @@ void Environment::startCompilationCommand( std::ostream& os ) const
     static boost::filesystem::path CLANG;// = boost::process::search_path( "clang.exe" );
     if( CLANG.empty() )
     {
-        CLANG = boost::filesystem::path( get( EG_INSTALLATION ) ) / "third_party/install/llvm/bin/clang.exe";
+        boost::process::environment::const_iterator iFind = m_environment.find( "EG_CLANG" );
+        if( iFind != m_environment.end() )
+        {
+            std::vector< std::string > strs = iFind->to_vector();
+            std::ostringstream os;
+            std::copy( strs.begin(), strs.end(), std::ostream_iterator< std::string >( os ) );
+            CLANG = os.str();
+        }
+        if( CLANG.empty() )
+            CLANG = boost::filesystem::path( get( EG_INSTALLATION ) ) / "third_party/install/llvm/bin/clang.exe";
     }
-    
     os << printPath( CLANG ) << " ";
 }
 

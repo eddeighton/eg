@@ -42,6 +42,7 @@ struct RangeDescription
         Instance begin, end;
     };
     std::vector< SubRange > ranges;
+    bool raw;
 };
 
 class RuntimeEvaluator
@@ -854,11 +855,18 @@ private:
 class RangeOperation : public Operation
 {
 public:
+    enum RangeType
+    {
+        eRaw,
+        eRange,
+        TOTAL_RANGE_TYPES
+    };
     RangeOperation(){}
-    RangeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    RangeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget, RangeType rangeType )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
-            m_pTarget( pTarget )
+            m_pTarget( pTarget ),
+            m_rangeType( rangeType )
     {
     }
     virtual ASTElementType getType() const { return eRangeOperation; }
@@ -871,10 +879,12 @@ protected:
 public:
     const InstanceVariable* getInstance() const { return m_pInstance; }
     const concrete::Action* getTarget() const { return m_pTarget; }
+    const RangeType getRangeType() const { return m_rangeType; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
+    RangeType m_rangeType;
 
 };
     

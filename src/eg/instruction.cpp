@@ -686,6 +686,17 @@ namespace eg
             const concrete::Action* pTarget = pRangeOp->getTarget();
             std::size_t szDomainMultiplier = 1U;
             
+            const char* pszIteratorType = nullptr;
+            {
+                switch( pRangeOp->getRangeType() )
+                {
+                    case RangeOperation::eRaw:      pszIteratorType = EG_REFERENCE_RAW_ITERATOR_TYPE; break;
+                    case RangeOperation::eRange:    pszIteratorType = EG_REFERENCE_ITERATOR_TYPE; break;
+                    default: THROW_RTE( "Unknown range type" );
+                }
+                ASSERT( pszIteratorType );
+            }
+            
             const concrete::Action* pIter = pTarget;
             for( ; pIter != pEnumerationAction; 
                 pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
@@ -705,10 +716,14 @@ namespace eg
                 const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
                 ASSERT( pReturnType );
                 
-                os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
+                std::ostringstream osIterType;
+                {
+                    osIterType << pszIteratorType << "< " << pReturnType->getStaticType() << " >";
+                }
+                os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
                 os << generator.getIndent() << "++begin;\n";
-                os << generator.getIndent() << pReturnType->getStaticType() << "::Iterator end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
-                os << generator.getIndent() << "return " << pReturnType->getStaticType() << "::EGRangeType( begin, end );\n";
+                os << generator.getIndent() << osIterType.str() << " end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
+                os << generator.getIndent() << "return " << EG_RANGE_TYPE << "< " << osIterType.str() << " >( begin, end );\n";
             }
             else
             {
@@ -728,7 +743,7 @@ namespace eg
                 }
                 std::ostringstream osIterType;
                 {
-                    osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osType.str() << " >";
+                    osIterType << pszIteratorType << "< " << osType.str() << " >";
                 }
                 os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
                 os << generator.getIndent() << "++begin;\n";
@@ -738,6 +753,22 @@ namespace eg
         }
         else
         {
+            const char* pszIteratorType = nullptr;
+            ASSERT( !operations.empty() );
+            if( !operations.empty() )
+            {
+                const RangeOperation* pFirstRangeOp = dynamic_cast< const RangeOperation* >( 
+                    dynamic_cast< const RangeOperation* >( operations.front() ) );
+                ASSERT( pFirstRangeOp );
+                switch( pFirstRangeOp->getRangeType() )
+                {
+                    case RangeOperation::eRaw:      pszIteratorType = EG_REFERENCE_RAW_ITERATOR_TYPE; break;
+                    case RangeOperation::eRange:    pszIteratorType = EG_REFERENCE_ITERATOR_TYPE; break;
+                    default: THROW_RTE( "Unknown range type" );
+                }
+                ASSERT( pszIteratorType );
+            }
+            
             std::ostringstream osReturnType;
             std::ostringstream osIterType;
             if( m_returnTypes.size() == 1U )
@@ -745,7 +776,7 @@ namespace eg
                 const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
                 ASSERT( pReturnType );
                 osReturnType << pReturnType->getStaticType();
-                osIterType << "typename " << osReturnType.str() << "::Iterator";
+                osIterType << pszIteratorType << "< " << osReturnType.str() << " >";
             }
             else
             {
@@ -760,8 +791,7 @@ namespace eg
                     osReturnType << pReturnType->getStaticType();
                 }
                 osReturnType << " >";
-                
-                osIterType << EG_REFERENCE_ITERATOR_TYPE << "< " << osReturnType.str() << " >";
+                osIterType << pszIteratorType << "< " << osReturnType.str() << " >";
             }
             
             os << generator.getIndent() << "using IterType = " << osIterType.str() << ";\n";
@@ -856,6 +886,21 @@ namespace eg
         const concrete::Action* pEnumerationAction = m_pContext->getConcreteType();
         
         RangeDescription rangeDescription;
+        rangeDescription.raw = true;
+        
+        ASSERT( !operations.empty() );
+        if( !operations.empty() )
+        {
+            const RangeOperation* pFirstRangeOp = dynamic_cast< const RangeOperation* >( 
+                dynamic_cast< const RangeOperation* >( operations.front() ) );
+            ASSERT( pFirstRangeOp );
+            switch( pFirstRangeOp->getRangeType() )
+            {
+                case RangeOperation::eRaw:      rangeDescription.raw = true;  break;
+                case RangeOperation::eRange:    rangeDescription.raw = false; break;
+                default: THROW_RTE( "Unknown range type" );
+            }
+        }
         
         for( const Operation* pOperation : operations )
         {
@@ -1484,6 +1529,7 @@ namespace eg
         serialiser.load( loader, m_pInstance );
         m_pInterface = loader.loadObjectRef< interface::Action >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
+        loader.load( m_rangeType );
     }
     void RangeOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
     {
@@ -1491,6 +1537,7 @@ namespace eg
         serialiser.store( storer, m_pInstance );
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
+        storer.store( m_rangeType );
     }
     void RangeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {

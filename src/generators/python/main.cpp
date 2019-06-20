@@ -70,7 +70,62 @@ int main( int argc, const char* argv[] )
     }
     
     os << "extern " << eg::getInterfaceType( eg::input::Root::RootTypeName ) << "< void > get_root();\n";
+
+const char* pszHostFunctions = R"(
+
+
+struct HostFunctions : public eg::HostFunctionAccessor
+{
+private:
+    struct Stack
+    {
+        PyObject *args;
+        PyObject *kwargs;
+        pybind11::object m_result;
+        Stack( PyObject *args, PyObject *kwargs )
+            :   args( args ), kwargs( kwargs )
+        {
+            Py_INCREF( args );
+        }
+        ~Stack()
+        {
+            Py_DECREF( args );
+        }
+        using WeakPtr = std::weak_ptr< Stack >;
+        using SharedPtr = std::shared_ptr< Stack >;
+    };
+public:
+    HostFunctions( const std::string& strDatabaseFile, pybind11::module module_eg );
+    //HostFunctionAccessor
+    virtual eg::reference dereferenceDimension( const eg::reference& action, const eg::TypeID& dimensionType );
+    virtual void doRead( const eg::reference& reference, eg::TypeID dimensionType );
+    virtual void doWrite( const eg::reference& reference, eg::TypeID dimensionType );
+    virtual void doCall( const eg::reference& reference, eg::TypeID actionType );
+    virtual void doStart( const eg::reference& reference, eg::TypeID actionType );
+    virtual void doStop( const eg::reference& reference );
+    virtual void doPause( const eg::reference& reference );
+    virtual void doResume( const eg::reference& reference );
+    virtual void doDone( const eg::reference& reference );
+    virtual void doWaitAction( const eg::reference& reference );
+    virtual void doWaitDimension( const eg::reference& reference, eg::TypeID dimensionType );
+    virtual void doGetAction( const eg::reference& reference );
+    virtual void doGetDimension( const eg::reference& reference, eg::TypeID dimensionType );
+    virtual void doRange( eg::EGRangeDescriptionPtr pRange );
     
+    void getIdentities( std::vector< const char* >& identities );
+    eg::TypeID getTypeID( const char* pszIdentity );
+    PyObject* invoke( const eg::reference& reference, const std::vector< eg::TypeID >& typePath, PyObject *args, PyObject *kwargs );
+private:
+    pybind11::module m_module_eg;
+    Stack::WeakPtr m_pStack;
+    std::shared_ptr< eg::EGRuntime > m_pRuntime;
+};
+
+
+)";
+
+    os << pszHostFunctions;
+
     const char pszPythonRef[] = R"(
     
 //requires the dynamic interface
@@ -80,18 +135,6 @@ extern eg::TimeStamp getStopCycle( eg::TypeID typeID, eg::Instance instance );
 
 namespace eg
 {
-    
-class HostEvaluator
-{
-public:
-    virtual ~HostEvaluator()
-    {
-    }
-    
-    virtual void getIdentities( std::vector< const char* >& identities ) = 0;
-    virtual TypeID getTypeID( const char* pszIdentity ) = 0;
-    virtual PyObject* invoke( const reference& reference, const std::vector< TypeID >& typePath, PyObject *args, PyObject *kwargs ) = 0;
-};
     
 class PythonEGReferenceType;
 
@@ -130,13 +173,13 @@ class PythonEGReferenceType
 public:
     static PythonEGReference* getReference( PyObject* pPyObject );
 
-    PythonEGReferenceType( HostEvaluator& evaluator );
+    PythonEGReferenceType( HostFunctions& evaluator );
     
     PyObject* create( reference ref );
     
-    HostEvaluator& getEvaluator() const { return m_evaluator; }
+    HostFunctions& getEvaluator() const { return m_evaluator; }
 private:
-    HostEvaluator& m_evaluator;
+    HostFunctions& m_evaluator;
     PyTypeObject* m_pTypeObject;
     std::vector< PyGetSetDef > m_pythonAttributesData;
     std::vector< const char* > m_identities;
@@ -215,7 +258,7 @@ static PyMethodDef type_methods[] =
     {NULL}  /* Sentinel */
 };
 
-PythonEGReferenceType::PythonEGReferenceType( HostEvaluator& evaluator )
+PythonEGReferenceType::PythonEGReferenceType( HostFunctions& evaluator )
     :   m_evaluator( evaluator )
 {        
     m_evaluator.getIdentities( m_identities );
@@ -383,9 +426,16 @@ public:
                 break;
             
             //now actually see if the current position is valid
-            if( ( ::getState( m_pRange->getType( m_subRange ), m_position ) != action_stopped ) || 
-                ( ::getStopCycle( m_pRange->getType( m_subRange ), m_position ) >= clock::cycle() ) )
+            if( !m_pRange->raw() )
+            {
+                if( ( ::getState( m_pRange->getType( m_subRange ), m_position ) != action_stopped ) || 
+                    ( ::getStopCycle( m_pRange->getType( m_subRange ), m_position ) == clock::cycle() ) )
+                    break;
+            }
+            else
+            {
                 break;
+            }
             
             //skip to next and continue scanning
             ++m_position;
