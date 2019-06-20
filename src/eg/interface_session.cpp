@@ -199,6 +199,10 @@ namespace eg
                 pChildInstance->m_pReference->m_pAction         = pChildInstance;
                 pChildInstance->m_children.push_back( pChildInstance->m_pReference );
                 
+                pChildInstance->m_pRingIndex                    = construct< concrete::Dimension_Generated >();
+                pChildInstance->m_pRingIndex->m_type            = concrete::Dimension_Generated::eRingIndex;
+                pChildInstance->m_pRingIndex->m_pAction         = pChildInstance;
+                pChildInstance->m_children.push_back( pChildInstance->m_pRingIndex );
             }
             else
             {

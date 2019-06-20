@@ -166,7 +166,7 @@ namespace eg
                             case concrete::Dimension_Generated::eActionAllocatorData    :
                                 {
                                     pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_alloc_data";
+                                    pDimensionInstance->name = pBuffer->variable + "_ring";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionAllocatorHead    :
@@ -179,7 +179,13 @@ namespace eg
                                     const concrete::Action* pAllocatedAction = pDimGen->getAction();
                                     
                                     pDimensionInstance->name = pBuffer->variable + 
-                                        pAllocatedAction->getAbstractElement()->getIdentifier() + "_alloc_iter";
+                                        pAllocatedAction->getAbstractElement()->getIdentifier() + "_ring_iter";
+                                }
+                                break;
+                            case concrete::Dimension_Generated::eRingIndex:
+                                {
+                                    pDimensionInstance = construct< DataMember >();
+                                    pDimensionInstance->name = pBuffer->variable + "_ring_index";
                                 }
                                 break;
                             default:

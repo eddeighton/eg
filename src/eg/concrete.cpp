@@ -246,6 +246,9 @@ namespace concrete
             case eActionAllocatorHead:
                 os << "std::atomic< std::uint64_t >";
                 break;
+            case eRingIndex:
+                os << EG_INSTANCE;
+                break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -273,6 +276,8 @@ namespace concrete
                 return 4;
             case eActionAllocatorHead:
                 return 8;
+            case eRingIndex:
+                return 4;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -340,6 +345,7 @@ namespace concrete
                 break;
             case eActionAllocatorData   : os << strIndent; printer.printVariableAccess( os, strIndex ); os << " = i;\n";   break;
             case eActionAllocatorHead   : os << strIndent; printer.printVariableAccess( os, strIndex ); os << " = 0UL;\n"; break;
+            case eRingIndex             : os << strIndent; printer.printVariableAccess( os, strIndex ); os << " = i;\n";   break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -380,13 +386,14 @@ namespace concrete
             case eActionReference       : break;
             case eActionAllocatorData   : break;
             case eActionAllocatorHead   : break;
+            case eRingIndex             : break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
     }
     void Dimension_Generated::printStart( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
     {
-        static const std::string strIndent = "                 ";
+        static const std::string strIndent = "             ";
         
         switch( m_type )
         {
@@ -421,6 +428,7 @@ namespace concrete
             case eActionReference       : break;
             case eActionAllocatorData   : break;
             case eActionAllocatorHead   : break;
+            case eRingIndex             : break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -461,6 +469,7 @@ namespace concrete
             case eActionReference       : break;
             case eActionAllocatorData   : break;
             case eActionAllocatorHead   : break;
+            case eRingIndex             : break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -479,6 +488,7 @@ namespace concrete
         m_pMappedObject     = loader.loadObjectRef< Dimension_Generated >();
         m_pReference        = loader.loadObjectRef< Dimension_Generated >();
         m_pAllocatorData    = loader.loadObjectRef< Dimension_Generated >();
+        m_pRingIndex        = loader.loadObjectRef< Dimension_Generated >();
         loader.loadObjectMap( m_allocators );
         m_pDependencyProvider    = loader.loadObjectRef< Action >();
     }
@@ -495,6 +505,7 @@ namespace concrete
         storer.storeObjectRef( m_pMappedObject  );
         storer.storeObjectRef( m_pReference     );
         storer.storeObjectRef( m_pAllocatorData );
+        storer.storeObjectRef( m_pRingIndex     );
         storer.storeObjectMap( m_allocators );
         storer.storeObjectRef( m_pDependencyProvider );
     }

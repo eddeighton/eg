@@ -64,8 +64,8 @@ namespace eg
     static const char* EG_EVENT_LOG_EVENT_TYPE = "eg::_event";
     static const char* EG_EVENT_ITERATOR = "eg::event_iterator";
     static const char* EG_DEPENDENCY_PROVIDER_TYPE = "eg::DependencyProvider";
-    //static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::pooled_fixedsize_stack( 1024 * 8 )";//bytes
-    static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE )";//bytes
+    //static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::pooled_fixedsize_stack( EG_FIBER_STACK_SIZE )";
+    static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE )";
     
     class Identifiers;
     

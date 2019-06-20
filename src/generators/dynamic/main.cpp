@@ -30,7 +30,11 @@
 
 #include <iostream>
     
-extern void generate_dynamic_interface( std::ostream& os, eg::ReadSession& session );
+namespace eg
+{
+extern void generate_dynamic_interface( std::ostream& os, ReadSession& session );
+extern void generateActionInstanceFunctions( std::ostream& os, const ReadSession& program );
+}
 
 int main( int argc, const char* argv[] )
 {
@@ -52,6 +56,7 @@ int main( int argc, const char* argv[] )
     os << "#include \"structures.hpp\"\n";
     
     generate_dynamic_interface( os, session );
+    generateActionInstanceFunctions( os, session );
     
     return 0;
 }

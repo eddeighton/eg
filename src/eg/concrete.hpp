@@ -231,7 +231,8 @@ namespace concrete
             eActionObject,
             eActionReference,
             eActionAllocatorData,
-            eActionAllocatorHead
+            eActionAllocatorHead,
+            eRingIndex
         };
         
     protected:
@@ -298,6 +299,7 @@ namespace concrete
         const Dimension_Generated* getMappedObject () const { return m_pMappedObject  ; }
         const Dimension_Generated* getReference    () const { return m_pReference     ; }
         const Dimension_Generated* getAllocatorData() const { return m_pAllocatorData ; }
+        const Dimension_Generated* getRingIndex    () const { return m_pRingIndex     ; }
     
         const Dimension_Generated* getIterator( const Action* pAction ) const 
         {
@@ -326,6 +328,7 @@ namespace concrete
         Dimension_Generated* m_pMappedObject  = nullptr;
         Dimension_Generated* m_pReference     = nullptr;
         Dimension_Generated* m_pAllocatorData = nullptr;
+        Dimension_Generated* m_pRingIndex     = nullptr;
         
         IteratorMap m_allocators;
         Action* m_pDependencyProvider = nullptr;
