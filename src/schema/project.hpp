@@ -45,7 +45,11 @@ public:
     static const std::string CURRENT_PROJECT;
     static const std::string WINDOWS_10_SDK;
     
+    void commonCtor();
+    
+    Environment();
     Environment( const boost::filesystem::path& projectDir );
+    Environment( const boost::process::environment& env, const boost::filesystem::path& projectDir );
     
     std::string printPath( const boost::filesystem::path& thePath ) const;
     void startCompilationCommand( std::ostream& os ) const;
@@ -54,22 +58,23 @@ public:
     
     std::string expand( const std::string& strPath ) const;
     
-    const boost::filesystem::path& getProjectDir() const { return m_projectDir; }
-    
     const std::string get( const std::string& strKey ) const;
     
     const egxml::Host&  getHost( const std::string& strHost ) const;
     const egxml::Package& getPackage( const std::string& strPackage ) const;
     
+    const boost::process::environment& getEnvironment() const { return m_environment; }
 private:
-    boost::filesystem::path m_projectDir;
     boost::process::environment m_environment;
 };
 
 class Project
 {
 public:
-    Project( const Environment& environment, const egxml::Project& project, const std::string& strBuildCommand );
+    Project( const boost::filesystem::path& projectDir, 
+        const Environment& environment, const egxml::Project& project, const std::string& strBuildCommand );
+    
+    const boost::filesystem::path& getProjectDir() const { return m_projectDir; }
     
     const egxml::Project& getProject() const { return m_project; }
     
@@ -114,7 +119,8 @@ public:
     std::vector< std::string > getPackages() const;
     boost::filesystem::path getProgramName() const;
 private:
-    const Environment& m_environment;
+    const boost::filesystem::path m_projectDir;
+    Environment m_environment;
     const egxml::Project& m_project;
     const std::string& m_strBuildCommand;
     const egxml::Host& m_host;

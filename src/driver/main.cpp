@@ -261,8 +261,8 @@ int main( int argc, const char* argv[] )
         }
         catch( const xml_schema::parser_exception& e )
         {
-            std::cout << "XML error: " << e.line () << ":" << e.column ()
-             << ": " << e.text () << std::endl;
+            std::cout << e.what() << ": " << e.line () << ":" << e.column ()
+             << ": " << e.text() << std::endl;
             return 1;
         }
         catch( std::exception& e )

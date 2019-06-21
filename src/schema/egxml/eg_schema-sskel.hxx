@@ -689,6 +689,12 @@ namespace egxml
     Host () = 0;
 
     virtual bool
+    Description_present ();
+
+    virtual ::std::string
+    Description () = 0;
+
+    virtual bool
     Package_next ();
 
     virtual ::std::string
@@ -720,6 +726,7 @@ namespace egxml
     void
     serializers (::xml_schema::string_sskel& /* Name */,
                  ::xml_schema::string_sskel& /* Host */,
+                 ::xml_schema::string_sskel& /* Description */,
                  ::xml_schema::string_sskel& /* Package */,
                  ::egxml::Build_sskel& /* Build */,
                  ::egxml::Run_sskel& /* Run */,
@@ -732,6 +739,9 @@ namespace egxml
 
     void
     Host_serializer (::xml_schema::string_sskel&);
+
+    void
+    Description_serializer (::xml_schema::string_sskel&);
 
     void
     Package_serializer (::xml_schema::string_sskel&);
@@ -765,6 +775,7 @@ namespace egxml
     protected:
     ::xml_schema::string_sskel* Name_serializer_;
     ::xml_schema::string_sskel* Host_serializer_;
+    ::xml_schema::string_sskel* Description_serializer_;
     ::xml_schema::string_sskel* Package_serializer_;
     ::egxml::Build_sskel* Build_serializer_;
     ::egxml::Run_sskel* Run_serializer_;

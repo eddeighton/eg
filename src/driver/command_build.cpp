@@ -123,7 +123,7 @@ private:
 
 
 void build_parser_session( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, 
-    bool bBenchCommands, bool bLogCommands )
+    bool bBenchCommands, bool bLogCommands, bool bNoPCH )
 {
     //create clang file manager
     clang::FileSystemOptions fileSystemOptions = { boost::filesystem::current_path().string() };
@@ -155,7 +155,6 @@ void build_parser_session( const Environment& environment, const Project& projec
     
     bool bUsePCH = false;
     
-    if( !bUsePCH )
     {
         //generate the includes header
         {
@@ -169,7 +168,7 @@ void build_parser_session( const Environment& environment, const Project& projec
             boost::filesystem::updateFileIfChanged( project.getIncludeHeader(), osInclude.str() );
         }
         
-        if( boost::filesystem::exists( project.getIncludePCH() ) )
+        if( !bNoPCH && boost::filesystem::exists( project.getIncludePCH() ) )
         {
             LogEntry log( std::cout, "Testing include.pch", bBenchCommands );
             //attempt to reuse pch automagically by comparing preprocessed file
@@ -757,6 +756,7 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
     std::string strDirectory;
     bool bBenchCommands = false;
     bool bLogCommands = false;
+    bool bNoPCH = false;
     
     namespace po = boost::program_options;
     po::options_description commandOptions(" Create Project Command");
@@ -764,7 +764,8 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
             ("bench",   po::bool_switch( &bBenchCommands ), "Benchmark compilation steps" )
-            ("trace",     po::bool_switch( &bLogCommands ), "Trace compilation commands" )
+            ("trace",   po::bool_switch( &bLogCommands ), "Trace compilation commands" )
+            ("nopch",   po::bool_switch( &bNoPCH ), "Force regeneration of precompiled header file" )
         ;
     }
     
@@ -811,13 +812,13 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         
         XMLManager::XMLDocPtr pDocument = XMLManager::load( projectFile );
         
-        Environment environment( projectDirectory );
+        Environment environment;
         
-        Project project( environment, pDocument->Project(), strBuildCommand );
+        Project project( projectDirectory, environment, pDocument->Project(), strBuildCommand );
         
         FileWriteTracker fileTracker( project.getIntermediateFolder() ); 
         
-        build_parser_session( environment, project, fileTracker, bBenchCommands, bLogCommands );
+        build_parser_session( environment, project, fileTracker, bBenchCommands, bLogCommands, bNoPCH );
         
         build_operations( environment, project, fileTracker, bBenchCommands, bLogCommands );
         

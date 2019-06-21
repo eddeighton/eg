@@ -74,8 +74,6 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     createNewFileStream( mainPythonScript );
             }
         }
-            
-        Environment environment( projectFile );
         
         egxml::EG newEG;
         {

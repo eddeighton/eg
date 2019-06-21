@@ -1,25 +1,77 @@
 
 
+include( "schema/wizardxml/wizard_schema.hxx" );
+include( "schema/wizardxml/wizard_schema-pimpl.hxx" );
+include( "schema/wizardxml/wizard_schema-simpl.hxx" );
+
 include( "schema/egxml/eg_schema.hxx" );
 include( "schema/egxml/eg_schema-pimpl.hxx" );
 include( "schema/egxml/eg_schema-simpl.hxx" );
-include( "schema/project.hpp" );
-include( "schema/wizardxml/wizard_schema.hxx" );
 
+include( "schema/project.hpp" );
+
+
+ShowWindow( GetConsoleWindow(), SW_HIDE );
+
+include( "examples.hpp" );
+
+dim std::vector< Example > examples;
 
 //attempt to load the wizard config 
-if( false )
+action LoadWizardXML
 {
-    egxml::EG_paggr eg_p;
-    xml_schema::document_pimpl doc_p( eg_p.root_parser(), eg_p.root_name() );
-     
-    eg_p.pre();
-    doc_p.parse( "" );
+    boost::system::error_code errorCode;
+    boost::filesystem::path expectedWizardConfig = 
+        boost::dll::program_location( errorCode ).parent_path() / "../../wizard.xml";
+        
+    //attempt to load the wizard config file from the eg installation
+    if( !boost::filesystem::exists( expectedWizardConfig ) )
+    {
+        std::cout << "Could not locate wizard.xml at " << expectedWizardConfig.generic_string() << std::endl;
+        root.Stop();
+        eg::sleep();
+    }
+        
+    wizardxml::Wizard_paggr wizard_p;
+    xml_schema::document_pimpl wizardDocument( wizard_p.root_parser(), wizard_p.root_name() );
+    wizard_p.pre();
+    wizardDocument.parse( expectedWizardConfig.string() );
 
-    std::unique_ptr< egxml::EG > pDoc( eg_p.post() );
+    std::unique_ptr< wizardxml::Wizard > pDoc( wizard_p.post() );
+    
+    Environment environment;
+    
+    for( const std::string& strProject : pDoc->Project() )
+    {
+        boost::filesystem::path projectDirectory( environment.expand( strProject ) );
+        
+        if( !boost::filesystem::exists( projectDirectory ) )
+        {
+            std::cout << "Could not locate project at " << projectDirectory.generic_string() << std::endl;
+            root.Stop();
+            eg::sleep();
+        }
+        std::cout << "Found project: " << projectDirectory.generic_string() << std::endl;
+        const boost::filesystem::path projectFile = projectDirectory / Environment::EG_FILE_EXTENSION;
+        if( !boost::filesystem::exists( projectFile ) )
+        {
+            std::cout << "Could not locate project at " << projectFile.generic_string() << std::endl;
+            root.Stop();
+            eg::sleep();
+        }
+        
+        egxml::EG_paggr eg_p;
+        xml_schema::document_pimpl egDocument( eg_p.root_parser(), eg_p.root_name() );
+        eg_p.pre();
+        egDocument.parse( projectFile.string() );
+        std::shared_ptr< egxml::EG > pXML( eg_p.post() );
+         
+        examples.Get().push_back( Example( projectDirectory, pXML ) );
+    }
 }
 
-
+//load at startup
+LoadWizardXML();
 
 bool bContinue = true;
 bool bShowBrowser = true;
@@ -61,17 +113,21 @@ while( bContinue )
         
         if( ImGui::TreeNode( "Projects" ) )
         {
-            for( int i = 0; i < 20; ++i )
+            int iUnique = 0;
+            for( std::vector< Example >::iterator 
+                i = examples.Get().begin(),
+                iEnd = examples.Get().end(); i!=iEnd; ++i, ++iUnique )
             {
                 std::ostringstream os;
-                os << "Project " << i ;
+                os << i->project.getProject().Name();
                 
-                if( ImGui::TreeNode( (void*)(intptr_t)i, "%s", os.str().c_str() ) )
+                if( ImGui::TreeNode( (void*)(intptr_t)iUnique, "%s", os.str().c_str() ) )
                 {
                     ImGui::Indent();
-                    ImGui::Text( "Description: "  );
+                    ImGui::Text( "Description: " );
                     ImGui::SameLine();
-                    ImGui::Text( "This is some program that does a bunch of stuff..." );
+                    std::string str = i->project.getProject().Description();
+                    ImGui::Text( "%s", str.c_str() );
                     
                     if( ImGui::Button( "View Code" ) )
                     {

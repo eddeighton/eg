@@ -7,10 +7,15 @@
         <Directories>
             <Include>${EG}/third_party/build/xsde/release</Include>
             <Include>${EG}/third_party/install/schema/include</Include>
+            <Include>${EG}/third_party/install/boost/include/boost-1_70</Include>
         </Directories>
         <Files>
+            <Source>${EG}/src/common/backtrace.cpp</Source>
+            <Source>${EG}/src/common/escape.cpp</Source>
+            <Source>${EG}/src/common/file.cpp</Source>
             <Library>${EG}/third_party/build/xsde/release/xsde/xsde.lib</Library>
             <Library>${EG}/third_party/install/schema/lib/schemalib.lib</Library>
+            <Library>${EG}/third_party/install/boost/lib/libboost_iostreams-vc141-mt-x32-1_70.lib</Library>
         </Files>
 	</Package>
 </EG>

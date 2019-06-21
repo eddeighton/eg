@@ -846,6 +846,9 @@ namespace egxml
     Host (const ::std::string&);
 
     virtual void
+    Description (const ::std::string&);
+
+    virtual void
     Package (const ::std::string&);
 
     virtual void
@@ -865,6 +868,7 @@ namespace egxml
     void
     parsers (::xml_schema::string_pskel& /* Name */,
              ::xml_schema::string_pskel& /* Host */,
+             ::xml_schema::string_pskel& /* Description */,
              ::xml_schema::string_pskel& /* Package */,
              ::egxml::Build_pskel& /* Build */,
              ::egxml::Run_pskel& /* Run */,
@@ -877,6 +881,9 @@ namespace egxml
 
     void
     Host_parser (::xml_schema::string_pskel&);
+
+    void
+    Description_parser (::xml_schema::string_pskel&);
 
     void
     Package_parser (::xml_schema::string_pskel&);
@@ -915,6 +922,7 @@ namespace egxml
     protected:
     ::xml_schema::string_pskel* Name_parser_;
     ::xml_schema::string_pskel* Host_parser_;
+    ::xml_schema::string_pskel* Description_parser_;
     ::xml_schema::string_pskel* Package_parser_;
     ::egxml::Build_pskel* Build_parser_;
     ::egxml::Run_pskel* Run_parser_;

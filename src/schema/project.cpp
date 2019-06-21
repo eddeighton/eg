@@ -28,17 +28,26 @@ XMLManager::XMLDocPtr XMLManager::load( const boost::filesystem::path& docPath )
     }
     else
     {
-        egxml::EG_paggr eg_p;
-        xml_schema::document_pimpl doc_p( eg_p.root_parser(), eg_p.root_name() );
-         
-        eg_p.pre();
-        doc_p.parse( docPath.string() );
+        try
+        {
+            egxml::EG_paggr eg_p;
+            xml_schema::document_pimpl doc_p( eg_p.root_parser(), eg_p.root_name() );
+             
+            eg_p.pre();
+            doc_p.parse( docPath.string() );
+            
+            XMLDocPtr pDocument( eg_p.post() );
+            
+            m_documents.insert( std::make_pair( docPath, pDocument ) );
         
-        XMLDocPtr pDocument( eg_p.post() );
-        
-        m_documents.insert( std::make_pair( docPath, pDocument ) );
-    
-        return pDocument;
+            return pDocument;
+        }
+        catch( const xml_schema::parser_exception& e )
+        {
+            std::ostringstream os;
+            os << "XML error opening: " << docPath.generic_string() << " " << e.line() << ":" << e.column() << ": " << e.text();
+            throw std::runtime_error( os.str() );
+        }
     }
 }
 
@@ -50,12 +59,8 @@ const std::string Environment::EG_INSTALLATION = "EG";
 const std::string Environment::CURRENT_PROJECT = "PROJECT";
 const std::string Environment::WINDOWS_10_SDK = "WINDOWS_10_SDK";
 
-Environment::Environment( const boost::filesystem::path& projectDir )
-    :   m_projectDir( projectDir ),
-        m_environment( boost::this_process::environment() )
+void Environment::commonCtor()
 {
-    m_environment[ CURRENT_PROJECT ] = m_projectDir.generic_string();
-    
     if( m_environment.count( WINDOWS_10_SDK ) == 0U )
     {
         boost::filesystem::path guessSDKPath = "C:/Program Files (x86)/Windows Kits/10";
@@ -69,16 +74,22 @@ Environment::Environment( const boost::filesystem::path& projectDir )
         }
     }
     
-    
     boost::filesystem::path egInstallationPath;
     {
         boost::system::error_code errorCode;
         boost::filesystem::path currentProgramLoc = boost::dll::program_location( errorCode );
-        
-        if( !currentProgramLoc.empty() )
+        boost::filesystem::path pathIter = currentProgramLoc.parent_path();
+        while( !pathIter.empty() )
         {
-            egInstallationPath = boost::filesystem::absolute( 
-                boost::filesystem::edsCannonicalise( currentProgramLoc / "../../" ) );
+            if( boost::filesystem::exists( pathIter / "installation.xml" ) )
+            {
+                egInstallationPath = pathIter;
+                break;
+            }
+            else
+            {
+                pathIter = pathIter.parent_path();
+            }
         }
     }
     if( egInstallationPath.empty() )
@@ -89,6 +100,25 @@ Environment::Environment( const boost::filesystem::path& projectDir )
     {
         m_environment[ EG_INSTALLATION ] = egInstallationPath.generic_string();
     }
+}
+
+Environment::Environment()
+    :   m_environment( boost::this_process::environment() )
+{
+    commonCtor();
+}
+
+Environment::Environment( const boost::filesystem::path& projectDir )
+{
+    m_environment[ CURRENT_PROJECT ] = projectDir.generic_string();
+    commonCtor();
+}
+
+Environment::Environment( const boost::process::environment& env, const boost::filesystem::path& projectDir )
+    :   m_environment( env )
+{
+    m_environment[ CURRENT_PROJECT ] = projectDir.generic_string();
+    commonCtor();
 }
 
 const std::string Environment::get( const std::string& strKey ) const
@@ -153,7 +183,7 @@ std::string Environment::expand( const std::string& strPath ) const
 
 const egxml::Host& Environment::getHost( const std::string& strHost ) const
 {
-    VERIFY_RTE_MSG( !strHost.empty(), "Empty host specification: " << getProjectDir() );
+    VERIFY_RTE_MSG( !strHost.empty(), "Empty host specification" );
     
     boost::filesystem::path hostPath = 
         boost::filesystem::path( get( EG_INSTALLATION ) ) / "third_party/install" / strHost / Environment::EG_FILE_EXTENSION;
@@ -177,8 +207,10 @@ const egxml::Package& Environment::getPackage( const std::string& strPackage ) c
 
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
-Project::Project( const Environment& environment, const egxml::Project& project, const std::string& strBuildCommand )
-    :   m_environment( environment ),
+Project::Project( const boost::filesystem::path& projectDir, 
+            const Environment& environment, const egxml::Project& project, const std::string& strBuildCommand )
+    :   m_projectDir( projectDir ),
+        m_environment( environment.getEnvironment(), projectDir ),
         m_project( project ),
         m_strBuildCommand( strBuildCommand ),
         m_host( m_environment.getHost( m_project.Host() ) )
@@ -198,7 +230,7 @@ const std::string& Project::getCompilerFlags() const
             return build.CompilerFlags(); 
         }
     }
-    THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_environment.getProjectDir() );
+    THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_projectDir );
 }
 const std::string& Project::getLinkerFlags() const 
 { 
@@ -209,7 +241,7 @@ const std::string& Project::getLinkerFlags() const
             return build.LinkerFlags(); 
         }
     }
-    THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_environment.getProjectDir() );
+    THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_projectDir );
 }
 
 std::size_t Project::getFiberStackSize() const
@@ -239,7 +271,7 @@ std::vector< boost::filesystem::path > Project::getEGSourceCode() const
 {
     std::vector< boost::filesystem::path > egSourceCode;
     
-    for( boost::filesystem::directory_iterator iter( m_environment.getProjectDir() );
+    for( boost::filesystem::directory_iterator iter( m_projectDir );
         iter != boost::filesystem::directory_iterator(); ++iter )
     {
         const boost::filesystem::path& filePath = *iter;
@@ -500,8 +532,7 @@ std::vector< boost::filesystem::path > Project::getCPPLibs() const
 
 boost::filesystem::path Project::getIntermediateFolder() const
 {
-    boost::filesystem::path intermediateFolder = 
-        m_environment.getProjectDir() / ( std::string( "build" ) );
+    boost::filesystem::path intermediateFolder = m_projectDir / ( std::string( "build" ) );
     if( !intermediateFolder.empty() )
     {
         boost::filesystem::ensureFoldersExist( intermediateFolder );

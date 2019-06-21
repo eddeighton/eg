@@ -22,8 +22,8 @@
 Copyright Deighton Systems Limited (c) 2016
 */
 
-#include "common/backtrace.hpp"
-#include "common/assert_verify.hpp"
+#include "backtrace.hpp"
+#include "assert_verify.hpp"
 
 #ifdef _DEBUG
 

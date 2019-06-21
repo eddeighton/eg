@@ -245,6 +245,9 @@ namespace egxml
     Host (const ::std::string&);
 
     virtual void
+    Description (const ::std::string&);
+
+    virtual void
     Package (const ::std::string&);
 
     virtual void
@@ -487,19 +490,19 @@ namespace egxml
     }
 
     public:
-    ::egxml::Build_pimpl Build_p_;
-    ::egxml::Run_pimpl Run_p_;
-    ::egxml::Defaults_pimpl Defaults_p_;
-    ::egxml::Fibers_pimpl Fibers_p_;
-    ::egxml::Stack_pimpl Stack_p_;
-    ::egxml::EG_pimpl EG_p_;
-    ::egxml::Package_pimpl Package_p_;
-    ::egxml::Directories_pimpl Directories_p_;
     ::egxml::Files_pimpl Files_p_;
     ::egxml::Host_pimpl Host_p_;
     ::egxml::Project_pimpl Project_p_;
-    ::xml_schema::string_pimpl string_p_;
+    ::egxml::Build_pimpl Build_p_;
+    ::egxml::Run_pimpl Run_p_;
+    ::egxml::Defaults_pimpl Defaults_p_;
+    ::egxml::EG_pimpl EG_p_;
+    ::egxml::Package_pimpl Package_p_;
+    ::egxml::Directories_pimpl Directories_p_;
+    ::egxml::Fibers_pimpl Fibers_p_;
+    ::egxml::Stack_pimpl Stack_p_;
     ::xml_schema::unsigned_int_pimpl unsigned_int_p_;
+    ::xml_schema::string_pimpl string_p_;
   };
 }
 

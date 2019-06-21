@@ -393,6 +393,37 @@ namespace egxml
     this->Host_ = x;
   }
 
+  bool Project::
+  Description_present () const
+  {
+    return this->Description_present_;
+  }
+
+  void Project::
+  Description_present (bool x)
+  {
+    this->Description_present_ = x;
+  }
+
+  const ::std::string& Project::
+  Description () const
+  {
+    return this->Description_;
+  }
+
+  ::std::string& Project::
+  Description ()
+  {
+    return this->Description_;
+  }
+
+  void Project::
+  Description (const ::std::string& x)
+  {
+    this->Description_ = x;
+    this->Description_present_ = true;
+  }
+
   const Project::Package_sequence& Project::
   Package () const
   {
@@ -848,6 +879,7 @@ namespace egxml
   Project::
   Project ()
   {
+    this->Description_present_ = false;
     this->Defaults_present_ = false;
   }
 

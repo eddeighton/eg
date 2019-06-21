@@ -255,6 +255,18 @@ namespace egxml
   }
 
   bool Project_simpl::
+  Description_present ()
+  {
+    return this->Project_simpl_state_.Project_->Description_present ();
+  }
+
+  ::std::string Project_simpl::
+  Description ()
+  {
+    return this->Project_simpl_state_.Project_->Description ();
+  }
+
+  bool Project_simpl::
   Package_next ()
   {
     return this->Project_simpl_state_.Package_ != 
@@ -507,35 +519,6 @@ namespace egxml
   EG_saggr::
   EG_saggr ()
   {
-    this->Build_s_.serializers (this->string_s_,
-                                this->string_s_,
-                                this->string_s_);
-
-    this->Run_s_.serializers (this->string_s_,
-                              this->string_s_,
-                              this->string_s_);
-
-    this->Defaults_s_.serializers (this->Fibers_s_);
-
-    this->Fibers_s_.serializers (this->Stack_s_);
-
-    this->Stack_s_.serializers (this->unsigned_int_s_);
-
-    this->EG_s_.serializers (this->Package_s_,
-                             this->Host_s_,
-                             this->Project_s_);
-
-    this->Package_s_.serializers (this->string_s_,
-                                  this->string_s_,
-                                  this->string_s_,
-                                  this->string_s_,
-                                  this->Directories_s_,
-                                  this->Files_s_,
-                                  this->string_s_);
-
-    this->Directories_s_.serializers (this->string_s_,
-                                      this->string_s_);
-
     this->Files_s_.serializers (this->string_s_,
                                 this->string_s_,
                                 this->string_s_,
@@ -552,9 +535,39 @@ namespace egxml
     this->Project_s_.serializers (this->string_s_,
                                   this->string_s_,
                                   this->string_s_,
+                                  this->string_s_,
                                   this->Build_s_,
                                   this->Run_s_,
                                   this->Defaults_s_);
+
+    this->Build_s_.serializers (this->string_s_,
+                                this->string_s_,
+                                this->string_s_);
+
+    this->Run_s_.serializers (this->string_s_,
+                              this->string_s_,
+                              this->string_s_);
+
+    this->Defaults_s_.serializers (this->Fibers_s_);
+
+    this->EG_s_.serializers (this->Package_s_,
+                             this->Host_s_,
+                             this->Project_s_);
+
+    this->Package_s_.serializers (this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->Directories_s_,
+                                  this->Files_s_,
+                                  this->string_s_);
+
+    this->Directories_s_.serializers (this->string_s_,
+                                      this->string_s_);
+
+    this->Fibers_s_.serializers (this->Stack_s_);
+
+    this->Stack_s_.serializers (this->unsigned_int_s_);
   }
 
   const char* EG_saggr::

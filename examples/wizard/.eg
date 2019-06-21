@@ -2,6 +2,7 @@
   <Project>
     <Name>wizard</Name>
     <Host>cinder</Host>
+    <Description>This is the eg wizard program for browsing example projects and starting new ones.</Description>
     <Package>pybind11</Package>
     <Package>schema</Package>
     <Build>

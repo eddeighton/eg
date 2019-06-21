@@ -22,15 +22,14 @@
 Copyright Deighton Systems Limited (c) 2016
 */
 
-#include "common/file.hpp"
+#include "file.hpp"
+#include "assert_verify.hpp"
 
 #include <boost/iostreams/device/mapped_file.hpp>
 
 #include <list>
 #include <fstream>
 #include <algorithm>
-
-#include "common/assert_verify.hpp"
 
 namespace boost
 {

@@ -290,6 +290,12 @@ namespace egxml
   }
 
   void Project_sskel::
+  Description_serializer (::xml_schema::string_sskel& s)
+  {
+    this->Description_serializer_ = &s;
+  }
+
+  void Project_sskel::
   Package_serializer (::xml_schema::string_sskel& s)
   {
     this->Package_serializer_ = &s;
@@ -316,6 +322,7 @@ namespace egxml
   void Project_sskel::
   serializers (::xml_schema::string_sskel& Name,
                ::xml_schema::string_sskel& Host,
+               ::xml_schema::string_sskel& Description,
                ::xml_schema::string_sskel& Package,
                ::egxml::Build_sskel& Build,
                ::egxml::Run_sskel& Run,
@@ -323,6 +330,7 @@ namespace egxml
   {
     this->Name_serializer_ = &Name;
     this->Host_serializer_ = &Host;
+    this->Description_serializer_ = &Description;
     this->Package_serializer_ = &Package;
     this->Build_serializer_ = &Build;
     this->Run_serializer_ = &Run;
@@ -334,6 +342,7 @@ namespace egxml
   : Project_impl_ (0),
     Name_serializer_ (0),
     Host_serializer_ (0),
+    Description_serializer_ (0),
     Package_serializer_ (0),
     Build_serializer_ (0),
     Run_serializer_ (0),
@@ -347,6 +356,7 @@ namespace egxml
     Project_impl_ (impl),
     Name_serializer_ (0),
     Host_serializer_ (0),
+    Description_serializer_ (0),
     Package_serializer_ (0),
     Build_serializer_ (0),
     Run_serializer_ (0),
@@ -794,6 +804,12 @@ namespace egxml
   //
 
   bool Project_sskel::
+  Description_present ()
+  {
+    return this->Project_impl_ ? this->Project_impl_->Description_present () : false;
+  }
+
+  bool Project_sskel::
   Package_next ()
   {
     return this->Project_impl_ ? this->Project_impl_->Package_next () : false;
@@ -821,6 +837,9 @@ namespace egxml
 
     if (this->Host_serializer_)
       this->Host_serializer_->_reset ();
+
+    if (this->Description_serializer_)
+      this->Description_serializer_->_reset ();
 
     if (this->Package_serializer_)
       this->Package_serializer_->_reset ();
@@ -1583,6 +1602,41 @@ namespace egxml
       {
         this->_schema_error (::xsde::cxx::schema_error::expected_element);
         return;
+      }
+    }
+
+    // Description
+    //
+    if (this->Description_present ())
+    {
+      const ::std::string& r = this->Description ();
+
+      if (this->Description_serializer_)
+      {
+        this->Description_serializer_->pre (r);
+        this->_start_element ("Description");
+        this->Description_serializer_->_pre_impl (ctx);
+
+        if (ctx.error_type ())
+          return;
+
+        this->Description_serializer_->_serialize_attributes ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Description_serializer_->_serialize_content ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->Description_serializer_->_post_impl ();
+
+        if (ctx.error_type ())
+          return;
+
+        this->_end_element ();
+        this->Description_serializer_->post ();
       }
     }
 

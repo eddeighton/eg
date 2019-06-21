@@ -300,6 +300,12 @@ namespace egxml
   }
 
   void Project_pskel::
+  Description_parser (::xml_schema::string_pskel& p)
+  {
+    this->Description_parser_ = &p;
+  }
+
+  void Project_pskel::
   Package_parser (::xml_schema::string_pskel& p)
   {
     this->Package_parser_ = &p;
@@ -326,6 +332,7 @@ namespace egxml
   void Project_pskel::
   parsers (::xml_schema::string_pskel& Name,
            ::xml_schema::string_pskel& Host,
+           ::xml_schema::string_pskel& Description,
            ::xml_schema::string_pskel& Package,
            ::egxml::Build_pskel& Build,
            ::egxml::Run_pskel& Run,
@@ -333,6 +340,7 @@ namespace egxml
   {
     this->Name_parser_ = &Name;
     this->Host_parser_ = &Host;
+    this->Description_parser_ = &Description;
     this->Package_parser_ = &Package;
     this->Build_parser_ = &Build;
     this->Run_parser_ = &Run;
@@ -344,6 +352,7 @@ namespace egxml
   : Project_impl_ (0),
     Name_parser_ (0),
     Host_parser_ (0),
+    Description_parser_ (0),
     Package_parser_ (0),
     Build_parser_ (0),
     Run_parser_ (0),
@@ -358,6 +367,7 @@ namespace egxml
     Project_impl_ (impl),
     Name_parser_ (0),
     Host_parser_ (0),
+    Description_parser_ (0),
     Package_parser_ (0),
     Build_parser_ (0),
     Run_parser_ (0),
@@ -832,6 +842,13 @@ namespace egxml
   }
 
   void Project_pskel::
+  Description (const ::std::string& x)
+  {
+    if (this->Project_impl_)
+      this->Project_impl_->Description (x);
+  }
+
+  void Project_pskel::
   Package (const ::std::string& x)
   {
     if (this->Project_impl_)
@@ -877,6 +894,9 @@ namespace egxml
 
     if (this->Host_parser_)
       this->Host_parser_->_reset ();
+
+    if (this->Description_parser_)
+      this->Description_parser_->_reset ();
 
     if (this->Package_parser_)
       this->Package_parser_->_reset ();
@@ -2543,6 +2563,40 @@ namespace egxml
       }
       case 2UL:
       {
+        if (n == "Description" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Description_parser_)
+            {
+              this->Description_parser_->pre ();
+              ctx.nested_parser (this->Description_parser_);
+            }
+          }
+          else
+          {
+            if (this->Description_parser_ != 0)
+            {
+              const ::std::string& tmp = this->Description_parser_->post_string ();
+              this->Description (tmp);
+            }
+
+            count = 0;
+            state = 3UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = 3UL;
+          // Fall through.
+        }
+      }
+      case 3UL:
+      {
         if (n == "Package" && ns.empty ())
         {
           if (start)
@@ -2570,11 +2624,11 @@ namespace egxml
         {
           assert (start);
           count = 0;
-          state = 3UL;
+          state = 4UL;
           // Fall through.
         }
       }
-      case 3UL:
+      case 4UL:
       {
         if (n == "Build" && ns.empty ())
         {
@@ -2609,11 +2663,11 @@ namespace egxml
           }
 
           count = 0;
-          state = 4UL;
+          state = 5UL;
           // Fall through.
         }
       }
-      case 4UL:
+      case 5UL:
       {
         if (n == "Run" && ns.empty ())
         {
@@ -2648,11 +2702,11 @@ namespace egxml
           }
 
           count = 0;
-          state = 5UL;
+          state = 6UL;
           // Fall through.
         }
       }
-      case 5UL:
+      case 6UL:
       {
         if (n == "Defaults" && ns.empty ())
         {

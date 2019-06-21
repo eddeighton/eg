@@ -36,9 +36,42 @@ function( compile_schema xml_schema nmspace output_directory )
         ${output_directory}/schema-simpl.hxx
         ${output_directory}/schema-simpl.cxx
         
+        BYPRODUCTS 
+        ${output_directory}/schema.hxx
+        ${output_directory}/schema.cxx
+        ${output_directory}/schema-pskel.hxx
+        ${output_directory}/schema-pskel.cxx
+        ${output_directory}/schema-pimpl.hxx
+        ${output_directory}/schema-pimpl.cxx
+        ${output_directory}/schema-sskel.hxx
+        ${output_directory}/schema-sskel.cxx
+        ${output_directory}/schema-simpl.hxx
+        ${output_directory}/schema-simpl.cxx
+        
         COMMENT "Generating xml schema parser using xsde for ${xml_schema} to ${output_directory}"
     )
     
-    add_custom_target( generate_schema_${nmspace} ALL DEPENDS ${xml_schema} )
+    #add_custom_target( 
+    #    generate_schema_${nmspace} ALL 
+    #
+    #    COMMAND ${XSDE_EXECUTABLE} "cxx-hybrid" --generate-parser --generate-serializer --generate-aggregate --no-long-long --namespace-map =${nmspace} --output-dir ${output_directory} ${xml_schema} 
+    #
+    #    DEPENDS ${xml_schema} 
+    #    
+    #    BYPRODUCTS 
+    #    ${output_directory}/schema.hxx
+    #    ${output_directory}/schema.cxx
+    #    ${output_directory}/schema-pskel.hxx
+    #    ${output_directory}/schema-pskel.cxx
+    #    ${output_directory}/schema-pimpl.hxx
+    #    ${output_directory}/schema-pimpl.cxx
+    #    ${output_directory}/schema-sskel.hxx
+    #    ${output_directory}/schema-sskel.cxx
+    #    ${output_directory}/schema-simpl.hxx
+    #    ${output_directory}/schema-simpl.cxx
+    #    
+    #    COMMENT "Generating xml schema parser using xsde for ${xml_schema} to ${output_directory}"
+    #    
+    #    )
 
 endfunction( compile_schema )

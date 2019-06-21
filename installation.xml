@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installation xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///W:/workspace/eg/src/schema/installation_schema.xsd">
+	<Version>1</Version>
+	<Python>C:/Annaconda</Python>
+	<Toolchain>C:\Program Files (x86)\Microsoft Visual Studio 14.0</Toolchain>
+	<SDK>C:/Program Files (x86)/Windows Kits/10</SDK>
+</Installation>

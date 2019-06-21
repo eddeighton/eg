@@ -507,6 +507,23 @@ namespace egxml
     void
     Host (const ::std::string&);
 
+    // Description
+    //
+    bool
+    Description_present () const;
+
+    void
+    Description_present (bool);
+
+    const ::std::string&
+    Description () const;
+
+    ::std::string&
+    Description ();
+
+    void
+    Description (const ::std::string&);
+
     // Package
     //
     typedef ::xsde::cxx::string_sequence Package_sequence;
@@ -563,6 +580,8 @@ namespace egxml
     private:
     ::std::string Name_;
     ::std::string Host_;
+    ::std::string Description_;
+    unsigned char Description_present_;
     Package_sequence Package_;
     Build_sequence Build_;
     Run_sequence Run_;

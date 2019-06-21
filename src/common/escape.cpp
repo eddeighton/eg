@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "common/escape.hpp"
+#include "escape.hpp"
 
 #include <sstream>
 #include <iterator>
@@ -25,7 +25,7 @@
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/karma.hpp>
 
-#include "common/assert_verify.hpp"
+#include "assert_verify.hpp"
 
 namespace Common
 {
