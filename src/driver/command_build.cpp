@@ -1,5 +1,5 @@
 
-#include "project.hpp"
+#include "schema/project.hpp"
 
 #include "egxml/eg_schema.hxx"
 #include "egxml/eg_schema-pimpl.hxx"

@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "driver/environment_string.hpp"
+#include "schema/environment_string.hpp"
 
 void expand_wrap( const std::string& str, const std::map< std::string, std::string >& env, std::ostream& os )
 {

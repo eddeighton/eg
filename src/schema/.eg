@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EG xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///W:/workspace/eg/src/driver/schema.xsd">
+	<Package>
+		<Name>schema</Name>
+		<License/>
+        <Description>Cinder host for making cinder based eg programs</Description>
+        <Directories>
+            <Include>${EG}/third_party/build/xsde/release</Include>
+            <Include>${EG}/third_party/install/schema/include</Include>
+        </Directories>
+        <Files>
+            <Library>${EG}/third_party/build/xsde/release/xsde/xsde.lib</Library>
+            <Library>${EG}/third_party/install/schema/lib/schemalib.lib</Library>
+        </Files>
+	</Package>
+</EG>

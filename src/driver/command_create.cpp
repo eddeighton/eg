@@ -1,5 +1,5 @@
 
-#include "project.hpp"
+#include "schema/project.hpp"
 
 #include "egxml/eg_schema.hxx"
 #include "egxml/eg_schema-pimpl.hxx"
@@ -92,7 +92,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "release" );
-                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.CompilerFlags( "-DWIN32_LEAN_AND_MEAN -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
                         build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
                     }
                     pProject->Build().push_back( build );
@@ -102,7 +102,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "quick" );
-                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.CompilerFlags( "-DWIN32_LEAN_AND_MEAN -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
                         build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
                     }
                     pProject->Build().push_back( build );
@@ -112,7 +112,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "debug" );
-                        build.CompilerFlags( "-g -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.CompilerFlags( "-DWIN32_LEAN_AND_MEAN -g -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
                         build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
                     }
                     pProject->Build().push_back( build );

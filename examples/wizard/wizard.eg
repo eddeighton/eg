@@ -1,0 +1,114 @@
+
+
+include( "schema/egxml/eg_schema.hxx" );
+include( "schema/egxml/eg_schema-pimpl.hxx" );
+include( "schema/egxml/eg_schema-simpl.hxx" );
+include( "schema/project.hpp" );
+include( "schema/wizardxml/wizard_schema.hxx" );
+
+
+//attempt to load the wizard config 
+if( false )
+{
+    egxml::EG_paggr eg_p;
+    xml_schema::document_pimpl doc_p( eg_p.root_parser(), eg_p.root_name() );
+     
+    eg_p.pre();
+    doc_p.parse( "" );
+
+    std::unique_ptr< egxml::EG > pDoc( eg_p.post() );
+}
+
+
+
+bool bContinue = true;
+bool bShowBrowser = true;
+bool bShowCreate = false;
+
+while( bContinue )
+{
+    //need to sleep atleast once before we start using imgui
+    eg::sleep();
+    
+    if( ImGui::BeginMainMenuBar() )
+    {
+        if( ImGui::BeginMenu( "Wizard" ) )
+        {
+            if( ImGui::MenuItem( "New" ) )
+            {
+                bShowCreate = true;
+            }
+            if( ImGui::MenuItem( "Open" ) )
+            {
+                bShowBrowser = true;
+            }
+            if( ImGui::MenuItem( "Save" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Quit" ) )
+            {
+                bContinue = false;
+            }
+            
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+    if( bShowBrowser )
+    {
+        ImGui::Begin( "Project Browser", &bShowBrowser );
+        
+        if( ImGui::TreeNode( "Projects" ) )
+        {
+            for( int i = 0; i < 20; ++i )
+            {
+                std::ostringstream os;
+                os << "Project " << i ;
+                
+                if( ImGui::TreeNode( (void*)(intptr_t)i, "%s", os.str().c_str() ) )
+                {
+                    ImGui::Indent();
+                    ImGui::Text( "Description: "  );
+                    ImGui::SameLine();
+                    ImGui::Text( "This is some program that does a bunch of stuff..." );
+                    
+                    if( ImGui::Button( "View Code" ) )
+                    {
+                        
+                    }
+                    ImGui::SameLine();
+                    if( ImGui::Button( " Build " ) )
+                    {
+                        
+                    }
+                    ImGui::SameLine();
+                    if( ImGui::Button( "  Run  " ) )
+                    {
+                        
+                    }
+                    
+                    ImGui::Unindent();
+                    ImGui::TreePop();
+                }
+                
+            }
+            
+            ImGui::TreePop();
+        }
+        
+        ImGui::End();
+    }
+
+    if( bShowCreate )
+    {
+        ImGui::Begin( "Project Wizard", &bShowCreate );
+        
+        ImGui::End();
+    }
+
+
+    
+    
+    cinder::gl::clear();
+}
