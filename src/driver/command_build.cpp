@@ -173,7 +173,15 @@ void build_parser_session( const Environment& environment, const Project& projec
         {
             LogEntry log( std::cout, "Testing include.pch", bBenchCommands );
             //attempt to reuse pch automagically by comparing preprocessed file
-            if( boost::filesystem::exists( project.getPreprocessedFile() ) )
+
+            //simply compare the file time stamps because timestamp is artificially set to the same when it corresponds
+            if( boost::filesystem::last_write_time( project.getIncludeHeader() ) == 
+                boost::filesystem::last_write_time( project.getIncludePCH() ) )
+            {
+                bUsePCH = true;
+            }
+            
+            /*if( boost::filesystem::exists( project.getPreprocessedFile() ) )
             {
                 {
                     std::ostringstream osCmd;
@@ -211,11 +219,11 @@ void build_parser_session( const Environment& environment, const Project& projec
                     std::cout << "Automatically reusing include.pch precompiled header" << std::endl;
                     bUsePCH = true;
                 }
-            }
+            }*/
         }
         
         //generate the preprocessed file
-        if( !bUsePCH )
+        /*if( !bUsePCH )
         {
             LogEntry log( std::cout, "Generating include preprocessed file", bBenchCommands );
         
@@ -246,7 +254,7 @@ void build_parser_session( const Environment& environment, const Project& projec
                     THROW_RTE( "Error invoking clang++ " << iResult );
                 }
             }
-        }
+        }*/
         
         //compile the includes header to pch file
         if( !bUsePCH )
@@ -278,6 +286,12 @@ void build_parser_session( const Environment& environment, const Project& projec
                 if( iResult )
                 {
                     THROW_RTE( "Error invoking clang++ " << iResult );
+                }
+                else
+                {
+                    //artificially set the file time stamp to match the include file
+                    boost::filesystem::last_write_time( project.getIncludePCH(), 
+                        boost::filesystem::last_write_time( project.getIncludeHeader() ) );
                 }
             }
         }

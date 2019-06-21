@@ -1,11 +1,12 @@
 
 include( "glm/vec2.hpp" );
 
+cinder::app::getWindow()->setTitle( "Awesome" );
 cinder::app::getWindow()->setSize( 1024, 1024 );
 cinder::app::setWindowPos( 100, 100 );
 
 dim float morphSpeed;
-morphSpeed( 0.1 );
+
 
 abstract Shape
 {
@@ -138,14 +139,13 @@ action imgui
 {
     while( true )
     {
-        ImGui::Begin( "Settings" );
-        ImGui::TextColored( ImVec4(1,1,1,1), "Tweakatron 9000" );
+        ImGui::Begin( "Tweakatron 9000" );
         ImGui::SliderInt( "Random Range", &Randomise.range.Get(), 1, 10000 );
         ImGui::SliderFloat( "rotation speed", &Spiral.speed.Get(), 0.0f, 2.0f );
         ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 10.0f );
         ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
         ImGui::SliderFloat( "angle", &Spiral.relative.Get(), -10.0f, 10.0f );
-        ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 10.0f );
+        ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 32.0f );
     
         if( ImGui::Button( "Spiral" ) )
         {

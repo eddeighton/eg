@@ -15,10 +15,10 @@ r.Spiral.curve( 0.5 )
 r.Spiral.relative( 3 )
 r.morphSpeed( 0.75 )
 
-for i in range( 1024 ):
+for i in range( 4095 ):
     c = r.StrokedCircle.Start()
     c.Morph.Start()
-    c.size( 10 )
+    c.size( 20 )
     c.ColorChanger.Start()
 
 r.Spiral.Start()
