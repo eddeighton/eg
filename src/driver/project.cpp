@@ -509,10 +509,19 @@ boost::filesystem::path Project::getIntermediateFolder() const
     return intermediateFolder;
 }
 
-boost::filesystem::path Project::getTreeFileName() const
+boost::filesystem::path Project::getParserDBFileName() const
 {
     std::ostringstream os;
-    os << "master.db";
+    os << "parser.db";
+    return boost::filesystem::edsCannonicalise(
+        boost::filesystem::absolute( 
+            getIntermediateFolder() / os.str() ) );
+}
+
+boost::filesystem::path Project::getInterfaceDBFileName() const
+{
+    std::ostringstream os;
+    os << "interface.db";
     return boost::filesystem::edsCannonicalise(
         boost::filesystem::absolute( 
             getIntermediateFolder() / os.str() ) );
@@ -531,6 +540,15 @@ boost::filesystem::path Project::getPreprocessedFile() const
 {
     std::ostringstream os;
     os << "includes_pre.hpp";
+    return boost::filesystem::edsCannonicalise(
+            boost::filesystem::absolute( 
+                getIntermediateFolder() / os.str() ) );
+}
+
+boost::filesystem::path Project::getPreprocessedCompareFile() const
+{
+    std::ostringstream os;
+    os << "includes_pre_cmp.hpp";
     return boost::filesystem::edsCannonicalise(
             boost::filesystem::absolute( 
                 getIntermediateFolder() / os.str() ) );

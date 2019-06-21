@@ -55,6 +55,9 @@ std::unique_ptr< boost::filesystem::ofstream > createBinaryOutputFileStream( con
 
 std::unique_ptr< boost::filesystem::ifstream > createBinaryInputFileStream( const boost::filesystem::path& filePath );
 
+void updateFileIfChanged( const boost::filesystem::path& filePath, const std::string& strContents );
+
+bool compareFiles( const boost::filesystem::path& fileOne, const boost::filesystem::path& fileTwo );
 }
 }
 

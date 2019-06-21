@@ -87,9 +87,13 @@ public:
     std::vector< boost::filesystem::path > getCPPLibs() const;
     
     boost::filesystem::path getIntermediateFolder() const;
-    boost::filesystem::path getTreeFileName() const;
+    
+    boost::filesystem::path getParserDBFileName() const;
+    boost::filesystem::path getInterfaceDBFileName() const;
+    
     boost::filesystem::path getIncludeHeader() const;
     boost::filesystem::path getPreprocessedFile() const;
+    boost::filesystem::path getPreprocessedCompareFile() const;
     boost::filesystem::path getIncludePCH() const;
     boost::filesystem::path getInterfaceHeader() const;
     boost::filesystem::path getInterfacePCH() const;

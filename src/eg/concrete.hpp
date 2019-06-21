@@ -287,7 +287,7 @@ namespace concrete
         virtual void store( Storer& storer ) const;
         
     public:
-        using IteratorMap = std::map< const Action*, const Dimension_Generated* >;
+        using IteratorMap = std::map< const Action*, const Dimension_Generated*, CompareIndexedObjects >;
         
         const ::eg::interface::Action* getAction() const { return dynamic_cast< const ::eg::interface::Action* >( m_pElement ); }
         const Inheritance_Node* getInheritance() const { return m_inheritance; }

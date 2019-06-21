@@ -33,6 +33,17 @@ namespace eg
         if( !m_pDerivationAnalysis )
             m_pDerivationAnalysis = construct< DerivationAnalysis >();
     }
+    
+    
+    void InterfaceSession::store( const boost::filesystem::path& filePath ) const
+    {
+        VERIFY_RTE( m_fileMap.size() == 1U );
+        IndexedFile* pFile = m_fileMap.find( IndexedObject::MASTER_FILE )->second;
+        VERIFY_RTE( pFile );
+        IndexedFile::FileIDtoPathMap files;
+        files.insert( std::make_pair( IndexedObject::MASTER_FILE, filePath ) );
+        IndexedFile::store( filePath, files, pFile->getObjects() );
+    }
 
     void InterfaceSession::linkAnalysis()
     {

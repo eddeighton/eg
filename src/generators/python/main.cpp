@@ -39,10 +39,7 @@ int main( int argc, const char* argv[] )
     
     eg::ReadSession session( cmdLine.programDataBaseFile );
     
-    std::unique_ptr< boost::filesystem::ofstream > pIncludesFileStream =
-            boost::filesystem::createNewFileStream( cmdLine.strBuildDir / std::string( "python_bindings.cpp" ) );
-    
-    std::ostream& os = *pIncludesFileStream;
+    std::ostringstream os;
     
     const eg::interface::Root* pRoot = session.getTreeRoot();
     
@@ -560,6 +557,8 @@ std::vector< std::function< void() > > loadPythonScripts( const std::vector< std
 
 )";
     os << pszPythonRun;
+    
+    boost::filesystem::updateFileIfChanged( cmdLine.strBuildDir / std::string( "python_bindings.cpp" ), os.str() );
     
     return 0;
 }

@@ -75,7 +75,7 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     std::vector< const eg::interface::Action* > abstractActions = 
         eg::many_cst< eg::interface::Action >( objects );
         
-    using ActionTypeMap = std::map< const eg::interface::Action*, std::string >;
+    using ActionTypeMap = std::map< const eg::interface::Action*, std::string, eg::CompareIndexedObjects >;
     ActionTypeMap actionTypeMap;
     
     for( const eg::interface::Action* pAbstractAction : abstractActions )

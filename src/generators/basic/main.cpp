@@ -39,10 +39,7 @@ int main( int argc, const char* argv[] )
     
     eg::ReadSession session( cmdLine.programDataBaseFile );
     
-    std::unique_ptr< boost::filesystem::ofstream > pIncludesFileStream =
-            boost::filesystem::createNewFileStream( cmdLine.strBuildDir / std::string( "main.cpp" ) );
-    
-    std::ostream& os = *pIncludesFileStream;
+    std::ostringstream os;
     
     const eg::interface::Root* pRoot = session.getTreeRoot();
     
@@ -327,6 +324,7 @@ int main( int argc, const char* argv[] )
     )";
     os << pszMainRoutine << "\n";
     
+    boost::filesystem::updateFileIfChanged( cmdLine.strBuildDir / std::string( "main.cpp" ), os.str() );    
 
     return 0;
 }

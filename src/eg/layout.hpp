@@ -107,8 +107,8 @@ namespace eg
         {
         }
     private:
-        using DimensionMap = std::map< const concrete::Dimension*, DataMember* >;
-        using DimensionMapCst = std::map< const concrete::Dimension*, const DataMember* >;
+        using DimensionMap = std::map< const concrete::Dimension*, DataMember*, CompareIndexedObjects >;
+        using DimensionMapCst = std::map< const concrete::Dimension*, const DataMember*, CompareIndexedObjects >;
     public:
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;

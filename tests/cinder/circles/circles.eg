@@ -51,6 +51,7 @@ action StrokedCircle[ 4096 ] : Shape
         cinder::gl::color( color() );
         cinder::gl::drawStrokedCircle( positionActual(), size() );
         eg::sleep();
+        
     }
 }
 
@@ -121,9 +122,14 @@ action Randomise
     {
         for( Shape s : root.Get().Shape.Range() )
         {
-            glm::vec2 vRand( center.x + center.x * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ),
-                        center.y + center.y * float( ( rand() % range() ) - ( range() / 2 ) ) / float( range() ) );
-            s.positionActual( vRand );
+            float iRand1 = rand() % range();
+            float iRand2 = rand() % range();
+            
+            float fRandAngle = iRand1 * ( M_PI * 2.0f ) / (float)range();
+            
+            glm::vec2 vRand = glm::vec2( cos( fRandAngle ), sin( fRandAngle ) ) * iRand2;
+        
+            s.positionActual( center + vRand );
         }
     }
 }
@@ -134,12 +140,12 @@ action imgui
     {
         ImGui::Begin( "Settings" );
         ImGui::TextColored( ImVec4(1,1,1,1), "Tweakatron 9000" );
-        ImGui::SliderInt( "range", &Randomise.range.Get(), 1, 2000 );
-        ImGui::SliderFloat( "speed", &Spiral.speed.Get(), 0.0f, 2.0f );
+        ImGui::SliderInt( "Random Range", &Randomise.range.Get(), 1, 10000 );
+        ImGui::SliderFloat( "rotation speed", &Spiral.speed.Get(), 0.0f, 2.0f );
         ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 10.0f );
         ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
-        ImGui::SliderFloat( "relative", &Spiral.relative.Get(), -10.0f, 10.0f );
-        ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 1.0f );
+        ImGui::SliderFloat( "angle", &Spiral.relative.Get(), -10.0f, 10.0f );
+        ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 10.0f );
     
         if( ImGui::Button( "Spiral" ) )
         {

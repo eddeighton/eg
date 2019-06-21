@@ -82,7 +82,6 @@ namespace eg
         }
     }
     
-    
     CreatingSession::CreatingSession( const IndexedFile::FileIDtoPathMap& files, IndexedObject::FileID fileID )
         :   Session( files ),
             m_fileID( fileID )

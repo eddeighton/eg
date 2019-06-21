@@ -42,6 +42,10 @@ namespace eg
         concrete::Action* instanceAnalysis();
         void dependencyAnalysis();
         
+        //allow saving the interface session to new file
+        void store() const { AppendingSession::store(); }
+        void store( const boost::filesystem::path& filePath ) const;
+        
         const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
         interface::Root* getTreeRoot() { return eg::root< eg::interface::Root >( getAppendingObjects() ); }
     private:
