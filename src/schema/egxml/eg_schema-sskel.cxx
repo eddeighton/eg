@@ -23,7 +23,7 @@
 //
 // End prologue.
 
-#include "schema-sskel.hxx"
+#include "eg_schema-sskel.hxx"
 
 namespace egxml
 {

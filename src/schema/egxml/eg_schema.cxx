@@ -25,7 +25,7 @@
 //
 // End prologue.
 
-#include "schema.hxx"
+#include "eg_schema.hxx"
 
 namespace egxml
 {

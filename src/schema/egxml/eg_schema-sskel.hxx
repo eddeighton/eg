@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SSKEL_HXX
-#define W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SSKEL_HXX
+#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX
+#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX
 
 #include <xsde/cxx/version.hxx>
 
@@ -116,7 +116,7 @@ namespace egxml
 
 #include <xsde/cxx/serializer/genx/document.hxx>
 
-#include "schema.hxx"
+#include "eg_schema.hxx"
 
 namespace xml_schema
 {
@@ -1066,4 +1066,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SSKEL_HXX
+#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX

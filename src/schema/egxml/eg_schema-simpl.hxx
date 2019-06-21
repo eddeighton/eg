@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SIMPL_HXX
-#define W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SIMPL_HXX
+#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX
+#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX
 
 #include <xsde/cxx/pre.hxx>
 
@@ -30,10 +30,10 @@
 
 #ifndef XSDE_OMIT_SAGGR
 #  define XSDE_OMIT_SAGGR
-#  define W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
+#  define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #endif
 
-#include "schema-sskel.hxx"
+#include "eg_schema-sskel.hxx"
 
 #include <xsde/cxx/stack.hxx>
 
@@ -405,7 +405,7 @@ namespace egxml
   };
 }
 
-#ifdef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
+#ifdef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #  undef XSDE_OMIT_SAGGR
 #endif
 
@@ -455,15 +455,15 @@ namespace egxml
     ::egxml::Run_simpl Run_s_;
     ::egxml::Defaults_simpl Defaults_s_;
     ::egxml::Fibers_simpl Fibers_s_;
-    ::xml_schema::unsigned_int_simpl unsigned_int_s_;
-    ::xml_schema::string_simpl string_s_;
+    ::egxml::Stack_simpl Stack_s_;
     ::egxml::EG_simpl EG_s_;
     ::egxml::Package_simpl Package_s_;
+    ::egxml::Directories_simpl Directories_s_;
     ::egxml::Files_simpl Files_s_;
     ::egxml::Host_simpl Host_s_;
     ::egxml::Project_simpl Project_s_;
-    ::egxml::Stack_simpl Stack_s_;
-    ::egxml::Directories_simpl Directories_s_;
+    ::xml_schema::string_simpl string_s_;
+    ::xml_schema::unsigned_int_simpl unsigned_int_s_;
   };
 }
 
@@ -476,4 +476,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_SIMPL_HXX
+#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX

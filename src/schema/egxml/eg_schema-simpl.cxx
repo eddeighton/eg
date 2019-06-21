@@ -23,7 +23,7 @@
 //
 // End prologue.
 
-#include "schema-simpl.hxx"
+#include "eg_schema-simpl.hxx"
 
 #include <xsde/cxx/serializer/validating/string-common.hxx>
 
@@ -519,6 +519,8 @@ namespace egxml
 
     this->Fibers_s_.serializers (this->Stack_s_);
 
+    this->Stack_s_.serializers (this->unsigned_int_s_);
+
     this->EG_s_.serializers (this->Package_s_,
                              this->Host_s_,
                              this->Project_s_);
@@ -530,6 +532,9 @@ namespace egxml
                                   this->Directories_s_,
                                   this->Files_s_,
                                   this->string_s_);
+
+    this->Directories_s_.serializers (this->string_s_,
+                                      this->string_s_);
 
     this->Files_s_.serializers (this->string_s_,
                                 this->string_s_,
@@ -550,11 +555,6 @@ namespace egxml
                                   this->Build_s_,
                                   this->Run_s_,
                                   this->Defaults_s_);
-
-    this->Stack_s_.serializers (this->unsigned_int_s_);
-
-    this->Directories_s_.serializers (this->string_s_,
-                                      this->string_s_);
   }
 
   const char* EG_saggr::

@@ -3,7 +3,7 @@
 #ifndef EG_PROJECT_UTIL_10_06_2019
 #define EG_PROJECT_UTIL_10_06_2019
 
-#include "schema.hxx"
+#include "egxml/eg_schema.hxx"
 
 #include "environment_string.hpp"
 

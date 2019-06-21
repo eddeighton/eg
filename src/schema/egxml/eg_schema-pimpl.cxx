@@ -23,7 +23,7 @@
 //
 // End prologue.
 
-#include "schema-pimpl.hxx"
+#include "eg_schema-pimpl.hxx"
 
 #include <xsde/cxx/parser/validating/string-common.hxx>
 
@@ -657,6 +657,8 @@ namespace egxml
 
     this->Fibers_p_.parsers (this->Stack_p_);
 
+    this->Stack_p_.parsers (this->unsigned_int_p_);
+
     this->EG_p_.parsers (this->Package_p_,
                          this->Host_p_,
                          this->Project_p_);
@@ -668,6 +670,9 @@ namespace egxml
                               this->Directories_p_,
                               this->Files_p_,
                               this->string_p_);
+
+    this->Directories_p_.parsers (this->string_p_,
+                                  this->string_p_);
 
     this->Files_p_.parsers (this->string_p_,
                             this->string_p_,
@@ -688,11 +693,6 @@ namespace egxml
                               this->Build_p_,
                               this->Run_p_,
                               this->Defaults_p_);
-
-    this->Stack_p_.parsers (this->unsigned_int_p_);
-
-    this->Directories_p_.parsers (this->string_p_,
-                                  this->string_p_);
   }
 
   const char* EG_paggr::

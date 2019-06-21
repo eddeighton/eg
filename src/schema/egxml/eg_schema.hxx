@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_HXX
-#define W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_HXX
+#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_HXX
+#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_HXX
 
 #include <xsde/cxx/version.hxx>
 
@@ -812,4 +812,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_DRIVER_SCHEMA_HXX
+#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_HXX

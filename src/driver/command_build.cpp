@@ -1,9 +1,9 @@
 
 #include "project.hpp"
 
-#include "schema.hxx"
-#include "schema-pimpl.hxx"
-#include "schema-simpl.hxx"
+#include "egxml/eg_schema.hxx"
+#include "egxml/eg_schema-pimpl.hxx"
+#include "egxml/eg_schema-simpl.hxx"
 
 #include "eg/parser_session.hpp"
 #include "eg/interface_session.hpp"

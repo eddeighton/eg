@@ -17,8 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "schema.hxx"
-#include "schema-pimpl.hxx"
+#include "egxml/eg_schema.hxx"
+#include "egxml/eg_schema-pimpl.hxx"
 
 #include "eg/parser_session.hpp"
 #include "eg/interface_session.hpp"

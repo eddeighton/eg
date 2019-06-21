@@ -17,11 +17,13 @@ function( link_xsde targetname )
     target_link_libraries( ${targetname} optimized ${XSDE_RELEASE_LIB} debug ${XSDE_DEBUG_LIB} )
 endfunction( link_xsde )
 
-function( compile_schema schema nmspace output_directory )
+function( compile_schema xml_schema nmspace output_directory )
+
+    #message( "Compile schema called with " ${xml_schema} " " ${nmspace} " " ${output_directory} )
 
     add_custom_command( COMMAND ${XSDE_EXECUTABLE} 
-        ARGS "cxx-hybrid" --generate-parser --generate-serializer --generate-aggregate --no-long-long --namespace-map =${nmspace} --output-dir ${output_directory} ${schema}
-        MAIN_DEPENDENCY ${schema}
+        ARGS "cxx-hybrid" --generate-parser --generate-serializer --generate-aggregate --no-long-long --namespace-map =${nmspace} --output-dir ${output_directory} ${xml_schema}
+        MAIN_DEPENDENCY ${xml_schema}
         OUTPUT 
         ${output_directory}/schema.hxx
         ${output_directory}/schema.cxx
@@ -34,7 +36,9 @@ function( compile_schema schema nmspace output_directory )
         ${output_directory}/schema-simpl.hxx
         ${output_directory}/schema-simpl.cxx
         
-        COMMENT "Generating xml schema parser using xsde for ${schema} to ${output_directory}"
+        COMMENT "Generating xml schema parser using xsde for ${xml_schema} to ${output_directory}"
     )
+    
+    add_custom_target( generate_schema_${nmspace} ALL DEPENDS ${xml_schema} )
 
 endfunction( compile_schema )
