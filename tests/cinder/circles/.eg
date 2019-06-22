@@ -28,7 +28,7 @@
     <Defaults>
 		<Fibers>
 				<Stack>
-					<Size>8192</Size>
+					<Size>16384</Size>
 				</Stack>
 		</Fibers>
     </Defaults>

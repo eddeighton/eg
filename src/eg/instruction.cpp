@@ -1204,8 +1204,16 @@ namespace eg
         os << generator.getIndent() << "            {\n";
         os << generator.getIndent() << "                ref( args... );\n"; 
         os << generator.getIndent() << "            }\n";
+        os << generator.getIndent() << "            catch( std::exception& e )\n";
+        os << generator.getIndent() << "            {\n";
+        os << generator.getIndent() << "                ERR( e.what() );\n";
+        os << generator.getIndent() << "            }\n";
         os << generator.getIndent() << "            catch( eg::termination_exception )\n";
         os << generator.getIndent() << "            {\n";
+        os << generator.getIndent() << "            }\n";
+        os << generator.getIndent() << "            catch( ... )\n";
+        os << generator.getIndent() << "            {\n";
+        os << generator.getIndent() << "                ERR( \"Unknown exception occured in " << m_pTarget->getAction()->getFriendlyName() << "\" );\n";
         os << generator.getIndent() << "            }\n";
         os << generator.getIndent() << "            " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
         os << generator.getIndent() << "        }\n";

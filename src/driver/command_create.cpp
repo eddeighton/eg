@@ -130,14 +130,13 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                 }
                 pProject->Run().push_back( pRun );
                 
-                
                 egxml::Defaults defaults;
                 {
                     egxml::Fibers fibers;
                     {
                         egxml::Stack stack;
                         {
-                            stack.Size( 8192 );
+                            stack.Size( 16384 );
                         }
                         fibers.Stack( stack );
                     }

@@ -54,6 +54,7 @@ public:
     std::string printPath( const boost::filesystem::path& thePath ) const;
     void startCompilationCommand( std::ostream& os ) const;
     void startLogCommand( std::ostream& os ) const;
+    void startDriverCommand( std::ostream& os ) const;
     const boost::filesystem::path& getEGLibraryInclude() const;
     
     std::string expand( const std::string& strPath ) const;
@@ -71,6 +72,8 @@ private:
 class Project
 {
 public:
+    Project( const boost::filesystem::path& projectDir, 
+        const Environment& environment, const egxml::Project& project );
     Project( const boost::filesystem::path& projectDir, 
         const Environment& environment, const egxml::Project& project, const std::string& strBuildCommand );
     
@@ -122,7 +125,7 @@ private:
     const boost::filesystem::path m_projectDir;
     Environment m_environment;
     const egxml::Project& m_project;
-    const std::string& m_strBuildCommand;
+    const std::string m_strBuildCommand;
     const egxml::Host& m_host;
     std::vector< std::reference_wrapper< const egxml::Package > > m_packages;
 };

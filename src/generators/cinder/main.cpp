@@ -192,11 +192,12 @@ std::optional< cinder::app::InputEvent > Input::getEvent()
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << "_array;\n";
+        os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << 
+            pBuffer->getVariableName() << "_allocation;\n";
     }
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        os << pBuffer->getTypeName() << "* " << pBuffer->getVariableName() << " = " << pBuffer->getVariableName() << "_array.data();\n";
+        os << pBuffer->getTypeName() << "* " << pBuffer->getVariableName() << " = " << pBuffer->getVariableName() << "_allocation.data();\n";
     }
     
     os << "\n";
@@ -415,8 +416,15 @@ int main( int argc, const char* argv[] )
 #endif 
         }
     }
-    
-    return WinMain( nullptr, nullptr, nullptr, 0 );
+    try
+    {
+        return WinMain( nullptr, nullptr, nullptr, 0 );
+    }
+    catch( std::exception& e )
+    {
+        ERR( e.what() );
+        return 0;
+    }
 }
 
     )";

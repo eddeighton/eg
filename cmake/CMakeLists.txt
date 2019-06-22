@@ -50,6 +50,7 @@ ENDIF( ${WIN32} )
 project( eg )
 
 add_subdirectory(schema)
+add_subdirectory(commonlib)
 add_subdirectory(eventlog)
 add_subdirectory(eventlog_cmd)
 add_subdirectory(eventlog_module)

@@ -78,6 +78,7 @@ void Environment::commonCtor()
     {
         boost::system::error_code errorCode;
         boost::filesystem::path currentProgramLoc = boost::dll::program_location( errorCode );
+        VERIFY_RTE_MSG( !errorCode, "Error attempting to locate program location: " << errorCode );
         boost::filesystem::path pathIter = currentProgramLoc.parent_path();
         while( !pathIter.empty() )
         {
@@ -166,6 +167,16 @@ void Environment::startLogCommand( std::ostream& os ) const
     os << printPath( EGLOG ) << " ";
 }
 
+void Environment::startDriverCommand( std::ostream& os ) const
+{
+    static boost::filesystem::path EGDRIVER;
+    if( EGDRIVER.empty() )
+    {
+        EGDRIVER = boost::filesystem::path( get( EG_INSTALLATION ) ) / "bin/eg.exe";
+    }
+    os << printPath( EGDRIVER ) << " ";
+}
+
 const boost::filesystem::path& Environment::getEGLibraryInclude() const
 {
     static boost::filesystem::path EG_LIBRARY;
@@ -208,6 +219,19 @@ const egxml::Package& Environment::getPackage( const std::string& strPackage ) c
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 Project::Project( const boost::filesystem::path& projectDir, 
+    const Environment& environment, const egxml::Project& project )
+    :   m_projectDir( projectDir ),
+        m_environment( environment.getEnvironment(), projectDir ),
+        m_project( project ),
+        m_host( m_environment.getHost( m_project.Host() ) )
+{
+    for( const std::string& strPackage : m_project.Package() )
+    {
+        m_packages.push_back( m_environment.getPackage( strPackage ) );
+    }
+}
+        
+Project::Project( const boost::filesystem::path& projectDir, 
             const Environment& environment, const egxml::Project& project, const std::string& strBuildCommand )
     :   m_projectDir( projectDir ),
         m_environment( environment.getEnvironment(), projectDir ),
@@ -223,22 +247,28 @@ Project::Project( const boost::filesystem::path& projectDir,
 
 const std::string& Project::getCompilerFlags() const 
 {
-    for( const egxml::Build& build : m_project.Build() )
+    if( !m_strBuildCommand.empty() )
     {
-        if( build.Name() == m_strBuildCommand )
+        for( const egxml::Build& build : m_project.Build() )
         {
-            return build.CompilerFlags(); 
+            if( build.Name() == m_strBuildCommand )
+            {
+                return build.CompilerFlags(); 
+            }
         }
     }
     THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_projectDir );
 }
 const std::string& Project::getLinkerFlags() const 
 { 
-    for( const egxml::Build& build : m_project.Build() )
+    if( !m_strBuildCommand.empty() )
     {
-        if( build.Name() == m_strBuildCommand )
+        for( const egxml::Build& build : m_project.Build() )
         {
-            return build.LinkerFlags(); 
+            if( build.Name() == m_strBuildCommand )
+            {
+                return build.LinkerFlags(); 
+            }
         }
     }
     THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_projectDir );
@@ -727,8 +757,6 @@ std::vector< std::string > Project::getPackages() const
 
 boost::filesystem::path Project::getProgramName() const
 {
-    std::ostringstream os;
-    os << "program.exe";
     return boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( os.str() ) );
+                boost::filesystem::absolute( getProjectDir() / "program.exe" ) );
 }

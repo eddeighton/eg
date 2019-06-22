@@ -168,6 +168,16 @@ namespace concrete
     
     void Dimension_User::printAllocation( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
     {
+        static const std::string strIndent = "        ";
+        
+        //use the traits
+        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
+        if( pNodeDimension->getActionTypes().empty() )
+        {
+            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::initialise( ";
+            printer.printVariableAccess( os, strIndex );
+            os << ");\n";
+        }
     }
     void Dimension_User::printDeallocation( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
     {

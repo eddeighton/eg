@@ -123,7 +123,7 @@ private:
 
 
 void build_parser_session( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, 
-    bool bBenchCommands, bool bLogCommands, bool bNoPCH )
+    bool bBenchCommands, bool bLogCommands, bool bNoReUsePCH )
 {
     //create clang file manager
     clang::FileSystemOptions fileSystemOptions = { boost::filesystem::current_path().string() };
@@ -153,7 +153,7 @@ void build_parser_session( const Environment& environment, const Project& projec
         pParserSession->store( project.getParserDBFileName() );
     }
     
-    bool bUsePCH = false;
+    bool bReUsePCH = false;
     
     {
         //generate the includes header
@@ -166,9 +166,16 @@ void build_parser_session( const Environment& environment, const Project& projec
                 project.getHostSystemIncludes(), 
                 project.getHostUserIncludes() );
             boost::filesystem::updateFileIfChanged( project.getIncludeHeader(), osInclude.str() );
+            
+            if( bNoReUsePCH )
+            {
+                //force the file timestamp to have changed to prevent reusing the pch
+                boost::filesystem::last_write_time( project.getIncludeHeader(),
+                    boost::filesystem::last_write_time( project.getIncludeHeader() ) + 1 );
+            }
         }
         
-        if( !bNoPCH && boost::filesystem::exists( project.getIncludePCH() ) )
+        if( !bNoReUsePCH && boost::filesystem::exists( project.getIncludePCH() ) )
         {
             LogEntry log( std::cout, "Testing include.pch", bBenchCommands );
             //attempt to reuse pch automagically by comparing preprocessed file
@@ -177,7 +184,7 @@ void build_parser_session( const Environment& environment, const Project& projec
             if( boost::filesystem::last_write_time( project.getIncludeHeader() ) == 
                 boost::filesystem::last_write_time( project.getIncludePCH() ) )
             {
-                bUsePCH = true;
+                bReUsePCH = true;
             }
             
             /*if( boost::filesystem::exists( project.getPreprocessedFile() ) )
@@ -256,7 +263,7 @@ void build_parser_session( const Environment& environment, const Project& projec
         }*/
         
         //compile the includes header to pch file
-        if( !bUsePCH )
+        if( !bReUsePCH )
         {
             LogEntry log( std::cout, "Compiling include precompiled header", bBenchCommands );
             
@@ -757,6 +764,7 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
     bool bBenchCommands = false;
     bool bLogCommands = false;
     bool bNoPCH = false;
+    bool bFullRebuild = false;
     
     namespace po = boost::program_options;
     po::options_description commandOptions(" Create Project Command");
@@ -766,6 +774,7 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
             ("bench",   po::bool_switch( &bBenchCommands ), "Benchmark compilation steps" )
             ("trace",   po::bool_switch( &bLogCommands ), "Trace compilation commands" )
             ("nopch",   po::bool_switch( &bNoPCH ), "Force regeneration of precompiled header file" )
+            ("full",    po::bool_switch( &bFullRebuild ), "Full rebuild - do not reuse previous objects or precompiled headers" )
         ;
     }
     
@@ -815,6 +824,12 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         Environment environment;
         
         Project project( projectDirectory, environment, pDocument->Project(), strBuildCommand );
+        
+        if( bFullRebuild && boost::filesystem::exists( project.getIntermediateFolder() ) )
+        {
+            std::cout << "Removing: " << project.getIntermediateFolder().generic_string() << std::endl;
+            boost::filesystem::remove_all( project.getIntermediateFolder() );
+        }
         
         FileWriteTracker fileTracker( project.getIntermediateFolder() ); 
         

@@ -32,6 +32,11 @@ struct DimensionTraits
     using Write = T;
     using Get   = T&;
     static const Instance Size = sizeof( T );
+    
+    static void initialise( T& value )
+    {
+        new (&value ) T;
+    }
 };
 
 //default object traits

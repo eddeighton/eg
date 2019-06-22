@@ -24,21 +24,26 @@
 #include "event.hpp"
 #include "clock.hpp"
 
+#include <boost/current_function.hpp>
+
 #include <sstream>
 
 #define EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( stuff ) do{ stuff } while( (void)0,0 )
     
 #define LOG( __msg )\
     EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        std::ostringstream os;\
-        os << __msg;\
-        std::string __str = os.str();\
+        std::ostringstream _os_log_;\
+        _os_log_ << __msg;\
+        std::string __str = _os_log_.str();\
         events::put( "log", clock::cycle(), __str.data(), __str.size() + 1 );\
         )
         
 #define ERR( __msg )\
     EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        events::put( "error", clock::cycle(), __msg, strlen( __msg ) + 1 );\
+        std::ostringstream _os_err;\
+        _os_err << __FILE__ << ":" << __LINE__ << " " << __msg << "\n"; \
+        std::string __str = _os_err.str();\
+        events::put( "error", clock::cycle(), __str.data(), __str.size() + 1 );\
         )
         
 #define TEST( __expr )\
@@ -56,9 +61,9 @@
         
 #define TEST_MSG( __expr, __msg )\
     EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        std::ostringstream os;\
-        os << #__expr << " " << __msg;\
-        std::string __str = os.str();\
+        std::ostringstream _os_test_;\
+        _os_test_ << #__expr << " " << __msg;\
+        std::string __str = _os_test_.str();\
         if( !( __expr ) )\
         {\
             events::put( "fail", clock::cycle(), __str.data(), __str.size() + 1 );\

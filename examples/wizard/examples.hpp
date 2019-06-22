@@ -12,20 +12,44 @@
 
 #include "schema/project.hpp"
 
+#include "eg/default_traits.hpp"
+
 #include <memory>
 
 struct Example
 {
+    std::shared_ptr< egxml::EG > pXML;
+    boost::filesystem::path dir;
     Environment environment;
     Project project;
-    std::shared_ptr< egxml::EG > pXML;
     
-    Example( const boost::filesystem::path& projectDir, std::shared_ptr< egxml::EG > pXML )
+    Example( std::shared_ptr< egxml::EG > pXML, const boost::filesystem::path& projectDir )
         :   pXML( pXML ),
-            project( projectDir, environment, pXML->Project(), "default" )
+            dir( projectDir ),
+            environment( projectDir ),
+            project( projectDir, environment, pXML->Project(), "release" )
     {
     
     }
+    
+    
 };
+
+namespace eg
+{
+    template<>
+    struct DimensionTraits< Environment >
+    {
+        using Read  = Environment&; //change Read access to return a reference
+        using Write = Environment;
+        using Get   = Environment&;
+        static const Instance Size = sizeof( Environment );
+        
+        static void initialise( Environment& env )
+        {
+            new( &env ) Environment;
+        }
+    };
+}
 
 #endif

@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wizard xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///W:/workspace/eg/src/schema/wizard_schema.xsd">
 
-<Project>${EG}/examples/wizard</Project>
+<Project>${EG}/examples/test</Project>
+<Project>${EG}/tests/cinder/input</Project>
+<Project>${EG}/tests/cinder/circles</Project>
+<Project>${EG}/tests/cinder/squares</Project>
+<Project>${EG}/tests/cinder/cube</Project>
 
 </Wizard>

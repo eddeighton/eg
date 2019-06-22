@@ -246,6 +246,14 @@ namespace eg
         os << "            catch( eg::termination_exception )                                              \n";
         os << "            {                                                                               \n";
         os << "            }                                                                               \n";
+        os << "            catch( std::exception& e )                                                      \n";
+        os << "            {                                                                               \n";
+        os << "                ERR( e.what() );                                                            \n";
+        os << "            }                                                                               \n";
+        os << "            catch( ... )                                                                    \n";
+        os << "            {                                                                               \n";
+        os << "                ERR( \"Unknown exception occured in " << pAction->getFriendlyName() << "\" );\n";
+        os << "            }                                                                               \n";
         os << "            //wait for all fibers to complete                                               \n";
         os << "            barrier->wait();                                                                \n";
         os << "            //run the stopper                                                               \n";
