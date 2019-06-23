@@ -6,6 +6,10 @@
 #include "egxml/eg_schema-pimpl.hxx"
 #include "egxml/eg_schema-simpl.hxx"
 
+#include "installationxml/installation_schema.hxx"
+#include "installationxml/installation_schema-pimpl.hxx"
+#include "installationxml/installation_schema-simpl.hxx"
+
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 #include "common/escape.hpp"
@@ -13,6 +17,7 @@
 #include <sstream>
 #include <set>
 #include <iomanip>
+#include <iostream>
 
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
@@ -54,27 +59,20 @@ XMLManager::XMLDocPtr XMLManager::load( const boost::filesystem::path& docPath )
 ////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////
 const boost::filesystem::path Environment::EG_FILE_EXTENSION = std::string( ".eg" );
+const boost::filesystem::path Environment::INSTALLATION_FILE = std::string( "installation.xml" );
+const boost::filesystem::path Environment::WIZARD_FILE = std::string( "wizard.xml" );
+
 const boost::filesystem::path Environment::PYTHON_FILE_EXTENSION = std::string( ".py" );
-const std::string Environment::EG_INSTALLATION = "EG";
-const std::string Environment::CURRENT_PROJECT = "PROJECT";
-const std::string Environment::WINDOWS_10_SDK = "WINDOWS_10_SDK";
+const std::string Environment::ENV_KEY_EG_INSTALLATION = "EG";
+const std::string Environment::ENV_KEY_CURRENT_PROJECT = "PROJECT";
+const std::string Environment::ENV_KEY_WINDOWS_10_SDK = "WINDOWS_10_SDK";
+const std::string Environment::ENV_KEY_VISUALSTUDIO = "EG_VISUAL_STUDIO";
+const std::string Environment::ENV_KEY_PYTHONHOME = "PYTHONHOME";
 
 void Environment::commonCtor()
 {
-    if( m_environment.count( WINDOWS_10_SDK ) == 0U )
-    {
-        boost::filesystem::path guessSDKPath = "C:/Program Files (x86)/Windows Kits/10";
-        if( boost::filesystem::exists( guessSDKPath ) )
-        {
-            m_environment[ WINDOWS_10_SDK ] = guessSDKPath.generic_string();
-        }
-        else
-        {
-            THROW_RTE( "Failed to locate Windows 10 SDK Installation" );
-        }
-    }
-    
-    boost::filesystem::path egInstallationPath;
+    std::optional< boost::filesystem::path > egInstallationPath;
+    std::optional< boost::filesystem::path > egInstallationXMLFile;
     {
         boost::system::error_code errorCode;
         boost::filesystem::path currentProgramLoc = boost::dll::program_location( errorCode );
@@ -82,9 +80,11 @@ void Environment::commonCtor()
         boost::filesystem::path pathIter = currentProgramLoc.parent_path();
         while( !pathIter.empty() )
         {
-            if( boost::filesystem::exists( pathIter / "installation.xml" ) )
+            boost::filesystem::path nextPath = pathIter / "installation.xml";
+            if( boost::filesystem::exists( nextPath ) && boost::filesystem::is_regular_file( nextPath ) )
             {
                 egInstallationPath = pathIter;
+                egInstallationXMLFile = nextPath;
                 break;
             }
             else
@@ -93,13 +93,73 @@ void Environment::commonCtor()
             }
         }
     }
-    if( egInstallationPath.empty() )
+    if( !egInstallationPath || !egInstallationXMLFile )
     {
         THROW_RTE( "Failed to locate eg installation" );
     }
     else
     {
-        m_environment[ EG_INSTALLATION ] = egInstallationPath.generic_string();
+        m_environment[ ENV_KEY_EG_INSTALLATION ] = egInstallationPath.value().generic_string();
+        
+        m_environment[ "PATH" ] += egInstallationPath.value().generic_string();
+    }
+    
+    //std::cout << "loading installation: " << egInstallationXMLFile.value().generic_string() << std::endl;
+    //m_environment[ ENV_KEY_WINDOWS_10_SDK ] = "C:/Program Files (x86)/Windows Kits/10";
+    
+    try
+    {
+        installationxml::Installation_paggr installation_p;
+        xml_schema::document_pimpl doc_p( installation_p.root_parser(), installation_p.root_name() );
+        installation_p.pre();
+        doc_p.parse( egInstallationXMLFile.value().generic_string() );
+        installationxml::Installation installation = installation_p.post();
+        
+        if( m_environment.count( ENV_KEY_WINDOWS_10_SDK ) == 0U )
+        {
+            boost::filesystem::path xmlPath = installation.SDK();
+            if( boost::filesystem::exists( xmlPath ) )
+            {
+                m_environment[ ENV_KEY_WINDOWS_10_SDK ] = xmlPath.generic_string();
+            }
+            else
+            {
+                THROW_RTE( "Failed to locate Windows 10 SDK Installation" );
+            }
+        }
+        
+        if( m_environment.count( ENV_KEY_PYTHONHOME ) == 0U )
+        {
+            boost::filesystem::path xmlPath = installation.Python();
+            if( boost::filesystem::exists( xmlPath ) )
+            {
+                m_environment[ ENV_KEY_PYTHONHOME ] = xmlPath.generic_string();
+            }
+            else
+            {
+                THROW_RTE( "Failed to locate Python3 Installation" );
+            }
+        }
+        
+        if( m_environment.count( ENV_KEY_VISUALSTUDIO ) == 0U )
+        {
+            boost::filesystem::path xmlPath = installation.Toolchain();
+            if( boost::filesystem::exists( xmlPath ) )
+            {
+                m_environment[ ENV_KEY_VISUALSTUDIO ] = xmlPath.generic_string();
+            }
+            else
+            {
+                THROW_RTE( "Failed to locate Visual Studio 2017 Installation" );
+            }
+        }
+    }
+    catch( const xml_schema::parser_exception& e )
+    {
+        std::ostringstream os;
+        os << "XML error opening: " << egInstallationXMLFile.value().generic_string() << 
+            " " << e.line() << ":" << e.column() << ": " << e.text();
+        throw std::runtime_error( os.str() );
     }
 }
 
@@ -110,15 +170,16 @@ Environment::Environment()
 }
 
 Environment::Environment( const boost::filesystem::path& projectDir )
+    :   m_environment( boost::this_process::environment() )
 {
-    m_environment[ CURRENT_PROJECT ] = projectDir.generic_string();
+    m_environment[ ENV_KEY_CURRENT_PROJECT ] = projectDir.generic_string();
     commonCtor();
 }
 
 Environment::Environment( const boost::process::environment& env, const boost::filesystem::path& projectDir )
     :   m_environment( env )
 {
-    m_environment[ CURRENT_PROJECT ] = projectDir.generic_string();
+    m_environment[ ENV_KEY_CURRENT_PROJECT ] = projectDir.generic_string();
     commonCtor();
 }
 
@@ -152,7 +213,7 @@ void Environment::startCompilationCommand( std::ostream& os ) const
             CLANG = os.str();
         }
         if( CLANG.empty() )
-            CLANG = boost::filesystem::path( get( EG_INSTALLATION ) ) / "third_party/install/llvm/bin/clang.exe";
+            CLANG = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "third_party/install/llvm/bin/clang.exe";
     }
     os << printPath( CLANG ) << " ";
 }
@@ -162,7 +223,7 @@ void Environment::startLogCommand( std::ostream& os ) const
     static boost::filesystem::path EGLOG;
     if( EGLOG.empty() )
     {
-        EGLOG = boost::filesystem::path( get( EG_INSTALLATION ) ) / "bin/eglog.exe";
+        EGLOG = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eglog.exe";
     }
     os << printPath( EGLOG ) << " ";
 }
@@ -172,7 +233,7 @@ void Environment::startDriverCommand( std::ostream& os ) const
     static boost::filesystem::path EGDRIVER;
     if( EGDRIVER.empty() )
     {
-        EGDRIVER = boost::filesystem::path( get( EG_INSTALLATION ) ) / "bin/eg.exe";
+        EGDRIVER = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg.exe";
     }
     os << printPath( EGDRIVER ) << " ";
 }
@@ -182,7 +243,7 @@ const boost::filesystem::path& Environment::getEGLibraryInclude() const
     static boost::filesystem::path EG_LIBRARY;
     if( EG_LIBRARY.empty() )
     {
-        EG_LIBRARY = boost::filesystem::path( get( EG_INSTALLATION ) ) / "library";
+        EG_LIBRARY = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "library";
     }
     return EG_LIBRARY;
 }
@@ -197,7 +258,7 @@ const egxml::Host& Environment::getHost( const std::string& strHost ) const
     VERIFY_RTE_MSG( !strHost.empty(), "Empty host specification" );
     
     boost::filesystem::path hostPath = 
-        boost::filesystem::path( get( EG_INSTALLATION ) ) / "third_party/install" / strHost / Environment::EG_FILE_EXTENSION;
+        boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "third_party/install" / strHost / Environment::EG_FILE_EXTENSION;
     VERIFY_RTE_MSG( boost::filesystem::exists( hostPath ), "Failed to locate host at: " << hostPath.generic_string() );
     
     XMLManager::XMLDocPtr pDoc = XMLManager::load( hostPath );
@@ -208,7 +269,7 @@ const egxml::Host& Environment::getHost( const std::string& strHost ) const
 const egxml::Package& Environment::getPackage( const std::string& strPackage ) const
 {
     boost::filesystem::path packagePath = 
-        boost::filesystem::path( get( EG_INSTALLATION ) ) / "third_party/install" / strPackage / Environment::EG_FILE_EXTENSION;
+        boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "third_party/install" / strPackage / Environment::EG_FILE_EXTENSION;
     VERIFY_RTE_MSG( boost::filesystem::exists( packagePath ), "Failed to locate package at: " << packagePath.generic_string() );
     
     XMLManager::XMLDocPtr pDoc = XMLManager::load( packagePath );

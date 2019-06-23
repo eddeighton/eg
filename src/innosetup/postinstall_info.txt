@@ -1,0 +1,5 @@
+
+Thanks for installing the eg programming language.
+
+Documentation is available at: https://eddeighton.github.io/eg/
+

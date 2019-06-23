@@ -1,7 +1,7 @@
 
 action A[ 4 ]
 {
-    eg::sleep();
+    eg::sleep( 10ms );
 }
 action B
 {
@@ -12,37 +12,43 @@ A a = A.Start();
 
 eg::sleep( a );
 
+//sleep for a millisecond
+eg::sleep( 1ms );
+
 TEST( true );//got here
 
 action Test
 {
+    
     eg::sleep
     (
-        eg::fiber_props::ResumptionFunctor
-        (
-            [ this ]( Event e )
-            {
-                //use invocation within a lambda no problemo
-                return B.Get() == e;
-            }
-        )
+        [ this ]( Event e )
+        {
+            //use invocation within a lambda no problemo
+            return B.Get() == e;
+        }
     );
+    eg::sleep( 20ms );
+    
     TEST( true );//got here
 }
 
 B.Start();
-Test.Start();
+Test t = Test.Start();
 
 a = A.Start();
 
-eg::sleep
-( 
-    eg::fiber_props::ResumptionFunctor
-    (
-        [ a ]( Event e )
-        { 
-            return a == e;
-        } 
-    )
-);
+int counter = 0;
+
+//sleep until both t and a have stopped
+eg::sleep( 
+    [ t, a, &counter ]( Event e )
+    {
+        if( e == t ) ++counter;
+        if( e == a ) ++counter;
+        return counter == 2;
+    } );
+
+
+
 TEST( true );//got here

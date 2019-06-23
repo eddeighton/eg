@@ -5,7 +5,7 @@
 #define MyAppVersion "1.0"
 #define MyAppPublisher "Deighton Systems Limited"
 #define MyAppURL "https://github.com/eddeighton/eg"
-#define MyAppExeName "eg.exe"
+#define MyAppExeName "run_wizard.bat"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -18,20 +18,21 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={commonpf32}\{#MyAppName}
 DisableProgramGroupPage=yes
 ; The [Icons] "quicklaunchicon" entry uses {userappdata} but its [Tasks] entry has a proper IsAdminInstallMode Check.
 UsedUserAreasWarning=no
 LicenseFile=W:\workspace\eg\license.txt
-InfoBeforeFile=W:\workspace\eg\preinstall_info.txt
-InfoAfterFile=W:\workspace\eg\postinstall_info.txt
+InfoBeforeFile=W:\workspace\eg\src\innosetup\preinstall_info.txt
+InfoAfterFile=W:\workspace\eg\src\innosetup\postinstall_info.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 OutputDir=W:\workspace\eg\installer
 OutputBaseFilename=egsetup
 Compression=lzma
 SolidCompression=yes
-WizardStyle=modern
+WizardStyle=modern    
+UsePreviousAppDir=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -40,16 +41,40 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
 
-[Files]                    
+[Files]                                                                                           
+Source: "W:\workspace\eg\run_wizard.bat"; DestDir: "{app}"; Flags: ignoreversion                     
+Source: "W:\workspace\eg\wizard.xml"; DestDir: "{app}"; Flags: ignoreversion                        
+Source: "W:\workspace\eg\README.md"; DestDir: "{app}"; Flags: ignoreversion          
+Source: "W:\workspace\eg\license.txt"; DestDir: "{app}"; Flags: ignoreversion        
+Source: "W:\workspace\eg\src\innosetup\preinstall_info.txt"; DestDir: "{app}"; Flags: ignoreversion       
+Source: "W:\workspace\eg\src\innosetup\postinstall_info.txt"; DestDir: "{app}"; Flags: ignoreversion 
 Source: "W:\workspace\eg\api\*"; DestDir: "{app}\api"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "W:\workspace\eg\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "W:\workspace\eg\library\*"; DestDir: "{app}\library"; Flags: ignoreversion recursesubdirs createallsubdirs    
+
+Source: "W:\workspace\eg\bin\basic_host.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
+Source: "W:\workspace\eg\bin\cinder_host.exe"; DestDir: "{app}\bin"; Flags: ignoreversion  
+Source: "W:\workspace\eg\bin\eg.exe"; DestDir: "{app}\bin"; Flags: ignoreversion   
+Source: "W:\workspace\eg\bin\eg_clang_plugin.dll"; DestDir: "{app}\bin"; Flags: ignoreversion   
+Source: "W:\workspace\eg\bin\eg_runtime.dll"; DestDir: "{app}\bin"; Flags: ignoreversion       
+Source: "W:\workspace\eg\bin\eg_runtime.lib"; DestDir: "{app}\bin"; Flags: ignoreversion   
+Source: "W:\workspace\eg\bin\eglog.exe"; DestDir: "{app}\bin"; Flags: ignoreversion    
+Source: "W:\workspace\eg\bin\eventlog.lib"; DestDir: "{app}\bin"; Flags: ignoreversion    
+Source: "W:\workspace\eg\bin\eventlog.dll"; DestDir: "{app}\bin"; Flags: ignoreversion     
+Source: "W:\workspace\eg\bin\innosetup_cmd.exe"; DestDir: "{app}\bin"; Flags: ignoreversion   
+Source: "W:\workspace\eg\bin\python_host.exe"; DestDir: "{app}\bin"; Flags: ignoreversion  
+
+;Source: "W:\workspace\eg\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+Source: "W:\workspace\eg\examples\*"; DestDir: "{app}\examples"; Flags: ignoreversion recursesubdirs createallsubdirs   
 Source: "W:\workspace\eg\third_party\install\basic\*"; DestDir: "{app}\third_party\install\basic"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "W:\workspace\eg\third_party\install\boost\*"; DestDir: "{app}\third_party\install\boost"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "W:\workspace\eg\third_party\install\cinder\*"; DestDir: "{app}\third_party\install\cinder"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\common\*"; DestDir: "{app}\third_party\install\common"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "W:\workspace\eg\third_party\install\imgui\*"; DestDir: "{app}\third_party\install\imgui"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "W:\workspace\eg\third_party\install\llvm\*"; DestDir: "{app}\third_party\install\llvm"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\py_glm\*"; DestDir: "{app}\third_party\install\py_glm"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "W:\workspace\eg\third_party\install\pybind11\*"; DestDir: "{app}\third_party\install\pybind11"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "W:\workspace\eg\third_party\install\schema\*"; DestDir: "{app}\third_party\install\schema"; Flags: ignoreversion recursesubdirs createallsubdirs
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -58,5 +83,47 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [Run]
+Filename: "{app}/bin/innosetup_cmd.exe"; Description: "Initialse the installation config"; Flags: nowait; Parameters: "--dir ""{app}"" --python ""{code:GetPython}"" --SDK ""{code:GetSDK}"" --toolchain ""{code:GetToolchain}"" "
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+;Parameters: "--python {code:GetPython}"
+[Code]
+
+var 
+    DependeciesLocation: TInputDirWizardPage;
+
+procedure InitializeWizard;
+begin
+    DependeciesLocation :=
+        CreateInputDirPage(
+            wpSelectDir,
+            'Select locations for python, visual studio and the windows sdk',
+            'Please locate the following directories.  These paths may be modified later by editting installation.xml.',
+            'Once finished press next to continue.', False, '' );
+            
+    DependeciesLocation.Add( 'Folder location containing python.exe' );
+    DependeciesLocation.Values[ 0 ] := 'C:\Anaconda3';
+    
+    DependeciesLocation.Add( 'Folder location of Windows 10 SDK' ); 
+    DependeciesLocation.Values[ 1 ] := 'C:\Program Files (x86)\Windows Kits\10';
+    
+    DependeciesLocation.Add( 'Folder location of Visual Studio 2017' );    
+    DependeciesLocation.Values[ 2 ] := 'C:\Program Files (x86)\Microsoft Visual Studio 14.0';
+
+end;
+
+function GetPython( Param: String ): string;
+begin
+    Result := DependeciesLocation.Values[ 0 ];
+end;
+     
+function GetSDK( Param: String ): string;
+begin
+    Result := DependeciesLocation.Values[ 1 ];
+end;
+      
+function GetToolchain( Param: String ): string;
+begin
+    Result := DependeciesLocation.Values[ 2 ];
+end;
 

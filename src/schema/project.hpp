@@ -39,11 +39,14 @@ class Environment
 {
 public:
     static const boost::filesystem::path EG_FILE_EXTENSION;
+    static const boost::filesystem::path INSTALLATION_FILE;
+    static const boost::filesystem::path WIZARD_FILE;
     static const boost::filesystem::path PYTHON_FILE_EXTENSION;
-    
-    static const std::string EG_INSTALLATION;
-    static const std::string CURRENT_PROJECT;
-    static const std::string WINDOWS_10_SDK;
+    static const std::string ENV_KEY_EG_INSTALLATION;
+    static const std::string ENV_KEY_CURRENT_PROJECT;
+    static const std::string ENV_KEY_WINDOWS_10_SDK;
+    static const std::string ENV_KEY_VISUALSTUDIO;
+    static const std::string ENV_KEY_PYTHONHOME;
     
     void commonCtor();
     

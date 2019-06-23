@@ -172,17 +172,19 @@ bool updateEventLogAndWasEvent()
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        os << "static std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > " << pBuffer->getVariableName() << "_allocation;\n";
-    }
-    for( const eg::Buffer* pBuffer : layout.getBuffers() )
-    {
-        os << pBuffer->getTypeName() << "* " << pBuffer->getVariableName() << " = " << pBuffer->getVariableName() << "_allocation.data();\n";
+        os << "static std::unique_ptr< std::array< " << pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > > " << 
+            pBuffer->getVariableName() << "_allocation;\n";
+        os << pBuffer->getTypeName() << "* " << pBuffer->getVariableName() << " = nullptr;\n";
     }
     
     os << "void allocate_buffers()\n";
     os << "{\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
+    os << "    " << pBuffer->getVariableName() << "_allocation = std::make_unique< std::array< " << 
+        pBuffer->getTypeName() << ", " << pBuffer->getSize() << " > >();\n";
+    os << "    " << pBuffer->getVariableName() << " = " << pBuffer->getVariableName() << "_allocation->data();\n";
+    
     os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )

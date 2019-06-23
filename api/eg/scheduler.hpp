@@ -28,6 +28,8 @@
 #include <boost/fiber/all.hpp>
 
 #include <chrono>
+#include <queue>
+#include <optional>
 
 using namespace std::chrono_literals;
 
@@ -103,22 +105,45 @@ public:
         m_resumptionFunctor = ResumptionFunctor();
     }
     
+    
+    void setTimeout( const std::chrono::steady_clock::time_point& timeout )
+    {
+        m_timeout = timeout;
+    }
+    void resetTimeout()
+    {
+        m_timeout.reset();
+    }
+    std::optional< std::chrono::steady_clock::time_point > getTimeout() const { return m_timeout; }
+    
 private:
     TimeStamp m_cycle;
     reference m_reference;
     bool m_bIsTimekeeper;
     bool m_bShouldContinue;
     ResumptionFunctor m_resumptionFunctor;
+    std::optional< std::chrono::steady_clock::time_point > m_timeout;
 };
 
 
 struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fiber_props >
 {
-    typedef boost::fibers::scheduler::ready_queue_type rqueue_t;
+    using rqueue_t = boost::fibers::scheduler::ready_queue_type ;
+    
+    using ContextPriority = std::pair< std::chrono::steady_clock::time_point, boost::fibers::context* >;
+    struct ComparePriorities
+    {
+        inline bool operator()( const ContextPriority& left, const ContextPriority& right ) const
+        {
+            return left.first < right.first;
+        }
+    };
+    using TimeoutQueue = std::priority_queue< ContextPriority, std::vector< ContextPriority >, ComparePriorities >;
     
     rqueue_t m_queue_ready;
     rqueue_t m_queue_sleep;
     rqueue_t m_queue_resume;
+    TimeoutQueue m_timeoutPriorityQueue;
     boost::fibers::context* m_pTimeKeeper = nullptr;
     
     std::mutex                  mtx_{};
@@ -158,10 +183,19 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     {
         //blockedWaitingFibers.erase( pContext->get_id() );
         
-        if( fiber_props::ResumptionFunctor functor = props.getResumption() )
+        //if a timeout is set then put the fiber into the timeout queue
+        if( std::optional< std::chrono::steady_clock::time_point > timeout = props.getTimeout() )
+        {
+            m_timeoutPriorityQueue.push( std::make_pair( timeout.value(), pContext ) );
+        }
+        
+        //if the fiber has a resumption criteria set then put it straight into the resume queue
+        else if( fiber_props::ResumptionFunctor functor = props.getResumption() )
         {
             m_queue_resume.push_back( *pContext );
         }
+        
+        //else if the fiber IS an action fiber then interogate the action state to decide what to do
         else if( isActionFiber( pContext ) )
         {
             const reference& ref = props.getReference();
@@ -169,6 +203,8 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
             {
                 case action_running:
                     {
+                        //if the fiber cycle is greater than the current then
+                        //the fiber has gone to sleep for this cycle
                         if( props.getCycle() <= clock::cycle() )
                         {
                             m_queue_ready.push_back( *pContext );
@@ -194,11 +230,14 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
                     std::terminate();
             }
         }
+        //if the fiber is the time keeper - i.e. the main host fiber
+        //then we simple record the pointer for use in pick_next
         else if( isTimeKeeperFiber( pContext ) )
         {
             m_pTimeKeeper = pContext;
             
-            if( m_queue_ready.empty() && m_queue_sleep.empty() && m_queue_resume.empty() )
+            //if all the queues are empty then we have completed the program and can stop
+            if( m_queue_ready.empty() && m_queue_sleep.empty() && m_queue_resume.empty() && m_timeoutPriorityQueue.empty() )
             {
                 props.stop();
             }
@@ -219,8 +258,27 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
 
     virtual boost::fibers::context* pick_next() noexcept
     {
+        //check the timeouts
+        while( !m_timeoutPriorityQueue.empty() )
+        {
+            ContextPriority head = m_timeoutPriorityQueue.top();
+            if( head.first < std::chrono::steady_clock::now() )
+            {
+                m_timeoutPriorityQueue.pop();
+                properties( head.second ).resetTimeout();
+                m_queue_ready.push_back( *head.second );
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        //attempt to dispatch events first
         if( !m_queue_resume.empty() )
         {
+            //scan to the end of the event log and attempt to resume any
+            //fibers waiting for the event
             Event e;
             while( events::get( m_eventIterator, e ) )
             {
@@ -232,6 +290,7 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
                     fiber_props& props = properties( pContext );
                     if( props.getResumption()( e ) )
                     {
+                        //to resume the fiber just move it to the ready queue
                         props.resetResumption();
                         i = m_queue_resume.erase( i );
                         m_queue_ready.push_back( *pContext );
@@ -249,6 +308,7 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
             m_eventIterator = events::getIterator();
         }*/
         
+        //return the head of the ready queue if not empty
         if( !m_queue_ready.empty() )
         {
             boost::fibers::context* pContext( &*m_queue_ready.begin() );
@@ -256,6 +316,7 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
             return pContext;
         }
         
+        //otherwise the cycle is complete and we return the timekeeper IF we have it
         if( m_pTimeKeeper )
         {
             m_queue_ready.swap( m_queue_sleep );
@@ -275,39 +336,12 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     
     virtual void property_change( boost::fibers::context * ctx, fiber_props & props ) noexcept 
     {
-        // Although our priority_props class defines multiple properties, only
-        // one of them (priority) actually calls notify() when changed. The
-        // point of a property_change() override is to reshuffle the ready
-        // queue according to the updated priority value.
-//<-
-        //std::cout << "property_change(" << props.name << '(' << props.get_priority()
-        //          << ")): ";
-//->
-
-        // 'ctx' might not be in our queue at all, if caller is changing the
-        // priority of (say) the running fiber. If it's not there, no need to
-        // move it: we'll handle it next time it hits awakened().
+        //from example code - not actually used...
         if ( !ctx->ready_is_linked() ) 
-        { /*<
-            Your `property_change()` override must be able to
-            handle the case in which the passed `ctx` is not in
-            your ready queue. It might be running, or it might be
-            blocked. >*/
-//<-
-            // hopefully user will distinguish this case by noticing that
-            // the fiber with which we were called does not appear in the
-            // ready queue at all
-            //describe_ready_queue();
-//->
+        { 
             return;
         }
-
-        // Found ctx: unlink it
         ctx->ready_unlink();
-
-        // Here we know that ctx was in our ready queue, but we've unlinked
-        // it. We happen to have a method that will (re-)add a context* to the
-        // right place in the ready queue.
         awakened( ctx, props);
     }
 
@@ -315,10 +349,12 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
     {
         if ( (std::chrono::steady_clock::time_point::max)() == timePoint ) 
         {
+            //if the program fails to terminate gracefully this may happen
+            //usually there are fibers still alive while the fiber manager is shutting down
             std::unique_lock< std::mutex > lk( mtx_ );
             cnd_.wait( lk, [this](){ return flag_; } );
             flag_ = false;
-            std::cout << ".";
+            std::cout << "."; 
         } 
         else 
         {
@@ -342,7 +378,7 @@ inline void checkIfStopped()
     const reference& ref = boost::this_fiber::properties< eg::fiber_props >().getReference();
     if( ref.type != 0 && getState( ref.type, ref.instance ) == action_stopped )
     {
-        //std::cout << "checkIfStopped " << ref.type << " " << ref.instance << std::endl;
+        //use exception to terminate the fiber - this will be caught by the lambda that started it.
         throw eg::termination_exception();
     }
 }
@@ -350,19 +386,31 @@ inline void checkIfStopped()
 inline void sleep()
 {
     checkIfStopped();
+    //set the cycle to the next cycle indicating that the fiber is now sleeping
     boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
     boost::this_fiber::yield();
     checkIfStopped();
 }
 
+//allow user to specify arbitrary resumption function
+template< typename ResumptionFunctorType >
+inline auto sleep( ResumptionFunctorType functor ) -> decltype( functor( Event() ), bool() )
+{
+    checkIfStopped();
+    boost::this_fiber::properties< eg::fiber_props >().setResumption( functor );
+    boost::this_fiber::yield();
+    checkIfStopped();
+    return false;
+}
+
 inline void sleep( Event event )
 {
     checkIfStopped();
+    //sleeping on an event means the fiber can be reawoken in the current cycle
     boost::this_fiber::properties< eg::fiber_props >().setResumption
     (  
         [ event ]( Event e )
         {
-            //return ( event.data.type == 0 ) || ( getState( event.data.type, event.data.instance ) == action_stopped ) || ( e == event );
             return ( e == event );
         }
     );
@@ -370,33 +418,24 @@ inline void sleep( Event event )
     checkIfStopped();
 }
 
-
-inline void sleep( fiber_props::ResumptionFunctor functor )
-{
-    checkIfStopped();
-    boost::this_fiber::properties< eg::fiber_props >().setResumption( functor );
-    boost::this_fiber::yield();
-    checkIfStopped();
-}
-
-/*
 template< typename Clock, typename Duration >
 inline void sleep( std::chrono::time_point< Clock, Duration > const& sleep_time )
 {
     checkIfStopped();
-    boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
-    boost::this_fiber::sleep_until( sleep_time );
+    boost::this_fiber::properties< eg::fiber_props >().setTimeout( sleep_time );
+    boost::this_fiber::yield();
     checkIfStopped();
 }
+
 
 template< typename Rep, typename Period >
 inline void sleep( std::chrono::duration< Rep, Period > const& timeout_duration )
 {
     checkIfStopped();
-    boost::this_fiber::properties< eg::fiber_props >().setCycle( clock::cycle() + 1 );
-    boost::this_fiber::sleep_for( timeout_duration );
+    boost::this_fiber::properties< eg::fiber_props >().setTimeout( std::chrono::steady_clock::now() + timeout_duration );
+    boost::this_fiber::yield();
     checkIfStopped();
-}*/
+}
 
 inline void wait()
 {

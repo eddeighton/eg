@@ -7,6 +7,10 @@
 #include "egxml/eg_schema-pimpl.hxx"
 #include "egxml/eg_schema-simpl.hxx"
 
+#include "installationxml/installation_schema.hxx"
+#include "installationxml/installation_schema-pimpl.hxx"
+#include "installationxml/installation_schema-simpl.hxx"
+
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
@@ -89,10 +93,15 @@ void command_run( bool bHelp, const std::vector< std::string >& args )
                 osCmd << " " << environment.expand( arg );
             }
             
-            if( bWait ) osCmd << " --debug";
-            
+            if( bWait ) 
             {
-                const int iResult = boost::process::system( osCmd.str() );
+                osCmd << " --debug";
+            }
+
+            {
+                boost::process::environment childEnv = environment.getEnvironment();
+                
+                const int iResult = boost::process::system( osCmd.str(), childEnv ); //, 
                 //cinder does not call PostQuitMessage so you can the last windows message as return code...
                 //if( iResult )
                 //{

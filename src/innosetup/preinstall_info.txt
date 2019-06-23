@@ -1,0 +1,12 @@
+The eg programming language depends on many third party open source projects including:
+
+boost           https://github.com/eddeighton/boost
+cinder          https://github.com/eddeighton/cinder
+imgui           https://github.com/eddeighton/Cinder-Imgui
+llvm            https://github.com/eddeighton/llvm
+pybind11        https://github.com/eddeighton/pybind11
+
+eg itself       https://github.com/eddeighton/eg
+
+All source code and modifications are available at https://github.com/eddeighton
+

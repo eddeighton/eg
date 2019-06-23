@@ -182,6 +182,7 @@ void python_sleep_cycle()
     os << "    module.def( \"root\", get_root );\n";
     
     os << "    module.def( \"sleep\", python_sleep_cycle );\n";
+    //os << "    module.def( \"sleep\", python_sleep_event );\n"; //TODO... 
     os << "    module.def( \"wait\", eg::wait );\n";
         
     os << "}\n";
