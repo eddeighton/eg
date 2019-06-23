@@ -115,7 +115,7 @@ action BuildProject( std::shared_ptr< Example > pExample, int bFullRebuild )
     std::ostringstream osCmd;
     environment().startDriverCommand( osCmd );
     
-    osCmd << "--build --bench --dir " << pExample->dir.generic_string();
+    osCmd << "--build --bench --dir " << environment().printPath( pExample->dir );
     if( bFullRebuild )
     {
         osCmd << " --full";
@@ -186,7 +186,7 @@ action RunProject( std::shared_ptr< Example > pExample )
     std::ostringstream osCmd;
     environment().startDriverCommand( osCmd );
     
-    osCmd << "--run --dir " << pExample->dir.generic_string();
+    osCmd << "--run --dir " << environment().printPath( pExample->dir );
     
     LOG( "Executing command: " << osCmd.str() );
     bool bShowExecution = true;
@@ -271,7 +271,7 @@ action ViewCode( std::shared_ptr< Example > pExample )
     
     for( const boost::filesystem::path& srcFile : sourceFiles )
     {
-        boost::process::spawn( srcFile.generic_string(), boost::process::shell );
+        boost::process::spawn( environment().printPath( srcFile ), boost::process::shell );
     }
     
 }

@@ -26,10 +26,10 @@
 #include "event.hpp"
 
 #include <boost/fiber/all.hpp>
+#include <boost/optional.hpp>
 
 #include <chrono>
 #include <queue>
-#include <optional>
 
 using namespace std::chrono_literals;
 
@@ -114,7 +114,7 @@ public:
     {
         m_timeout.reset();
     }
-    std::optional< std::chrono::steady_clock::time_point > getTimeout() const { return m_timeout; }
+    boost::optional< std::chrono::steady_clock::time_point > getTimeout() const { return m_timeout; }
     
 private:
     TimeStamp m_cycle;
@@ -122,7 +122,7 @@ private:
     bool m_bIsTimekeeper;
     bool m_bShouldContinue;
     ResumptionFunctor m_resumptionFunctor;
-    std::optional< std::chrono::steady_clock::time_point > m_timeout;
+    boost::optional< std::chrono::steady_clock::time_point > m_timeout;
 };
 
 
@@ -184,9 +184,9 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
         //blockedWaitingFibers.erase( pContext->get_id() );
         
         //if a timeout is set then put the fiber into the timeout queue
-        if( std::optional< std::chrono::steady_clock::time_point > timeout = props.getTimeout() )
+        if( boost::optional< std::chrono::steady_clock::time_point > timeout = props.getTimeout() )
         {
-            m_timeoutPriorityQueue.push( std::make_pair( timeout.value(), pContext ) );
+            m_timeoutPriorityQueue.push( std::make_pair( timeout.get(), pContext ) );
         }
         
         //if the fiber has a resumption criteria set then put it straight into the resume queue

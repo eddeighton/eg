@@ -175,9 +175,9 @@ bool updateEventLogAndWasEvent()
 
 std::deque< cinder::app::InputEvent > _cinder_events;
     
-std::optional< cinder::app::InputEvent > Input::getEvent()
+boost::optional< cinder::app::InputEvent > Input::getEvent()
 {
-    std::optional< cinder::app::InputEvent > event;
+    boost::optional< cinder::app::InputEvent > event;
     if( !_cinder_events.empty() )
     {
         event = _cinder_events.front();

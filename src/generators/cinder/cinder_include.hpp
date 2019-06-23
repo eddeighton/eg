@@ -21,7 +21,7 @@
 #ifndef CINDER_INCLUDE_12_04_2019
 #define CINDER_INCLUDE_12_04_2019
 
-#include <optional>
+#include <boost/optional.hpp>
 
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
@@ -57,7 +57,7 @@ namespace cinder
 class Input
 {
 public:
-    static std::optional< cinder::app::InputEvent > getEvent();
+    static boost::optional< cinder::app::InputEvent > getEvent();
 };
 
 #endif //CINDER_INCLUDE_12_04_2019
