@@ -17,8 +17,14 @@ r.morphSpeed( 0.75 )
 
 for i in range( 4095 ):
     c = r.StrokedCircle.Start()
+    c.Perturbe.Start();
     c.Morph.Start()
-    c.size( 20 )
+    c.size( 4 )
     c.ColorChanger.Start()
 
 r.Spiral.Start()
+r.Spiral.Stop()
+
+r.setPerturbe.iRate( 0.2 )
+r.setPerturbe.iRange( 50 )
+r.setPerturbe();

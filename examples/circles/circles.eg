@@ -11,6 +11,7 @@ dim float morphSpeed;
 abstract Shape
 {
     dim glm::vec2 position;
+    dim glm::vec2 positionOffset;
     dim glm::vec2 positionActual;
     dim cinder::Color color;
     dim float size;
@@ -33,17 +34,45 @@ abstract Shape
         }
     }
     
+    action Perturbe
+    {
+        dim int rate;
+        dim int range;
+        
+        while( true )
+        {
+            if( rate() > 0 )
+            {
+                eg::sleep( std::chrono::milliseconds( rate() ) );
+                if( range() > 0 )
+                {
+                    const float iRandx = ( rand() % range() ) - ( range() / 2.0f );
+                    const float iRandy = ( rand() % range() ) - ( range() / 2.0f );
+                    positionOffset( position() + glm::vec2( iRandx, iRandy ) );
+                }
+                else
+                {
+                    positionOffset( position() );
+                }
+            }
+            else
+            {
+                positionOffset( position() );
+                eg::sleep();
+            }
+        }
+    }
+    
     action Morph
     {
         while( true )
         {
             positionActual( positionActual() + 
-                ( position() - positionActual() ) * clock::dt() * morphSpeed() );
+                ( positionOffset() - positionActual() ) * clock::dt() * morphSpeed() );
             eg::sleep();        
         }
     }
 }
-
 
 action StrokedCircle[ 4096 ] : Shape
 {
@@ -52,10 +81,9 @@ action StrokedCircle[ 4096 ] : Shape
         cinder::gl::color( color() );
         cinder::gl::drawStrokedCircle( positionActual(), size() );
         eg::sleep();
-        
     }
 }
-
+/*
 action Circle[ 4096 ] : Shape
 {
     while( true )
@@ -64,7 +92,7 @@ action Circle[ 4096 ] : Shape
         cinder::gl::drawSolidCircle( positionActual(), size() );
         eg::sleep();
     }
-}
+}*/
 
 action Spiral
 {
@@ -92,7 +120,29 @@ action Spiral
         }
         eg::sleep();
     }
+}
 
+action Grid
+{
+    dim float spacing;
+    
+    const int numCircles = eg::count( root.Get().Shape.Range() );
+    if( numCircles > 0 )
+    {
+        int side = sqrt( ( float )numCircles );
+        
+        int iCounter = 0;
+        for( Shape shape : root.Get().Shape.Range() )
+        {
+            int x = iCounter / side;
+            int y = iCounter % side;
+            
+            shape.position( glm::vec2( x * spacing(), y * spacing() ) );
+            shape.f( iCounter / (float)numCircles );
+            
+            ++iCounter;
+        }
+    }
 }
 
 action Attract
@@ -135,6 +185,18 @@ action Randomise
     }
 }
 
+action setPerturbe
+{
+    dim float iRate;
+    dim float iRange;
+    
+    for( Shape::Perturbe p : root.Get().Shape.Perturbe.Raw() )
+    {
+        p.rate( iRate() * 1000.0f );
+        p.range( iRange() );
+    }
+}
+
 action imgui
 {
     while( true )
@@ -142,10 +204,15 @@ action imgui
         ImGui::Begin( "Tweakatron 9000" );
         ImGui::SliderInt( "Random Range", &Randomise.range.Get(), 1, 10000 );
         ImGui::SliderFloat( "rotation speed", &Spiral.speed.Get(), 0.0f, 2.0f );
-        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 10.0f );
+        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 4.0f );
         ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
         ImGui::SliderFloat( "angle", &Spiral.relative.Get(), -10.0f, 10.0f );
         ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 32.0f );
+        
+        ImGui::SliderFloat( "perturbe rate", &setPerturbe.iRate.Get(), 0.0f, 5.0f );
+        ImGui::SliderFloat( "perturbe range", &setPerturbe.iRange.Get(), 0.0f, 1000.0f );
+        
+        ImGui::SliderFloat( "grid spacing", &Grid.spacing.Get(), 0.0f, 1000.0f );
     
         if( ImGui::Button( "Spiral" ) )
         {
@@ -154,6 +221,11 @@ action imgui
             else
                 Spiral.Start();
         }
+        else if( ImGui::Button( "Burst" ) )
+        {
+            Spiral.Start();
+            Spiral.Stop();
+        }
         else if( ImGui::Button( "Rand" ) )
         {
             Randomise();
@@ -161,6 +233,14 @@ action imgui
         else if( ImGui::Button( "Attract" ) )
         {
             Attract();
+        }
+        else if( ImGui::Button( "Update Perturbe" ) )
+        {
+            setPerturbe();
+        }
+        else if( ImGui::Button( "Grid" ) )
+        {
+            Grid();
         }
         else if( ImGui::Button( "Quit" ) )
         {
@@ -171,15 +251,6 @@ action imgui
     }
 }
 imgui.Start();
-
-/*
-for( int i = 0; i < 2048; ++i )
-{
-    StrokedCircle c = StrokedCircle.Start();
-    c.Morph.Start();
-    c.size( 25 );
-    c.ColorChanger.Start();
-}*/
 
 while( true )
 {
