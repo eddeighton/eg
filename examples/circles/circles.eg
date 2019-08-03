@@ -24,9 +24,10 @@ abstract Shape
         sizeActual( size() );
     }
     
+    dim float f;
+
     action ColorChanger
     {
-        dim float f;
         while( true )
         {
             f( fmodf( f() + clock::dt() * 0.3, 1.0f ) );
@@ -38,11 +39,13 @@ abstract Shape
     action SizeChanger : Waves
     {
         dim float amt;
+        dim float offset;
         
         Triangle.Start();
         
         while( true )
         {
+            offset( f() );
             sizeActual( size() + Triangle.value() * amt() );
             eg::sleep();
         }

@@ -13,7 +13,7 @@ abstract Waves
             
         while( true )
         {
-            float fElapsed = clock::ct() - start();
+            float fElapsed = clock::ct() + offset() - start();
             float wavePos = fmodf( fElapsed, rate() );
             float value = wavePos / rate();
             eg::sleep();
@@ -30,7 +30,7 @@ abstract Waves
             
         while( true )
         {
-            float fElapsed = clock::ct() - start();
+            float fElapsed = clock::ct() + offset() - start();
             float t = fmodf( fElapsed * rate(), 1.0f );
             
             if( t <= 0.5f )
