@@ -1,0 +1,49 @@
+
+
+
+abstract Waves
+{
+    action Sawtooth
+    {
+        dim float rate;
+        dim float start;
+        dim float value;
+        
+        start( clock::ct() );
+            
+        while( true )
+        {
+            float fElapsed = clock::ct() - start();
+            float wavePos = fmodf( fElapsed, rate() );
+            float value = wavePos / rate();
+            eg::sleep();
+        }            
+    }
+    
+    action Triangle
+    {
+        dim float rate;
+        dim float start;
+        dim float value;
+        
+        start( clock::ct() );
+            
+        while( true )
+        {
+            float fElapsed = clock::ct() - start();
+            float t = fmodf( fElapsed * rate(), 1.0f );
+            
+            if( t <= 0.5f )
+            {
+                value( t * 2.0f );
+            }
+            else
+            {
+                value( 1.0f - ( ( t - 0.5f ) * 2.0f ) );
+            }
+            
+            eg::sleep();
+        }   
+    }
+    
+}

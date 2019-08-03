@@ -7,7 +7,6 @@ cinder::app::setWindowPos( 100, 100 );
 
 dim float morphSpeed;
 
-
 abstract Shape
 {
     dim glm::vec2 position;
@@ -15,12 +14,14 @@ abstract Shape
     dim glm::vec2 positionActual;
     dim cinder::Color color;
     dim float size;
+    dim float sizeActual;
     
     action Default( float fColour )
     {
         color( cinder::Color( cinder::CM_HSV, fColour, 1, 1 ) );
         position( cinder::app::getWindowCenter() );
         size( 25.0f );
+        sizeActual( size() );
     }
     
     action ColorChanger
@@ -32,6 +33,20 @@ abstract Shape
             color( cinder::Color( cinder::CM_HSV, f(), 1, 1 ) );
             eg::sleep();
         }
+    }
+    
+    action SizeChanger : Waves
+    {
+        dim float amt;
+        
+        Triangle.Start();
+        
+        while( true )
+        {
+            sizeActual( size() + Triangle.value() * amt() );
+            eg::sleep();
+        }
+        
     }
     
     action Perturbe
@@ -79,20 +94,20 @@ action StrokedCircle[ 4096 ] : Shape
     while( true )
     {
         cinder::gl::color( color() );
-        cinder::gl::drawStrokedCircle( positionActual(), size() );
+        cinder::gl::drawStrokedCircle( positionActual(), sizeActual() );
         eg::sleep();
     }
 }
-/*
+
 action Circle[ 4096 ] : Shape
 {
     while( true )
     {
         cinder::gl::color( color() ); 
-        cinder::gl::drawSolidCircle( positionActual(), size() );
+        cinder::gl::drawSolidCircle( positionActual(), sizeActual() );
         eg::sleep();
     }
-}*/
+}
 
 action Spiral
 {

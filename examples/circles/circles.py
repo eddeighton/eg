@@ -15,12 +15,17 @@ r.Spiral.curve( 0.5 )
 r.Spiral.relative( 3 )
 r.morphSpeed( 0.75 )
 
-for i in range( 4095 ):
+totalThings = 1024
+
+for i in range( totalThings ):
     c = r.StrokedCircle.Start()
     c.Perturbe.Start();
     c.Morph.Start()
-    c.size( 4 )
+    c.size( 30 )
     c.ColorChanger.Start()
+    c.SizeChanger.Start()
+    c.SizeChanger.amt( 20 )
+    c.SizeChanger.Triangle.rate( 1.0 )
 
 r.Spiral.Start()
 r.Spiral.Stop()
