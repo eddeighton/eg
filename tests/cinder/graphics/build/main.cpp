@@ -115,6 +115,16 @@ static std::unique_ptr< std::array< b_root_Line, 2048 > > g_root_Line_allocation
 b_root_Line* g_root_Line = nullptr;
 static std::unique_ptr< std::array< b_root_Line_Move, 2048 > > g_root_Line_Move_allocation;
 b_root_Line_Move* g_root_Line_Move = nullptr;
+static std::unique_ptr< std::array< b_root_Line_Up, 2048 > > g_root_Line_Up_allocation;
+b_root_Line_Up* g_root_Line_Up = nullptr;
+static std::unique_ptr< std::array< b_root_Line_Down, 2048 > > g_root_Line_Down_allocation;
+b_root_Line_Down* g_root_Line_Down = nullptr;
+static std::unique_ptr< std::array< b_root_Line_Left, 2048 > > g_root_Line_Left_allocation;
+b_root_Line_Left* g_root_Line_Left = nullptr;
+static std::unique_ptr< std::array< b_root_Line_Right, 2048 > > g_root_Line_Right_allocation;
+b_root_Line_Right* g_root_Line_Right = nullptr;
+static std::unique_ptr< std::array< b_root_Line_Sequencer, 2048 > > g_root_Line_Sequencer_allocation;
+b_root_Line_Sequencer* g_root_Line_Sequencer = nullptr;
 
 void allocate_buffers()
 {
@@ -124,7 +134,7 @@ void allocate_buffers()
     {
         g_root[ i ].g_root_cycle = eg::INVALID_TIMESTAMP;
         g_root[ i ].g_root_state = ::eg::action_stopped;
-        g_root[ i ].g_root_reference = __eg_root< void >( eg::reference { i, 38, 0 } );
+        g_root[ i ].g_root_reference = __eg_root< void >( eg::reference { i, 67, 0 } );
         g_root[ i ].g_root_ring_index = i;
         ::eg::DimensionTraits< struct glm::tvec2<float, glm::highp> >::initialise( g_root[ i ].m_screen);
         g_root[ i ].g_rootLine_ring_iter = 0UL;
@@ -135,14 +145,22 @@ void allocate_buffers()
     {
         g_root_Line[ i ].g_root_Line_cycle = eg::INVALID_TIMESTAMP;
         g_root_Line[ i ].g_root_Line_state = ::eg::action_stopped;
-        g_root_Line[ i ].g_root_Line_reference = __eg_root< void >::__eg_Line< void >( eg::reference { i, 45, 0 } );
+        g_root_Line[ i ].g_root_Line_reference = __eg_root< void >::__eg_Line< void >( eg::reference { i, 74, 0 } );
         g_root_Line[ i ].g_root_Line_ring_index = i;
         ::eg::DimensionTraits< struct glm::tvec2<float, glm::highp> >::initialise( g_root_Line[ i ].m_start);
         ::eg::DimensionTraits< struct glm::tvec2<float, glm::highp> >::initialise( g_root_Line[ i ].m_end);
         ::eg::DimensionTraits< struct glm::tvec3<float, glm::highp> >::initialise( g_root_Line[ i ].m_colour);
         ::eg::DimensionTraits< float >::initialise( g_root_Line[ i ].m_width);
+        ::eg::DimensionTraits< float >::initialise( g_root_Line[ i ].m_Distance);
+        ::eg::DimensionTraits< float >::initialise( g_root_Line[ i ].m_Speed);
+        ::eg::DimensionTraits< class std::vector<int, class std::allocator<int> > >::initialise( g_root_Line[ i ].m_Sequence);
         g_root_Line[ i ].g_root_Line_ring = i;
         g_root_Line[ i ].g_root_LineMove_ring_iter = 0UL;
+        g_root_Line[ i ].g_root_LineUp_ring_iter = 0UL;
+        g_root_Line[ i ].g_root_LineDown_ring_iter = 0UL;
+        g_root_Line[ i ].g_root_LineLeft_ring_iter = 0UL;
+        g_root_Line[ i ].g_root_LineRight_ring_iter = 0UL;
+        g_root_Line[ i ].g_root_LineSequencer_ring_iter = 0UL;
     }
     g_root_Line_Move_allocation = std::make_unique< std::array< b_root_Line_Move, 2048 > >();
     g_root_Line_Move = g_root_Line_Move_allocation->data();
@@ -150,15 +168,80 @@ void allocate_buffers()
     {
         g_root_Line_Move[ i ].g_root_Line_Move_cycle = eg::INVALID_TIMESTAMP;
         g_root_Line_Move[ i ].g_root_Line_Move_state = ::eg::action_stopped;
-        g_root_Line_Move[ i ].g_root_Line_Move_reference = __eg_root< void >::__eg_Line< void >::__eg_Move< void >( eg::reference { i, 54, 0 } );
+        g_root_Line_Move[ i ].g_root_Line_Move_reference = __eg_root< void >::__eg_Line< void >::__eg_Move< void >( eg::reference { i, 83, 0 } );
         g_root_Line_Move[ i ].g_root_Line_Move_ring_index = i;
         ::eg::DimensionTraits< struct glm::tvec2<float, glm::highp> >::initialise( g_root_Line_Move[ i ].m_dir);
         g_root_Line_Move[ i ].g_root_Line_Move_ring = i;
+    }
+    g_root_Line_Up_allocation = std::make_unique< std::array< b_root_Line_Up, 2048 > >();
+    g_root_Line_Up = g_root_Line_Up_allocation->data();
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+        g_root_Line_Up[ i ].g_root_Line_Up_cycle = eg::INVALID_TIMESTAMP;
+        g_root_Line_Up[ i ].g_root_Line_Up_state = ::eg::action_stopped;
+        g_root_Line_Up[ i ].g_root_Line_Up_reference = __eg_root< void >::__eg_Line< void >::__eg_Up< void >( eg::reference { i, 89, 0 } );
+        g_root_Line_Up[ i ].g_root_Line_Up_ring_index = i;
+        g_root_Line_Up[ i ].g_root_Line_Up_ring = i;
+    }
+    g_root_Line_Down_allocation = std::make_unique< std::array< b_root_Line_Down, 2048 > >();
+    g_root_Line_Down = g_root_Line_Down_allocation->data();
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+        g_root_Line_Down[ i ].g_root_Line_Down_cycle = eg::INVALID_TIMESTAMP;
+        g_root_Line_Down[ i ].g_root_Line_Down_state = ::eg::action_stopped;
+        g_root_Line_Down[ i ].g_root_Line_Down_reference = __eg_root< void >::__eg_Line< void >::__eg_Down< void >( eg::reference { i, 95, 0 } );
+        g_root_Line_Down[ i ].g_root_Line_Down_ring_index = i;
+        g_root_Line_Down[ i ].g_root_Line_Down_ring = i;
+    }
+    g_root_Line_Left_allocation = std::make_unique< std::array< b_root_Line_Left, 2048 > >();
+    g_root_Line_Left = g_root_Line_Left_allocation->data();
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+        g_root_Line_Left[ i ].g_root_Line_Left_cycle = eg::INVALID_TIMESTAMP;
+        g_root_Line_Left[ i ].g_root_Line_Left_state = ::eg::action_stopped;
+        g_root_Line_Left[ i ].g_root_Line_Left_reference = __eg_root< void >::__eg_Line< void >::__eg_Left< void >( eg::reference { i, 101, 0 } );
+        g_root_Line_Left[ i ].g_root_Line_Left_ring_index = i;
+        g_root_Line_Left[ i ].g_root_Line_Left_ring = i;
+    }
+    g_root_Line_Right_allocation = std::make_unique< std::array< b_root_Line_Right, 2048 > >();
+    g_root_Line_Right = g_root_Line_Right_allocation->data();
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+        g_root_Line_Right[ i ].g_root_Line_Right_cycle = eg::INVALID_TIMESTAMP;
+        g_root_Line_Right[ i ].g_root_Line_Right_state = ::eg::action_stopped;
+        g_root_Line_Right[ i ].g_root_Line_Right_reference = __eg_root< void >::__eg_Line< void >::__eg_Right< void >( eg::reference { i, 107, 0 } );
+        g_root_Line_Right[ i ].g_root_Line_Right_ring_index = i;
+        g_root_Line_Right[ i ].g_root_Line_Right_ring = i;
+    }
+    g_root_Line_Sequencer_allocation = std::make_unique< std::array< b_root_Line_Sequencer, 2048 > >();
+    g_root_Line_Sequencer = g_root_Line_Sequencer_allocation->data();
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+        g_root_Line_Sequencer[ i ].g_root_Line_Sequencer_cycle = eg::INVALID_TIMESTAMP;
+        g_root_Line_Sequencer[ i ].g_root_Line_Sequencer_state = ::eg::action_stopped;
+        g_root_Line_Sequencer[ i ].g_root_Line_Sequencer_reference = __eg_root< void >::__eg_Line< void >::__eg_Sequencer< void >( eg::reference { i, 113, 0 } );
+        g_root_Line_Sequencer[ i ].g_root_Line_Sequencer_ring_index = i;
+        g_root_Line_Sequencer[ i ].g_root_Line_Sequencer_ring = i;
     }
 }
 
 void deallocate_buffers()
 {
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+    }
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+    }
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+    }
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+    }
+    for( eg::Instance i = 0U; i != 2048; ++i )
+    {
+    }
     for( eg::Instance i = 0U; i != 2048; ++i )
     {
     }
