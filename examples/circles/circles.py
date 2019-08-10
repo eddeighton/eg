@@ -21,10 +21,10 @@ for i in range( totalThings ):
     c = r.StrokedCircle.Start()
     c.Perturbe.Start();
     c.Morph.Start()
-    c.size( 10 )
+    c.size( 20 )
     c.ColorChanger.Start()
     c.SizeChanger.Start()
-    c.SizeChanger.amt( 4 )
+    c.SizeChanger.amt( 15 )
     c.SizeChanger.Triangle.rate( 2.0 )
 
 r.Spiral.Start()

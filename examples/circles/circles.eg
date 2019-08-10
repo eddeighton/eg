@@ -215,6 +215,20 @@ action setPerturbe
     }
 }
 
+action setSize
+{
+    dim float iAmount;
+    dim float iRate;
+    dim float iSize;
+    
+    for( Shape s : root.Get().Shape.Raw() )
+    {
+        s.size( iSize() );
+        s.SizeChanger.Triangle.rate( iRate() );
+        s.SizeChanger.amt( iAmount() );
+    }
+}
+
 action imgui
 {
     while( true )
@@ -222,13 +236,49 @@ action imgui
         ImGui::Begin( "Tweakatron 9000" );
         ImGui::SliderInt( "Random Range", &Randomise.range.Get(), 1, 10000 );
         ImGui::SliderFloat( "rotation speed", &Spiral.speed.Get(), 0.0f, 2.0f );
-        ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 4.0f );
-        ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f );
-        ImGui::SliderFloat( "angle", &Spiral.relative.Get(), -10.0f, 10.0f );
+        
+        
+        if( ImGui::SliderFloat( "curve", &Spiral.curve.Get(), 0.0f, 4.0f ) )
+        {
+            Spiral.Start();
+            Spiral.Stop();
+        }
+        
+        if( ImGui::SliderFloat( "radius", &Spiral.radius.Get(), -100.0f, 100.0f ) )
+        {
+            Spiral.Start();
+            Spiral.Stop();
+        }
+        
+        if( ImGui::SliderFloat( "angle", &Spiral.relative.Get(), -10.0f, 10.0f ) )
+        {
+            Spiral.Start();
+            Spiral.Stop();
+        }
+        
         ImGui::SliderFloat( "morph speed", &morphSpeed.Get(), 0.0f, 32.0f );
         
-        ImGui::SliderFloat( "perturbe rate", &setPerturbe.iRate.Get(), 0.0f, 5.0f );
-        ImGui::SliderFloat( "perturbe range", &setPerturbe.iRange.Get(), 0.0f, 1000.0f );
+        if( ImGui::SliderFloat( "perturbe rate", &setPerturbe.iRate.Get(), 0.0f, 5.0f ) )
+        {
+            setPerturbe();
+        }
+        if( ImGui::SliderFloat( "perturbe range", &setPerturbe.iRange.Get(), 0.0f, 1000.0f ) )
+        {
+            setPerturbe();
+        }
+        
+        if( ImGui::SliderFloat( "size", &setSize.iSize.Get(), 0.0f, 200.0f ) )
+        {
+            setSize();
+        }
+        if( ImGui::SliderFloat( "size amt", &setSize.iAmount.Get(), 0.0f, 100.0f ) )
+        {
+            setSize();
+        }
+        if( ImGui::SliderFloat( "size rate", &setSize.iRate.Get(), 0.0f, 1.0f ) )
+        {
+            setSize();
+        }
         
         ImGui::SliderFloat( "grid spacing", &Grid.spacing.Get(), 0.0f, 1000.0f );
     
@@ -252,10 +302,10 @@ action imgui
         {
             Attract();
         }
-        else if( ImGui::Button( "Update Perturbe" ) )
+        /*else if( ImGui::Button( "Update Perturbe" ) )
         {
             setPerturbe();
-        }
+        }*/
         else if( ImGui::Button( "Grid" ) )
         {
             Grid();
