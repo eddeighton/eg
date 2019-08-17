@@ -7,25 +7,26 @@
 
 #define EG_FIBER_STACK_SIZE ( 16384 )
 
-struct [[clang::eg_type( -48 )]]Distance;
-struct [[clang::eg_type( -52 )]]Down;
-struct [[clang::eg_type( -54 )]]Left;
-struct [[clang::eg_type( -40 )]]Line;
-struct [[clang::eg_type( -45 )]]Move;
-struct [[clang::eg_type( -56 )]]Right;
-struct [[clang::eg_type( -58 )]]Sequence;
-struct [[clang::eg_type( -59 )]]Sequencer;
-struct [[clang::eg_type( -49 )]]Speed;
-struct [[clang::eg_type( -50 )]]Up;
-struct [[clang::eg_type( -43 )]]colour;
-struct [[clang::eg_type( -46 )]]dir;
-struct [[clang::eg_type( -42 )]]end;
-struct [[clang::eg_type( -39 )]]screen;
-struct [[clang::eg_type( -41 )]]start;
-struct [[clang::eg_type( -44 )]]width;
+struct [[clang::eg_type( -50 )]]Distance;
+struct [[clang::eg_type( -54 )]]Down;
+struct [[clang::eg_type( -60 )]]Idle;
+struct [[clang::eg_type( -56 )]]Left;
+struct [[clang::eg_type( -42 )]]Line;
+struct [[clang::eg_type( -47 )]]Move;
+struct [[clang::eg_type( -58 )]]Right;
+struct [[clang::eg_type( -62 )]]Sequence;
+struct [[clang::eg_type( -63 )]]Sequencer;
+struct [[clang::eg_type( -51 )]]Speed;
+struct [[clang::eg_type( -52 )]]Up;
+struct [[clang::eg_type( -45 )]]colour;
+struct [[clang::eg_type( -48 )]]dir;
+struct [[clang::eg_type( -44 )]]end;
+struct [[clang::eg_type( -41 )]]screen;
+struct [[clang::eg_type( -43 )]]start;
+struct [[clang::eg_type( -46 )]]width;
 
 //EG Interface
-template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
+template< typename __eg1 >struct [[clang::eg_type(39)]]__eg_root
 {
   __eg_root()
   {
@@ -73,8 +74,8 @@ template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
   using Iterator = __eg_ReferenceIterator< __eg_root >;
   using EGRangeType = __eg_Range< Iterator >;
   eg::reference data;
-  template< typename __eg2 >struct [[clang::eg_type(39)]]__eg_screen;
-  template< typename __eg2 >struct [[clang::eg_type(40)]]__eg_Line
+  template< typename __eg2 >struct [[clang::eg_type(41)]]__eg_screen;
+  template< typename __eg2 >struct [[clang::eg_type(42)]]__eg_Line
   {
     __eg_Line()
     {
@@ -123,11 +124,11 @@ template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
     using EGRangeType = __eg_Range< Iterator >;
     eg::reference data;
     static const eg::Instance SIZE = 2048;
-    template< typename __eg3 >struct [[clang::eg_type(41)]]__eg_start;
-    template< typename __eg3 >struct [[clang::eg_type(42)]]__eg_end;
-    template< typename __eg3 >struct [[clang::eg_type(43)]]__eg_colour;
-    template< typename __eg3 >struct [[clang::eg_type(44)]]__eg_width;
-    template< typename __eg3 >struct [[clang::eg_type(45)]]__eg_Move
+    template< typename __eg3 >struct [[clang::eg_type(43)]]__eg_start;
+    template< typename __eg3 >struct [[clang::eg_type(44)]]__eg_end;
+    template< typename __eg3 >struct [[clang::eg_type(45)]]__eg_colour;
+    template< typename __eg3 >struct [[clang::eg_type(46)]]__eg_width;
+    template< typename __eg3 >struct [[clang::eg_type(47)]]__eg_Move
     {
       __eg_Move()
       {
@@ -175,12 +176,12 @@ template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
       using Iterator = __eg_ReferenceIterator< __eg_Move >;
       using EGRangeType = __eg_Range< Iterator >;
       eg::reference data;
-      template< typename __eg4 >struct [[clang::eg_type(46)]]__eg_dir;
+      template< typename __eg4 >struct [[clang::eg_type(48)]]__eg_dir;
     };
     using Move = __eg_Move< __eg2 >;
-    template< typename __eg3 >struct [[clang::eg_type(48)]]__eg_Distance;
-    template< typename __eg3 >struct [[clang::eg_type(49)]]__eg_Speed;
-    template< typename __eg3 >struct [[clang::eg_type(50)]]__eg_Up
+    template< typename __eg3 >struct [[clang::eg_type(50)]]__eg_Distance;
+    template< typename __eg3 >struct [[clang::eg_type(51)]]__eg_Speed;
+    template< typename __eg3 >struct [[clang::eg_type(52)]]__eg_Up
     {
       __eg_Up()
       {
@@ -230,7 +231,7 @@ template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
       eg::reference data;
     };
     using Up = __eg_Up< __eg2 >;
-    template< typename __eg3 >struct [[clang::eg_type(52)]]__eg_Down
+    template< typename __eg3 >struct [[clang::eg_type(54)]]__eg_Down
     {
       __eg_Down()
       {
@@ -280,7 +281,7 @@ template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
       eg::reference data;
     };
     using Down = __eg_Down< __eg2 >;
-    template< typename __eg3 >struct [[clang::eg_type(54)]]__eg_Left
+    template< typename __eg3 >struct [[clang::eg_type(56)]]__eg_Left
     {
       __eg_Left()
       {
@@ -330,7 +331,7 @@ template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
       eg::reference data;
     };
     using Left = __eg_Left< __eg2 >;
-    template< typename __eg3 >struct [[clang::eg_type(56)]]__eg_Right
+    template< typename __eg3 >struct [[clang::eg_type(58)]]__eg_Right
     {
       __eg_Right()
       {
@@ -380,8 +381,58 @@ template< typename __eg1 >struct [[clang::eg_type(37)]]__eg_root
       eg::reference data;
     };
     using Right = __eg_Right< __eg2 >;
-    template< typename __eg3 >struct [[clang::eg_type(58)]]__eg_Sequence;
-    template< typename __eg3 >struct [[clang::eg_type(59)]]__eg_Sequencer
+    template< typename __eg3 >struct [[clang::eg_type(60)]]__eg_Idle
+    {
+      __eg_Idle()
+      {
+        data.instance = 0;
+        data.type = 0;
+        data.timestamp = eg::INVALID_TIMESTAMP;
+      }
+      __eg_Idle( const eg::reference& reference )
+      {
+        data = reference;
+      }
+      template< typename TFrom >
+      __eg_Idle( const TFrom& from );
+      template< typename TFrom >
+      __eg_Idle& operator=( const TFrom& from );
+      template< typename TypePath, typename Operation, typename... Args >
+      typename eg::result_type< __eg_Idle< __eg3 >, TypePath, Operation >::Type invoke( Args... args ) const;
+      operator const void*() const
+      {
+            if( data.timestamp != eg::INVALID_TIMESTAMP )
+            {
+                return reinterpret_cast< const void* >( &data );
+            }
+            else
+            {
+                return nullptr;
+            }
+      }
+      template< typename TComp >
+      bool operator==( const TComp& cmp ) const
+      {
+          return data == cmp.data;
+      }
+      template< typename TComp >
+      bool operator!=( const TComp& cmp ) const
+      {
+          return !(data == cmp.data);
+      }
+      template< typename TComp >
+      bool operator<( const TComp& cmp ) const
+      {
+          return data < cmp.data;
+      }
+      void operator()() const;
+      using Iterator = __eg_ReferenceIterator< __eg_Idle >;
+      using EGRangeType = __eg_Range< Iterator >;
+      eg::reference data;
+    };
+    using Idle = __eg_Idle< __eg2 >;
+    template< typename __eg3 >struct [[clang::eg_type(62)]]__eg_Sequence;
+    template< typename __eg3 >struct [[clang::eg_type(63)]]__eg_Sequencer
     {
       __eg_Sequencer()
       {
@@ -445,6 +496,7 @@ template struct __eg_root< void >::__eg_Line< void >::__eg_Up< void >;
 template struct __eg_root< void >::__eg_Line< void >::__eg_Down< void >;
 template struct __eg_root< void >::__eg_Line< void >::__eg_Left< void >;
 template struct __eg_root< void >::__eg_Line< void >::__eg_Right< void >;
+template struct __eg_root< void >::__eg_Line< void >::__eg_Idle< void >;
 template struct __eg_root< void >::__eg_Line< void >::__eg_Sequencer< void >;
 
 

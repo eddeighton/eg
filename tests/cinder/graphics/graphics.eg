@@ -24,6 +24,7 @@ action Line[ 2048 ]
     action Down;
     action Left;
     action Right;
+    action Idle;
     
     dim std::vector< int > Sequence;
     action Sequencer
@@ -34,12 +35,11 @@ action Line[ 2048 ]
             {
                 switch( i )
                 {
-                    case 0: Up();       break;
-                    case 1: Right();    break;
-                    case 2: Down();     break;
-                    case 3: Left();     break;
-                    default:
-                        break;
+                    case 0:     Up();       break;
+                    case 1:     Right();    break;
+                    case 2:     Down();     break;
+                    case 3:     Left();     break;
+                    default:    Idle();     break;
                 }
             }
             eg::sleep();

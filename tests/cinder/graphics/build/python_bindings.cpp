@@ -14,6 +14,8 @@ extern __eg_root< void >::__eg_Line< void >::__eg_Left< void > root_Line_Left_st
 extern void root_Line_Left_stopper( eg::Instance _gid );
 extern __eg_root< void >::__eg_Line< void >::__eg_Right< void > root_Line_Right_starter( eg::Instance _gid );
 extern void root_Line_Right_stopper( eg::Instance _gid );
+extern __eg_root< void >::__eg_Line< void >::__eg_Idle< void > root_Line_Idle_starter( eg::Instance _gid );
+extern void root_Line_Idle_stopper( eg::Instance _gid );
 extern __eg_root< void >::__eg_Line< void >::__eg_Sequencer< void > root_Line_Sequencer_starter( eg::Instance _gid );
 extern void root_Line_Sequencer_stopper( eg::Instance _gid );
 extern __eg_root< void > get_root();
@@ -563,6 +565,24 @@ namespace pybind11
                 return g_pEGRefType->create( src.data );
             }
         };
+        template <> struct type_caster< __eg_root< void >::__eg_Line< void >::__eg_Idle< void > >
+        {
+        public:
+            PYBIND11_TYPE_CASTER( __eg_root< void >::__eg_Line< void >::__eg_Idle< void >, _("pyeg.reference"));
+        
+            bool load( handle src, bool )
+            {
+                const eg::PythonEGReference* pEGReference =
+                    eg::PythonEGReferenceType::getReference( src.ptr() );
+                value.data = pEGReference->getEGReference();
+                return !PyErr_Occurred();
+            }
+        
+            static handle cast( __eg_root< void >::__eg_Line< void >::__eg_Idle< void > src, return_value_policy /* policy */, handle /* parent */)
+            {
+                return g_pEGRefType->create( src.data );
+            }
+        };
         template <> struct type_caster< __eg_root< void >::__eg_Line< void >::__eg_Sequencer< void > >
         {
         public:
@@ -624,6 +644,8 @@ bool root_Line_done( eg::Instance instance )
     iter = eg::Iterator( g_root_Line[ instance ].g_root_LineLeft_ring_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
     iter = eg::Iterator( g_root_Line[ instance ].g_root_LineRight_ring_iter.load() );
+    if( iter.full || ( iter.head != iter.tail ) ) return false;
+    iter = eg::Iterator( g_root_Line[ instance ].g_root_LineIdle_ring_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
     iter = eg::Iterator( g_root_Line[ instance ].g_root_LineSequencer_ring_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
@@ -704,6 +726,21 @@ bool root_Line_Right_done( eg::Instance instance )
     eg::Iterator iter;
     return true;
 }
+void root_Line_Idle_pause( eg::Instance instance )
+{
+    if( g_root_Line_Idle[ instance ].g_root_Line_Idle_state == ::eg::action_running )
+        g_root_Line_Idle[ instance ].g_root_Line_Idle_state = ::eg::action_paused;
+}
+void root_Line_Idle_resume( eg::Instance instance )
+{
+    if( g_root_Line_Idle[ instance ].g_root_Line_Idle_state == ::eg::action_paused )
+        g_root_Line_Idle[ instance ].g_root_Line_Idle_state = ::eg::action_running;
+}
+bool root_Line_Idle_done( eg::Instance instance )
+{
+    eg::Iterator iter;
+    return true;
+}
 void root_Line_Sequencer_pause( eg::Instance instance )
 {
     if( g_root_Line_Sequencer[ instance ].g_root_Line_Sequencer_state == ::eg::action_running )
@@ -752,31 +789,31 @@ void HostFunctions::doRead( const eg::reference& reference, eg::TypeID dimension
     {
         switch( dimensionType )
         {
-            case 80:
+            case 84:
                 pStack->m_result = pybind11::cast( g_root[ reference.instance ].m_screen );
                 break;
-            case 119:
+            case 129:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_start );
                 break;
-            case 121:
+            case 131:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_end );
                 break;
-            case 123:
+            case 133:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_colour );
                 break;
-            case 125:
+            case 135:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_width );
                 break;
-            case 127:
+            case 137:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_Distance );
                 break;
-            case 129:
+            case 139:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_Speed );
                 break;
-            case 131:
+            case 141:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_Sequence );
                 break;
-            case 134:
+            case 144:
                 pStack->m_result = pybind11::cast( g_root_Line_Move[ reference.instance ].m_dir );
                 break;
             default:
@@ -791,31 +828,31 @@ void HostFunctions::doWrite( const eg::reference& reference, eg::TypeID dimensio
         pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
         switch( dimensionType )
         {
-            case 80:
+            case 84:
                  g_root[ reference.instance ].m_screen = pybind11::cast< struct glm::tvec2<float, glm::highp> >( args[ 0 ] );
                  break;
-            case 119:
+            case 129:
                  g_root_Line[ reference.instance ].m_start = pybind11::cast< struct glm::tvec2<float, glm::highp> >( args[ 0 ] );
                  break;
-            case 121:
+            case 131:
                  g_root_Line[ reference.instance ].m_end = pybind11::cast< struct glm::tvec2<float, glm::highp> >( args[ 0 ] );
                  break;
-            case 123:
+            case 133:
                  g_root_Line[ reference.instance ].m_colour = pybind11::cast< struct glm::tvec3<float, glm::highp> >( args[ 0 ] );
                  break;
-            case 125:
+            case 135:
                  g_root_Line[ reference.instance ].m_width = pybind11::cast< float >( args[ 0 ] );
                  break;
-            case 127:
+            case 137:
                  g_root_Line[ reference.instance ].m_Distance = pybind11::cast< float >( args[ 0 ] );
                  break;
-            case 129:
+            case 139:
                  g_root_Line[ reference.instance ].m_Speed = pybind11::cast< float >( args[ 0 ] );
                  break;
-            case 131:
+            case 141:
                  g_root_Line[ reference.instance ].m_Sequence = pybind11::cast< class std::vector<int, class std::allocator<int> > >( args[ 0 ] );
                  break;
-            case 134:
+            case 144:
                  g_root_Line_Move[ reference.instance ].m_dir = pybind11::cast< struct glm::tvec2<float, glm::highp> >( args[ 0 ] );
                  break;
             default:
@@ -830,7 +867,7 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
         pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
         switch( actionType )
         {
-            case 74:
+            case 78:
                 {
                     __eg_root< void >::__eg_Line< void > ref = root_Line_starter( reference.instance );
                     if( ref )
@@ -841,7 +878,7 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 83:
+            case 87:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Move< void > ref = root_Line_Move_starter( reference.instance );
                     if( ref )
@@ -852,7 +889,7 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 89:
+            case 93:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Up< void > ref = root_Line_Up_starter( reference.instance );
                     if( ref )
@@ -863,7 +900,7 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 95:
+            case 99:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Down< void > ref = root_Line_Down_starter( reference.instance );
                     if( ref )
@@ -874,7 +911,7 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 101:
+            case 105:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Left< void > ref = root_Line_Left_starter( reference.instance );
                     if( ref )
@@ -885,7 +922,7 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 107:
+            case 111:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Right< void > ref = root_Line_Right_starter( reference.instance );
                     if( ref )
@@ -896,7 +933,18 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 113:
+            case 117:
+                {
+                    __eg_root< void >::__eg_Line< void >::__eg_Idle< void > ref = root_Line_Idle_starter( reference.instance );
+                    if( ref )
+                    {
+                            ref();
+                        root_Line_Idle_stopper( ref.data.instance );
+                    }
+                    pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
+                }
+                break;
+            case 123:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Sequencer< void > ref = root_Line_Sequencer_starter( reference.instance );
                     if( ref )
@@ -919,7 +967,7 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
         pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
         switch( actionType )
         {
-            case 74:
+            case 78:
                 {
                     __eg_root< void >::__eg_Line< void > ref = root_Line_starter( reference.instance );
                     if( ref )
@@ -946,7 +994,7 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 83:
+            case 87:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Move< void > ref = root_Line_Move_starter( reference.instance );
                     if( ref )
@@ -973,7 +1021,7 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 89:
+            case 93:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Up< void > ref = root_Line_Up_starter( reference.instance );
                     if( ref )
@@ -1000,7 +1048,7 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 95:
+            case 99:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Down< void > ref = root_Line_Down_starter( reference.instance );
                     if( ref )
@@ -1027,7 +1075,7 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 101:
+            case 105:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Left< void > ref = root_Line_Left_starter( reference.instance );
                     if( ref )
@@ -1054,7 +1102,7 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 107:
+            case 111:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Right< void > ref = root_Line_Right_starter( reference.instance );
                     if( ref )
@@ -1081,7 +1129,34 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
-            case 113:
+            case 117:
+                {
+                    __eg_root< void >::__eg_Line< void >::__eg_Idle< void > ref = root_Line_Idle_starter( reference.instance );
+                    if( ref )
+                    {
+                        std::function< void() > functor = std::bind( &__eg_root< void >::__eg_Line< void >::__eg_Idle< void >::operator(), ref);
+                        getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber
+                        (
+                            std::allocator_arg,
+                            boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE ),
+                            [ functor, ref ]()
+                            {
+                                try
+                                {
+                                    functor();
+                                }
+                                catch( eg::termination_exception )
+                                {
+                                }
+                                root_Line_Idle_stopper( ref.data.instance );
+                            }
+                        );
+                        getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );
+                    }
+                    pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
+                }
+                break;
+            case 123:
                 {
                     __eg_root< void >::__eg_Line< void >::__eg_Sequencer< void > ref = root_Line_Sequencer_starter( reference.instance );
                     if( ref )
@@ -1119,28 +1194,31 @@ void HostFunctions::doStop( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 67:
+            case 71:
                 root_stopper( reference.instance );
                 break;
-            case 74:
+            case 78:
                 root_Line_stopper( reference.instance );
                 break;
-            case 83:
+            case 87:
                 root_Line_Move_stopper( reference.instance );
                 break;
-            case 89:
+            case 93:
                 root_Line_Up_stopper( reference.instance );
                 break;
-            case 95:
+            case 99:
                 root_Line_Down_stopper( reference.instance );
                 break;
-            case 101:
+            case 105:
                 root_Line_Left_stopper( reference.instance );
                 break;
-            case 107:
+            case 111:
                 root_Line_Right_stopper( reference.instance );
                 break;
-            case 113:
+            case 117:
+                root_Line_Idle_stopper( reference.instance );
+                break;
+            case 123:
                 root_Line_Sequencer_stopper( reference.instance );
                 break;
             default:
@@ -1154,28 +1232,31 @@ void HostFunctions::doPause( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 67:
+            case 71:
                 root_pause( reference.instance );
                 break;
-            case 74:
+            case 78:
                 root_Line_pause( reference.instance );
                 break;
-            case 83:
+            case 87:
                 root_Line_Move_pause( reference.instance );
                 break;
-            case 89:
+            case 93:
                 root_Line_Up_pause( reference.instance );
                 break;
-            case 95:
+            case 99:
                 root_Line_Down_pause( reference.instance );
                 break;
-            case 101:
+            case 105:
                 root_Line_Left_pause( reference.instance );
                 break;
-            case 107:
+            case 111:
                 root_Line_Right_pause( reference.instance );
                 break;
-            case 113:
+            case 117:
+                root_Line_Idle_pause( reference.instance );
+                break;
+            case 123:
                 root_Line_Sequencer_pause( reference.instance );
                 break;
             default:
@@ -1189,28 +1270,31 @@ void HostFunctions::doResume( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 67:
+            case 71:
                 root_resume( reference.instance );
                 break;
-            case 74:
+            case 78:
                 root_Line_resume( reference.instance );
                 break;
-            case 83:
+            case 87:
                 root_Line_Move_resume( reference.instance );
                 break;
-            case 89:
+            case 93:
                 root_Line_Up_resume( reference.instance );
                 break;
-            case 95:
+            case 99:
                 root_Line_Down_resume( reference.instance );
                 break;
-            case 101:
+            case 105:
                 root_Line_Left_resume( reference.instance );
                 break;
-            case 107:
+            case 111:
                 root_Line_Right_resume( reference.instance );
                 break;
-            case 113:
+            case 117:
+                root_Line_Idle_resume( reference.instance );
+                break;
+            case 123:
                 root_Line_Sequencer_resume( reference.instance );
                 break;
             default:
@@ -1224,28 +1308,31 @@ void HostFunctions::doDone( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 67:
+            case 71:
                 pStack->m_result = pybind11::cast( root_done( reference.instance ) );
                 break;
-            case 74:
+            case 78:
                 pStack->m_result = pybind11::cast( root_Line_done( reference.instance ) );
                 break;
-            case 83:
+            case 87:
                 pStack->m_result = pybind11::cast( root_Line_Move_done( reference.instance ) );
                 break;
-            case 89:
+            case 93:
                 pStack->m_result = pybind11::cast( root_Line_Up_done( reference.instance ) );
                 break;
-            case 95:
+            case 99:
                 pStack->m_result = pybind11::cast( root_Line_Down_done( reference.instance ) );
                 break;
-            case 101:
+            case 105:
                 pStack->m_result = pybind11::cast( root_Line_Left_done( reference.instance ) );
                 break;
-            case 107:
+            case 111:
                 pStack->m_result = pybind11::cast( root_Line_Right_done( reference.instance ) );
                 break;
-            case 113:
+            case 117:
+                pStack->m_result = pybind11::cast( root_Line_Idle_done( reference.instance ) );
+                break;
+            case 123:
                 pStack->m_result = pybind11::cast( root_Line_Sequencer_done( reference.instance ) );
                 break;
             default:
@@ -1266,23 +1353,23 @@ void HostFunctions::doWaitDimension( const eg::reference& reference, eg::TypeID 
     {
         switch( dimensionType )
         {
-            case 80:
-                break;
-            case 119:
-                break;
-            case 121:
-                break;
-            case 123:
-                break;
-            case 125:
-                break;
-            case 127:
+            case 84:
                 break;
             case 129:
                 break;
             case 131:
                 break;
-            case 134:
+            case 133:
+                break;
+            case 135:
+                break;
+            case 137:
+                break;
+            case 139:
+                break;
+            case 141:
+                break;
+            case 144:
                 break;
             default:
                 break;
@@ -1302,31 +1389,31 @@ void HostFunctions::doGetDimension( const eg::reference& reference, eg::TypeID d
     {
         switch( dimensionType )
         {
-            case 80:
+            case 84:
                 pStack->m_result = pybind11::cast( g_root[ reference.instance ].m_screen );
                 break;
-            case 119:
+            case 129:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_start );
                 break;
-            case 121:
+            case 131:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_end );
                 break;
-            case 123:
+            case 133:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_colour );
                 break;
-            case 125:
+            case 135:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_width );
                 break;
-            case 127:
+            case 137:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_Distance );
                 break;
-            case 129:
+            case 139:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_Speed );
                 break;
-            case 131:
+            case 141:
                 pStack->m_result = pybind11::cast( g_root_Line[ reference.instance ].m_Sequence );
                 break;
-            case 134:
+            case 144:
                 pStack->m_result = pybind11::cast( g_root_Line_Move[ reference.instance ].m_dir );
                 break;
             default:

@@ -131,6 +131,16 @@ void __eg_root< void >::__eg_Line< void >::__eg_Right< void >::operator()() cons
     }
 }
 
+//root::Line::Idle
+template<>
+template<>
+template<>
+void __eg_root< void >::__eg_Line< void >::__eg_Idle< void >::operator()() const
+{
+  unsigned int ms = 1000 * Distance() / Speed();
+    eg::sleep( 1ms * ms );
+}
+
 //root::Line::Sequencer
 template<>
 template<>
@@ -143,12 +153,11 @@ void __eg_root< void >::__eg_Line< void >::__eg_Sequencer< void >::operator()() 
             {
                 switch( i )
                 {
-                    case 0: Up();       break;
-                    case 1: Right();    break;
-                    case 2: Down();     break;
-                    case 3: Left();     break;
-                    default:
-                        break;
+                    case 0:     Up();       break;
+                    case 1:     Right();    break;
+                    case 2:     Down();     break;
+                    case 3:     Left();     break;
+                    default:    Idle();     break;
                 }
             }
             eg::sleep();

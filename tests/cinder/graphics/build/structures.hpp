@@ -5,7 +5,7 @@
 
 //data structures
 
-//Buffer: b_root type: 67 size: 1
+//Buffer: b_root type: 71 size: 1
 struct b_root
 {
     eg::TimeStamp g_root_cycle;
@@ -18,7 +18,7 @@ struct b_root
 };
 extern b_root *g_root;
 
-//Buffer: b_root_Line type: 74 size: 2048
+//Buffer: b_root_Line type: 78 size: 2048
 struct b_root_Line
 {
     eg::TimeStamp g_root_Line_cycle;
@@ -39,11 +39,12 @@ struct b_root_Line
     std::atomic< std::uint64_t > g_root_LineDown_ring_iter;
     std::atomic< std::uint64_t > g_root_LineLeft_ring_iter;
     std::atomic< std::uint64_t > g_root_LineRight_ring_iter;
+    std::atomic< std::uint64_t > g_root_LineIdle_ring_iter;
     std::atomic< std::uint64_t > g_root_LineSequencer_ring_iter;
 };
 extern b_root_Line *g_root_Line;
 
-//Buffer: b_root_Line_Move type: 83 size: 2048
+//Buffer: b_root_Line_Move type: 87 size: 2048
 struct b_root_Line_Move
 {
     eg::TimeStamp g_root_Line_Move_cycle;
@@ -56,7 +57,7 @@ struct b_root_Line_Move
 };
 extern b_root_Line_Move *g_root_Line_Move;
 
-//Buffer: b_root_Line_Up type: 89 size: 2048
+//Buffer: b_root_Line_Up type: 93 size: 2048
 struct b_root_Line_Up
 {
     eg::TimeStamp g_root_Line_Up_cycle;
@@ -68,7 +69,7 @@ struct b_root_Line_Up
 };
 extern b_root_Line_Up *g_root_Line_Up;
 
-//Buffer: b_root_Line_Down type: 95 size: 2048
+//Buffer: b_root_Line_Down type: 99 size: 2048
 struct b_root_Line_Down
 {
     eg::TimeStamp g_root_Line_Down_cycle;
@@ -80,7 +81,7 @@ struct b_root_Line_Down
 };
 extern b_root_Line_Down *g_root_Line_Down;
 
-//Buffer: b_root_Line_Left type: 101 size: 2048
+//Buffer: b_root_Line_Left type: 105 size: 2048
 struct b_root_Line_Left
 {
     eg::TimeStamp g_root_Line_Left_cycle;
@@ -92,7 +93,7 @@ struct b_root_Line_Left
 };
 extern b_root_Line_Left *g_root_Line_Left;
 
-//Buffer: b_root_Line_Right type: 107 size: 2048
+//Buffer: b_root_Line_Right type: 111 size: 2048
 struct b_root_Line_Right
 {
     eg::TimeStamp g_root_Line_Right_cycle;
@@ -104,7 +105,19 @@ struct b_root_Line_Right
 };
 extern b_root_Line_Right *g_root_Line_Right;
 
-//Buffer: b_root_Line_Sequencer type: 113 size: 2048
+//Buffer: b_root_Line_Idle type: 117 size: 2048
+struct b_root_Line_Idle
+{
+    eg::TimeStamp g_root_Line_Idle_cycle;
+    eg::ActionState g_root_Line_Idle_state;
+    boost::fibers::fiber g_root_Line_Idle_fiber;
+    __eg_root< void >::__eg_Line< void >::__eg_Idle< void > g_root_Line_Idle_reference;
+    eg::Instance g_root_Line_Idle_ring_index;
+    eg::Instance g_root_Line_Idle_ring;
+};
+extern b_root_Line_Idle *g_root_Line_Idle;
+
+//Buffer: b_root_Line_Sequencer type: 123 size: 2048
 struct b_root_Line_Sequencer
 {
     eg::TimeStamp g_root_Line_Sequencer_cycle;

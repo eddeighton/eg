@@ -78,3 +78,10 @@ action Line::Right
         eg::sleep();
     }
 }
+
+action Line::Idle
+{
+    unsigned int ms = 1000 * Distance() / Speed();
+    eg::sleep( 1ms * ms );
+}
+
