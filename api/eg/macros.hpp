@@ -27,6 +27,7 @@
 #include <boost/current_function.hpp>
 
 #include <sstream>
+#include <string>
 
 #define EG_DO_STUFF_AND_REQUIRE_SEMI_COLON( stuff ) do{ stuff } while( (void)0,0 )
     

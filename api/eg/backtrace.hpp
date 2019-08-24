@@ -3,9 +3,10 @@
 #ifndef EG_BACKTRACE_GUARD
 #define EG_BACKTRACE_GUARD
 
+#ifdef _WIN32
+
 #include <sstream>
 
-#ifdef _WIN32
 /*
 #pragma warning( push )
 #pragma warning( disable : 4091 )
@@ -66,6 +67,8 @@ namespace eg
 */
 #elif
 /*
+
+#include <sstream>
 #include <boost/stacktrace.hpp>
 
 namespace eg

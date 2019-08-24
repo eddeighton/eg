@@ -27,6 +27,7 @@ struct clock
     static eg::TimeStamp cycle();
     static float ct();
     static float dt();
+    static void next(); //for use by host
 };
 
 #endif //EG_CLOCK_12_06_2019

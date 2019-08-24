@@ -17,22 +17,39 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "generators.hpp"
 
-#ifndef EG_STANDARD_STUFF
-#define EG_STANDARD_STUFF
+#include "eg/implementation_session.hpp"
+#include "eg/interface.hpp"
+#include "eg/codegen.hpp"
 
-#include "common.hpp"
-#include "result_type.hpp"
-//#include "coroutine.hpp"
-#include "default_traits.hpp"
-#include "type_path.hpp"
-#include "variant.hpp"
-#include "event.hpp"
-#include "clock.hpp"
-#include "operations.hpp"
-#include "iterators.hpp"
-#include "scheduler.hpp"
-#include "macros.hpp"
-#include "resource.hpp"
+#include "common/assert_verify.hpp"
+#include "common/file.hpp"
 
-#endif //EG_STANDARD_STUFF
+#include <boost/program_options.hpp>
+
+#include <iostream>
+
+int main( int argc, const char* argv[] )
+{
+    const eg::CmdLine cmdLine = eg::handleCommandLine( argc, argv );
+    
+    eg::ReadSession session( cmdLine.programDataBaseFile );
+    
+    
+    const eg::interface::Root* pRoot = session.getTreeRoot();
+    
+    const eg::DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
+    const eg::Layout& layout = session.getLayout();
+    const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
+    
+    
+    //generate static files
+    
+    {
+    
+        //boost::filesystem::updateFileIfChanged( cmdLine.strBuildDir / std::string( "someFile.cpp" ), os.str() );    
+    }
+
+    return 0;
+}

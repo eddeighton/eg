@@ -275,29 +275,32 @@ struct eg_algorithm : public boost::fibers::algo::algorithm_with_properties< fib
         }
         
         //attempt to dispatch events first
-        if( !m_queue_resume.empty() )
+        if( events::update() )
         {
-            //scan to the end of the event log and attempt to resume any
-            //fibers waiting for the event
-            Event e;
-            while( events::get( m_eventIterator, e ) )
+            if( !m_queue_resume.empty() )
             {
-                for( rqueue_t::iterator 
-                    i = m_queue_resume.begin(),
-                    iEnd = m_queue_resume.end(); i!=iEnd; )
+                //scan to the end of the event log and attempt to resume any
+                //fibers waiting for the event
+                Event e;
+                while( events::get( m_eventIterator, e ) )
                 {
-                    boost::fibers::context* pContext( &*i );
-                    fiber_props& props = properties( pContext );
-                    if( props.getResumption()( e ) )
+                    for( rqueue_t::iterator 
+                        i = m_queue_resume.begin(),
+                        iEnd = m_queue_resume.end(); i!=iEnd; )
                     {
-                        //to resume the fiber just move it to the ready queue
-                        props.resetResumption();
-                        i = m_queue_resume.erase( i );
-                        m_queue_ready.push_back( *pContext );
-                    }
-                    else
-                    {
-                        ++i;
+                        boost::fibers::context* pContext( &*i );
+                        fiber_props& props = properties( pContext );
+                        if( props.getResumption()( e ) )
+                        {
+                            //to resume the fiber just move it to the ready queue
+                            props.resetResumption();
+                            i = m_queue_resume.erase( i );
+                            m_queue_ready.push_back( *pContext );
+                        }
+                        else
+                        {
+                            ++i;
+                        }
                     }
                 }
             }

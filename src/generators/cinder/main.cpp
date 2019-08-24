@@ -74,103 +74,6 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
     os << pszPythonScripts;
     }
     
-    
-    
-    const char* pszClock = R"(
-
-struct HostClock
-{
-public:
-    typedef std::chrono::steady_clock ClockType;
-    typedef ClockType::time_point Tick;
-    typedef ClockType::duration TickDuration;
-    typedef std::chrono::duration< float, std::ratio< 1 > > FloatTickDuration;
-    
-    HostClock()
-    {
-        m_lastTick = m_startTick = ClockType::now();
-        m_cycle = 1U;
-        m_ct = m_dt = 0.0f;
-    }
-    
-    inline Tick nextCycle()
-    {
-        const Tick nowTick = ClockType::now();
-        m_dt = FloatTickDuration( nowTick - m_lastTick  ).count();
-        m_ct = FloatTickDuration( nowTick - m_startTick ).count();
-        m_lastTick = nowTick;
-        ++m_cycle;
-        return nowTick;
-    }
-    
-    inline Tick actual()           const { return ClockType::now(); }
-    inline eg::TimeStamp cycle()   const { return m_cycle; }
-    inline float ct()              const { return m_ct; }
-    inline float dt()              const { return m_dt; }
-    
-private:
-    Tick m_lastTick, m_startTick;
-    eg::TimeStamp m_cycle;
-    float m_ct, m_dt;
-} theClock;
-
-eg::TimeStamp clock::cycle()
-{
-    return theClock.cycle();
-}
-float clock::ct()
-{
-    return theClock.ct();
-}
-float clock::dt()
-{
-    return theClock.dt();
-}
-
-)";
-
-os << pszClock;
-
-const char* pszEventLog = R"(
-
-std::unique_ptr< eg::EventLogServer > g_eventLogServer( eg::EventLogServer::create( "log" ) );
-
-eg::event_iterator events::getIterator()
-{
-    return g_eventLogServer->head();
-}
-
-bool events::get( eg::event_iterator& iterator, Event& event )
-{
-    const char* type;
-    eg::TimeStamp timestamp;
-    const void* value;
-    std::size_t size;
-    while( g_eventLogServer->read( iterator, type, timestamp, value, size ) )
-    {
-        if( 0U == strcmp( type, "stop" ) )
-        {
-            event.data = *reinterpret_cast< const eg::reference* >( value );
-            return true;
-        }
-    }  
-    return false;
-}
-
-void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
-{
-    g_eventLogServer->write( type, strlen( type ), timestamp, value, size );
-}
-    
-bool updateEventLogAndWasEvent()
-{
-    return g_eventLogServer->updateHead();
-}
-    
-    )";
-    
-    os << pszEventLog;
-    
     const char* pszInputEventsImpl = R"(
 
 std::deque< cinder::app::InputEvent > _cinder_events;
@@ -275,7 +178,6 @@ public:
     static std::string g_strDatabase;
 
 private:
-    HostClock::TickDuration sleepDuration = std::chrono::milliseconds( 10 );
     std::vector< std::function< void() > > extraRootFunctions;
     
 };
@@ -291,7 +193,7 @@ BasicApp::~BasicApp()
     
     while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
     {
-        theClock.nextCycle();
+        clock::next();
         eg::wait();
     }
     
@@ -356,8 +258,8 @@ void BasicApp::update()
     
 void BasicApp::draw()
 {
-    theClock.nextCycle();
     eg::wait();
+    clock::next();
     _cinder_events.clear();
 }
 
