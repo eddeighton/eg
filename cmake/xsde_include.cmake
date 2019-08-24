@@ -17,7 +17,7 @@ function( link_xsde targetname )
     target_link_libraries( ${targetname} optimized ${XSDE_RELEASE_LIB} debug ${XSDE_DEBUG_LIB} )
 endfunction( link_xsde )
 
-function( compile_schema xml_schema nmspace output_directory )
+macro( compile_schema target_name xml_schema nmspace output_directory )
 
     #message( "Compile schema called with " ${xml_schema} " " ${nmspace} " " ${output_directory} )
 
@@ -49,29 +49,20 @@ function( compile_schema xml_schema nmspace output_directory )
         ${output_directory}/schema-simpl.cxx
         
         COMMENT "Generating xml schema parser using xsde for ${xml_schema} to ${output_directory}"
+        
     )
     
-    #add_custom_target( 
-    #    generate_schema_${nmspace} ALL 
-    #
-    #    COMMAND ${XSDE_EXECUTABLE} "cxx-hybrid" --generate-parser --generate-serializer --generate-aggregate --no-long-long --namespace-map =${nmspace} --output-dir ${output_directory} ${xml_schema} 
-    #
+    #enable this to cause the schema to recompile - or find a way for cmake to detect the schema file timestamp properly
+    #add_custom_target(
+    #    ${target_name}
+    #    SOURCES ${xml_schema} 
+    #    
     #    DEPENDS ${xml_schema} 
-    #    
-    #    BYPRODUCTS 
-    #    ${output_directory}/schema.hxx
-    #    ${output_directory}/schema.cxx
-    #    ${output_directory}/schema-pskel.hxx
-    #    ${output_directory}/schema-pskel.cxx
-    #    ${output_directory}/schema-pimpl.hxx
-    #    ${output_directory}/schema-pimpl.cxx
-    #    ${output_directory}/schema-sskel.hxx
-    #    ${output_directory}/schema-sskel.cxx
-    #    ${output_directory}/schema-simpl.hxx
-    #    ${output_directory}/schema-simpl.cxx
-    #    
-    #    COMMENT "Generating xml schema parser using xsde for ${xml_schema} to ${output_directory}"
-    #    
-    #    )
+    #)
+    
+    add_custom_target(
+        ${target_name}
+        DEPENDS ${xml_schema} 
+    )
 
-endfunction( compile_schema )
+endmacro( compile_schema )

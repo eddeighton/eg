@@ -312,6 +312,12 @@ namespace egxml
   }
 
   void Project_pskel::
+  Files_parser (::egxml::Files_pskel& p)
+  {
+    this->Files_parser_ = &p;
+  }
+
+  void Project_pskel::
   Build_parser (::egxml::Build_pskel& p)
   {
     this->Build_parser_ = &p;
@@ -334,6 +340,7 @@ namespace egxml
            ::xml_schema::string_pskel& Host,
            ::xml_schema::string_pskel& Description,
            ::xml_schema::string_pskel& Package,
+           ::egxml::Files_pskel& Files,
            ::egxml::Build_pskel& Build,
            ::egxml::Run_pskel& Run,
            ::egxml::Defaults_pskel& Defaults)
@@ -342,6 +349,7 @@ namespace egxml
     this->Host_parser_ = &Host;
     this->Description_parser_ = &Description;
     this->Package_parser_ = &Package;
+    this->Files_parser_ = &Files;
     this->Build_parser_ = &Build;
     this->Run_parser_ = &Run;
     this->Defaults_parser_ = &Defaults;
@@ -354,6 +362,7 @@ namespace egxml
     Host_parser_ (0),
     Description_parser_ (0),
     Package_parser_ (0),
+    Files_parser_ (0),
     Build_parser_ (0),
     Run_parser_ (0),
     Defaults_parser_ (0),
@@ -369,9 +378,72 @@ namespace egxml
     Host_parser_ (0),
     Description_parser_ (0),
     Package_parser_ (0),
+    Files_parser_ (0),
     Build_parser_ (0),
     Run_parser_ (0),
     Defaults_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
+  // Files_pskel
+  //
+
+  void Files_pskel::
+  System_parser (::xml_schema::string_pskel& p)
+  {
+    this->System_parser_ = &p;
+  }
+
+  void Files_pskel::
+  Include_parser (::xml_schema::string_pskel& p)
+  {
+    this->Include_parser_ = &p;
+  }
+
+  void Files_pskel::
+  Source_parser (::xml_schema::string_pskel& p)
+  {
+    this->Source_parser_ = &p;
+  }
+
+  void Files_pskel::
+  Library_parser (::xml_schema::string_pskel& p)
+  {
+    this->Library_parser_ = &p;
+  }
+
+  void Files_pskel::
+  parsers (::xml_schema::string_pskel& System,
+           ::xml_schema::string_pskel& Include,
+           ::xml_schema::string_pskel& Source,
+           ::xml_schema::string_pskel& Library)
+  {
+    this->System_parser_ = &System;
+    this->Include_parser_ = &Include;
+    this->Source_parser_ = &Source;
+    this->Library_parser_ = &Library;
+  }
+
+  Files_pskel::
+  Files_pskel ()
+  : Files_impl_ (0),
+    System_parser_ (0),
+    Include_parser_ (0),
+    Source_parser_ (0),
+    Library_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
+  {
+  }
+
+  Files_pskel::
+  Files_pskel (Files_pskel* impl, void*)
+  : ::xsde::cxx::parser::validating::complex_content (impl, 0),
+    Files_impl_ (impl),
+    System_parser_ (0),
+    Include_parser_ (0),
+    Source_parser_ (0),
+    Library_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
   }
@@ -465,68 +537,6 @@ namespace egxml
   : ::xsde::cxx::parser::validating::complex_content (impl, 0),
     Directories_impl_ (impl),
     Include_parser_ (0),
-    Library_parser_ (0),
-    v_state_stack_ (sizeof (v_state_), &v_state_first_)
-  {
-  }
-
-  // Files_pskel
-  //
-
-  void Files_pskel::
-  System_parser (::xml_schema::string_pskel& p)
-  {
-    this->System_parser_ = &p;
-  }
-
-  void Files_pskel::
-  Include_parser (::xml_schema::string_pskel& p)
-  {
-    this->Include_parser_ = &p;
-  }
-
-  void Files_pskel::
-  Source_parser (::xml_schema::string_pskel& p)
-  {
-    this->Source_parser_ = &p;
-  }
-
-  void Files_pskel::
-  Library_parser (::xml_schema::string_pskel& p)
-  {
-    this->Library_parser_ = &p;
-  }
-
-  void Files_pskel::
-  parsers (::xml_schema::string_pskel& System,
-           ::xml_schema::string_pskel& Include,
-           ::xml_schema::string_pskel& Source,
-           ::xml_schema::string_pskel& Library)
-  {
-    this->System_parser_ = &System;
-    this->Include_parser_ = &Include;
-    this->Source_parser_ = &Source;
-    this->Library_parser_ = &Library;
-  }
-
-  Files_pskel::
-  Files_pskel ()
-  : Files_impl_ (0),
-    System_parser_ (0),
-    Include_parser_ (0),
-    Source_parser_ (0),
-    Library_parser_ (0),
-    v_state_stack_ (sizeof (v_state_), &v_state_first_)
-  {
-  }
-
-  Files_pskel::
-  Files_pskel (Files_pskel* impl, void*)
-  : ::xsde::cxx::parser::validating::complex_content (impl, 0),
-    Files_impl_ (impl),
-    System_parser_ (0),
-    Include_parser_ (0),
-    Source_parser_ (0),
     Library_parser_ (0),
     v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
@@ -856,6 +866,13 @@ namespace egxml
   }
 
   void Project_pskel::
+  Files (::egxml::Files* x)
+  {
+    if (this->Project_impl_)
+      this->Project_impl_->Files (x);
+  }
+
+  void Project_pskel::
   Build (const ::egxml::Build& x)
   {
     if (this->Project_impl_)
@@ -901,6 +918,9 @@ namespace egxml
     if (this->Package_parser_)
       this->Package_parser_->_reset ();
 
+    if (this->Files_parser_)
+      this->Files_parser_->_reset ();
+
     if (this->Build_parser_)
       this->Build_parser_->_reset ();
 
@@ -909,6 +929,65 @@ namespace egxml
 
     if (this->Defaults_parser_)
       this->Defaults_parser_->_reset ();
+
+    this->resetting_ = false;
+  }
+
+  // Files_pskel
+  //
+
+  void Files_pskel::
+  System (const ::std::string& x)
+  {
+    if (this->Files_impl_)
+      this->Files_impl_->System (x);
+  }
+
+  void Files_pskel::
+  Include (const ::std::string& x)
+  {
+    if (this->Files_impl_)
+      this->Files_impl_->Include (x);
+  }
+
+  void Files_pskel::
+  Source (const ::std::string& x)
+  {
+    if (this->Files_impl_)
+      this->Files_impl_->Source (x);
+  }
+
+  void Files_pskel::
+  Library (const ::std::string& x)
+  {
+    if (this->Files_impl_)
+      this->Files_impl_->Library (x);
+  }
+
+  void Files_pskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::xsde::cxx::parser::validating::complex_content base;
+    base::_reset ();
+
+    this->v_state_stack_.clear ();
+
+    this->resetting_ = true;
+
+    if (this->System_parser_)
+      this->System_parser_->_reset ();
+
+    if (this->Include_parser_)
+      this->Include_parser_->_reset ();
+
+    if (this->Source_parser_)
+      this->Source_parser_->_reset ();
+
+    if (this->Library_parser_)
+      this->Library_parser_->_reset ();
 
     this->resetting_ = false;
   }
@@ -1001,65 +1080,6 @@ namespace egxml
 
     if (this->Include_parser_)
       this->Include_parser_->_reset ();
-
-    if (this->Library_parser_)
-      this->Library_parser_->_reset ();
-
-    this->resetting_ = false;
-  }
-
-  // Files_pskel
-  //
-
-  void Files_pskel::
-  System (const ::std::string& x)
-  {
-    if (this->Files_impl_)
-      this->Files_impl_->System (x);
-  }
-
-  void Files_pskel::
-  Include (const ::std::string& x)
-  {
-    if (this->Files_impl_)
-      this->Files_impl_->Include (x);
-  }
-
-  void Files_pskel::
-  Source (const ::std::string& x)
-  {
-    if (this->Files_impl_)
-      this->Files_impl_->Source (x);
-  }
-
-  void Files_pskel::
-  Library (const ::std::string& x)
-  {
-    if (this->Files_impl_)
-      this->Files_impl_->Library (x);
-  }
-
-  void Files_pskel::
-  _reset ()
-  {
-    if (this->resetting_)
-      return;
-
-    typedef ::xsde::cxx::parser::validating::complex_content base;
-    base::_reset ();
-
-    this->v_state_stack_.clear ();
-
-    this->resetting_ = true;
-
-    if (this->System_parser_)
-      this->System_parser_->_reset ();
-
-    if (this->Include_parser_)
-      this->Include_parser_->_reset ();
-
-    if (this->Source_parser_)
-      this->Source_parser_->_reset ();
 
     if (this->Library_parser_)
       this->Library_parser_->_reset ();
@@ -2630,6 +2650,40 @@ namespace egxml
       }
       case 4UL:
       {
+        if (n == "Files" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Files_parser_)
+            {
+              this->Files_parser_->pre ();
+              ctx.nested_parser (this->Files_parser_);
+            }
+          }
+          else
+          {
+            if (this->Files_parser_ != 0)
+            {
+              ::egxml::Files* tmp = this->Files_parser_->post_Files ();
+              this->Files (tmp);
+            }
+
+            count = 0;
+            state = 5UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = 5UL;
+          // Fall through.
+        }
+      }
+      case 5UL:
+      {
         if (n == "Build" && ns.empty ())
         {
           if (start)
@@ -2663,11 +2717,11 @@ namespace egxml
           }
 
           count = 0;
-          state = 5UL;
+          state = 6UL;
           // Fall through.
         }
       }
-      case 5UL:
+      case 6UL:
       {
         if (n == "Run" && ns.empty ())
         {
@@ -2702,11 +2756,11 @@ namespace egxml
           }
 
           count = 0;
-          state = 6UL;
+          state = 7UL;
           // Fall through.
         }
       }
-      case 6UL:
+      case 7UL:
       {
         if (n == "Defaults" && ns.empty ())
         {
@@ -2728,6 +2782,289 @@ namespace egxml
 
             count = 0;
             state = ~0UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = ~0UL;
+          // Fall through.
+        }
+      }
+      case ~0UL:
+        break;
+    }
+  }
+
+  // Element validation and dispatch functions for Files_pskel.
+  //
+  bool Files_pskel::
+  _start_element_impl (const ::xsde::cxx::ro_string& ns,
+                       const ::xsde::cxx::ro_string& n)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    if (vd->func == 0 && vd->state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (base::_start_element_impl (ns, n))
+        return true;
+      else
+        vd->state = 1;
+    }
+
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+      vd = vs.data + (vs.size - 1);
+
+      if (vd->state == ~0UL && !ctx.error_type ())
+        vd = vs.data + (--vs.size - 1);
+      else
+        break;
+    }
+
+    if (vd->func == 0)
+    {
+      if (vd->state != ~0UL)
+      {
+        unsigned long s = ~0UL;
+
+        if (n == "System" && ns.empty ())
+          s = 0UL;
+        else if (n == "Include" && ns.empty ())
+          s = 1UL;
+        else if (n == "Source" && ns.empty ())
+          s = 2UL;
+        else if (n == "Library" && ns.empty ())
+          s = 3UL;
+
+        if (s != ~0UL)
+        {
+          vd->count++;
+          vd->state = ~0UL;
+
+          vd = vs.data + vs.size++;
+          vd->func = &Files_pskel::sequence_0;
+          vd->state = s;
+          vd->count = 0;
+
+          this->sequence_0 (vd->state, vd->count, ns, n, true);
+        }
+        else
+        {
+          return false;
+        }
+      }
+      else
+        return false;
+    }
+
+    return true;
+  }
+
+  bool Files_pskel::
+  _end_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+  {
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size - 1];
+
+    if (vd.func == 0 && vd.state == 0)
+    {
+      typedef ::xsde::cxx::parser::validating::complex_content base;
+      if (!base::_end_element_impl (ns, n))
+        assert (false);
+      return true;
+    }
+
+    assert (vd.func != 0);
+    (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+    if (vd.state == ~0UL)
+      vs.size--;
+
+    return true;
+  }
+
+  void Files_pskel::
+  _pre_e_validate ()
+  {
+    this->v_state_stack_.push ();
+    static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size++];
+
+    vd.func = 0;
+    vd.state = 0;
+    vd.count = 0;
+  }
+
+  void Files_pskel::
+  _post_e_validate ()
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    ::xsde::cxx::ro_string empty;
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+      if (ctx.error_type ())
+        return;
+
+      assert (vd->state == ~0UL);
+      vd = vs.data + (--vs.size - 1);
+    }
+
+
+    this->v_state_stack_.pop ();
+  }
+
+  void Files_pskel::
+  sequence_0 (unsigned long& state,
+              unsigned long& count,
+              const ::xsde::cxx::ro_string& ns,
+              const ::xsde::cxx::ro_string& n,
+              bool start)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    XSDE_UNUSED (ctx);
+
+    switch (state)
+    {
+      case 0UL:
+      {
+        if (n == "System" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->System_parser_)
+            {
+              this->System_parser_->pre ();
+              ctx.nested_parser (this->System_parser_);
+            }
+          }
+          else
+          {
+            if (this->System_parser_ != 0)
+            {
+              const ::std::string& tmp = this->System_parser_->post_string ();
+              this->System (tmp);
+            }
+
+            count++;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = 1UL;
+          // Fall through.
+        }
+      }
+      case 1UL:
+      {
+        if (n == "Include" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Include_parser_)
+            {
+              this->Include_parser_->pre ();
+              ctx.nested_parser (this->Include_parser_);
+            }
+          }
+          else
+          {
+            if (this->Include_parser_ != 0)
+            {
+              const ::std::string& tmp = this->Include_parser_->post_string ();
+              this->Include (tmp);
+            }
+
+            count++;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = 2UL;
+          // Fall through.
+        }
+      }
+      case 2UL:
+      {
+        if (n == "Source" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Source_parser_)
+            {
+              this->Source_parser_->pre ();
+              ctx.nested_parser (this->Source_parser_);
+            }
+          }
+          else
+          {
+            if (this->Source_parser_ != 0)
+            {
+              const ::std::string& tmp = this->Source_parser_->post_string ();
+              this->Source (tmp);
+            }
+
+            count++;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = 3UL;
+          // Fall through.
+        }
+      }
+      case 3UL:
+      {
+        if (n == "Library" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->Library_parser_)
+            {
+              this->Library_parser_->pre ();
+              ctx.nested_parser (this->Library_parser_);
+            }
+          }
+          else
+          {
+            if (this->Library_parser_ != 0)
+            {
+              const ::std::string& tmp = this->Library_parser_->post_string ();
+              this->Library (tmp);
+            }
+
+            count++;
           }
 
           break;
@@ -3149,289 +3486,6 @@ namespace egxml
         }
       }
       case 1UL:
-      {
-        if (n == "Library" && ns.empty ())
-        {
-          if (start)
-          {
-            if (this->Library_parser_)
-            {
-              this->Library_parser_->pre ();
-              ctx.nested_parser (this->Library_parser_);
-            }
-          }
-          else
-          {
-            if (this->Library_parser_ != 0)
-            {
-              const ::std::string& tmp = this->Library_parser_->post_string ();
-              this->Library (tmp);
-            }
-
-            count++;
-          }
-
-          break;
-        }
-        else
-        {
-          assert (start);
-          count = 0;
-          state = ~0UL;
-          // Fall through.
-        }
-      }
-      case ~0UL:
-        break;
-    }
-  }
-
-  // Element validation and dispatch functions for Files_pskel.
-  //
-  bool Files_pskel::
-  _start_element_impl (const ::xsde::cxx::ro_string& ns,
-                       const ::xsde::cxx::ro_string& n)
-  {
-    ::xsde::cxx::parser::context& ctx = this->_context ();
-
-    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
-    v_state_descr_* vd = vs.data + (vs.size - 1);
-
-    if (vd->func == 0 && vd->state == 0)
-    {
-      typedef ::xsde::cxx::parser::validating::complex_content base;
-      if (base::_start_element_impl (ns, n))
-        return true;
-      else
-        vd->state = 1;
-    }
-
-    while (vd->func != 0)
-    {
-      (this->*vd->func) (vd->state, vd->count, ns, n, true);
-
-      vd = vs.data + (vs.size - 1);
-
-      if (vd->state == ~0UL && !ctx.error_type ())
-        vd = vs.data + (--vs.size - 1);
-      else
-        break;
-    }
-
-    if (vd->func == 0)
-    {
-      if (vd->state != ~0UL)
-      {
-        unsigned long s = ~0UL;
-
-        if (n == "System" && ns.empty ())
-          s = 0UL;
-        else if (n == "Include" && ns.empty ())
-          s = 1UL;
-        else if (n == "Source" && ns.empty ())
-          s = 2UL;
-        else if (n == "Library" && ns.empty ())
-          s = 3UL;
-
-        if (s != ~0UL)
-        {
-          vd->count++;
-          vd->state = ~0UL;
-
-          vd = vs.data + vs.size++;
-          vd->func = &Files_pskel::sequence_0;
-          vd->state = s;
-          vd->count = 0;
-
-          this->sequence_0 (vd->state, vd->count, ns, n, true);
-        }
-        else
-        {
-          return false;
-        }
-      }
-      else
-        return false;
-    }
-
-    return true;
-  }
-
-  bool Files_pskel::
-  _end_element_impl (const ::xsde::cxx::ro_string& ns,
-                     const ::xsde::cxx::ro_string& n)
-  {
-    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
-    v_state_descr_& vd = vs.data[vs.size - 1];
-
-    if (vd.func == 0 && vd.state == 0)
-    {
-      typedef ::xsde::cxx::parser::validating::complex_content base;
-      if (!base::_end_element_impl (ns, n))
-        assert (false);
-      return true;
-    }
-
-    assert (vd.func != 0);
-    (this->*vd.func) (vd.state, vd.count, ns, n, false);
-
-    if (vd.state == ~0UL)
-      vs.size--;
-
-    return true;
-  }
-
-  void Files_pskel::
-  _pre_e_validate ()
-  {
-    this->v_state_stack_.push ();
-    static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
-
-    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
-    v_state_descr_& vd = vs.data[vs.size++];
-
-    vd.func = 0;
-    vd.state = 0;
-    vd.count = 0;
-  }
-
-  void Files_pskel::
-  _post_e_validate ()
-  {
-    ::xsde::cxx::parser::context& ctx = this->_context ();
-
-    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
-    v_state_descr_* vd = vs.data + (vs.size - 1);
-
-    ::xsde::cxx::ro_string empty;
-    while (vd->func != 0)
-    {
-      (this->*vd->func) (vd->state, vd->count, empty, empty, true);
-
-      if (ctx.error_type ())
-        return;
-
-      assert (vd->state == ~0UL);
-      vd = vs.data + (--vs.size - 1);
-    }
-
-
-    this->v_state_stack_.pop ();
-  }
-
-  void Files_pskel::
-  sequence_0 (unsigned long& state,
-              unsigned long& count,
-              const ::xsde::cxx::ro_string& ns,
-              const ::xsde::cxx::ro_string& n,
-              bool start)
-  {
-    ::xsde::cxx::parser::context& ctx = this->_context ();
-
-    XSDE_UNUSED (ctx);
-
-    switch (state)
-    {
-      case 0UL:
-      {
-        if (n == "System" && ns.empty ())
-        {
-          if (start)
-          {
-            if (this->System_parser_)
-            {
-              this->System_parser_->pre ();
-              ctx.nested_parser (this->System_parser_);
-            }
-          }
-          else
-          {
-            if (this->System_parser_ != 0)
-            {
-              const ::std::string& tmp = this->System_parser_->post_string ();
-              this->System (tmp);
-            }
-
-            count++;
-          }
-
-          break;
-        }
-        else
-        {
-          assert (start);
-          count = 0;
-          state = 1UL;
-          // Fall through.
-        }
-      }
-      case 1UL:
-      {
-        if (n == "Include" && ns.empty ())
-        {
-          if (start)
-          {
-            if (this->Include_parser_)
-            {
-              this->Include_parser_->pre ();
-              ctx.nested_parser (this->Include_parser_);
-            }
-          }
-          else
-          {
-            if (this->Include_parser_ != 0)
-            {
-              const ::std::string& tmp = this->Include_parser_->post_string ();
-              this->Include (tmp);
-            }
-
-            count++;
-          }
-
-          break;
-        }
-        else
-        {
-          assert (start);
-          count = 0;
-          state = 2UL;
-          // Fall through.
-        }
-      }
-      case 2UL:
-      {
-        if (n == "Source" && ns.empty ())
-        {
-          if (start)
-          {
-            if (this->Source_parser_)
-            {
-              this->Source_parser_->pre ();
-              ctx.nested_parser (this->Source_parser_);
-            }
-          }
-          else
-          {
-            if (this->Source_parser_ != 0)
-            {
-              const ::std::string& tmp = this->Source_parser_->post_string ();
-              this->Source (tmp);
-            }
-
-            count++;
-          }
-
-          break;
-        }
-        else
-        {
-          assert (start);
-          count = 0;
-          state = 3UL;
-          // Fall through.
-        }
-      }
-      case 3UL:
       {
         if (n == "Library" && ns.empty ())
         {

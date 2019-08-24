@@ -436,6 +436,31 @@ namespace egxml
     return this->Package_;
   }
 
+  bool Project::
+  Files_present () const
+  {
+    return this->Files_ != 0;
+  }
+
+  const ::egxml::Files& Project::
+  Files () const
+  {
+    return *this->Files_;
+  }
+
+  ::egxml::Files& Project::
+  Files ()
+  {
+    return *this->Files_;
+  }
+
+  void Project::
+  Files (::egxml::Files* x)
+  {
+    delete this->Files_;
+    this->Files_ = x;
+  }
+
   const Project::Build_sequence& Project::
   Build () const
   {
@@ -489,6 +514,57 @@ namespace egxml
   {
     this->Defaults_ = x;
     this->Defaults_present_ = true;
+  }
+
+  // Files
+  //
+
+  const Files::System_sequence& Files::
+  System () const
+  {
+    return this->System_;
+  }
+
+  Files::System_sequence& Files::
+  System ()
+  {
+    return this->System_;
+  }
+
+  const Files::Include_sequence& Files::
+  Include () const
+  {
+    return this->Include_;
+  }
+
+  Files::Include_sequence& Files::
+  Include ()
+  {
+    return this->Include_;
+  }
+
+  const Files::Source_sequence& Files::
+  Source () const
+  {
+    return this->Source_;
+  }
+
+  Files::Source_sequence& Files::
+  Source ()
+  {
+    return this->Source_;
+  }
+
+  const Files::Library_sequence& Files::
+  Library () const
+  {
+    return this->Library_;
+  }
+
+  Files::Library_sequence& Files::
+  Library ()
+  {
+    return this->Library_;
   }
 
   // EG
@@ -597,57 +673,6 @@ namespace egxml
   }
 
   Directories::Library_sequence& Directories::
-  Library ()
-  {
-    return this->Library_;
-  }
-
-  // Files
-  //
-
-  const Files::System_sequence& Files::
-  System () const
-  {
-    return this->System_;
-  }
-
-  Files::System_sequence& Files::
-  System ()
-  {
-    return this->System_;
-  }
-
-  const Files::Include_sequence& Files::
-  Include () const
-  {
-    return this->Include_;
-  }
-
-  Files::Include_sequence& Files::
-  Include ()
-  {
-    return this->Include_;
-  }
-
-  const Files::Source_sequence& Files::
-  Source () const
-  {
-    return this->Source_;
-  }
-
-  Files::Source_sequence& Files::
-  Source ()
-  {
-    return this->Source_;
-  }
-
-  const Files::Library_sequence& Files::
-  Library () const
-  {
-    return this->Library_;
-  }
-
-  Files::Library_sequence& Files::
   Library ()
   {
     return this->Library_;
@@ -880,11 +905,26 @@ namespace egxml
   Project ()
   {
     this->Description_present_ = false;
+    this->Files_ = 0;
     this->Defaults_present_ = false;
   }
 
   Project::
   ~Project ()
+  {
+    delete this->Files_;
+  }
+
+  // Files
+  //
+
+  Files::
+  Files ()
+  {
+  }
+
+  Files::
+  ~Files ()
   {
   }
 
@@ -966,19 +1006,6 @@ namespace egxml
 
   Directories::
   ~Directories ()
-  {
-  }
-
-  // Files
-  //
-
-  Files::
-  Files ()
-  {
-  }
-
-  Files::
-  ~Files ()
   {
   }
 

@@ -27,16 +27,7 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="Files" minOccurs="0">
-				<xs:complexType>
-					<xs:sequence>
-						<xs:element name="System" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-						<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-						<xs:element name="Source" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-						<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-					</xs:sequence>
-				</xs:complexType>
-			</xs:element>
+			<xs:element name="Files" type="Files" minOccurs="0"/>
 			<xs:element name="Command" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
@@ -51,6 +42,7 @@
 			<xs:element name="Host" type="xs:string"/>
 			<xs:element name="Description" type="xs:string" minOccurs="0"/>
 			<xs:element name="Package" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Files" type="Files" minOccurs="0"/>
 			<xs:element name="Build" maxOccurs="unbounded">
 				<xs:complexType>
 					<xs:sequence>
@@ -88,6 +80,14 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="Files">
+		<xs:sequence>
+			<xs:element name="System" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Include" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Source" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Library" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 </xs:schema>

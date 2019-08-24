@@ -121,8 +121,8 @@ namespace wizardxml
     }
 
     public:
-    ::xml_schema::string_pimpl string_p_;
     ::wizardxml::Wizard_pimpl Wizard_p_;
+    ::xml_schema::string_pimpl string_p_;
   };
 }
 

@@ -251,6 +251,9 @@ namespace egxml
     Package (const ::std::string&);
 
     virtual void
+    Files (::egxml::Files*);
+
+    virtual void
     Build (const ::egxml::Build&);
 
     virtual void
@@ -274,6 +277,50 @@ namespace egxml
 
     Project_pimpl_state Project_pimpl_state_;
     bool Project_pimpl_base_;
+  };
+
+  class Files_pimpl: public Files_pskel
+  {
+    public:
+    Files_pimpl (bool = false);
+
+    ~Files_pimpl ();
+
+    virtual void
+    _reset ();
+
+    virtual void
+    pre ();
+
+    // Elements.
+    //
+    virtual void
+    System (const ::std::string&);
+
+    virtual void
+    Include (const ::std::string&);
+
+    virtual void
+    Source (const ::std::string&);
+
+    virtual void
+    Library (const ::std::string&);
+
+    virtual ::egxml::Files*
+    post_Files ();
+
+    public:
+    void
+    pre_impl (::egxml::Files*);
+
+    public:
+    struct Files_pimpl_state
+    {
+      ::egxml::Files* Files_;
+    };
+
+    Files_pimpl_state Files_pimpl_state_;
+    bool Files_pimpl_base_;
   };
 
   class EG_pimpl: public EG_pskel
@@ -356,50 +403,6 @@ namespace egxml
 
     Directories_pimpl_state Directories_pimpl_state_;
     bool Directories_pimpl_base_;
-  };
-
-  class Files_pimpl: public Files_pskel
-  {
-    public:
-    Files_pimpl (bool = false);
-
-    ~Files_pimpl ();
-
-    virtual void
-    _reset ();
-
-    virtual void
-    pre ();
-
-    // Elements.
-    //
-    virtual void
-    System (const ::std::string&);
-
-    virtual void
-    Include (const ::std::string&);
-
-    virtual void
-    Source (const ::std::string&);
-
-    virtual void
-    Library (const ::std::string&);
-
-    virtual ::egxml::Files*
-    post_Files ();
-
-    public:
-    void
-    pre_impl (::egxml::Files*);
-
-    public:
-    struct Files_pimpl_state
-    {
-      ::egxml::Files* Files_;
-    };
-
-    Files_pimpl_state Files_pimpl_state_;
-    bool Files_pimpl_base_;
   };
 
   class Run_pimpl: public Run_pskel
@@ -491,14 +494,14 @@ namespace egxml
 
     public:
     ::egxml::Files_pimpl Files_p_;
+    ::egxml::EG_pimpl EG_p_;
+    ::egxml::Package_pimpl Package_p_;
+    ::egxml::Directories_pimpl Directories_p_;
     ::egxml::Host_pimpl Host_p_;
     ::egxml::Project_pimpl Project_p_;
     ::egxml::Build_pimpl Build_p_;
     ::egxml::Run_pimpl Run_p_;
     ::egxml::Defaults_pimpl Defaults_p_;
-    ::egxml::EG_pimpl EG_p_;
-    ::egxml::Package_pimpl Package_p_;
-    ::egxml::Directories_pimpl Directories_p_;
     ::egxml::Fibers_pimpl Fibers_p_;
     ::egxml::Stack_pimpl Stack_p_;
     ::xml_schema::unsigned_int_pimpl unsigned_int_p_;

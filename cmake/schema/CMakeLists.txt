@@ -14,7 +14,8 @@ set( SCHEMA_SOURCE_DIR ${EG_ROOT_DIR}/src/schema )
 
 find_file( EG_SCHEMA_FILE NAME eg_schema.xsd PATHS ${SCHEMA_SOURCE_DIR} )
 set( EG_SCHEMA_GENERATED_SOURCE_DIR ${SCHEMA_SOURCE_DIR}/egxml )
-compile_schema( ${EG_SCHEMA_FILE} "egxml" ${EG_SCHEMA_GENERATED_SOURCE_DIR} )
+compile_schema( eg_schema_target ${EG_SCHEMA_FILE} "egxml" ${EG_SCHEMA_GENERATED_SOURCE_DIR} )
+
 set( EG_SCHEMA_GENERATED_HEADERS
         ${EG_SCHEMA_GENERATED_SOURCE_DIR}/eg_schema.hxx
         ${EG_SCHEMA_GENERATED_SOURCE_DIR}/eg_schema-pskel.hxx
@@ -30,7 +31,7 @@ set( EG_SCHEMA_GENERATED_SOURCE
 
 find_file( WIZARD_SCHEMA_FILE NAME wizard_schema.xsd PATHS ${SCHEMA_SOURCE_DIR} )
 set( WIZARD_SCHEMA_GENERATED_SOURCE_DIR ${SCHEMA_SOURCE_DIR}/wizardxml )
-compile_schema( ${WIZARD_SCHEMA_FILE} "wizardxml" ${WIZARD_SCHEMA_GENERATED_SOURCE_DIR} )
+compile_schema( wizard_schema_target ${WIZARD_SCHEMA_FILE} "wizardxml" ${WIZARD_SCHEMA_GENERATED_SOURCE_DIR} )
 set( WIZARD_SCHEMA_GENERATED_HEADERS
         ${WIZARD_SCHEMA_GENERATED_SOURCE_DIR}/wizard_schema.hxx
         ${WIZARD_SCHEMA_GENERATED_SOURCE_DIR}/wizard_schema-pskel.hxx
@@ -46,7 +47,7 @@ set( WIZARD_SCHEMA_GENERATED_SOURCE
 
 find_file( INSTALLATION_SCHEMA_FILE NAME installation_schema.xsd PATHS ${SCHEMA_SOURCE_DIR} )
 set( INSTALLATION_SCHEMA_GENERATED_SOURCE_DIR ${SCHEMA_SOURCE_DIR}/installationxml )
-compile_schema( ${INSTALLATION_SCHEMA_FILE} "installationxml" ${INSTALLATION_SCHEMA_GENERATED_SOURCE_DIR} )
+compile_schema( installation_schema_target ${INSTALLATION_SCHEMA_FILE} "installationxml" ${INSTALLATION_SCHEMA_GENERATED_SOURCE_DIR} )
 set( INSTALLATION_SCHEMA_GENERATED_HEADERS
         ${INSTALLATION_SCHEMA_GENERATED_SOURCE_DIR}/installation_schema.hxx
         ${INSTALLATION_SCHEMA_GENERATED_SOURCE_DIR}/installation_schema-pskel.hxx
@@ -73,6 +74,10 @@ add_library( schemalib
                     ${INSTALLATION_SCHEMA_GENERATED_HEADERS} ${INSTALLATION_SCHEMA_GENERATED_SOURCE}
                     ${OTHER_HEADERS} ${OTHER_SOURCES}
 				)
+
+add_dependencies( schemalib eg_schema_target )
+add_dependencies( schemalib wizard_schema_target )
+add_dependencies( schemalib installation_schema_target )
 
 set_target_properties( schemalib PROPERTIES DEBUG_POSTFIX d )
 

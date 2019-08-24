@@ -338,6 +338,12 @@ namespace egxml
   }
 
   void Project_pimpl::
+  Files (::egxml::Files* x)
+  {
+    this->Project_pimpl_state_.Project_->Files (x);
+  }
+
+  void Project_pimpl::
   Build (const ::egxml::Build& x)
   {
     this->Project_pimpl_state_.Project_->Build ().push_back (x);
@@ -360,6 +366,80 @@ namespace egxml
   {
     ::egxml::Project* r = this->Project_pimpl_state_.Project_;
     this->Project_pimpl_state_.Project_ = 0;
+    return r;
+  }
+
+  // Files_pimpl
+  //
+
+  Files_pimpl::
+  Files_pimpl (bool b)
+  {
+    this->Files_pimpl_base_ = b;
+    this->Files_pimpl_state_.Files_ = 0;
+  }
+
+  Files_pimpl::
+  ~Files_pimpl ()
+  {
+    if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
+      delete this->Files_pimpl_state_.Files_;
+  }
+
+  void Files_pimpl::
+  _reset ()
+  {
+    Files_pskel::_reset ();
+
+    if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
+    {
+      delete this->Files_pimpl_state_.Files_;
+      this->Files_pimpl_state_.Files_ = 0;
+    }
+  }
+
+  void Files_pimpl::
+  pre_impl (::egxml::Files* x)
+  {
+    this->Files_pimpl_state_.Files_ = x;
+  }
+
+  void Files_pimpl::
+  pre ()
+  {
+    ::egxml::Files* x = new ::egxml::Files;
+    this->pre_impl (x);
+  }
+
+  void Files_pimpl::
+  System (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->System ().push_back (x);
+  }
+
+  void Files_pimpl::
+  Include (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->Include ().push_back (x);
+  }
+
+  void Files_pimpl::
+  Source (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->Source ().push_back (x);
+  }
+
+  void Files_pimpl::
+  Library (const ::std::string& x)
+  {
+    this->Files_pimpl_state_.Files_->Library ().push_back (x);
+  }
+
+  ::egxml::Files* Files_pimpl::
+  post_Files ()
+  {
+    ::egxml::Files* r = this->Files_pimpl_state_.Files_;
+    this->Files_pimpl_state_.Files_ = 0;
     return r;
   }
 
@@ -500,80 +580,6 @@ namespace egxml
     return r;
   }
 
-  // Files_pimpl
-  //
-
-  Files_pimpl::
-  Files_pimpl (bool b)
-  {
-    this->Files_pimpl_base_ = b;
-    this->Files_pimpl_state_.Files_ = 0;
-  }
-
-  Files_pimpl::
-  ~Files_pimpl ()
-  {
-    if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
-      delete this->Files_pimpl_state_.Files_;
-  }
-
-  void Files_pimpl::
-  _reset ()
-  {
-    Files_pskel::_reset ();
-
-    if (!this->Files_pimpl_base_ && this->Files_pimpl_state_.Files_)
-    {
-      delete this->Files_pimpl_state_.Files_;
-      this->Files_pimpl_state_.Files_ = 0;
-    }
-  }
-
-  void Files_pimpl::
-  pre_impl (::egxml::Files* x)
-  {
-    this->Files_pimpl_state_.Files_ = x;
-  }
-
-  void Files_pimpl::
-  pre ()
-  {
-    ::egxml::Files* x = new ::egxml::Files;
-    this->pre_impl (x);
-  }
-
-  void Files_pimpl::
-  System (const ::std::string& x)
-  {
-    this->Files_pimpl_state_.Files_->System ().push_back (x);
-  }
-
-  void Files_pimpl::
-  Include (const ::std::string& x)
-  {
-    this->Files_pimpl_state_.Files_->Include ().push_back (x);
-  }
-
-  void Files_pimpl::
-  Source (const ::std::string& x)
-  {
-    this->Files_pimpl_state_.Files_->Source ().push_back (x);
-  }
-
-  void Files_pimpl::
-  Library (const ::std::string& x)
-  {
-    this->Files_pimpl_state_.Files_->Library ().push_back (x);
-  }
-
-  ::egxml::Files* Files_pimpl::
-  post_Files ()
-  {
-    ::egxml::Files* r = this->Files_pimpl_state_.Files_;
-    this->Files_pimpl_state_.Files_ = 0;
-    return r;
-  }
-
   // Run_pimpl
   //
 
@@ -656,32 +662,6 @@ namespace egxml
                             this->string_p_,
                             this->string_p_);
 
-    this->Host_p_.parsers (this->string_p_,
-                           this->string_p_,
-                           this->string_p_,
-                           this->string_p_,
-                           this->Directories_p_,
-                           this->Files_p_,
-                           this->string_p_);
-
-    this->Project_p_.parsers (this->string_p_,
-                              this->string_p_,
-                              this->string_p_,
-                              this->string_p_,
-                              this->Build_p_,
-                              this->Run_p_,
-                              this->Defaults_p_);
-
-    this->Build_p_.parsers (this->string_p_,
-                            this->string_p_,
-                            this->string_p_);
-
-    this->Run_p_.parsers (this->string_p_,
-                          this->string_p_,
-                          this->string_p_);
-
-    this->Defaults_p_.parsers (this->Fibers_p_);
-
     this->EG_p_.parsers (this->Package_p_,
                          this->Host_p_,
                          this->Project_p_);
@@ -696,6 +676,33 @@ namespace egxml
 
     this->Directories_p_.parsers (this->string_p_,
                                   this->string_p_);
+
+    this->Host_p_.parsers (this->string_p_,
+                           this->string_p_,
+                           this->string_p_,
+                           this->string_p_,
+                           this->Directories_p_,
+                           this->Files_p_,
+                           this->string_p_);
+
+    this->Project_p_.parsers (this->string_p_,
+                              this->string_p_,
+                              this->string_p_,
+                              this->string_p_,
+                              this->Files_p_,
+                              this->Build_p_,
+                              this->Run_p_,
+                              this->Defaults_p_);
+
+    this->Build_p_.parsers (this->string_p_,
+                            this->string_p_,
+                            this->string_p_);
+
+    this->Run_p_.parsers (this->string_p_,
+                          this->string_p_,
+                          this->string_p_);
+
+    this->Defaults_p_.parsers (this->Fibers_p_);
 
     this->Fibers_p_.parsers (this->Stack_p_);
 

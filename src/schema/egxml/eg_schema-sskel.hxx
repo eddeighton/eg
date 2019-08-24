@@ -97,9 +97,9 @@ namespace egxml
   class Fibers_sskel;
   class Defaults_sskel;
   class Project_sskel;
+  class Files_sskel;
   class EG_sskel;
   class Directories_sskel;
-  class Files_sskel;
   class Run_sskel;
 }
 
@@ -701,6 +701,12 @@ namespace egxml
     Package () = 0;
 
     virtual bool
+    Files_present ();
+
+    virtual const ::egxml::Files&
+    Files () = 0;
+
+    virtual bool
     Build_next () = 0;
 
     virtual const ::egxml::Build&
@@ -728,6 +734,7 @@ namespace egxml
                  ::xml_schema::string_sskel& /* Host */,
                  ::xml_schema::string_sskel& /* Description */,
                  ::xml_schema::string_sskel& /* Package */,
+                 ::egxml::Files_sskel& /* Files */,
                  ::egxml::Build_sskel& /* Build */,
                  ::egxml::Run_sskel& /* Run */,
                  ::egxml::Defaults_sskel& /* Defaults */);
@@ -745,6 +752,9 @@ namespace egxml
 
     void
     Package_serializer (::xml_schema::string_sskel&);
+
+    void
+    Files_serializer (::egxml::Files_sskel&);
 
     void
     Build_serializer (::egxml::Build_sskel&);
@@ -777,9 +787,94 @@ namespace egxml
     ::xml_schema::string_sskel* Host_serializer_;
     ::xml_schema::string_sskel* Description_serializer_;
     ::xml_schema::string_sskel* Package_serializer_;
+    ::egxml::Files_sskel* Files_serializer_;
     ::egxml::Build_sskel* Build_serializer_;
     ::egxml::Run_sskel* Run_serializer_;
     ::egxml::Defaults_sskel* Defaults_serializer_;
+  };
+
+  class Files_sskel: public ::xsde::cxx::serializer::validating::complex_content
+  {
+    public:
+    // Serializer callbacks. Override them in your implementation.
+    //
+
+    virtual void
+    pre (const ::egxml::Files&) = 0;
+
+    // Elements.
+    //
+    virtual bool
+    System_next ();
+
+    virtual ::std::string
+    System () = 0;
+
+    virtual bool
+    Include_next ();
+
+    virtual ::std::string
+    Include () = 0;
+
+    virtual bool
+    Source_next ();
+
+    virtual ::std::string
+    Source () = 0;
+
+    virtual bool
+    Library_next ();
+
+    virtual ::std::string
+    Library () = 0;
+
+    // virtual void
+    // post ();
+
+    // Serializer construction API.
+    //
+    void
+    serializers (::xml_schema::string_sskel& /* System */,
+                 ::xml_schema::string_sskel& /* Include */,
+                 ::xml_schema::string_sskel& /* Source */,
+                 ::xml_schema::string_sskel& /* Library */);
+
+    // Individual element serializers.
+    //
+    void
+    System_serializer (::xml_schema::string_sskel&);
+
+    void
+    Include_serializer (::xml_schema::string_sskel&);
+
+    void
+    Source_serializer (::xml_schema::string_sskel&);
+
+    void
+    Library_serializer (::xml_schema::string_sskel&);
+
+    virtual void
+    _reset ();
+
+    // Constructor.
+    //
+    Files_sskel ();
+
+    // Implementation.
+    //
+    public:
+    virtual void
+    _serialize_content ();
+
+    protected:
+    Files_sskel* Files_impl_;
+    Files_sskel (Files_sskel*, void*);
+
+    protected:
+    ::xml_schema::string_sskel* System_serializer_;
+    ::xml_schema::string_sskel* Include_serializer_;
+    ::xml_schema::string_sskel* Source_serializer_;
+    ::xml_schema::string_sskel* Library_serializer_;
   };
 
   class EG_sskel: public ::xsde::cxx::serializer::validating::complex_content
@@ -915,90 +1010,6 @@ namespace egxml
 
     protected:
     ::xml_schema::string_sskel* Include_serializer_;
-    ::xml_schema::string_sskel* Library_serializer_;
-  };
-
-  class Files_sskel: public ::xsde::cxx::serializer::validating::complex_content
-  {
-    public:
-    // Serializer callbacks. Override them in your implementation.
-    //
-
-    virtual void
-    pre (const ::egxml::Files&) = 0;
-
-    // Elements.
-    //
-    virtual bool
-    System_next ();
-
-    virtual ::std::string
-    System () = 0;
-
-    virtual bool
-    Include_next ();
-
-    virtual ::std::string
-    Include () = 0;
-
-    virtual bool
-    Source_next ();
-
-    virtual ::std::string
-    Source () = 0;
-
-    virtual bool
-    Library_next ();
-
-    virtual ::std::string
-    Library () = 0;
-
-    // virtual void
-    // post ();
-
-    // Serializer construction API.
-    //
-    void
-    serializers (::xml_schema::string_sskel& /* System */,
-                 ::xml_schema::string_sskel& /* Include */,
-                 ::xml_schema::string_sskel& /* Source */,
-                 ::xml_schema::string_sskel& /* Library */);
-
-    // Individual element serializers.
-    //
-    void
-    System_serializer (::xml_schema::string_sskel&);
-
-    void
-    Include_serializer (::xml_schema::string_sskel&);
-
-    void
-    Source_serializer (::xml_schema::string_sskel&);
-
-    void
-    Library_serializer (::xml_schema::string_sskel&);
-
-    virtual void
-    _reset ();
-
-    // Constructor.
-    //
-    Files_sskel ();
-
-    // Implementation.
-    //
-    public:
-    virtual void
-    _serialize_content ();
-
-    protected:
-    Files_sskel* Files_impl_;
-    Files_sskel (Files_sskel*, void*);
-
-    protected:
-    ::xml_schema::string_sskel* System_serializer_;
-    ::xml_schema::string_sskel* Include_serializer_;
-    ::xml_schema::string_sskel* Source_serializer_;
     ::xml_schema::string_sskel* Library_serializer_;
   };
 

@@ -23,13 +23,46 @@
 #include "common.hpp"
 
 #include <string>
+#include <memory>
 
-using ResourceID = std::string;
+namespace eg
+{
+    using ResourcePath = std::string;
+        
+    class Resource
+    {
+    public:
+        using Ptr = std::shared_ptr< Resource >;
+        virtual ~Resource();
+    };
+
+    class ResourceHandler
+    {
+    public:
+        using Ptr = std::shared_ptr< ResourceHandler >;
+        virtual ~ResourceHandler();
+        virtual Resource::Ptr reload( const ResourcePath& path ) = 0;
+    };
+}
 
 struct resource
 {
-    template< typename ObjectType >
-    const ObjectType& get( const ResourceID& resourceID );
+private:
+    static const eg::Resource::Ptr get_resource( const eg::ResourcePath& resourcePath );
+    static void set_resource_handler( const eg::ResourcePath& resourcePath, eg::ResourceHandler::Ptr pHandler );
+    
+public:
+    template< typename TResourceHandlerType >
+    static void set( const eg::ResourcePath& resourcePath )
+    {
+        set_resource_handler( resourcePath, std::make_shared< TResourceHandlerType >() );
+    }
+
+    template< typename ResourceType >
+    static std::shared_ptr< ResourceType > get( const eg::ResourcePath& resourcePath )
+    {
+        return std::dynamic_pointer_cast< ResourceType >( get_resource( resourcePath ) );
+    }
 };
 
 #endif //EG_RESOURCE_24_08_2019

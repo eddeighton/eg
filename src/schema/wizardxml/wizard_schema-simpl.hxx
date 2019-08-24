@@ -111,8 +111,8 @@ namespace wizardxml
     }
 
     public:
-    ::xml_schema::string_simpl string_s_;
     ::wizardxml::Wizard_simpl Wizard_s_;
+    ::xml_schema::string_simpl string_s_;
   };
 }
 

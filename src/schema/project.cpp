@@ -572,6 +572,9 @@ std::vector< boost::filesystem::path > Project::getCPPSourceCode() const
     std::set< boost::filesystem::path > uniquified;
     std::vector< boost::filesystem::path > sourceFiles;
     
+    if( m_project.Files_present() )
+        collateUserSourceFiles( m_environment, uniquified, sourceFiles, m_project.Files() );
+    
     if( m_host.Files_present() )
         collateUserSourceFiles( m_environment, uniquified, sourceFiles, m_host.Files() );
     

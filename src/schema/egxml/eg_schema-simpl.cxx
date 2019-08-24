@@ -280,6 +280,18 @@ namespace egxml
   }
 
   bool Project_simpl::
+  Files_present ()
+  {
+    return this->Project_simpl_state_.Project_->Files_present ();
+  }
+
+  const ::egxml::Files& Project_simpl::
+  Files ()
+  {
+    return this->Project_simpl_state_.Project_->Files ();
+  }
+
+  bool Project_simpl::
   Build_next ()
   {
     return this->Project_simpl_state_.Build_ != 
@@ -315,6 +327,83 @@ namespace egxml
   Defaults ()
   {
     return this->Project_simpl_state_.Project_->Defaults ();
+  }
+
+  // Files_simpl
+  //
+
+  void Files_simpl::
+  pre (const ::egxml::Files& x)
+  {
+    this->Files_simpl_state_.Files_ = &x;
+    this->Files_simpl_state_.System_ = 
+    this->Files_simpl_state_.Files_->System ().begin ();
+    this->Files_simpl_state_.System_end_ = 
+    this->Files_simpl_state_.Files_->System ().end ();
+    this->Files_simpl_state_.Include_ = 
+    this->Files_simpl_state_.Files_->Include ().begin ();
+    this->Files_simpl_state_.Include_end_ = 
+    this->Files_simpl_state_.Files_->Include ().end ();
+    this->Files_simpl_state_.Source_ = 
+    this->Files_simpl_state_.Files_->Source ().begin ();
+    this->Files_simpl_state_.Source_end_ = 
+    this->Files_simpl_state_.Files_->Source ().end ();
+    this->Files_simpl_state_.Library_ = 
+    this->Files_simpl_state_.Files_->Library ().begin ();
+    this->Files_simpl_state_.Library_end_ = 
+    this->Files_simpl_state_.Files_->Library ().end ();
+  }
+
+  bool Files_simpl::
+  System_next ()
+  {
+    return this->Files_simpl_state_.System_ != 
+    this->Files_simpl_state_.System_end_;
+  }
+
+  ::std::string Files_simpl::
+  System ()
+  {
+    return *this->Files_simpl_state_.System_++;
+  }
+
+  bool Files_simpl::
+  Include_next ()
+  {
+    return this->Files_simpl_state_.Include_ != 
+    this->Files_simpl_state_.Include_end_;
+  }
+
+  ::std::string Files_simpl::
+  Include ()
+  {
+    return *this->Files_simpl_state_.Include_++;
+  }
+
+  bool Files_simpl::
+  Source_next ()
+  {
+    return this->Files_simpl_state_.Source_ != 
+    this->Files_simpl_state_.Source_end_;
+  }
+
+  ::std::string Files_simpl::
+  Source ()
+  {
+    return *this->Files_simpl_state_.Source_++;
+  }
+
+  bool Files_simpl::
+  Library_next ()
+  {
+    return this->Files_simpl_state_.Library_ != 
+    this->Files_simpl_state_.Library_end_;
+  }
+
+  ::std::string Files_simpl::
+  Library ()
+  {
+    return *this->Files_simpl_state_.Library_++;
   }
 
   // EG_simpl
@@ -395,83 +484,6 @@ namespace egxml
     return *this->Directories_simpl_state_.Library_++;
   }
 
-  // Files_simpl
-  //
-
-  void Files_simpl::
-  pre (const ::egxml::Files& x)
-  {
-    this->Files_simpl_state_.Files_ = &x;
-    this->Files_simpl_state_.System_ = 
-    this->Files_simpl_state_.Files_->System ().begin ();
-    this->Files_simpl_state_.System_end_ = 
-    this->Files_simpl_state_.Files_->System ().end ();
-    this->Files_simpl_state_.Include_ = 
-    this->Files_simpl_state_.Files_->Include ().begin ();
-    this->Files_simpl_state_.Include_end_ = 
-    this->Files_simpl_state_.Files_->Include ().end ();
-    this->Files_simpl_state_.Source_ = 
-    this->Files_simpl_state_.Files_->Source ().begin ();
-    this->Files_simpl_state_.Source_end_ = 
-    this->Files_simpl_state_.Files_->Source ().end ();
-    this->Files_simpl_state_.Library_ = 
-    this->Files_simpl_state_.Files_->Library ().begin ();
-    this->Files_simpl_state_.Library_end_ = 
-    this->Files_simpl_state_.Files_->Library ().end ();
-  }
-
-  bool Files_simpl::
-  System_next ()
-  {
-    return this->Files_simpl_state_.System_ != 
-    this->Files_simpl_state_.System_end_;
-  }
-
-  ::std::string Files_simpl::
-  System ()
-  {
-    return *this->Files_simpl_state_.System_++;
-  }
-
-  bool Files_simpl::
-  Include_next ()
-  {
-    return this->Files_simpl_state_.Include_ != 
-    this->Files_simpl_state_.Include_end_;
-  }
-
-  ::std::string Files_simpl::
-  Include ()
-  {
-    return *this->Files_simpl_state_.Include_++;
-  }
-
-  bool Files_simpl::
-  Source_next ()
-  {
-    return this->Files_simpl_state_.Source_ != 
-    this->Files_simpl_state_.Source_end_;
-  }
-
-  ::std::string Files_simpl::
-  Source ()
-  {
-    return *this->Files_simpl_state_.Source_++;
-  }
-
-  bool Files_simpl::
-  Library_next ()
-  {
-    return this->Files_simpl_state_.Library_ != 
-    this->Files_simpl_state_.Library_end_;
-  }
-
-  ::std::string Files_simpl::
-  Library ()
-  {
-    return *this->Files_simpl_state_.Library_++;
-  }
-
   // Run_simpl
   //
 
@@ -524,32 +536,6 @@ namespace egxml
                                 this->string_s_,
                                 this->string_s_);
 
-    this->Host_s_.serializers (this->string_s_,
-                               this->string_s_,
-                               this->string_s_,
-                               this->string_s_,
-                               this->Directories_s_,
-                               this->Files_s_,
-                               this->string_s_);
-
-    this->Project_s_.serializers (this->string_s_,
-                                  this->string_s_,
-                                  this->string_s_,
-                                  this->string_s_,
-                                  this->Build_s_,
-                                  this->Run_s_,
-                                  this->Defaults_s_);
-
-    this->Build_s_.serializers (this->string_s_,
-                                this->string_s_,
-                                this->string_s_);
-
-    this->Run_s_.serializers (this->string_s_,
-                              this->string_s_,
-                              this->string_s_);
-
-    this->Defaults_s_.serializers (this->Fibers_s_);
-
     this->EG_s_.serializers (this->Package_s_,
                              this->Host_s_,
                              this->Project_s_);
@@ -564,6 +550,33 @@ namespace egxml
 
     this->Directories_s_.serializers (this->string_s_,
                                       this->string_s_);
+
+    this->Host_s_.serializers (this->string_s_,
+                               this->string_s_,
+                               this->string_s_,
+                               this->string_s_,
+                               this->Directories_s_,
+                               this->Files_s_,
+                               this->string_s_);
+
+    this->Project_s_.serializers (this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->string_s_,
+                                  this->Files_s_,
+                                  this->Build_s_,
+                                  this->Run_s_,
+                                  this->Defaults_s_);
+
+    this->Build_s_.serializers (this->string_s_,
+                                this->string_s_,
+                                this->string_s_);
+
+    this->Run_s_.serializers (this->string_s_,
+                              this->string_s_,
+                              this->string_s_);
+
+    this->Defaults_s_.serializers (this->Fibers_s_);
 
     this->Fibers_s_.serializers (this->Stack_s_);
 

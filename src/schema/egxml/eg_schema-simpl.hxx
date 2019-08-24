@@ -236,6 +236,12 @@ namespace egxml
     Package ();
 
     virtual bool
+    Files_present ();
+
+    virtual const ::egxml::Files&
+    Files ();
+
+    virtual bool
     Build_next ();
 
     virtual const ::egxml::Build&
@@ -266,6 +272,55 @@ namespace egxml
     };
 
     Project_simpl_state Project_simpl_state_;
+  };
+
+  class Files_simpl: public Files_sskel
+  {
+    public:
+    virtual void
+    pre (const ::egxml::Files&);
+
+    // Elements.
+    //
+    virtual bool
+    System_next ();
+
+    virtual ::std::string
+    System ();
+
+    virtual bool
+    Include_next ();
+
+    virtual ::std::string
+    Include ();
+
+    virtual bool
+    Source_next ();
+
+    virtual ::std::string
+    Source ();
+
+    virtual bool
+    Library_next ();
+
+    virtual ::std::string
+    Library ();
+
+    public:
+    struct Files_simpl_state
+    {
+      const ::egxml::Files* Files_;
+      ::egxml::Files::System_const_iterator System_;
+      ::egxml::Files::System_const_iterator System_end_;
+      ::egxml::Files::Include_const_iterator Include_;
+      ::egxml::Files::Include_const_iterator Include_end_;
+      ::egxml::Files::Source_const_iterator Source_;
+      ::egxml::Files::Source_const_iterator Source_end_;
+      ::egxml::Files::Library_const_iterator Library_;
+      ::egxml::Files::Library_const_iterator Library_end_;
+    };
+
+    Files_simpl_state Files_simpl_state_;
   };
 
   class EG_simpl: public EG_sskel
@@ -328,55 +383,6 @@ namespace egxml
     };
 
     Directories_simpl_state Directories_simpl_state_;
-  };
-
-  class Files_simpl: public Files_sskel
-  {
-    public:
-    virtual void
-    pre (const ::egxml::Files&);
-
-    // Elements.
-    //
-    virtual bool
-    System_next ();
-
-    virtual ::std::string
-    System ();
-
-    virtual bool
-    Include_next ();
-
-    virtual ::std::string
-    Include ();
-
-    virtual bool
-    Source_next ();
-
-    virtual ::std::string
-    Source ();
-
-    virtual bool
-    Library_next ();
-
-    virtual ::std::string
-    Library ();
-
-    public:
-    struct Files_simpl_state
-    {
-      const ::egxml::Files* Files_;
-      ::egxml::Files::System_const_iterator System_;
-      ::egxml::Files::System_const_iterator System_end_;
-      ::egxml::Files::Include_const_iterator Include_;
-      ::egxml::Files::Include_const_iterator Include_end_;
-      ::egxml::Files::Source_const_iterator Source_;
-      ::egxml::Files::Source_const_iterator Source_end_;
-      ::egxml::Files::Library_const_iterator Library_;
-      ::egxml::Files::Library_const_iterator Library_end_;
-    };
-
-    Files_simpl_state Files_simpl_state_;
   };
 
   class Run_simpl: public Run_sskel
@@ -458,14 +464,14 @@ namespace egxml
 
     public:
     ::egxml::Files_simpl Files_s_;
+    ::egxml::EG_simpl EG_s_;
+    ::egxml::Package_simpl Package_s_;
+    ::egxml::Directories_simpl Directories_s_;
     ::egxml::Host_simpl Host_s_;
     ::egxml::Project_simpl Project_s_;
     ::egxml::Build_simpl Build_s_;
     ::egxml::Run_simpl Run_s_;
     ::egxml::Defaults_simpl Defaults_s_;
-    ::egxml::EG_simpl EG_s_;
-    ::egxml::Package_simpl Package_s_;
-    ::egxml::Directories_simpl Directories_s_;
     ::egxml::Fibers_simpl Fibers_s_;
     ::egxml::Stack_simpl Stack_s_;
     ::xml_schema::unsigned_int_simpl unsigned_int_s_;

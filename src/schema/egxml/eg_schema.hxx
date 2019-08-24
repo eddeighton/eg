@@ -173,9 +173,9 @@ namespace egxml
   class Fibers;
   class Defaults;
   class Project;
+  class Files;
   class EG;
   class Directories;
-  class Files;
   class Run;
 }
 
@@ -536,6 +536,20 @@ namespace egxml
     Package_sequence&
     Package ();
 
+    // Files
+    //
+    bool
+    Files_present () const;
+
+    const ::egxml::Files&
+    Files () const;
+
+    ::egxml::Files&
+    Files ();
+
+    void
+    Files (::egxml::Files*);
+
     // Build
     //
     typedef ::xsde::cxx::hybrid::fix_sequence< ::egxml::Build > Build_sequence;
@@ -583,10 +597,79 @@ namespace egxml
     ::std::string Description_;
     unsigned char Description_present_;
     Package_sequence Package_;
+    ::egxml::Files* Files_;
     Build_sequence Build_;
     Run_sequence Run_;
     ::egxml::Defaults Defaults_;
     unsigned char Defaults_present_;
+  };
+
+  // Files (variable-length)
+  //
+  class Files
+  {
+    private:
+    Files (const Files&);
+    Files& operator= (const Files&);
+
+    public:
+    Files ();
+
+    ~Files ();
+
+    // System
+    //
+    typedef ::xsde::cxx::string_sequence System_sequence;
+    typedef System_sequence::iterator System_iterator;
+    typedef System_sequence::const_iterator System_const_iterator;
+
+    const System_sequence&
+    System () const;
+
+    System_sequence&
+    System ();
+
+    // Include
+    //
+    typedef ::xsde::cxx::string_sequence Include_sequence;
+    typedef Include_sequence::iterator Include_iterator;
+    typedef Include_sequence::const_iterator Include_const_iterator;
+
+    const Include_sequence&
+    Include () const;
+
+    Include_sequence&
+    Include ();
+
+    // Source
+    //
+    typedef ::xsde::cxx::string_sequence Source_sequence;
+    typedef Source_sequence::iterator Source_iterator;
+    typedef Source_sequence::const_iterator Source_const_iterator;
+
+    const Source_sequence&
+    Source () const;
+
+    Source_sequence&
+    Source ();
+
+    // Library
+    //
+    typedef ::xsde::cxx::string_sequence Library_sequence;
+    typedef Library_sequence::iterator Library_iterator;
+    typedef Library_sequence::const_iterator Library_const_iterator;
+
+    const Library_sequence&
+    Library () const;
+
+    Library_sequence&
+    Library ();
+
+    private:
+    System_sequence System_;
+    Include_sequence Include_;
+    Source_sequence Source_;
+    Library_sequence Library_;
   };
 
   // EG (variable-length)
@@ -699,74 +782,6 @@ namespace egxml
 
     private:
     Include_sequence Include_;
-    Library_sequence Library_;
-  };
-
-  // Files (variable-length)
-  //
-  class Files
-  {
-    private:
-    Files (const Files&);
-    Files& operator= (const Files&);
-
-    public:
-    Files ();
-
-    ~Files ();
-
-    // System
-    //
-    typedef ::xsde::cxx::string_sequence System_sequence;
-    typedef System_sequence::iterator System_iterator;
-    typedef System_sequence::const_iterator System_const_iterator;
-
-    const System_sequence&
-    System () const;
-
-    System_sequence&
-    System ();
-
-    // Include
-    //
-    typedef ::xsde::cxx::string_sequence Include_sequence;
-    typedef Include_sequence::iterator Include_iterator;
-    typedef Include_sequence::const_iterator Include_const_iterator;
-
-    const Include_sequence&
-    Include () const;
-
-    Include_sequence&
-    Include ();
-
-    // Source
-    //
-    typedef ::xsde::cxx::string_sequence Source_sequence;
-    typedef Source_sequence::iterator Source_iterator;
-    typedef Source_sequence::const_iterator Source_const_iterator;
-
-    const Source_sequence&
-    Source () const;
-
-    Source_sequence&
-    Source ();
-
-    // Library
-    //
-    typedef ::xsde::cxx::string_sequence Library_sequence;
-    typedef Library_sequence::iterator Library_iterator;
-    typedef Library_sequence::const_iterator Library_const_iterator;
-
-    const Library_sequence&
-    Library () const;
-
-    Library_sequence&
-    Library ();
-
-    private:
-    System_sequence System_;
-    Include_sequence Include_;
-    Source_sequence Source_;
     Library_sequence Library_;
   };
 
