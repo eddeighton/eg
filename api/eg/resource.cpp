@@ -133,6 +133,24 @@ namespace eg
     ResourceHandler::~ResourceHandler()
     {
     }
+
+    eg::Resource::Ptr TextResourceHandler::reload( const eg::ResourcePath& path )
+    {
+        const boost::filesystem::path filePath = path;
+        std::ifstream inputFileStream( filePath.native().c_str(), std::ios::in );
+        if( !inputFileStream.good() )
+        {
+            ERR( "Failed to open file: " << filePath.string() );
+            throw std::runtime_error( "Failed to open fileL " + filePath.string() );
+        }
+        std::string fileContents( (std::istreambuf_iterator<char>( inputFileStream )),
+                                   std::istreambuf_iterator<char>() );
+                                   
+        std::shared_ptr< TextResource > pResource = std::make_shared< TextResource >();
+        pResource->m_str.swap( fileContents );
+        return pResource;
+    }
+
 }
 
 const eg::Resource::Ptr resource::get_resource( const eg::ResourcePath& resourcePath )

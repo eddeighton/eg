@@ -190,10 +190,9 @@ void python_sleep_cycle()
     os << "\n";
     
     
-    os << "HostFunctions::HostFunctions( const std::string& strDatabaseFile, pybind11::module module_eg )\n";
+    os << "HostFunctions::HostFunctions( const std::string& strDatabaseFile )\n";
     os << "    :   m_pRuntime( std::shared_ptr< eg::EGRuntime >( \n";
-    os << "            eg::constructRuntime( *this, strDatabaseFile.c_str() ) ) ),\n";
-    os << "        m_module_eg( module_eg )\n";
+    os << "            eg::constructRuntime( *this, strDatabaseFile.c_str() ) ) )\n";
     os << "{\n";
     os << "}\n";
     os << "//HostFunctionAccessor\n";

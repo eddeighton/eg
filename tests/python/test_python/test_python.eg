@@ -1,0 +1,29 @@
+
+
+dim int bContinue;
+
+action Test
+{
+    std::cout << "Test called" << std::endl;
+}
+
+std::cout << "startup" << std::endl;
+
+resource::set< eg::TextResourceHandler >( "test.py" );
+
+bContinue( true );
+
+while( bContinue() )
+{
+    eg::TextResource::Ptr pText = resource::get< eg::TextResource >( "test.py" );
+    try
+    {
+        pybind11::exec( pText->get() );
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
+    eg::sleep( 1s );
+    
+}

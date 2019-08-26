@@ -51,6 +51,15 @@
 
 namespace eg
 {
+
+#define EG_PARSER_ERROR( msg ) \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( \
+        Diags->Report( Tok.getLocation(), clang::diag::err_eg_generic_error ) << msg;\
+        std::ostringstream _os; \
+        _os << msg; \
+        THROW_RTE( "Parser error: " << _os.str() );)
+
+
     //cannibalised version of clang parser for parsing eg source code
     class Parser
     {
@@ -744,13 +753,13 @@ namespace eg
             }
             else
             {
-                THROW_RTE( "Expected identifier" );
+                EG_PARSER_ERROR( "Expected identifier" );
             }
             
             if( !TryConsumeToken( clang::tok::semi ) )
             {
                 //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
-                THROW_RTE( "Expected semicolon" );
+                EG_PARSER_ERROR( "Expected semicolon" );
             }
         }
         
@@ -798,7 +807,7 @@ namespace eg
             }
             else
             {
-                THROW_RTE( "Include file is empty" );
+                EG_PARSER_ERROR( "Include file is empty" );
             }
 
             T.consumeClose();
@@ -806,7 +815,7 @@ namespace eg
             if( !TryConsumeToken( clang::tok::semi ) )
             {
                 //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
-                THROW_RTE( "expected semicolon" );
+                EG_PARSER_ERROR( "expected semicolon" );
             }
         }
         
@@ -856,7 +865,7 @@ namespace eg
                 {
                     //error
                     //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
-                    THROW_RTE( "template arrow missing" );
+                    EG_PARSER_ERROR( "template arrow missing" );
                 }
             }
         }
@@ -883,7 +892,7 @@ namespace eg
                 }
                 else
                 {
-                    THROW_RTE( "Expected identifier" );
+                    EG_PARSER_ERROR( "Expected identifier" );
                 }
             }
             
@@ -1008,7 +1017,7 @@ namespace eg
             }
             else
             {
-                THROW_RTE( "Expected semicolon" );
+                EG_PARSER_ERROR( "Expected semicolon" );
             }
 
         }
@@ -1039,13 +1048,13 @@ namespace eg
                         }
                         else
                         {
-                            THROW_RTE( "Expected identifier" );
+                            EG_PARSER_ERROR( "Expected identifier" );
                         }
                         parse_action( session, pNestedAction );
                     }
                     else
                     {
-                        THROW_RTE( "Missing action" );
+                        EG_PARSER_ERROR( "Missing action" );
                     }
                 }
                 else if( Tok.is( clang::tok::kw_action ) )
@@ -1067,7 +1076,7 @@ namespace eg
                     }
                     else
                     {
-                        THROW_RTE( "Expected identifier" );
+                        EG_PARSER_ERROR( "Expected identifier" );
                     }
                 }
                 else if( Tok.is( clang::tok::kw_abstract ) )
@@ -1107,7 +1116,7 @@ namespace eg
                     }
                     else
                     {
-                        THROW_RTE( "Expected identifier" );
+                        EG_PARSER_ERROR( "Expected identifier" );
                     }
                 }
                 else if( Tok.is( clang::tok::kw_link ) )
@@ -1142,7 +1151,7 @@ namespace eg
                     }
                     else
                     {
-                        THROW_RTE( "Expected identifier" );
+                        EG_PARSER_ERROR( "Expected identifier" );
                     }
                 }
                 else if( Tok.is( clang::tok::kw_dim ) )

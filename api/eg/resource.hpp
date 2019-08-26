@@ -43,6 +43,25 @@ namespace eg
         virtual ~ResourceHandler();
         virtual Resource::Ptr reload( const ResourcePath& path ) = 0;
     };
+    
+    //basic resource types
+    class TextResource : public eg::Resource
+    {
+        friend class TextResourceHandler;
+    public:
+        const std::string& get() const { return m_str; }
+        using Ptr = std::shared_ptr< TextResource >;
+    private:
+        std::string m_str;
+    };
+
+    class TextResourceHandler : public eg::ResourceHandler
+    {
+    protected:
+        virtual eg::Resource::Ptr reload( const eg::ResourcePath& path );
+    };
+
+
 }
 
 struct resource

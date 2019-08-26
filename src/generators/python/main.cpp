@@ -48,8 +48,6 @@ int main( int argc, const char* argv[] )
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
     
     os << "#include \"structures.hpp\"\n";
-    
-    os << "static std::unique_ptr< pybind11::scoped_interpreter > g_embedded_python_guard;\n";
    
     os << "//Action functions\n";
     std::vector< const eg::concrete::Action* > actions = 
@@ -92,7 +90,7 @@ private:
         using SharedPtr = std::shared_ptr< Stack >;
     };
 public:
-    HostFunctions( const std::string& strDatabaseFile, pybind11::module module_eg );
+    HostFunctions( const std::string& strDatabaseFile );
     //HostFunctionAccessor
     virtual eg::reference dereferenceDimension( const eg::reference& action, const eg::TypeID& dimensionType );
     virtual void doRead( const eg::reference& reference, eg::TypeID dimensionType );
@@ -113,7 +111,6 @@ public:
     eg::TypeID getTypeID( const char* pszIdentity );
     PyObject* invoke( const eg::reference& reference, const std::vector< eg::TypeID >& typePath, PyObject *args, PyObject *kwargs );
 private:
-    pybind11::module m_module_eg;
     Stack::WeakPtr m_pStack;
     std::shared_ptr< eg::EGRuntime > m_pRuntime;
 };
@@ -170,13 +167,13 @@ class PythonEGReferenceType
 public:
     static PythonEGReference* getReference( PyObject* pPyObject );
 
-    PythonEGReferenceType( HostFunctions& evaluator );
+    PythonEGReferenceType( const std::string& strDatabaseFile );
     
     PyObject* create( reference ref );
     
-    HostFunctions& getEvaluator() const { return m_evaluator; }
+    HostFunctions& getEvaluator() { return m_evaluator; }
 private:
-    HostFunctions& m_evaluator;
+    HostFunctions m_evaluator;
     PyTypeObject* m_pTypeObject;
     std::vector< PyGetSetDef > m_pythonAttributesData;
     std::vector< const char* > m_identities;
@@ -255,8 +252,8 @@ static PyMethodDef type_methods[] =
     {NULL}  /* Sentinel */
 };
 
-PythonEGReferenceType::PythonEGReferenceType( HostFunctions& evaluator )
-    :   m_evaluator( evaluator )
+PythonEGReferenceType::PythonEGReferenceType( const std::string& strDatabaseFile )
+    :   m_evaluator( strDatabaseFile )
 {        
     m_evaluator.getIdentities( m_identities );
     for( const char* pszIdentity : m_identities )
@@ -493,7 +490,7 @@ public:
     
 const char* pszPythonRun = R"(
 
-void runPythonScript( const std::string& strPythonFile, const std::string& strDatabaseFile )
+void runPythonScript( const std::string& strPythonFile )
 {
     try
     {
@@ -512,13 +509,6 @@ void runPythonScript( const std::string& strPythonFile, const std::string& strDa
 
         if( !strScript.empty() )
         {
-            pybind11::module pyeg_module = pybind11::module::import( "pyeg" );
-
-            HostFunctions hostFunctions( strDatabaseFile, pyeg_module );
-            
-            if( !g_pEGRefType )
-                g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( hostFunctions );
-
             pybind11::exec( strScript );
         }
     }
@@ -528,28 +518,37 @@ void runPythonScript( const std::string& strPythonFile, const std::string& strDa
     }
 }
 
+static std::unique_ptr< pybind11::scoped_interpreter > g_embedded_python_guard;
+
+void initialisePythonBindings( const std::string& strDatabaseFile )
+{
+    if( strDatabaseFile.empty() )
+    {
+        ERR( "Missing database file path for python bindings" );
+        throw std::runtime_error( "Missing database file path for python bindings" );
+    }
+    const boost::filesystem::path databaseFilePath( strDatabaseFile );
+    if( !boost::filesystem::exists( databaseFilePath ) )
+    {
+        ERR( "Cannot locate file: " << databaseFilePath.string() );
+        throw std::runtime_error( "Missing database file path for python bindings" );
+    } 
+    
+    g_embedded_python_guard = std::make_unique< pybind11::scoped_interpreter >();
+    
+    g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( strDatabaseFile );
+}
+
 std::vector< std::function< void() > > loadPythonScripts( const std::vector< std::string >& scripts, const std::string& strDatabaseFile )
 {
+    initialisePythonBindings( strDatabaseFile );
+    
     std::vector< std::function< void() > > pythonFunctions;
     if( !scripts.empty() )
     {
-        if( strDatabaseFile.empty() )
-        {
-            std::cout << "Missing database file path" << std::endl;
-            return pythonFunctions;
-        }
-        const boost::filesystem::path databaseFilePath( strDatabaseFile );
-        if( !boost::filesystem::exists( databaseFilePath ) )
-        {
-            std::cout << "Cannot locate file: " << databaseFilePath.string() << std::endl;
-            return pythonFunctions;
-        } 
-        
-        g_embedded_python_guard = std::make_unique< pybind11::scoped_interpreter >();
-            
         for( const std::string& strPythonScript : scripts )
         {
-            pythonFunctions.push_back( std::bind( &runPythonScript, strPythonScript, strDatabaseFile ) );
+            pythonFunctions.push_back( std::bind( &runPythonScript, strPythonScript ) );
         }
     }
     return pythonFunctions;
