@@ -5,9 +5,12 @@ import pyeg
 
 r = pyeg.root()
 
-print( "Different" )
+print( "Test script running" )
 
-r.bContinue( False )
+for p in r.Python.Raw():
+    p.bContinue( False )
+    
+
 
 
 

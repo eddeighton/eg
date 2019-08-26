@@ -7,11 +7,12 @@
 
 #define EG_FIBER_STACK_SIZE ( 16384 )
 
-struct [[clang::eg_type( -9 )]]Test;
-struct [[clang::eg_type( -8 )]]bContinue;
+struct [[clang::eg_type( -17 )]]Python;
+struct [[clang::eg_type( -14 )]]Test;
+struct [[clang::eg_type( -18 )]]bContinue;
 
 //EG Interface
-template< typename __eg1 >struct [[clang::eg_type(7)]]__eg_root
+template< typename __eg1 >struct [[clang::eg_type(12)]]__eg_root
 {
   __eg_root()
   {
@@ -59,8 +60,7 @@ template< typename __eg1 >struct [[clang::eg_type(7)]]__eg_root
   using Iterator = __eg_ReferenceIterator< __eg_root >;
   using EGRangeType = __eg_Range< Iterator >;
   eg::reference data;
-  template< typename __eg2 >struct [[clang::eg_type(8)]]__eg_bContinue;
-  template< typename __eg2 >struct [[clang::eg_type(9)]]__eg_Test
+  template< typename __eg2 >struct [[clang::eg_type(14)]]__eg_Test
   {
     __eg_Test()
     {
@@ -110,6 +110,58 @@ template< typename __eg1 >struct [[clang::eg_type(7)]]__eg_root
     eg::reference data;
   };
   using Test = __eg_Test< __eg1 >;
+  template< typename __eg2 >struct [[clang::eg_type(17)]]__eg_Python
+  {
+    __eg_Python()
+    {
+      data.instance = 0;
+      data.type = 0;
+      data.timestamp = eg::INVALID_TIMESTAMP;
+    }
+    __eg_Python( const eg::reference& reference )
+    {
+      data = reference;
+    }
+    template< typename TFrom >
+    __eg_Python( const TFrom& from );
+    template< typename TFrom >
+    __eg_Python& operator=( const TFrom& from );
+    template< typename TypePath, typename Operation, typename... Args >
+    typename eg::result_type< __eg_Python< __eg2 >, TypePath, Operation >::Type invoke( Args... args ) const;
+    operator const void*() const
+    {
+          if( data.timestamp != eg::INVALID_TIMESTAMP )
+          {
+              return reinterpret_cast< const void* >( &data );
+          }
+          else
+          {
+              return nullptr;
+          }
+    }
+    template< typename TComp >
+    bool operator==( const TComp& cmp ) const
+    {
+        return data == cmp.data;
+    }
+    template< typename TComp >
+    bool operator!=( const TComp& cmp ) const
+    {
+        return !(data == cmp.data);
+    }
+    template< typename TComp >
+    bool operator<( const TComp& cmp ) const
+    {
+        return data < cmp.data;
+    }
+    void operator()() const;
+    using Iterator = __eg_ReferenceIterator< __eg_Python >;
+    using EGRangeType = __eg_Range< Iterator >;
+    eg::reference data;
+    static const eg::Instance SIZE = 2;
+    template< typename __eg3 >struct [[clang::eg_type(18)]]__eg_bContinue;
+  };
+  using Python = __eg_Python< __eg1 >;
 };
 using root = __eg_root< void >;
 
@@ -117,12 +169,14 @@ using root = __eg_root< void >;
 //Explicit Template Instantiations
 template struct __eg_root< void >;
 template struct __eg_root< void >::__eg_Test< void >;
+template struct __eg_root< void >::__eg_Python< void >;
 
 
 //Explicit Trait Template Instantiations
 template<>
 template<>
-struct __eg_root< void >::__eg_bContinue< void >
+template<>
+struct __eg_root< void >::__eg_Python< void >::__eg_bContinue< void >
 {
   using Type  = int;
   using Read  = eg::DimensionTraits< int >::Read;

@@ -11,6 +11,8 @@ static std::unique_ptr< std::array< b_root, 1 > > g_root_allocation;
 b_root* g_root = nullptr;
 static std::unique_ptr< std::array< b_root_Test, 1 > > g_root_Test_allocation;
 b_root_Test* g_root_Test = nullptr;
+static std::unique_ptr< std::array< b_root_Python, 2 > > g_root_Python_allocation;
+b_root_Python* g_root_Python = nullptr;
 void allocate_buffers()
 {
     g_root_allocation = std::make_unique< std::array< b_root, 1 > >();
@@ -19,10 +21,10 @@ void allocate_buffers()
     {
         g_root[ i ].g_root_cycle = eg::INVALID_TIMESTAMP;
         g_root[ i ].g_root_state = ::eg::action_stopped;
-        g_root[ i ].g_root_reference = __eg_root< void >( eg::reference { i, 16, 0 } );
+        g_root[ i ].g_root_reference = __eg_root< void >( eg::reference { i, 25, 0 } );
         g_root[ i ].g_root_ring_index = i;
-        ::eg::DimensionTraits< int >::initialise( g_root[ i ].m_bContinue);
         g_root[ i ].g_rootTest_ring_iter = 0UL;
+        g_root[ i ].g_rootPython_ring_iter = 0UL;
     }
     g_root_Test_allocation = std::make_unique< std::array< b_root_Test, 1 > >();
     g_root_Test = g_root_Test_allocation->data();
@@ -30,14 +32,28 @@ void allocate_buffers()
     {
         g_root_Test[ i ].g_root_Test_cycle = eg::INVALID_TIMESTAMP;
         g_root_Test[ i ].g_root_Test_state = ::eg::action_stopped;
-        g_root_Test[ i ].g_root_Test_reference = __eg_root< void >::__eg_Test< void >( eg::reference { i, 23, 0 } );
+        g_root_Test[ i ].g_root_Test_reference = __eg_root< void >::__eg_Test< void >( eg::reference { i, 32, 0 } );
         g_root_Test[ i ].g_root_Test_ring_index = i;
         g_root_Test[ i ].g_root_Test_ring = i;
+    }
+    g_root_Python_allocation = std::make_unique< std::array< b_root_Python, 2 > >();
+    g_root_Python = g_root_Python_allocation->data();
+    for( eg::Instance i = 0U; i != 2; ++i )
+    {
+        g_root_Python[ i ].g_root_Python_cycle = eg::INVALID_TIMESTAMP;
+        g_root_Python[ i ].g_root_Python_state = ::eg::action_stopped;
+        g_root_Python[ i ].g_root_Python_reference = __eg_root< void >::__eg_Python< void >( eg::reference { i, 38, 0 } );
+        g_root_Python[ i ].g_root_Python_ring_index = i;
+        ::eg::DimensionTraits< int >::initialise( g_root_Python[ i ].m_bContinue);
+        g_root_Python[ i ].g_root_Python_ring = i;
     }
 }
 
 void deallocate_buffers()
 {
+    for( eg::Instance i = 0U; i != 2; ++i )
+    {
+    }
     for( eg::Instance i = 0U; i != 1; ++i )
     {
     }

@@ -180,6 +180,7 @@ void python_sleep_cycle()
     os << "PYBIND11_EMBEDDED_MODULE( pyeg, module ) \n";
     os << "{\n";
     os << "    module.def( \"root\", get_root );\n";
+    //os << "    module.def( \"context\", get_context );\n";
     
     os << "    module.def( \"sleep\", python_sleep_cycle );\n";
     //os << "    module.def( \"sleep\", python_sleep_event );\n"; //TODO... 

@@ -85,8 +85,9 @@ class FileWriteTracker
     using FileTimeMap = std::map< boost::filesystem::path, std::time_t >;
 public:
 
-    FileWriteTracker( const boost::filesystem::path& buildFolder )
+    FileWriteTracker( const Project& project )
     {
+        const boost::filesystem::path& buildFolder = project.getIntermediateFolder();
         if( boost::filesystem::exists( buildFolder ) )
         {
             for( boost::filesystem::directory_iterator itr( buildFolder );
@@ -540,7 +541,8 @@ void generate_objects( const Environment& environment, const Project& project, F
     }
 }
 
-void objectCompilationCommand( std::string strMsg, std::string strCommand, bool bBenchCommands, std::mutex& logMutex )
+void objectCompilationCommand( std::string strMsg, std::string strCommand, 
+                                bool bBenchCommands, std::mutex& logMutex )
 {
     boost::timer::cpu_timer timer_internal;
     
@@ -554,6 +556,17 @@ void objectCompilationCommand( std::string strMsg, std::string strCommand, bool 
         std::lock_guard g( logMutex );
         std::cout << timer_internal.format( 3, "%w seconds" ) << ": " << strMsg << "\n";
     }
+}
+
+void objectCompilationCommandSetFileTIme( std::string strMsg, std::string strCommand, 
+                                bool bBenchCommands, std::mutex& logMutex, 
+                                const boost::filesystem::path strSourceFile, 
+                                const boost::filesystem::path strObjectFile )
+{
+    objectCompilationCommand( strMsg, strCommand, bBenchCommands, logMutex );
+    
+    boost::filesystem::last_write_time( strObjectFile, 
+        boost::filesystem::last_write_time( strSourceFile ) );
 }
 
 std::vector< boost::filesystem::path > 
@@ -602,7 +615,8 @@ std::vector< boost::filesystem::path >
                 std::cout << "\n" << osCmd.str() << std::endl;
             }
             
-            commands.push_back( std::bind( objectCompilationCommand, os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
+            commands.push_back( std::bind( objectCompilationCommand, 
+                os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
         }
     }
     
@@ -646,7 +660,8 @@ std::vector< boost::filesystem::path >
                 std::cout << "\n" << osCmd.str() << std::endl;
             }
             
-            commands.push_back( std::bind( objectCompilationCommand, os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
+            commands.push_back( std::bind( objectCompilationCommand, 
+                os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
         }
     }
     
@@ -656,10 +671,18 @@ std::vector< boost::filesystem::path >
             boost::filesystem::path objectFilePath = project.getObjectFile( strSourceFile );
             objectFiles.push_back( objectFilePath );
             
+            bool bObjectFileMatchesSource = false;
+            if( boost::filesystem::exists( strSourceFile ) && 
+                boost::filesystem::exists( objectFilePath ) &&
+                ( boost::filesystem::last_write_time( strSourceFile ) == 
+                    boost::filesystem::last_write_time( objectFilePath ) ) )
+            {
+                bObjectFileMatchesSource = true;
+            }
+            
             if( fileTracker.isModified( project.getIncludePCH() ) ||
                 fileTracker.isModified( project.getInterfacePCH() ) ||
-                fileTracker.isModified( strSourceFile ) ||
-                fileTracker.isModified( objectFilePath ) )
+                !bObjectFileMatchesSource )
             {
                 std::ostringstream os;
                 os << "Compiling: " << objectFilePath.generic_string();
@@ -691,7 +714,9 @@ std::vector< boost::filesystem::path >
                     std::cout << "\n" << osCmd.str() << std::endl;
                 }
                 
-                commands.push_back( std::bind( objectCompilationCommand, os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ) ) );
+                commands.push_back( std::bind( objectCompilationCommandSetFileTIme, 
+                    os.str(), osCmd.str(), bBenchCommands, std::ref( logMutex ), 
+                    strSourceFile, objectFilePath ) );
             }
         }
     }
@@ -831,7 +856,7 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
             boost::filesystem::remove_all( project.getIntermediateFolder() );
         }
         
-        FileWriteTracker fileTracker( project.getIntermediateFolder() ); 
+        FileWriteTracker fileTracker( project ); 
         
         build_parser_session( environment, project, fileTracker, bBenchCommands, bLogCommands, bNoPCH );
         

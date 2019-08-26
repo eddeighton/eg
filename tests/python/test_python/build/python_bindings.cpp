@@ -3,6 +3,8 @@
 extern void root_stopper( eg::Instance _gid );
 extern __eg_root< void >::__eg_Test< void > root_Test_starter( eg::Instance _gid );
 extern void root_Test_stopper( eg::Instance _gid );
+extern __eg_root< void >::__eg_Python< void > root_Python_starter( eg::Instance _gid );
+extern void root_Python_stopper( eg::Instance _gid );
 extern __eg_root< void > get_root();
 
 
@@ -459,6 +461,24 @@ namespace pybind11
                 return g_pEGRefType->create( src.data );
             }
         };
+        template <> struct type_caster< __eg_root< void >::__eg_Python< void > >
+        {
+        public:
+            PYBIND11_TYPE_CASTER( __eg_root< void >::__eg_Python< void >, _("pyeg.reference"));
+        
+            bool load( handle src, bool )
+            {
+                const eg::PythonEGReference* pEGReference =
+                    eg::PythonEGReferenceType::getReference( src.ptr() );
+                value.data = pEGReference->getEGReference();
+                return !PyErr_Occurred();
+            }
+        
+            static handle cast( __eg_root< void >::__eg_Python< void > src, return_value_policy /* policy */, handle /* parent */)
+            {
+                return g_pEGRefType->create( src.data );
+            }
+        };
     }   //namespace detail
 } // namespace pybind11
 
@@ -478,6 +498,8 @@ bool root_done( eg::Instance instance )
     eg::Iterator iter;
     iter = eg::Iterator( g_root[ instance ].g_rootTest_ring_iter.load() );
     if( iter.full || ( iter.head != iter.tail ) ) return false;
+    iter = eg::Iterator( g_root[ instance ].g_rootPython_ring_iter.load() );
+    if( iter.full || ( iter.head != iter.tail ) ) return false;
     return true;
 }
 void root_Test_pause( eg::Instance instance )
@@ -491,6 +513,21 @@ void root_Test_resume( eg::Instance instance )
         g_root_Test[ instance ].g_root_Test_state = ::eg::action_running;
 }
 bool root_Test_done( eg::Instance instance )
+{
+    eg::Iterator iter;
+    return true;
+}
+void root_Python_pause( eg::Instance instance )
+{
+    if( g_root_Python[ instance ].g_root_Python_state == ::eg::action_running )
+        g_root_Python[ instance ].g_root_Python_state = ::eg::action_paused;
+}
+void root_Python_resume( eg::Instance instance )
+{
+    if( g_root_Python[ instance ].g_root_Python_state == ::eg::action_paused )
+        g_root_Python[ instance ].g_root_Python_state = ::eg::action_running;
+}
+bool root_Python_done( eg::Instance instance )
 {
     eg::Iterator iter;
     return true;
@@ -527,8 +564,8 @@ void HostFunctions::doRead( const eg::reference& reference, eg::TypeID dimension
     {
         switch( dimensionType )
         {
-            case 29:
-                pStack->m_result = pybind11::cast( g_root[ reference.instance ].m_bContinue );
+            case 46:
+                pStack->m_result = pybind11::cast( g_root_Python[ reference.instance ].m_bContinue );
                 break;
             default:
                 break;
@@ -542,8 +579,8 @@ void HostFunctions::doWrite( const eg::reference& reference, eg::TypeID dimensio
         pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
         switch( dimensionType )
         {
-            case 29:
-                 g_root[ reference.instance ].m_bContinue = pybind11::cast< int >( args[ 0 ] );
+            case 46:
+                 g_root_Python[ reference.instance ].m_bContinue = pybind11::cast< int >( args[ 0 ] );
                  break;
             default:
                 break;
@@ -557,13 +594,24 @@ void HostFunctions::doCall( const eg::reference& reference, eg::TypeID actionTyp
         pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
         switch( actionType )
         {
-            case 23:
+            case 32:
                 {
                     __eg_root< void >::__eg_Test< void > ref = root_Test_starter( reference.instance );
                     if( ref )
                     {
                             ref();
                         root_Test_stopper( ref.data.instance );
+                    }
+                    pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
+                }
+                break;
+            case 38:
+                {
+                    __eg_root< void >::__eg_Python< void > ref = root_Python_starter( reference.instance );
+                    if( ref )
+                    {
+                            ref();
+                        root_Python_stopper( ref.data.instance );
                     }
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
@@ -580,7 +628,7 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
         pybind11::args args = pybind11::reinterpret_borrow< pybind11::args >( pStack->args );
         switch( actionType )
         {
-            case 23:
+            case 32:
                 {
                     __eg_root< void >::__eg_Test< void > ref = root_Test_starter( reference.instance );
                     if( ref )
@@ -607,6 +655,33 @@ void HostFunctions::doStart( const eg::reference& reference, eg::TypeID actionTy
                     pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
                 }
                 break;
+            case 38:
+                {
+                    __eg_root< void >::__eg_Python< void > ref = root_Python_starter( reference.instance );
+                    if( ref )
+                    {
+                        std::function< void() > functor = std::bind( &__eg_root< void >::__eg_Python< void >::operator(), ref);
+                        getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber
+                        (
+                            std::allocator_arg,
+                            boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE ),
+                            [ functor, ref ]()
+                            {
+                                try
+                                {
+                                    functor();
+                                }
+                                catch( eg::termination_exception )
+                                {
+                                }
+                                root_Python_stopper( ref.data.instance );
+                            }
+                        );
+                        getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );
+                    }
+                    pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );
+                }
+                break;
             default:
                 break;
         }
@@ -618,11 +693,14 @@ void HostFunctions::doStop( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 16:
+            case 25:
                 root_stopper( reference.instance );
                 break;
-            case 23:
+            case 32:
                 root_Test_stopper( reference.instance );
+                break;
+            case 38:
+                root_Python_stopper( reference.instance );
                 break;
             default:
                 break;
@@ -635,11 +713,14 @@ void HostFunctions::doPause( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 16:
+            case 25:
                 root_pause( reference.instance );
                 break;
-            case 23:
+            case 32:
                 root_Test_pause( reference.instance );
+                break;
+            case 38:
+                root_Python_pause( reference.instance );
                 break;
             default:
                 break;
@@ -652,11 +733,14 @@ void HostFunctions::doResume( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 16:
+            case 25:
                 root_resume( reference.instance );
                 break;
-            case 23:
+            case 32:
                 root_Test_resume( reference.instance );
+                break;
+            case 38:
+                root_Python_resume( reference.instance );
                 break;
             default:
                 break;
@@ -669,11 +753,14 @@ void HostFunctions::doDone( const eg::reference& reference )
     {
         switch( reference.type )
         {
-            case 16:
+            case 25:
                 pStack->m_result = pybind11::cast( root_done( reference.instance ) );
                 break;
-            case 23:
+            case 32:
                 pStack->m_result = pybind11::cast( root_Test_done( reference.instance ) );
+                break;
+            case 38:
+                pStack->m_result = pybind11::cast( root_Python_done( reference.instance ) );
                 break;
             default:
                 break;
@@ -693,7 +780,7 @@ void HostFunctions::doWaitDimension( const eg::reference& reference, eg::TypeID 
     {
         switch( dimensionType )
         {
-            case 29:
+            case 46:
                 break;
             default:
                 break;
@@ -713,8 +800,8 @@ void HostFunctions::doGetDimension( const eg::reference& reference, eg::TypeID d
     {
         switch( dimensionType )
         {
-            case 29:
-                pStack->m_result = pybind11::cast( g_root[ reference.instance ].m_bContinue );
+            case 46:
+                pStack->m_result = pybind11::cast( g_root_Python[ reference.instance ].m_bContinue );
                 break;
             default:
                 break;

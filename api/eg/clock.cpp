@@ -32,7 +32,7 @@ public:
     {
         m_lastTick = m_startTick = ClockType::now();
         m_cycle = 1U;
-        m_ct = m_dt = 0.0f;
+        m_ct    = m_dt = 0.0f;
     }
     
     inline void nextCycle()
