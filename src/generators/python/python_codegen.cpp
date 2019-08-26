@@ -99,6 +99,25 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
         }
     }
     
+    os << "        template <> struct type_caster< eg::Event >\n";
+    os << "        {\n";
+    os << "        public:\n";
+    os << "            PYBIND11_TYPE_CASTER( eg::Event, _(\"pyeg.reference\"));\n";
+    os << "        \n";
+    os << "            bool load( handle src, bool )\n";
+    os << "            {\n";
+    os << "                const eg::PythonEGReference* pEGReference =\n";
+    os << "                    eg::PythonEGReferenceType::getReference( src.ptr() );\n";
+    os << "                value.data = pEGReference->getEGReference();\n";
+    os << "                return !PyErr_Occurred();\n";
+    os << "            }\n";
+    os << "        \n";
+    os << "            static handle cast( eg::Event src, return_value_policy /* policy */, handle /* parent */)\n";
+    os << "            {\n";
+    os << "                return g_pEGRefType->create( src.data );\n";
+    os << "            }\n";
+    os << "        };\n";
+    
     for( ActionTypeMap::const_iterator 
             i = actionTypeMap.begin(),
             iEnd = actionTypeMap.end(); i!=iEnd; ++i )
@@ -172,7 +191,15 @@ void python_sleep_cycle()
 {
     eg::sleep();
 }
+
+void python_sleep_duration( double dbDuration )
+{
+    auto floatDuration      = std::chrono::duration< double, std::ratio< 1 > >( dbDuration );
+    auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
     
+    eg::sleep( intMilliseconds );
+}
+
 )";
     os << pszSleepUtils;
     
@@ -180,10 +207,8 @@ void python_sleep_cycle()
     os << "PYBIND11_EMBEDDED_MODULE( pyeg, module ) \n";
     os << "{\n";
     os << "    module.def( \"root\", get_root );\n";
-    //os << "    module.def( \"context\", get_context );\n";
-    
     os << "    module.def( \"sleep\", python_sleep_cycle );\n";
-    //os << "    module.def( \"sleep\", python_sleep_event );\n"; //TODO... 
+    os << "    module.def( \"sleep\", python_sleep_duration );\n"; //TODO... 
     os << "    module.def( \"wait\", eg::wait );\n";
         
     os << "}\n";

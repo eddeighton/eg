@@ -39,7 +39,7 @@ action Python[ 2 ]
         eg::TextResource::Ptr pText = resource::get< eg::TextResource >( "test.py" );
         try
         {
-            pybind11::exec( pText->get() );
+            pybind11::exec( pText->get(), pybind11::globals(), eg::createPythonContext( *this ) );
         }
         catch( std::exception& e )
         {

@@ -539,6 +539,15 @@ void initialisePythonBindings( const std::string& strDatabaseFile )
     g_pEGRefType = std::make_shared< eg::PythonEGReferenceType >( strDatabaseFile );
 }
 
+namespace eg
+{
+    pybind11::dict createPythonContext( eg::Event ev )
+    {
+        using namespace pybind11::literals;
+        return pybind11::dict( "this"_a=ev, "root"_a=get_root() );
+    }
+}
+
 std::vector< std::function< void() > > loadPythonScripts( const std::vector< std::string >& scripts, const std::string& strDatabaseFile )
 {
     initialisePythonBindings( strDatabaseFile );
