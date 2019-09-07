@@ -129,31 +129,31 @@ struct CmdLine
 class WinConsole
 {
 public:
-    WinConsole()
+    WinConsole() : m_hConsole( NULL )
     {
-        hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        if( !hConsole )
+        if( m_hConsole = GetStdHandle(STD_OUTPUT_HANDLE) )
         {
-            THROW_RTE( "Failed to get console" );
-        }
-        
-        if( !GetConsoleScreenBufferInfo( hConsole, &csbiScreenInfo ) )
-        {
-            THROW_RTE( "Failed to get console info" );
+            GetConsoleScreenBufferInfo( m_hConsole, &csbiScreenInfo );
         }
     }
     
     ~WinConsole()
     {
-        SetConsoleTextAttribute( hConsole, csbiScreenInfo.wAttributes );
+        if( m_hConsole )
+        {
+            SetConsoleTextAttribute( m_hConsole, csbiScreenInfo.wAttributes );
+        }
     }
     
     void colour( WORD wdColour )
     {
-        SetConsoleTextAttribute( hConsole, wdColour );
+        if( m_hConsole )
+        {
+            SetConsoleTextAttribute( m_hConsole, wdColour );
+        }
     }
 private:
-    HANDLE hConsole;
+    HANDLE m_hConsole;
     CONSOLE_SCREEN_BUFFER_INFO csbiScreenInfo;
     
 };
