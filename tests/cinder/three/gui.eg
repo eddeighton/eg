@@ -9,16 +9,30 @@ action Gui
     while( bContinue )
     {
         {
-            ImGui::Begin( "GUI" );
+            ImGui::Begin( "GUI", NULL, 
+                ImGuiWindowFlags_NoTitleBar | 
+                ImGuiWindowFlags_NoResize | 
+                ImGuiWindowFlags_NoMove | 
+                ImGuiWindowFlags_NoScrollbar | 
+                ImGuiWindowFlags_NoScrollWithMouse |
+                ImGuiWindowFlags_NoCollapse
+                );
+            
+            const cinder::ivec2 wndSize = pTheApp->getWindowSize();
+            ImGui::SetWindowPos( ImVec2( 0,0 ) );
+            ImGui::SetWindowSize( ImVec2( wndSize.x, 30 ) );
+            
             ImGui::TextColored( ImVec4(1,1,1,1), "Hello World" );
             
             //fps
+            ImGui::SameLine();
             {
                 std::ostringstream os;
                 os << pTheApp->getAverageFps() << " FPS";
                 ImGui::TextColored( ImVec4(1,1,1,1), "%s", os.str().c_str() );
             }
         
+            ImGui::SameLine();
             if( ImGui::Button( "Fullscreen" ) )
             {
                 if( pTheApp->isFullScreen() )
@@ -30,6 +44,8 @@ action Gui
                     pTheApp->setFullScreen( true );
                 }
             }
+            
+            ImGui::SameLine();
             if( ImGui::Button( "Quit" ) )
             {
                 pTheApp->quit();
