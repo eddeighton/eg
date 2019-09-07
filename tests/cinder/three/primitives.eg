@@ -1,0 +1,35 @@
+
+
+abstract Cube
+{
+    dim cinder::vec3 position;
+    dim cinder::vec3 size;
+    
+    action Render
+    {
+        while( true )
+        {
+            cinder::gl::drawColorCube( position(), size() );
+            eg::sleep();
+        }
+    }
+}
+
+abstract LineSegment
+{
+    dim cinder::vec3 start;
+    dim cinder::vec3 end;
+    dim cinder::vec3 colour;
+    dim float width;
+    
+    action Render
+    {
+        while( true )
+        {
+            glLineWidth( width() );
+            cinder::gl::color( colour().x, colour().y, colour().z );
+            cinder::gl::drawLine( start(), end() );
+            eg::sleep();
+        }
+    }
+}

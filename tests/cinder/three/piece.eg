@@ -1,0 +1,24 @@
+
+
+action BoardLine[ 256 ] : LineSegment
+{
+    Render.Start();
+    while( true )
+    {
+        eg::sleep();
+    }
+}
+
+action Piece[ 9 ] : Cube
+{
+    size( cinder::vec3( 1.0, 1.0, 1.0 ) );
+    
+    dim glm::vec2 pos;
+    
+    Render.Start();
+    while( true )
+    {
+        position( cinder::vec3( pos().x + 0.5, 0.5, pos().y + 0.5 ) );
+        eg::sleep();
+    }
+}
