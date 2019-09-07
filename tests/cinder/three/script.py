@@ -20,7 +20,12 @@ for x in range( -s, s, 2 ):
 
 start = pyeg.ct()
 
-while pyeg.ct() < start + 5:
+pother = this.Piece.Start()
+pother.pos( [ -s -1, -s ] )
+pother.movetime( 8 )
+pother.Move.Start( [ -s -1, -s ], [ -s -1, s - 1 ] )
+
+while pyeg.ct() < start + 8:
         
     moves = []
     for p in pieces:
@@ -45,5 +50,6 @@ while pyeg.ct() < start + 5:
 for p in pieces:
     p.Stop()
     
+pother.Stop()
     
 print( "Test script complete" )

@@ -5,10 +5,14 @@ import pyeg
 
 r = pyeg.root()
 
-camOrbit = r.Camera.Orbit.Start();
-camOrbit.rate( 0.1 )
-camOrbit.radius( 6 )
-camOrbit.offset( [0, 16, 0 ] )
+#camOrbit = r.Camera.Orbit.Start()
+#camOrbit.rate( 0.1 )
+#camOrbit.radius( 6 )
+#camOrbit.offset( [0, 16, 0 ] )
+
+mouse = r.Camera.Mouse.Start()
+mouse.radius( 10 )
+mouse.rate( [ 0.01, 0.4 ] )
 
 #grid
 for x in range( -4, 5 ):

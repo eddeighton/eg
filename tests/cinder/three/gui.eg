@@ -22,14 +22,12 @@ action Gui
             ImGui::SetWindowPos( ImVec2( 0,0 ) );
             ImGui::SetWindowSize( ImVec2( wndSize.x, 30 ) );
             
-            ImGui::TextColored( ImVec4(1,1,1,1), "Hello World" );
-            
-            //fps
+            //quit
             ImGui::SameLine();
+            if( ImGui::Button( "Quit" ) )
             {
-                std::ostringstream os;
-                os << pTheApp->getAverageFps() << " FPS";
-                ImGui::TextColored( ImVec4(1,1,1,1), "%s", os.str().c_str() );
+                pTheApp->quit();
+                bContinue = false;
             }
         
             //fullscreen
@@ -53,17 +51,14 @@ action Gui
                 Python.Start();
             }
             
-            //quit
+            //fps
             ImGui::SameLine();
-            if( ImGui::Button( "Quit" ) )
             {
-                pTheApp->quit();
-                bContinue = false;
+                ImGui::TextColored( ImVec4(1,1,1,1), "FPS: %4.0f", pTheApp->getAverageFps() );
             }
+            
             ImGui::End();
         }
         eg::sleep();
     }
 }
-
-Gui gui = Gui.Start();
