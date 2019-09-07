@@ -192,12 +192,22 @@ void python_sleep_cycle()
     eg::sleep();
 }
 
-void python_sleep_duration( double dbDuration )
+void python_sleep_duration_double( double dbDuration )
 {
     auto floatDuration      = std::chrono::duration< double, std::ratio< 1 > >( dbDuration );
     auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
     
     eg::sleep( intMilliseconds );
+}
+
+void python_sleep_duration_int( int iDuration )
+{
+    python_sleep_duration_double( static_cast< double >( iDuration ) );
+}
+
+void python_sleep_reference( eg::Event ev )
+{
+    eg::sleep( ev );
 }
 
 )";
@@ -206,10 +216,14 @@ void python_sleep_duration( double dbDuration )
     os << "\n//Embedded Python Module\n";
     os << "PYBIND11_EMBEDDED_MODULE( pyeg, module ) \n";
     os << "{\n";
-    os << "    module.def( \"root\", get_root );\n";
-    os << "    module.def( \"sleep\", python_sleep_cycle );\n";
-    os << "    module.def( \"sleep\", python_sleep_duration );\n"; //TODO... 
-    os << "    module.def( \"wait\", eg::wait );\n";
+    os << "    module.def( \"root\",    get_root );\n";
+    os << "    module.def( \"sleep\",   python_sleep_cycle );\n";
+    os << "    module.def( \"sleep\",   python_sleep_duration_double );\n";
+    os << "    module.def( \"sleep\",   python_sleep_duration_int );\n";
+    os << "    module.def( \"sleep\",   python_sleep_reference );\n";
+    os << "    module.def( \"wait\",    eg::wait );\n";
+    os << "    module.def( \"ct\",      clock::ct );\n";
+    os << "    module.def( \"dt\",      clock::dt );\n";
         
     os << "}\n";
         

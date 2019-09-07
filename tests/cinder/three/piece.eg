@@ -9,7 +9,7 @@ action BoardLine[ 256 ] : LineSegment
     }
 }
 
-action Piece[ 9 ] : Cube
+action Piece[ 64 ] : Cube
 {
     size( cinder::vec3( 1.0, 1.0, 1.0 ) );
     

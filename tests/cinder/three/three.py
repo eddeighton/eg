@@ -6,9 +6,9 @@ import pyeg
 r = pyeg.root()
 
 camOrbit = r.Camera.Orbit.Start();
-camOrbit.rate( 0.2 )
-camOrbit.radius( 4 )
-camOrbit.offset( [0, 5, 0 ] )
+camOrbit.rate( 0.1 )
+camOrbit.radius( 6 )
+camOrbit.offset( [0, 16, 0 ] )
 
 #grid
 for x in range( -4, 5 ):
