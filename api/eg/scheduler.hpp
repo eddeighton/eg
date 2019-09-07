@@ -468,6 +468,20 @@ inline void sleep( std::chrono::duration< Rep, Period > const& timeout_duration 
     checkIfStopped();
 }
 
+inline void sleep( float fDuration )
+{
+    auto floatDuration      = std::chrono::duration< float, std::ratio< 1 > >( fDuration );
+    auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
+    sleep( intMilliseconds );
+}
+
+inline void sleep( double dbDuration )
+{
+    auto doubleDuration      = std::chrono::duration< double, std::ratio< 1 > >( dbDuration );
+    auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( doubleDuration );
+    sleep( intMilliseconds );
+}
+
 inline void wait()
 {
     boost::this_fiber::yield();

@@ -9,7 +9,7 @@ action BoardLine[ 256 ] : LineSegment
     }
 }
 
-action Piece[ 64 ] : Cube
+action Piece[ 256 ] : Cube
 {
     size( cinder::vec3( 1.0, 1.0, 1.0 ) );
     
@@ -29,6 +29,8 @@ action Piece[ 64 ] : Cube
     action Right;
     
     action Move;
+    
+    action Plan;
 }
 
 action Piece::Move( glm::vec2 from, glm::vec2 to )
@@ -68,4 +70,23 @@ action Piece::Left
 action Piece::Right
 {
     Move( pos(), pos() + glm::vec2( 1, 0 ) );
+}
+
+action Piece::Plan
+{
+    dim std::vector< int > plan;
+    
+    for( int i : plan() )
+    {
+        switch( i )
+        {
+            case 0: Up();       break;
+            case 1: Down();     break;
+            case 2: Left();     break;
+            case 3: Right();    break;
+            default:
+                eg::sleep( movetime() );
+                break;
+        }
+    }
 }
