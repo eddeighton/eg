@@ -7,7 +7,7 @@ for p in this.root.Get().Piece.Range():
     p.Stop()
 
 s = 4
-speed = 0.2
+speed = 0.1
 
 pieces = []
 
@@ -25,22 +25,22 @@ while pyeg.ct() < start + 5:
     moves = []
     for p in pieces:
         moves.append( p.Up.Start() )
-    pyeg.sleep( moves[ 0 ] )
+    pyeg.sleep( moves )
         
     moves = []
     for p in pieces:
         moves.append( p.Right.Start() )
-    pyeg.sleep( moves[ 0 ] )
+    pyeg.sleep( moves )
         
     moves = []
     for p in pieces:
         moves.append( p.Down.Start() )
-    pyeg.sleep( moves[ 0 ] )
+    pyeg.sleep( moves )
         
     moves = []
     for p in pieces:
         moves.append( p.Left.Start() )
-    pyeg.sleep( moves[ 0 ] )
+    pyeg.sleep( moves )
 
 for p in pieces:
     p.Stop()

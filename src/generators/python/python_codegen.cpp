@@ -118,6 +118,26 @@ void generate_python( std::ostream& os, eg::ReadSession& session )
     os << "            }\n";
     os << "        };\n";
     
+    //os << "        template <> struct type_caster< std::vector< eg::Event > >\n";
+    //os << "        {\n";
+    //os << "        public:\n";
+    //os << "            PYBIND11_TYPE_CASTER( std::vector< eg::Event >, _(\"pyeg.reference\"));\n";
+    //os << "        \n";
+    //os << "            bool load( handle src, bool )\n";
+    //os << "            {\n";
+    //os << "                //const eg::PythonEGReference* pEGReference =\n";
+    //os << "                //    eg::PythonEGReferenceType::getReference( src.ptr() );\n";
+    //os << "                //value.data = pEGReference->getEGReference();\n";
+    //os << "                //value.data = std::vector< eg::Event >();\n";
+    //os << "                return !PyErr_Occurred();\n";
+    //os << "            }\n";
+    //os << "        \n";
+    //os << "            static handle cast( std::vector< eg::Event > src, return_value_policy /* policy */, handle /* parent */)\n";
+    //os << "            {\n";
+    //os << "                return nullptr;//g_pEGRefType->create( src.data );\n";
+    //os << "            }\n";
+    //os << "        };\n";
+    
     for( ActionTypeMap::const_iterator 
             i = actionTypeMap.begin(),
             iEnd = actionTypeMap.end(); i!=iEnd; ++i )
@@ -210,6 +230,11 @@ void python_sleep_reference( eg::Event ev )
     eg::sleep( ev );
 }
 
+void python_sleep_reference_vector( std::vector< eg::Event > events )
+{
+    eg::sleep( events );
+}
+
 )";
     os << pszSleepUtils;
     
@@ -220,6 +245,7 @@ void python_sleep_reference( eg::Event ev )
     os << "    module.def( \"sleep\",   python_sleep_cycle );\n";
     os << "    module.def( \"sleep\",   python_sleep_duration_double );\n";
     os << "    module.def( \"sleep\",   python_sleep_duration_int );\n";
+    os << "    module.def( \"sleep\",   python_sleep_reference_vector );\n";
     os << "    module.def( \"sleep\",   python_sleep_reference );\n";
     os << "    module.def( \"wait\",    eg::wait );\n";
     os << "    module.def( \"ct\",      clock::ct );\n";

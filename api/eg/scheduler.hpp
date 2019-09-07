@@ -421,6 +421,34 @@ inline void sleep( Event event )
     checkIfStopped();
 }
 
+struct EventListResumption
+{
+    std::shared_ptr< std::vector< Event > > m_pEvents;
+    EventListResumption( const std::vector< Event >& events )
+        :   m_pEvents( std::make_shared< std::vector< Event > >( events ) )
+    {
+    }
+    bool operator()( Event ev )
+    {
+        std::vector< eg::Event >::iterator i = 
+            std::find( m_pEvents->begin(), m_pEvents->end(), ev );
+        if( i != m_pEvents->end() )
+        {
+            m_pEvents->erase( i );
+        }
+        return m_pEvents->empty();
+    }
+};
+
+inline void sleep( const std::vector< Event >& events )
+{
+    checkIfStopped();
+    //sleeping on an event means the fiber can be reawoken in the current cycle
+    boost::this_fiber::properties< eg::fiber_props >().setResumption( EventListResumption( events ) );
+    boost::this_fiber::yield();
+    checkIfStopped();
+}
+
 template< typename Clock, typename Duration >
 inline void sleep( std::chrono::time_point< Clock, Duration > const& sleep_time )
 {
