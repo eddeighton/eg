@@ -2,9 +2,9 @@
 
 action BoardLine[ 256 ] : LineSegment
 {
-    Render.Start();
     while( true )
     {
+        Render();
         eg::sleep();
     }
 }
@@ -14,11 +14,58 @@ action Piece[ 9 ] : Cube
     size( cinder::vec3( 1.0, 1.0, 1.0 ) );
     
     dim glm::vec2 pos;
+    dim float movetime;
     
-    Render.Start();
     while( true )
     {
         position( cinder::vec3( pos().x + 0.5, 0.5, pos().y + 0.5 ) );
+        Render();
         eg::sleep();
     }
+    
+    action Up;
+    action Down;
+    action Left;
+    action Right;
+    
+    action Move;
+}
+
+action Piece::Move( glm::vec2 from, glm::vec2 to )
+{
+    pos( from );
+    
+    const float startTime = clock::ct();
+    const glm::vec2 distance = to - from;
+    
+    while( clock::ct() < ( startTime + movetime() ) )
+    {
+        float elapsed = ( clock::ct() - startTime ) / movetime();
+        pos( from + elapsed * distance );
+        eg::sleep();
+    }
+    
+    //snap to final position
+    pos( to );
+    eg::sleep();
+}
+
+action Piece::Up
+{
+    Move( pos(), pos() + glm::vec2( 0, 1 ) );
+}
+
+action Piece::Down
+{
+    Move( pos(), pos() + glm::vec2( 0, -1 ) );
+}
+
+action Piece::Left
+{
+    Move( pos(), pos() + glm::vec2( -1, 0 ) );
+}
+
+action Piece::Right
+{
+    Move( pos(), pos() + glm::vec2( 1, 0 ) );
 }

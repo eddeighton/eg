@@ -32,6 +32,7 @@ action Gui
                 ImGui::TextColored( ImVec4(1,1,1,1), "%s", os.str().c_str() );
             }
         
+            //fullscreen
             ImGui::SameLine();
             if( ImGui::Button( "Fullscreen" ) )
             {
@@ -45,6 +46,14 @@ action Gui
                 }
             }
             
+            //run script
+            ImGui::SameLine();
+            if( ImGui::Button( "Run Script" ) )
+            {
+                Python.Start();
+            }
+            
+            //quit
             ImGui::SameLine();
             if( ImGui::Button( "Quit" ) )
             {

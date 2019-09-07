@@ -26,12 +26,4 @@ for z in range( -4, 5 ):
     l.width( 1 )
 
 
-p1 = r.Piece.Start()
-p1.pos( [ 0, 0 ] )
-
-p2 = r.Piece.Start()
-p2.pos( [ 1, 0 ] )
-
-p3 = r.Piece.Start()
-p3.pos( [ 0, 1 ] )
     

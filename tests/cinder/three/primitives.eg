@@ -7,11 +7,7 @@ abstract Cube
     
     action Render
     {
-        while( true )
-        {
-            cinder::gl::drawColorCube( position(), size() );
-            eg::sleep();
-        }
+        cinder::gl::drawColorCube( position(), size() );
     }
 }
 
@@ -24,12 +20,8 @@ abstract LineSegment
     
     action Render
     {
-        while( true )
-        {
-            glLineWidth( width() );
-            cinder::gl::color( colour().x, colour().y, colour().z );
-            cinder::gl::drawLine( start(), end() );
-            eg::sleep();
-        }
+        glLineWidth( width() );
+        cinder::gl::color( colour().x, colour().y, colour().z );
+        cinder::gl::drawLine( start(), end() );
     }
 }

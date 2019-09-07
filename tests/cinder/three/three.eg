@@ -41,6 +41,23 @@ action Camera
 Camera cam = Camera.Start();
 
 
+
+resource::set< eg::TextResourceHandler >( "script.py" );
+
+action Python
+{
+    eg::TextResource::Ptr pText = resource::get< eg::TextResource >( "script.py" );
+    try
+    {
+        std::cout << "Executing: script.py" << std::endl;
+        pybind11::exec( pText->get(), pybind11::globals(), eg::createPythonContext( *this ) );
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
+}
+
 //main render loop
 while( !Done() )
 {
