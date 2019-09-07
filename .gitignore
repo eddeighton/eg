@@ -1,4 +1,6 @@
 build_*
+build/
+log/
 bin
 modules/llvm_*
 data/components/common/__pycache__
@@ -17,3 +19,4 @@ third_party
 *.ilk
 *.pdb
 
+imgui.ini

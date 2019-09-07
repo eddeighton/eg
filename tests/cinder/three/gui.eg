@@ -1,0 +1,44 @@
+
+
+
+action Gui
+{
+    cinder::app::AppBase* pTheApp = cinder::app::AppBase::get();
+    
+    bool bContinue = true;
+    while( bContinue )
+    {
+        {
+            ImGui::Begin( "GUI" );
+            ImGui::TextColored( ImVec4(1,1,1,1), "Hello World" );
+            
+            //fps
+            {
+                std::ostringstream os;
+                os << pTheApp->getAverageFps() << " FPS";
+                ImGui::TextColored( ImVec4(1,1,1,1), "%s", os.str().c_str() );
+            }
+        
+            if( ImGui::Button( "Fullscreen" ) )
+            {
+                if( pTheApp->isFullScreen() )
+                {
+                    pTheApp->setFullScreen( false );
+                }
+                else
+                {
+                    pTheApp->setFullScreen( true );
+                }
+            }
+            if( ImGui::Button( "Quit" ) )
+            {
+                pTheApp->quit();
+                bContinue = false;
+            }
+            ImGui::End();
+        }
+        eg::sleep();
+    }
+}
+
+Gui gui = Gui.Start();

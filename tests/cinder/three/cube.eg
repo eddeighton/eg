@@ -1,0 +1,14 @@
+
+
+
+action Cube[ 9 ]
+{
+    dim cinder::vec3 position;
+    dim cinder::vec3 size;
+    
+    while( true )
+    {
+        cinder::gl::drawColorCube( position(), size() );
+        eg::sleep();
+    }
+}
