@@ -52,7 +52,7 @@ namespace input
     
     void Opaque::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
     {
-        os << strIndent << m_str << "//" << szIndex;
+        os << strIndent << m_str << "\n";// << "//" << szIndex;
     }
     
     Dimension::Dimension( const IndexedObject& object )

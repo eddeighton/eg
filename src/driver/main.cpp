@@ -56,6 +56,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <bitset>
 
 
 class EGDiagConsumer : public clang::DiagnosticConsumer 
@@ -75,23 +76,27 @@ class EGDiagConsumer : public clang::DiagnosticConsumer
 };
 
 extern void command_create( bool bHelp, const std::vector< std::string >& args );
-
 extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
-
 extern void command_run( bool bHelp, const std::vector< std::string >& args );
-
 extern void command_log( bool bHelp, const std::vector< std::string >& args );
-
 extern void command_clean( bool bHelp, const std::vector< std::string >& args );
+extern void command_info( bool bHelp, const std::vector< std::string >& args );
 
-void command_cmake( bool bHelp, const std::vector< std::string >& args )
+//extern void command_cmake( bool bHelp, const std::vector< std::string >& args );
+//extern void command_debug( bool bHelp, const std::vector< std::string >& args );
+
+enum MainCommand
 {
-    
-}
-void command_debug( bool bHelp, const std::vector< std::string >& args )
-{
-    
-}
+    eCmd_Create,
+    eCmd_Build,
+    eCmd_Run,
+    eCmd_Log,
+    eCmd_Clean,
+    eCmd_Info,
+    //eCmd_CMake,
+    //eCmd_Debug,
+    TOTAL_MAIN_COMMANDS
+};
 
 int main( int argc, const char* argv[] )
 {
@@ -99,15 +104,11 @@ int main( int argc, const char* argv[] )
     
     bool bWait = false;
     
+    std::bitset< TOTAL_MAIN_COMMANDS > cmds;
+    MainCommand cmd = TOTAL_MAIN_COMMANDS;
+    
     //commands
-    bool bCmdCreate = false;
-    //bool bCmdBuild  = false;
     std::string strBuildCommand;
-    bool bCmdRun    = false;
-    bool bCmdLog    = false;
-    bool bCmdCMake  = false;
-    bool bCmdDebug  = false;
-    bool bCmdClean  = false;
     
     {
         std::vector< std::string > commandArgs;
@@ -116,22 +117,32 @@ int main( int argc, const char* argv[] )
         po::variables_map vm;
         try
         {
+            bool bCmdCreate = false;
+            bool bCmdRun    = false;
+            bool bCmdLog    = false;
+            bool bCmdClean  = false;
+            bool bCmdInfo   = false;
+            //bool bCmdCMake  = false;
+            //bool bCmdDebug  = false;
+            
             po::options_description genericOptions(" General");
             {
                 genericOptions.add_options()
+                
                     ("help", "produce general or command help message")
                 ;
             }
             
             po::options_description commandOptions(" Commands");
             {
+                
                 commandOptions.add_options()
                         
                     ("create",  po::bool_switch( &bCmdCreate ),
                         "Start a new eg project" )
                         
                     ("build", po::value< std::string >( &strBuildCommand )->implicit_value("release"), 
-                        "Build an eg project with the specified build command" )
+                        "Build an eg project" )
                         
                     ("run",   po::bool_switch( &bCmdRun ),
                         "Run an eg project" )
@@ -140,14 +151,23 @@ int main( int argc, const char* argv[] )
                         "Run an eg project" )
                         
                     ("clean",   po::bool_switch( &bCmdClean ),
-                        "Clean an eg project removing all build and log files" )
+                        "Removing all build and log files" )
                         
-                    ("cmake",   po::bool_switch( &bCmdCMake ),
-                        "Generate a cmake build for an eg project" )
+                    ("info",   po::bool_switch( &bCmdInfo ),
+                        "Report info about an eg project" )
                         
-                    ("debug",   po::bool_switch( &bCmdDebug ),
-                        "Debug an eg project using cmake based build system" )
+                    //("cmake",   po::bool_switch( &bCmdCMake ),
+                    //    "Generate a cmake build for an eg project" )
+                        
+                    //("debug",   po::bool_switch( &bCmdDebug ),
+                    //    "Debug an eg project using cmake based build system" )
                 ;
+            }
+            
+            if( cmds.count() > 1 )
+            {
+                std::cout << "Invalid command combination. Type '--help' for options\n";
+                return 1;
             }
             
             po::options_description commandHiddenOptions( "" );
@@ -183,91 +203,67 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
             
+            if( bCmdCreate )
+            {
+                cmds.set( eCmd_Create );
+                cmd = eCmd_Create;
+            }
+            if( !strBuildCommand.empty() )
+            {
+                cmds.set( eCmd_Build );
+                cmd = eCmd_Build;
+            }
+            if( bCmdRun )
+            {
+                cmds.set( eCmd_Run );
+                cmd = eCmd_Run;
+            }
+            if( bCmdLog )
+            {
+                cmds.set( eCmd_Log );
+                cmd = eCmd_Log;
+            }
+            if( bCmdClean ) 
+            {
+                cmds.set( eCmd_Clean );
+                cmd = eCmd_Clean;
+            }
+            if( bCmdInfo ) 
+            {
+                cmds.set( eCmd_Info );
+                cmd = eCmd_Info;
+            }
+            //if( bCmdCMake )                 cmds.set( eCmd_Create );
+            //if( bCmdDebug )                 cmds.set( eCmd_Create );
+            
             const bool bShowHelp = vm.count("help");
             
             std::vector< std::string > commandArguments = 
                 po::collect_unrecognized( parsedOptions.options, po::include_positional );
-            
-            if( bCmdCreate )
-            {
-                if( !strBuildCommand.empty() || bCmdRun || bCmdLog || bCmdCMake || bCmdDebug || bCmdClean )
-                {
-                    std::cout << "Invalid command combination. Type '--help' for options\n";
-                    return 1;
-                }
-                command_create( bShowHelp, commandArguments );
-                return 0;
+                
+            switch( cmd )
+            {                
+                case eCmd_Create          : command_create( bShowHelp, commandArguments );                   break;
+                case eCmd_Build           : command_build(  bShowHelp, strBuildCommand, commandArguments );  break;
+                case eCmd_Run             : command_run(    bShowHelp, commandArguments );                   break;
+                case eCmd_Log             : command_log(    bShowHelp, commandArguments );                   break;
+                case eCmd_Clean           : command_clean(  bShowHelp, commandArguments );                   break;
+                //case eCmd_CMake           : command_cmake(  bShowHelp, commandArguments );                   break;
+                //case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
+                case eCmd_Info            : command_info(   bShowHelp, commandArguments );                   break;
+                case TOTAL_MAIN_COMMANDS  :
+                default:
+                    if( vm.count( "help" ) )
+                    {
+                        std::cout << visibleOptions << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Invalid command. Type '--help' for options\n";
+                        return 1;
+                    }
             }
-            else if( !strBuildCommand.empty() )
-            {
-                if( bCmdCreate || bCmdRun || bCmdLog || bCmdCMake || bCmdDebug || bCmdClean ) 
-                {
-                    std::cout << "Invalid command combination. Type '--help' for options\n";
-                    return 1;
-                }
-                command_build( bShowHelp, strBuildCommand, commandArguments );
-                return 0;
-            }
-            else if( bCmdRun )
-            {
-                if( !strBuildCommand.empty() || bCmdCreate || bCmdLog || bCmdCMake || bCmdDebug || bCmdClean )
-                {
-                    std::cout << "Invalid command combination. Type '--help' for options\n";
-                    return 1;
-                }
-                command_run( bShowHelp, commandArguments );
-                return 0;
-            }
-            else if( bCmdLog )
-            {
-                if( !strBuildCommand.empty() || bCmdCreate || bCmdRun || bCmdCMake || bCmdDebug || bCmdClean )
-                {
-                    std::cout << "Invalid command combination. Type '--help' for options\n";
-                    return 1;
-                }
-                command_log( bShowHelp, commandArguments );
-                return 0;
-            }
-            else if( bCmdCMake )
-            {
-                if( !strBuildCommand.empty() || bCmdRun || bCmdLog || bCmdCreate || bCmdDebug || bCmdClean )
-                {
-                    std::cout << "Invalid command combination. Type '--help' for options\n";
-                    return 1;
-                }
-                command_cmake( bShowHelp, commandArguments );
-                return 0;
-            }
-            else if( bCmdDebug )
-            {
-                if( !strBuildCommand.empty() || bCmdRun || bCmdLog || bCmdCMake || bCmdCreate || bCmdClean  )
-                {
-                    std::cout << "Invalid command combination. Type '--help' for options\n";
-                    return 1;
-                }
-                command_debug( bShowHelp, commandArguments );
-                return 0;
-            }
-            else if( bCmdClean )
-            {
-                if( !strBuildCommand.empty() || bCmdRun || bCmdLog || bCmdCMake || bCmdCreate || bCmdDebug  )
-                {
-                    std::cout << "Invalid command combination. Type '--help' for options\n";
-                    return 1;
-                }
-                command_clean( bShowHelp, commandArguments );
-                return 0;
-            }
-            else if( vm.count( "help" ) )
-            {
-                std::cout << visibleOptions << "\n";
-                return 0;
-            }
-            else
-            {
-                std::cout << "Invalid command. Type '--help' for options\n";
-                return 1;
-            }
+            return 0;
         }
         catch( boost::program_options::error& e )
         {

@@ -211,7 +211,7 @@ namespace concrete
     
     void Dimension_Generated::print( std::ostream& os, std::string& strIndent ) const
     {
-        THROW_RTE( "Unreachable" );
+        //THROW_RTE( "Unreachable" );
     }
     
     void Dimension_Generated::printType( std::ostream& os ) const
@@ -535,18 +535,22 @@ namespace concrete
         
         if( !m_children.empty() )
         {
-            os << strIndent << "[\n";
+            std::ostringstream osNested;
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            
             for( Element* pChild : m_children )
             {
-                pChild->print( os, strIndent );
+                pChild->print( osNested, strIndent );
             }
-            
             strIndent.pop_back();
             strIndent.pop_back();
-            os << strIndent << "]\n";
+            std::string strNested = osNested.str();
+            if( !strNested.empty() )
+            {
+                os << strIndent << "[\n";
+                os << strNested;
+                os << strIndent << "]\n";
+            }
         }
     }
     

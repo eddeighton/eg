@@ -80,13 +80,18 @@ namespace interface
         storer.storeObjectVector( m_children );
     }
     
-    void Element::print( std::ostream& os, std::string& strIndent ) const
+    void Element::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
     {
         if( m_pElement )
         {
             switch( m_pElement->getType() )
             {
                 case eInputOpaque    :
+                    if( bIncludeOpaque )
+                    {
+                        m_pElement->print( os, strIndent, getIndex() );
+                    }
+                    break;
                 case eInputDimension :
                 case eInputInclude   :
                     m_pElement->print( os, strIndent, getIndex() );
@@ -106,7 +111,7 @@ namespace interface
 
                         for( const Element* pChildNode : m_children )
                         {
-                            pChildNode->print( os, strIndent );
+                            pChildNode->print( os, strIndent, bIncludeOpaque );
                         }
 
                         strIndent.pop_back();
@@ -124,7 +129,7 @@ namespace interface
         {
             for( const Element* pChildNode : m_children )
             {
-                pChildNode->print( os, strIndent );
+                pChildNode->print( os, strIndent, bIncludeOpaque );
             }
         }
     }

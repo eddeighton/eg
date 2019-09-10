@@ -146,7 +146,7 @@ namespace interface
         input::Element* getInputElement() const { return m_pElement; }
         Element* getParent() const { return m_pParent; }
         
-        void print( std::ostream& os, std::string& strIndent ) const;
+        void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
         const std::string& getIdentifier() const;
         const std::vector< Element* >& getChildren() const { return m_children; }
         std::string getFriendlyName() const;

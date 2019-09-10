@@ -21,6 +21,8 @@
 
 
 
+#include "eg/implementation_session.hpp"
+
 #include "schema/project.hpp"
 
 #include "egxml/eg_schema.hxx"
@@ -35,18 +37,23 @@
 
 #include <iostream>
 
-void command_log( bool bHelp, const std::vector< std::string >& args )
+void command_info( bool bHelp, const std::vector< std::string >& args )
 {
     std::string strDirectory;
-    std::string strCommand = "default";
-    std::vector< std::string > filters;
+    
+    bool bCode = false;
+    bool bAbstract = false;
+    bool bConcrete = false;
     
     namespace po = boost::program_options;
     po::options_description commandOptions(" Read Project Log");
     {
         commandOptions.add_options()
             ("dir",         po::value< std::string >( &strDirectory ),              "Project directory")
-            ("filters",     po::value< std::vector< std::string > >( &filters ),    "Filters ( default parameter )" )
+            
+            ("code",       po::bool_switch( &bCode ), "Print entire program as single eg file" )
+            ("abstract",   po::bool_switch( &bAbstract ), "Print the abstract tree" )
+            ("concrete",   po::bool_switch( &bConcrete ), "Print the concrete tree" )
         ;
     }
     
@@ -63,7 +70,6 @@ void command_log( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        
         const boost::filesystem::path projectDirectory = 
             boost::filesystem::edsCannonicalise(
                 boost::filesystem::absolute( strDirectory ) );
@@ -88,20 +94,27 @@ void command_log( bool bHelp, const std::vector< std::string >& args )
         
         Environment environment( projectDirectory );
         
-        //const egxml::Project& project = pDocument->Project();
+        Project project( projectDirectory, environment, pDocument->Project() );
         
-        std::ostringstream osCmd;
-        environment.startLogCommand( osCmd );
+        eg::ReadSession session( project.getAnalysisFileName() );
         
-        osCmd << "--log " << environment.printPath( projectDirectory / "log" ) << " " <<
-              "--data " << environment.printPath( projectDirectory / "build/database.db" ) << " ";
-              
-        std::copy( filters.begin(), filters.end(), std::ostream_iterator< std::string >( osCmd, " " ) );
-        
-        const int iResult = boost::process::system( osCmd.str() );
-        if( iResult )
+        if( bCode )
         {
-            THROW_RTE( "Error invoking eglog " << iResult );
+            const eg::interface::Root* pInterfaceRoot = session.getTreeRoot();
+            std::string strIndent;
+            pInterfaceRoot->print( std::cout, strIndent, true );
+        }
+        if( bAbstract )
+        {
+            const eg::interface::Root* pInterfaceRoot = session.getTreeRoot();
+            std::string strIndent;
+            pInterfaceRoot->print( std::cout, strIndent, false );
+        }
+        if( bConcrete )
+        {
+            const eg::concrete::Action* pConcreteRoot = session.getInstanceRoot();
+            std::string strIndent;
+            pConcreteRoot->print( std::cout, strIndent );
         }
         
     }
