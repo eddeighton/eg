@@ -1,0 +1,38 @@
+
+
+
+action Rack
+{
+
+    action Unit[ 1024 ]
+    {
+    
+        
+        dim int m_yPosition;
+        dim int m_height;
+        
+        m_height( 100 );
+        
+    }
+
+    while( true )
+    {
+        ImGui::Begin( "RACK", NULL );
+    
+        ImGui::TextColored( ImVec4(1,1,1,1), "Rack Unit stuff goes here!" );
+    
+        ImGui::End();
+            
+        //calculate vertical layout
+        int yPos = 0;
+        for( Unit unit : Unit.Range() )
+        {
+        
+            unit.m_yPosition( yPos );
+            yPos += unit.m_height();
+        }
+        
+        eg::sleep();
+    }
+    
+}

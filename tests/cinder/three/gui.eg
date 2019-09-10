@@ -44,6 +44,21 @@ action Gui
                 }
             }
             
+            //rack
+            ImGui::SameLine();
+            if( ImGui::Button( "Rack" ) )
+            {
+                Rack theRack = ::eg::one< Rack >( root.Get().Rack.Range() );
+                if( theRack )
+                {
+                    theRack.Stop();
+                }
+                else
+                {
+                    Rack.Start();
+                }
+            }
+            
             //run script
             ImGui::SameLine();
             if( ImGui::Button( "Run Script" ) )
@@ -62,3 +77,4 @@ action Gui
         eg::sleep();
     }
 }
+
