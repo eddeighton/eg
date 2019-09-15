@@ -277,7 +277,10 @@ namespace eg
         }    
         void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
-        }    
+        }   
+        void push ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }     
         void push ( const input::Root* pElement, const interface::Element* pNode )
         {    
             ++depth;
@@ -317,6 +320,10 @@ namespace eg
         }    
         void pop ( const input::Include* pElement, const interface::Element* pNode )
         {    
+        }    
+        void pop ( const input::Using* pElement, const interface::Element* pNode )
+        {   
+            os << strIndent << "using " << pElement->getIdentifier() << " = " << pElement->getType()->getStr() << ";\n"; 
         }    
         void pop ( const input::Root* pElement, const interface::Element* pNode )
         {    
@@ -360,6 +367,9 @@ namespace eg
         void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
+        void push ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }    
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
@@ -388,7 +398,10 @@ namespace eg
         }    
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
-        }    
+        }   
+        void pop ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }     
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
@@ -434,6 +447,9 @@ namespace eg
         void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
+        void push ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }   
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
@@ -471,10 +487,13 @@ namespace eg
         }     
         void pop ( const input::Dimension* pElement, const interface::Element* pNode )
         {    
-        }    
+        }   
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
-        }    
+        }     
+        void pop ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }   
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
@@ -544,7 +563,10 @@ namespace eg
         }    
         void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
-        }    
+        }      
+        void push ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }  
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
@@ -619,7 +641,10 @@ namespace eg
         }    
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
-        }    
+        }     
+        void pop ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }   
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
@@ -709,6 +734,9 @@ namespace eg
         void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
+        void push ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }  
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
@@ -977,6 +1005,9 @@ namespace eg
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
+        void pop ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }  
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
@@ -1002,6 +1033,9 @@ namespace eg
         void push ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
+        void push ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }  
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {    
             push( (input::Action*) pElement, pNode );
@@ -1095,6 +1129,9 @@ namespace eg
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
         {    
         }    
+        void pop ( const input::Using*   pElement, const interface::Element* pNode )
+        {    
+        }  
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {    
         }    
@@ -1378,6 +1415,7 @@ namespace eg
                 {
                     case eAbstractDimension : os << dynamic_cast< const interface::Dimension* >(  pElement )->getIdentifier(); break;
                     case eAbstractAction    : os << dynamic_cast< const interface::Action* >(     pElement )->getIdentifier(); break;
+                    case eAbstractUsing     : os << dynamic_cast< const interface::Using* >(      pElement )->getIdentifier(); break;
                     case eAbstractRoot      : 
                     case eAbstractOpaque    :
                     case eAbstractInclude   :

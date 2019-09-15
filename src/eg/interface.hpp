@@ -90,6 +90,7 @@ namespace interface
                     case eInputOpaque    : visitor( dynamic_cast< const input::Opaque* >(     m_pElement ) ); break;
                     case eInputDimension : visitor( dynamic_cast< const input::Dimension* >(  m_pElement ) ); break;
                     case eInputInclude   : visitor( dynamic_cast< const input::Include* >(    m_pElement ) ); break;
+                    case eInputUsing     : visitor( dynamic_cast< const input::Using* >(      m_pElement ) ); break;
                     case eInputRoot      : visitor( dynamic_cast< const input::Root* >(       m_pElement ) ); break;
                     case eInputAction    : visitor( dynamic_cast< const input::Action* >(     m_pElement ) ); break;
                         break;
@@ -114,6 +115,7 @@ namespace interface
                     case eInputOpaque    : visitor.push( dynamic_cast< const input::Opaque* >(     m_pElement ), this ); break;
                     case eInputDimension : visitor.push( dynamic_cast< const input::Dimension* >(  m_pElement ), this ); break;
                     case eInputInclude   : visitor.push( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
+                    case eInputUsing     : visitor.push( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
                     case eInputRoot      : visitor.push( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
                     case eInputAction    : visitor.push( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
                         break;
@@ -133,6 +135,7 @@ namespace interface
                     case eInputOpaque    : visitor.pop( dynamic_cast< const input::Opaque* >(     m_pElement ), this ); break;
                     case eInputDimension : visitor.pop( dynamic_cast< const input::Dimension* >(  m_pElement ), this ); break;
                     case eInputInclude   : visitor.pop( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
+                    case eInputUsing     : visitor.pop( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
                     case eInputRoot      : visitor.pop( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
                     case eInputAction    : visitor.pop( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
                         break;
@@ -203,6 +206,25 @@ namespace interface
         std::vector< Action* > m_actionTypes;
         std::string m_canonicalType;
         std::size_t m_size;
+    };
+    
+    class Using : public Element
+    {
+        friend class ::eg::ObjectFactoryImpl;
+        friend class ::clang::AbstractMutator;
+    public:
+        static const ObjectType Type = eAbstractUsing;
+    protected:
+        Using( const IndexedObject& indexedObject );
+        Using( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+    public:
+        const std::string& getType() const;
+        const std::string& getCanonicalType() const { return m_canonicalType; }
+    private:
+        input::Using* m_pUsing = nullptr;
+        std::string m_canonicalType;
     };
     
     class Include : public Element

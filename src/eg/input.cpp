@@ -136,6 +136,31 @@ namespace input
         }
     }
     
+    Using::Using( const IndexedObject& object )
+        :   Element( object ),
+            m_pType( nullptr )
+    {
+
+    }
+
+    void Using::load( Loader& loader )
+    {
+        loader.load( m_strIdentifier );
+        m_pType = loader.loadObjectRef< Opaque >();
+    }
+
+    void Using::store( Storer& storer ) const
+    {
+        storer.store( m_strIdentifier );
+        storer.storeObjectRef( m_pType );
+    }
+    
+    void Using::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    {
+        VERIFY_RTE( m_pType );
+        os << strIndent << "using " << m_strIdentifier << " = " << m_pType->getStr() << ";//" << szIndex << "\n";
+    }
+    
     
     Action::Action( const IndexedObject& object )
         :   Element( object ),

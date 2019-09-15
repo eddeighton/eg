@@ -34,12 +34,14 @@ namespace eg
         eInputOpaque,
         eInputDimension,
         eInputInclude,
+        eInputUsing,
         eInputAction,
         eInputRoot,
 
         eAbstractOpaque,
         eAbstractDimension,
         eAbstractInclude,
+        eAbstractUsing,
         eAbstractAction,
         eAbstractRoot,
         

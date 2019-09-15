@@ -94,6 +94,7 @@ namespace interface
                     break;
                 case eInputDimension :
                 case eInputInclude   :
+                case eInputUsing     :
                     m_pElement->print( os, strIndent, getIndex() );
                     break;
                 case eInputRoot      :
@@ -151,6 +152,7 @@ namespace interface
             {
                 case eInputDimension :  return dynamic_cast< input::Dimension* >(  m_pElement )->getIdentifier();
                 case eInputInclude   :  return dynamic_cast< input::Include* >(    m_pElement )->getIdentifier();
+                case eInputUsing     :  return dynamic_cast< input::Using* >(      m_pElement )->getIdentifier();
                 case eInputRoot      :  return dynamic_cast< input::Root* >(       m_pElement )->getIdentifier();
                 case eInputAction    :  return dynamic_cast< input::Action* >(     m_pElement )->getIdentifier();
                     break;
@@ -280,11 +282,38 @@ namespace interface
         }
         return true;
     }
-    /*
-    std::string Dimension::getStaticType() const
+
+    
+    Using::Using( const IndexedObject& indexedObject )
+        :   Element( indexedObject, nullptr, nullptr )
     {
-        
-    }*/
+    }
+    Using::Using( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Element( indexedObject, pParent, pElement ),
+            m_pUsing( dynamic_cast< input::Using* >( pElement ) )
+    {
+        VERIFY_RTE( m_pUsing );
+    }
+
+    void Using::load( Loader& loader )
+    {
+        Element::load( loader );
+        if( m_pElement )
+        {
+            m_pUsing = dynamic_cast< input::Using* >( m_pElement );
+            VERIFY_RTE( m_pUsing );
+        }
+        loader.load( m_canonicalType );
+    }
+    void Using::store( Storer& storer ) const
+    {
+        Element::store( storer );
+        storer.store( m_canonicalType );
+    }
+    const std::string& Using::getType() const
+    {
+        return m_pUsing->getType()->getStr();
+    }
 
     
     Include::Include( const IndexedObject& indexedObject )
@@ -362,6 +391,7 @@ namespace interface
             {
                 case eAbstractDimension :  dimensions.push_back( dynamic_cast< Dimension* >( pElement ) ); break;
                 case eAbstractInclude   :  break;
+                case eAbstractUsing     :  break;
                 case eAbstractRoot      :  break;
                 case eAbstractAction    :  break;
                 case eAbstractOpaque    :  break;
@@ -392,6 +422,7 @@ namespace interface
             {
                 case eAbstractDimension :  break;
                 case eAbstractInclude   :  break;
+                case eAbstractUsing     :  break;
                 case eAbstractRoot      :  actions.push_back( dynamic_cast< Action* >( pElement ) ); break;
                 case eAbstractAction    :  actions.push_back( dynamic_cast< Action* >( pElement ) ); break;
                 case eAbstractOpaque    :  break;

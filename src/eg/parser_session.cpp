@@ -819,6 +819,55 @@ namespace eg
             }
         }
         
+        void parse_using( ParserSession& session, input::Using* pUsing )
+        {
+            if( Tok.is( clang::tok::kw_using ) )
+            {
+                ConsumeToken();
+            }
+            
+            if( Tok.is( clang::tok::identifier ) )
+            {
+                clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
+                pUsing->m_strIdentifier = pIdentifier->getName();
+                ConsumeToken();
+            }
+            else
+            {
+                EG_PARSER_ERROR( "Expected identifier" );
+            }
+            
+            if( Tok.is( clang::tok::equal ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                EG_PARSER_ERROR( "Expected equals after using" );
+            }
+            
+            //parse the type
+            {
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                
+                while( !Tok.is( clang::tok::semi ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeToken();
+                }
+                
+                pUsing->m_pType = session.construct< input::Opaque >();
+                VERIFY_RTE( getSourceText( startLoc, endLoc, pUsing->m_pType->m_str ) );
+            }
+            
+            if( !TryConsumeToken( clang::tok::semi ) )
+            {
+                //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
+                EG_PARSER_ERROR( "Expected semicolon" );
+            }
+        }
+        
         bool try_consume_template( clang::SourceLocation& endLoc )
         {
             endLoc = Tok.getEndLoc();
@@ -1168,6 +1217,13 @@ namespace eg
                     pAction->m_elements.push_back( pInclude );
                     parse_include( session, pInclude );
                 }
+                else if( Tok.is( clang::tok::kw_using ) )
+                {
+                    ConsumeToken();
+                    input::Using* pUsing = session.construct< input::Using >();
+                    pAction->m_elements.push_back( pUsing );
+                    parse_using( session, pUsing );
+                }
                 else if( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) )
                 {
                     //leave the r_brace to be consumed by parent
@@ -1189,7 +1245,8 @@ namespace eg
                                 clang::tok::kw_abstract, 
                                 clang::tok::kw_dim, 
                                 clang::tok::kw_link, 
-                                clang::tok::kw_include, 
+                                clang::tok::kw_include,
+                                clang::tok::kw_using,
                                 clang::tok::kw_template 
                              ) && 
                         !( ( BraceCount == braceStack.back() ) && Tok.is( clang::tok::r_brace ) )
@@ -1396,6 +1453,7 @@ namespace eg
             case eInputOpaque:         pNewNode = session.construct< interface::Opaque >(    pParent, pElement ); break;
             case eInputDimension:      pNewNode = session.construct< interface::Dimension >( pParent, pElement ); break;
             case eInputInclude:        pNewNode = session.construct< interface::Include >(   pParent, pElement ); break;
+            case eInputUsing:          pNewNode = session.construct< interface::Using >(     pParent, pElement ); break;
             case eInputAction:         pNewNode = session.construct< interface::Action >(    pParent, pElement ); break;
             case eInputRoot:           pNewNode = session.construct< interface::Root >(      pParent, pElement ); break;
             default:
@@ -1422,6 +1480,11 @@ namespace eg
                 break;
             case eInputInclude   :
                 THROW_RTE( "unreachable" );
+                break;
+            case eInputUsing     :
+                {
+                    //do nothing
+                }
                 break;
             case eInputAction    :
             case eInputRoot      :

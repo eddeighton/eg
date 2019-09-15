@@ -111,6 +111,27 @@ namespace eg
             bool m_bIsSystemInclude;
         };
 
+        class Using : public Element
+        {
+            friend class ::eg::ObjectFactoryImpl;
+            friend class ::eg::Parser;
+        public:
+            static const ObjectType Type = eInputUsing;
+        protected:
+            Using( const IndexedObject& object );
+        public:
+            const std::string& getIdentifier() const { return m_strIdentifier; }
+            const Opaque* getType() const { return m_pType; }
+            
+            virtual void load( Loader& loader );
+            virtual void store( Storer& storer ) const;
+            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            
+        private:
+            std::string m_strIdentifier;
+            Opaque* m_pType;
+        };
+
         class Action : public Element
         {
             friend class ::eg::ObjectFactoryImpl;

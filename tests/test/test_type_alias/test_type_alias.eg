@@ -1,0 +1,21 @@
+
+
+action A
+{
+    std::cout << "Hello from A" << std::endl;
+    
+    action B
+    {
+        std::cout << "Hello from B" << std::endl;
+    }
+
+}
+
+using Foobar = A.B;
+
+A::B f = Foobar();
+
+
+
+
+

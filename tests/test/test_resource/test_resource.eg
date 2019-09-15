@@ -27,13 +27,7 @@ action PrintRes
     std::cout << pRes->get() << std::endl;
 }
 
-int i = 0;
-while( ++i < 60 )
-{
-    PrintRes();
-    eg::sleep( 1s );
-}
-
+PrintRes();
 
 
 
