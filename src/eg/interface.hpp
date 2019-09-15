@@ -258,6 +258,7 @@ namespace interface
 
     public:
         void getDimensions( std::vector< Dimension* >& dimensions ) const;
+        void getUsings( std::vector< Using* >& usings ) const;
         std::size_t getBaseCount() const;
         const std::vector< Action* >& getBaseActions() const { return m_baseActions; }
         const std::string& getBaseType() const { return m_strBaseType; }

@@ -53,7 +53,7 @@ void command_info( bool bHelp, const std::vector< std::string >& args )
             
             ("code",       po::bool_switch( &bCode ), "Print entire program as single eg file" )
             ("abstract",   po::bool_switch( &bAbstract ), "Print the abstract tree" )
-            ("concrete",   po::bool_switch( &bConcrete ), "Print the concrete tree" )
+            ("concrete",   po::bool_switch( &bConcrete )->default_value( true ), "Print the concrete tree (default)" )
         ;
     }
     
@@ -104,13 +104,13 @@ void command_info( bool bHelp, const std::vector< std::string >& args )
             std::string strIndent;
             pInterfaceRoot->print( std::cout, strIndent, true );
         }
-        if( bAbstract )
+        else if( bAbstract )
         {
             const eg::interface::Root* pInterfaceRoot = session.getTreeRoot();
             std::string strIndent;
             pInterfaceRoot->print( std::cout, strIndent, false );
         }
-        if( bConcrete )
+        else if( bConcrete )
         {
             const eg::concrete::Action* pConcreteRoot = session.getInstanceRoot();
             std::string strIndent;

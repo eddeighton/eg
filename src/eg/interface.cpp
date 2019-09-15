@@ -105,20 +105,23 @@ namespace interface
                         
                         pAction->printDeclaration( os, strIndent, getIndex() );
                         
-                        os << "\n" << strIndent << "{\n";
-
-                        strIndent.push_back( ' ' );
-                        strIndent.push_back( ' ' );
-
-                        for( const Element* pChildNode : m_children )
+                        std::ostringstream osNested;
                         {
-                            pChildNode->print( os, strIndent, bIncludeOpaque );
+                            strIndent.push_back( ' ' );
+                            strIndent.push_back( ' ' );
+                            for( const Element* pChildNode : m_children )
+                            {
+                                pChildNode->print( osNested, strIndent, bIncludeOpaque );
+                            }
+                            strIndent.pop_back();
+                            strIndent.pop_back();
                         }
-
-                        strIndent.pop_back();
-                        strIndent.pop_back();
-
-                        os << "\n" << strIndent << "}\n";
+                        
+                        const std::string str = osNested.str();
+                        if( !str.empty() )
+                        {
+                            os << "\n" << strIndent << "{\n" << str << "\n" << strIndent << "}\n";
+                        }
                     }
                     break;
                 default:
@@ -392,6 +395,25 @@ namespace interface
                 case eAbstractDimension :  dimensions.push_back( dynamic_cast< Dimension* >( pElement ) ); break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  break;
+                case eAbstractRoot      :  break;
+                case eAbstractAction    :  break;
+                case eAbstractOpaque    :  break;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break;
+            }
+        }
+    }
+    
+    void Action::getUsings( std::vector< Using* >& usings ) const
+    {
+        for( Element* pElement : m_children )
+        {
+            switch( pElement->getType() )
+            {
+                case eAbstractDimension :  break;
+                case eAbstractInclude   :  break;
+                case eAbstractUsing     :  usings.push_back( dynamic_cast< Using* >( pElement ) ); break;
                 case eAbstractRoot      :  break;
                 case eAbstractAction    :  break;
                 case eAbstractOpaque    :  break;

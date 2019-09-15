@@ -1,4 +1,5 @@
 
+include( stuff.hpp );
 
 action A
 {
@@ -8,12 +9,29 @@ action A
     {
         std::cout << "Hello from B" << std::endl;
     }
-
+    action C
+    {
+        action D
+        {
+            
+        }
+    }
 }
 
 using Foobar = A.B;
 
 A::B f = Foobar();
+
+using Host = Hosts::Cinder;
+
+
+action Editor
+{
+    using Host = Hosts::Cinder;
+    using Process = Editor;
+    using Value = Num::One;
+}
+
 
 
 

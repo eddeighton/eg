@@ -681,6 +681,10 @@ namespace clang
         {
             dimension.m_canonicalType = strType;
         }
+        static void setCanonicalType( ::eg::interface::Using& using_, const std::string& strType )
+        {
+            using_.m_canonicalType = strType;
+        }
         static void appendActionTypes( ::eg::interface::Dimension& dimension, ::eg::interface::Action* pAction )
         {
             dimension.m_actionTypes.push_back( pAction );
@@ -823,6 +827,18 @@ namespace clang
                         AbstractMutator::setSize( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
                     }
                 }
+            }
+            
+            //determine the using types
+            std::vector< ::eg::interface::Using* > usings;
+            pAction->getUsings( usings );
+            for( ::eg::interface::Using* pUsing : usings )
+            {
+                QualType typeType = getTypeTrait( pASTContext, pSema, result.pContext, result.loc, pUsing->getIdentifier() );
+                        
+                QualType typeTypeCanonical = typeType.getCanonicalType();
+                
+                AbstractMutator::setCanonicalType( *pUsing, typeTypeCanonical.getAsString() );
             }
             
             const std::size_t szBaseCount = pAction->getBaseCount();
