@@ -8,7 +8,7 @@ for p in this.root.Get().Piece.Range():
     p.Stop()
 
 s = 8
-speed = 1
+speed = 0.1
 speedExtra = 0.0
 pieces = []
 index = 0
@@ -30,13 +30,12 @@ pother.Move.Start( [ -s -4, -s ], [ -s -4, s - 1 ] )
 
 while pyeg.ct() < start + 10:
         
-    seq = [ 0, 2, 1, 3, 0, 2, 1, 3 ]
-    #seq = [ 0, 1, 0, 1 ]
-    #random.shuffle( seq )
+    seq = [ 0, 2, 1, 3 ]
         
     plans = []
     for p in pieces:
         plan = p.Plan.Start()
+        random.shuffle( seq )
         plan.plan( seq )
         #seq = numpy.roll( seq, 1 )
         plans.append( plan )

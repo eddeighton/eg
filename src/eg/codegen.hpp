@@ -67,8 +67,12 @@ namespace eg
     static const char* EG_DEPENDENCY_PROVIDER_TYPE = "eg::DependencyProvider";
     //static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::pooled_fixedsize_stack( EG_FIBER_STACK_SIZE )";
     static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE )";
+    static const char* pszLine = 
+    "//////////////////////////////////////////////////////////////////////////////////\n";
     
     class Identifiers;
+    
+    void generateIncludeGuard( std::ostream& os, const char* pszName );
     
     std::string getInterfaceType( const std::string& strType );
     std::string getBaseTraitType( std::size_t szIndex );
