@@ -74,10 +74,10 @@ namespace eg
         
     public:
     
-        using InstanceMap = std::multimap< const interface::Element*, const concrete::Element* >;
+        using InstanceMap = std::multimap< const interface::Element*, const concrete::Element*, CompareIndexedObjects >;
         InstanceMap m_instanceMap;
         
-        using InheritanceNodeMap = std::multimap< const interface::Action*, const concrete::Inheritance_Node* >;
+        using InheritanceNodeMap = std::multimap< const interface::Action*, const concrete::Inheritance_Node*, CompareIndexedObjects >;
         InheritanceNodeMap m_inheritanceMap;
         
         void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const
@@ -117,6 +117,36 @@ namespace eg
         virtual void store( Storer& storer ) const;
     };
     
+    
+    class TranslationUnitAnalysis : public IndexedObject
+    {
+        friend class ObjectFactoryImpl;
+    public:
+        static const ObjectType Type = eTranslationUnitAnalysis;
+    protected:
+        TranslationUnitAnalysis( const IndexedObject& object )
+            :   IndexedObject( object )
+        {
+    
+        }
+        
+    public:
+        using TranslationUnit = std::set< const interface::Action*, CompareIndexedObjects >; 
+        
+        using TranslationUnitMap = std::map< boost::filesystem::path, TranslationUnit >;
+        
+        TranslationUnitMap m_translationUnits;
+        
+        std::size_t getTotalTranslationUnits() const
+        {
+            return 1U;
+        }
+        
+        
+    public:
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+    };
 }
 
 #endif //DERIVATION_18_04_2019

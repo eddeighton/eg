@@ -1,9 +1,5 @@
 
 
-cinder::app::getWindow()->setTitle( "Three" );
-cinder::app::getWindow()->setSize( 800, 800 );
-cinder::app::setWindowPos( 300, 100 );
-
 action Camera
 {
     dim cinder::CameraPersp perspective;

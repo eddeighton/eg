@@ -32,6 +32,10 @@ namespace eg
         m_pDerivationAnalysis = oneOpt< DerivationAnalysis >( getMaster() );
         if( !m_pDerivationAnalysis )
             m_pDerivationAnalysis = construct< DerivationAnalysis >();
+        
+        m_pTranslationUnitAnalysis = oneOpt< TranslationUnitAnalysis >( getMaster() );
+        if( !m_pTranslationUnitAnalysis )
+            m_pTranslationUnitAnalysis = construct< TranslationUnitAnalysis >();
     }
     
     
@@ -369,5 +373,31 @@ namespace eg
         concrete::Action* pRoot = root< concrete::Action >( getAppendingObjects() );  
         dependencyAnalysis_recurse( pRoot );
     }
+    
+    void InterfaceSession::translationUnitAnalysis_recurse( concrete::Action* pAction )
+    {
+        const interface::Action* pInterfaceAction = pAction->getAction();
+        
+        if( std::optional< boost::filesystem::path > definitionFileOpt =
+                pInterfaceAction->getDefinitionFile() )
+        {
+            m_pTranslationUnitAnalysis->m_translationUnits[ definitionFileOpt.value() ].insert( pInterfaceAction );
+        }
+        
+        for( concrete::Element* pChild : pAction->m_children )
+        {
+            if( concrete::Action* pChildAction = dynamic_cast< concrete::Action* >( pChild ) )
+            {
+                translationUnitAnalysis_recurse( pChildAction );
+            }
+        }
+    }
+    
+    void InterfaceSession::translationUnitAnalysis()
+    {
+        concrete::Action* pRoot = root< concrete::Action >( getAppendingObjects() );  
+        translationUnitAnalysis_recurse( pRoot );
+    }
+    
     
 }

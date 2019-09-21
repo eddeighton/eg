@@ -32,6 +32,9 @@
 
 #include <memory>
 #include <optional>
+#include <set>
+#include <map>
+#include <vector>
 
 namespace eg
 {
@@ -94,6 +97,17 @@ namespace eg
             for( std::size_t sz = 0U; sz < szCount; ++sz )
             {
                 objects.push_back( loadObjectRef< T >() );
+            }
+        }
+        
+        template< class T, class TPred >
+        inline void loadObjectSet( std::set< T*, TPred >& objects )
+        {
+            std::size_t szCount = 0U;
+            load( szCount );
+            for( std::size_t sz = 0U; sz < szCount; ++sz )
+            {
+                objects.insert( objects.end(), loadObjectRef< T >() );
             }
         }
         

@@ -60,6 +60,7 @@ namespace eg
                                                                                             
             case eIdentifiers                : pObject = new Identifiers                    ( object );  break;
             case eDerivationAnalysis         : pObject = new DerivationAnalysis             ( object );  break;
+            case eTranslationUnitAnalysis    : pObject = new TranslationUnitAnalysis        ( object );  break;
             case eInvocationSolution         : pObject = new InvocationSolution             ( object );  break;
                                                                                             
             case eDataMember                 : pObject = new DataMember                     ( object );  break;

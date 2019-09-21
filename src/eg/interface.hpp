@@ -271,6 +271,7 @@ namespace interface
         bool isIndirectlyAbstract() const;
         bool isSingular() const;
         std::size_t getSize() const { return m_size; }
+        std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
         
         void setDefinitionFile( std::optional< boost::filesystem::path > definitionFileOpt )
         {

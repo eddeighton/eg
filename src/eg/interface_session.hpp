@@ -41,6 +41,7 @@ namespace eg
         void linkAnalysis();
         concrete::Action* instanceAnalysis();
         void dependencyAnalysis();
+        void translationUnitAnalysis();
         
         //allow saving the interface session to new file
         void store() const { AppendingSession::store(); }
@@ -48,6 +49,8 @@ namespace eg
         
         const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
         interface::Root* getTreeRoot() { return eg::root< eg::interface::Root >( getAppendingObjects() ); }
+        
+        const TranslationUnitAnalysis& getTranslationUnitAnalysis() const { return *m_pTranslationUnitAnalysis; }
     private:
         template< typename T >
         struct CompareNodeIdentity
@@ -74,8 +77,10 @@ namespace eg
         void constructInstance( concrete::Action* pInstance );
         void constructAllocator( concrete::Action* pInstance );
         void dependencyAnalysis_recurse( concrete::Action* pAction );
+        void translationUnitAnalysis_recurse( concrete::Action* pAction );
     private:
         DerivationAnalysis* m_pDerivationAnalysis;
+        TranslationUnitAnalysis* m_pTranslationUnitAnalysis;
     };
 
 }

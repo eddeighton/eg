@@ -84,7 +84,8 @@ namespace eg
     
     void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize );
 
-    void generateOperationSource( std::ostream& os, const interface::Root* pRoot );
+    class TranslationUnitAnalysis;
+    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const TranslationUnitAnalysis& translationUnits, std::size_t szUnitIndex );
     
     void generateBufferStructures( std::ostream& os, const ImplementationSession& program );
 

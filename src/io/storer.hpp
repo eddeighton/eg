@@ -32,6 +32,9 @@
 
 #include <memory>
 #include <optional>
+#include <set>
+#include <map>
+#include <vector>
 
 namespace eg
 {
@@ -72,6 +75,19 @@ namespace eg
             for( std::size_t sz = 0U; sz < szCount; ++sz )
             {
                 storeObjectRef( objects[ sz ] );
+            }
+        }
+        
+        template< class T, class TPred >
+        inline void storeObjectSet( const std::set< T*, TPred >& objects )
+        {
+            std::size_t szCount = objects.size();
+            store( szCount );
+            for( std::set< T* >::const_iterator 
+                i = objects.begin(), 
+                iEnd = objects.end(); i!=iEnd; ++i )
+            {
+                storeObjectRef( *i );
             }
         }
         

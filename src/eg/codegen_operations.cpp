@@ -26,6 +26,7 @@
 #include "input.hpp"
 #include "interface.hpp"
 
+#include "derivation.hpp"
 
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
@@ -41,10 +42,16 @@ namespace eg
     struct OperationsSourceVisitor
     {
         std::ostream& os;
+        const TranslationUnitAnalysis& m_translationUnits;
+        std::size_t m_szUnitIndex;
         std::string strIndent;
         
-        OperationsSourceVisitor( std::ostream& os ) : os( os ) {}
-        
+        OperationsSourceVisitor( std::ostream& os, const TranslationUnitAnalysis& translationUnits, std::size_t szUnitIndex ) 
+            :   os( os ), 
+                m_translationUnits( translationUnits ),
+                m_szUnitIndex( szUnitIndex )
+        {
+        }
         
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
@@ -144,13 +151,13 @@ namespace eg
         }
     };
     
-    void generateOperationSource( std::ostream& os, const interface::Root* pRoot )
+    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const TranslationUnitAnalysis& translationUnits, std::size_t szUnitIndex )
     {
         generateIncludeGuard( os, "OPERATIONS" );
         
         //generate operations
         {
-            OperationsSourceVisitor visitor( os );
+            OperationsSourceVisitor visitor( os, translationUnits, szUnitIndex );
             pRoot->pushpop( visitor );
         }
         

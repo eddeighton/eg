@@ -380,6 +380,7 @@ void build_parser_session( const Environment& environment, const Project& projec
             pInterfaceSession->linkAnalysis();
             pInterfaceSession->instanceAnalysis();
             pInterfaceSession->dependencyAnalysis();
+            pInterfaceSession->translationUnitAnalysis();
             
             pInterfaceSession->store( project.getInterfaceDBFileName() );
         }
@@ -391,93 +392,93 @@ void build_parser_session( const Environment& environment, const Project& projec
     }
 }
 
-void build_operations( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
+std::size_t build_operations( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
 {
-    std::size_t szTotalTranslationUnits = 1U;
-    //std::vector< boost::filesystem::path > operationsPCHPaths, tudbPaths, egObjectFiles;
+    std::unique_ptr< eg::InterfaceSession > pInterfaceSession
+         = std::make_unique< eg::InterfaceSession >( project.getInterfaceDBFileName() );
+    
+    //interface session MUST NOT store beyond this point - compiler will be loaded TU analysis sessions
+    
+    
+    //determine the set of translation units...
+    std::size_t szTotalTranslationUnits = pInterfaceSession->getTranslationUnitAnalysis().getTotalTranslationUnits();
+    
+    
+    for( std::size_t szUnitIndex = 0U; 
+        szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
     {
-        //std::unique_ptr< eg::InterfaceSession > pInterfaceSession
-        //     = std::make_unique< eg::InterfaceSession >( project.getInterfaceDBFileName() );
-        std::unique_ptr< eg::InterfaceSession > pInterfaceSession
-             = std::make_unique< eg::InterfaceSession >( project.getParserDBFileName() );
+        const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
         
-        //interface session MUST NOT store beyond this point - compiler will be loaded TU analysis sessions
-        
-        //determine the set of translation units...
-        szTotalTranslationUnits = 1U;
-        
-        for( std::size_t szUnitIndex = 0U; 
-            szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
+        //generate the operation code
         {
-            const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
+            LogEntry log( std::cout, "Generating operations", bBenchCommands );
+            VERIFY_RTE( pInterfaceSession );
+            std::ostringstream osOperations;
+            eg::generateOperationSource( osOperations, pInterfaceSession->getTreeRoot(), pInterfaceSession->getTranslationUnitAnalysis(), szUnitIndex );
+            boost::filesystem::updateFileIfChanged( project.getOperationsHeader( szUnitID ), osOperations.str() );
+        }
             
-            //generate the operation code
+        //compile the operations to pch file
+        if( fileTracker.isModified( project.getIncludePCH() ) ||
+            fileTracker.isModified( project.getInterfacePCH() ) ||
+            fileTracker.isModified( project.getOperationsPCH( szUnitID ) ) ||
+            fileTracker.isModified( project.getOperationsHeader( szUnitID ) ) ||
+            fileTracker.isModified( project.getInterfaceDBFileName() ) ||
+            fileTracker.isModified( project.getTUName( szUnitID ) ) )
+        {
+            LogEntry log( std::cout, "Compiling operations to pch", bBenchCommands );
+            
+            std::ostringstream osCmd;
+            environment.startCompilationCommand( osCmd );
+            osCmd << " " << project.getCompilerFlags() << " ";
+            
+            osCmd << "-Xclang -include-pch ";
+            osCmd << "-Xclang " << environment.printPath( project.getIncludePCH() ) << " ";
+            
+            osCmd << "-Xclang -include-pch ";
+            osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
+            
+            osCmd << "-Xclang -emit-pch -o " << environment.printPath( project.getOperationsPCH( szUnitID ) ) << " ";
+            osCmd << "-Xclang -egdb=" << environment.printPath( project.getInterfaceDBFileName() ) << " ";
+            
+            osCmd << "-Xclang -egtu=" << environment.printPath( project.getTUName( szUnitID ) ) << " ";
+            osCmd << "-Xclang -egtuid=" << szUnitID << " ";
+            
+            osCmd << environment.printPath( project.getOperationsHeader( szUnitID ) ) << " ";
+            
+            if( bLogCommands )
             {
-                LogEntry log( std::cout, "Generating operations", bBenchCommands );
-                VERIFY_RTE( pInterfaceSession );
-                std::ostringstream osOperations;
-                eg::generateOperationSource( osOperations, pInterfaceSession->getTreeRoot() );
-                boost::filesystem::updateFileIfChanged( project.getOperationsHeader( szUnitID ), osOperations.str() );
+                std::cout << "\n" << osCmd.str() << std::endl;
             }
-                
-            //compile the operations to pch file
-            if( fileTracker.isModified( project.getIncludePCH() ) ||
-                fileTracker.isModified( project.getInterfacePCH() ) ||
-                fileTracker.isModified( project.getOperationsPCH( szUnitID ) ) ||
-                fileTracker.isModified( project.getOperationsHeader( szUnitID ) ) ||
-                fileTracker.isModified( project.getInterfaceDBFileName() ) ||
-                fileTracker.isModified( project.getTUName( szUnitID ) ) )
+            
             {
-                LogEntry log( std::cout, "Compiling operations to pch", bBenchCommands );
-                
-                std::ostringstream osCmd;
-                environment.startCompilationCommand( osCmd );
-                osCmd << " " << project.getCompilerFlags() << " ";
-                
-                osCmd << "-Xclang -include-pch ";
-                osCmd << "-Xclang " << environment.printPath( project.getIncludePCH() ) << " ";
-                
-                osCmd << "-Xclang -include-pch ";
-                osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
-                
-                osCmd << "-Xclang -emit-pch -o " << environment.printPath( project.getOperationsPCH( szUnitID ) ) << " ";
-                osCmd << "-Xclang -egdb=" << environment.printPath( project.getInterfaceDBFileName() ) << " ";
-                
-                osCmd << "-Xclang -egtu=" << environment.printPath( project.getTUName( szUnitID ) ) << " ";
-                osCmd << "-Xclang -egtuid=" << szUnitID << " ";
-                
-                osCmd << environment.printPath( project.getOperationsHeader( szUnitID ) ) << " ";
-                
-                if( bLogCommands )
+                const int iResult = boost::process::system( osCmd.str() );
+                if( iResult )
                 {
-                    std::cout << "\n" << osCmd.str() << std::endl;
-                }
-                
-                {
-                    const int iResult = boost::process::system( osCmd.str() );
-                    if( iResult )
-                    {
-                        THROW_RTE( "Error invoking clang++ " << iResult );
-                    }
+                    THROW_RTE( "Error invoking clang++ " << iResult );
                 }
             }
         }
     }
+    
+    return szTotalTranslationUnits;
 }
 
-void generate_objects( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
+void generate_objects( std::size_t szTotalTranslationUnits, const Environment& environment, const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
 {
-    std::size_t szTotalTranslationUnits = 1U;
-    
     eg::IndexedFile::FileIDtoPathMap allFiles;
-    allFiles.insert( std::make_pair( eg::IndexedObject::MASTER_FILE, project.getInterfaceDBFileName() ) );
     
-    //load all the translation unit analysis files
-    for( std::size_t szUnitIndex = 0U; szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
+    //use the interface session to determine the files
     {
-        const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
-        allFiles.insert( std::make_pair( 
-            eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex, project.getTUName( szUnitID ) ) );
+        allFiles.insert( std::make_pair( eg::IndexedObject::MASTER_FILE, project.getInterfaceDBFileName() ) );
+        
+        //load all the translation unit analysis files
+        for( std::size_t szUnitIndex = 0U; szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
+        {
+            const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
+            allFiles.insert( std::make_pair( 
+                eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex, project.getTUName( szUnitID ) ) );
+        }
     }
     
     {
@@ -591,14 +592,14 @@ void objectCompilationCommandSetFileTIme( std::string strMsg, std::string strCom
 }
 
 std::vector< boost::filesystem::path > 
-    build_objects( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
+    build_objects( std::size_t szTotalTranslationUnits, const Environment& environment, const Project& project, 
+        FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
 {
     std::vector< boost::filesystem::path > objectFiles;
     
     std::mutex logMutex;
     std::vector< std::function< void() > > commands;
     
-    std::size_t szTotalTranslationUnits = 1U;
     for( std::size_t szUnitIndex = 0U; szUnitIndex != szTotalTranslationUnits; ++szUnitIndex )
     {
         const std::size_t szUnitID = eg::IndexedObject::TU_FILES_BEGIN + szUnitIndex;
@@ -758,11 +759,10 @@ std::vector< boost::filesystem::path >
     return objectFiles;
 }
 
-void link_program( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands, 
+void link_program( std::size_t szTotalTranslationUnits, const Environment& environment, const Project& project, 
+        FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands, 
     const std::vector< boost::filesystem::path >& objectFiles )
 {
-    std::size_t szTotalTranslationUnits = 1U;
-        
     //link the program
     {
         LogEntry log( std::cout, "Linking", bBenchCommands );
@@ -881,14 +881,15 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         
         build_parser_session( environment, project, fileTracker, bBenchCommands, bLogCommands, bNoPCH );
         
-        build_operations( environment, project, fileTracker, bBenchCommands, bLogCommands );
+        const std::size_t szTranslationUnits = 
+            build_operations( environment, project, fileTracker, bBenchCommands, bLogCommands );
         
-        generate_objects( environment, project, fileTracker, bBenchCommands, bLogCommands );
+        generate_objects( szTranslationUnits, environment, project, fileTracker, bBenchCommands, bLogCommands );
         
         std::vector< boost::filesystem::path > objectFiles = 
-            build_objects( environment, project, fileTracker, bBenchCommands, bLogCommands );
+            build_objects( szTranslationUnits, environment, project, fileTracker, bBenchCommands, bLogCommands );
             
-        link_program( environment, project, fileTracker, bBenchCommands, bLogCommands, objectFiles );
+        link_program( szTranslationUnits, environment, project, fileTracker, bBenchCommands, bLogCommands, objectFiles );
         
     }
     
