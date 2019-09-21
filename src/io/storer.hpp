@@ -31,6 +31,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 
 #include <memory>
+#include <optional>
 
 namespace eg
 {
@@ -47,6 +48,20 @@ namespace eg
         inline void store( const T& value )
         {
             m_archive << value;
+        }
+        
+        template< class T >
+        inline void storeOptional( const std::optional< T >& value )
+        {
+            if( value )
+            {
+                m_archive << true;
+                store( value.value() );
+            }
+            else
+            {
+                m_archive << false;
+            }
         }
         
         template< class T >

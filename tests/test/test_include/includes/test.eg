@@ -1,0 +1,16 @@
+
+
+action D
+{
+    //stuff
+    int d = 0;
+    action F
+    {
+        
+    }
+}
+
+action D::F::G
+{
+    int g;
+}

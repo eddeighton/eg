@@ -1,6 +1,0 @@
-
-
-action A::Function1::Nested
-{
-    //works!
-}

@@ -31,6 +31,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 
 #include <memory>
+#include <optional>
 
 namespace eg
 {
@@ -48,6 +49,19 @@ namespace eg
         inline void load( T& value )
         {
             m_archive >> value;
+        }
+        
+        template< class T >
+        inline void loadOptional( std::optional< T >& value )
+        {
+            bool bNull = false;
+            m_archive >> bNull;
+            if( bNull )
+            {
+                T valueTemp;
+                load( valueTemp );
+                value = valueTemp;
+            }
         }
         
         template< class T >

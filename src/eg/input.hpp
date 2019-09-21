@@ -31,6 +31,7 @@
 
 #include <string>
 #include <vector>
+#include <optional>
 
 namespace eg
 {
@@ -45,7 +46,7 @@ namespace eg
         protected:
             Element( const IndexedObject& object );
         public:
-            virtual void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const { };
+            virtual void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const { };
         };
 
         class Opaque : public Element
@@ -60,7 +61,7 @@ namespace eg
             const std::string& getStr() const { return m_str; }
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
         private:
             std::string m_str;
         };
@@ -79,7 +80,7 @@ namespace eg
         
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
         private:
             std::string m_strIdentifier;
             Opaque* m_pType;
@@ -101,7 +102,7 @@ namespace eg
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             void setIncludeFilePath( const std::string& strIncludeFile );
             
         private:
@@ -125,7 +126,7 @@ namespace eg
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
         private:
             std::string m_strIdentifier;
@@ -148,18 +149,19 @@ namespace eg
             const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
             bool isLink() const { return m_bLink; }
             bool isAbstract() const { return m_bAbstract; }
+            std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             Action* findAction( const std::string& strIdentifier ) const;
-            void printDeclaration( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
-            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            void printDeclaration( std::ostream& os, std::string& strIndent, const std::string& strIdentifier, const std::string& strAnnotation  ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
         protected:
             std::vector< Element* > m_elements;
             Opaque* m_pSize;
             Opaque* m_pParams;
-            bool m_bDefined = false;
+            std::optional< boost::filesystem::path > m_definitionFile;
             bool m_bIsTemplate = false;
             std::string m_strIdentifier;
             bool m_bAbstract = false;
@@ -177,15 +179,13 @@ namespace eg
         protected:
             Root( const IndexedObject& object );
         public:
-            const boost::filesystem::path& getPath() const { return m_path; }
-            bool isMainFile() const { return m_bMainFile; }
+            std::optional< boost::filesystem::path > getIncludePath() const { return m_includePath; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            void print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
         private:
-            boost::filesystem::path m_path;
-            bool m_bMainFile;
+            std::optional< boost::filesystem::path > m_includePath; //null if main root
         };
 
     } //namespace input

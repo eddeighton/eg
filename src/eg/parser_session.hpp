@@ -25,10 +25,13 @@
 
 #include "llvm/ADT/IntrusiveRefCntPtr.h"
 
+#include <boost/filesystem.hpp>
+
 #include <vector>
 #include <memory>
 #include <map>
-
+#include <ostream>
+#include <optional>
 
 namespace clang
 {
@@ -61,14 +64,14 @@ namespace eg
             std::shared_ptr< clang::FileManager > pFileManager,
             llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine );
             
-        const interface::Root* buildAbstractTree();
+        const interface::Root* buildAbstractTree( std::ostream& osLog );
         
         const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
         
         const Identifiers* getIdentifiers() const { return eg::one_cst< eg::Identifiers >( getMaster() ); }
     private:
         using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
-        void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element* );
+        void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, const boost::filesystem::path&, bool bInIncludeTree );
     };
 
 }

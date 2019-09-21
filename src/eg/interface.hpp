@@ -149,7 +149,7 @@ namespace interface
         input::Element* getInputElement() const { return m_pElement; }
         Element* getParent() const { return m_pParent; }
         
-        void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
+        virtual void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
         const std::string& getIdentifier() const;
         const std::vector< Element* >& getChildren() const { return m_children; }
         std::string getFriendlyName() const;
@@ -257,6 +257,8 @@ namespace interface
         virtual void store( Storer& storer ) const;
 
     public:
+        virtual void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
+    public:
         void getDimensions( std::vector< Dimension* >& dimensions ) const;
         void getUsings( std::vector< Using* >& usings ) const;
         std::size_t getBaseCount() const;
@@ -270,8 +272,14 @@ namespace interface
         bool isSingular() const;
         std::size_t getSize() const { return m_size; }
         
+        void setDefinitionFile( std::optional< boost::filesystem::path > definitionFileOpt )
+        {
+            m_definitionFile = definitionFileOpt;
+        }
+        
     protected:
         input::Action* m_pAction = nullptr;
+        std::optional< boost::filesystem::path > m_definitionFile;
         std::size_t m_size = 1U;
         mutable std::optional< bool > m_bIndirectlyAbstract;
         std::vector< Action* > m_baseActions;
@@ -296,10 +304,6 @@ namespace interface
         
         mutable std::string m_strTemp;
     public:
-        
-        std::optional< boost::filesystem::path > getPath() const;
-        bool isMainFile() const;
-
         
     private:
         input::Root* m_pRoot = nullptr;

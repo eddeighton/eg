@@ -919,7 +919,7 @@ namespace eg
             }
         }
 
-        void parse_action( ParserSession& session, input::Action* pAction )
+        void parse_action( ParserSession& session, input::Action* pAction, const boost::filesystem::path& egSourceFile )
         {
             while( Tok.is( clang::tok::coloncolon ) )
             {
@@ -1056,7 +1056,7 @@ namespace eg
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
 
-                parse_action_body( session, pAction );
+                parse_action_body( session, pAction, egSourceFile );
 
                 T.consumeClose();
             }
@@ -1071,12 +1071,11 @@ namespace eg
 
         }
 
-        void parse_action_body( ParserSession& session, input::Action* pAction )
+        void parse_action_body( ParserSession& session, input::Action* pAction, const boost::filesystem::path& egSourceFile )
         {
+            bool bActionDefinition = false;
+            
             braceStack.push_back( BraceCount );
-                
-            //VERIFY_RTE( !pAction->m_bDefined );
-            pAction->m_bDefined = true;
 
             while( !isEofOrEom() )
             {
@@ -1099,7 +1098,7 @@ namespace eg
                         {
                             EG_PARSER_ERROR( "Expected identifier" );
                         }
-                        parse_action( session, pNestedAction );
+                        parse_action( session, pNestedAction, egSourceFile );
                     }
                     else
                     {
@@ -1121,7 +1120,7 @@ namespace eg
                             pAction->m_elements.push_back( pNestedAction );
                         }
                         ConsumeToken();
-                        parse_action( session, pNestedAction );
+                        parse_action( session, pNestedAction, egSourceFile );
                     }
                     else
                     {
@@ -1161,7 +1160,7 @@ namespace eg
                             VERIFY_RTE_MSG( pNestedAction->m_bAbstract, "Action inconsistently declared abstract" );
                         }
                         ConsumeToken();
-                        parse_action( session, pNestedAction );
+                        parse_action( session, pNestedAction, egSourceFile );
                     }
                     else
                     {
@@ -1196,7 +1195,7 @@ namespace eg
                             VERIFY_RTE_MSG( pNestedAction->m_bAbstract, "Action inconsistently declared abstract" );
                         }
                         ConsumeToken();
-                        parse_action( session, pNestedAction );
+                        parse_action( session, pNestedAction, egSourceFile );
                     }
                     else
                     {
@@ -1252,6 +1251,11 @@ namespace eg
                         !( ( BraceCount == braceStack.back() ) && Tok.is( clang::tok::r_brace ) )
                         )
                     {
+                        if( !Tok.isOneOf( clang::tok::comment, clang::tok::eof, clang::tok::eod, clang::tok::code_completion ) )
+                        {
+                            bActionDefinition = true;
+                        }
+                        
                         endLoc = Tok.getEndLoc();
                         ConsumeAnyToken();
                     }
@@ -1262,26 +1266,44 @@ namespace eg
             
             VERIFY_RTE( BraceCount == braceStack.back() );
             braceStack.pop_back();
+            
+            if( bActionDefinition )
+            {
+                if( pAction->m_definitionFile )
+                {
+                    if( pAction->m_definitionFile == egSourceFile )
+                    {
+                        THROW_RTE( "Action: " << pAction->getIdentifier() << " multiply defined in: " << egSourceFile );
+                    }
+                    else
+                    {
+                        THROW_RTE( "Action: " << pAction->getIdentifier() << " multiply defined in: " <<
+                           pAction->m_definitionFile.value() << " and " << egSourceFile );
+                    }
+                }
+                pAction->m_definitionFile = egSourceFile;
+            }
         }
         
-        input::Root* parse_root( ParserSession& session, const boost::filesystem::path& egSourceFile, bool bMainFile )
+        input::Root* parse_root( ParserSession& session, const boost::filesystem::path& egSourceFile, bool bMainRoot )
         {
             input::Root* pRoot = nullptr;
-            
             //if main file then reuse root
-            if( bMainFile )
+            if( bMainRoot )
             {
                 pRoot = oneOpt< input::Root >( session.getNewObjects() );
+                if( !pRoot )
+                {
+                    pRoot = session.construct< input::Root >();
+                }
+                parse_action_body( session, pRoot, egSourceFile );
             }
-            
-            if( !pRoot )
+            else
             {
                 pRoot = session.construct< input::Root >();
-                pRoot->m_path = egSourceFile;
-                pRoot->m_bMainFile = bMainFile;
+                pRoot->m_includePath = egSourceFile;
+                parse_action_body( session, pRoot, egSourceFile );
             }
-
-            parse_action_body( session, pRoot );
             
             return pRoot;
         }
@@ -1388,7 +1410,7 @@ namespace eg
     input::Root* parse( const boost::filesystem::path& egSourceFile,
                 std::shared_ptr< clang::FileManager > pFileManager,
                 llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine,
-                ParserSession& session, bool bMainFile )
+                ParserSession& session, bool bMainRoot )
     {
         Stuff stuff( pFileManager, pDiagnosticsEngine, egSourceFile );
 
@@ -1398,7 +1420,7 @@ namespace eg
             *stuff.pHeaderSearch,
             pDiagnosticsEngine );
         parser.ConsumeToken();
-        return parser.parse_root( session, egSourceFile, bMainFile );
+        return parser.parse_root( session, egSourceFile, bMainRoot );
     }
 
 
@@ -1415,7 +1437,7 @@ namespace eg
         std::set< boost::filesystem::path > includePaths;
         for( const boost::filesystem::path& filePath : egSourceCodeFiles )
         {
-            input::Root* pRoot = ::eg::parse( filePath, pFileManager, pDiagnosticsEngine, *this, true );
+            input::Root* pRoot = ::eg::parse( filePath, pFileManager, pDiagnosticsEngine, *this, true ); //parse main root
             includePaths.insert( filePath );
         }
         
@@ -1426,7 +1448,7 @@ namespace eg
         {
             for( const boost::filesystem::path& includePath : newIncludePaths )
             {
-                ::eg::parse( includePath, pFileManager, pDiagnosticsEngine, *this, false );
+                ::eg::parse( includePath, pFileManager, pDiagnosticsEngine, *this, false ); //parse include - non-main root
                 includePaths.insert( includePath );
             }
             newIncludePaths.clear();
@@ -1464,7 +1486,8 @@ namespace eg
         return pNewNode;
     }
     
-    void ParserSession::buildTree( const FileElementMap& fileMap, interface::Element* pNode, input::Element* pElement )
+    void ParserSession::buildTree( const FileElementMap& fileMap, interface::Element* pParentNode, 
+        input::Element* pElement, const boost::filesystem::path& includeDefinitionFile, bool bInIncludeTree )
     {
         switch( pElement->getType() )
         {
@@ -1492,9 +1515,9 @@ namespace eg
                     input::Action* pAction = dynamic_cast< input::Action* >( pElement );
                     VERIFY_RTE( pAction );
                     
-                    for( input::Element* pElement : pAction->getElements() )
+                    for( input::Element* pChildElement : pAction->getElements() )
                     {
-                        if( input::Include* pInclude = dynamic_cast< input::Include* >( pElement ) )
+                        if( input::Include* pInclude = dynamic_cast< input::Include* >( pChildElement ) )
                         {
                             if( pInclude->isEGInclude() )
                             {
@@ -1506,25 +1529,51 @@ namespace eg
                                 if( pInclude->getIdentifier().empty() )
                                 {
                                     //if the include has no identifier then insert the included root elements
-                                    buildTree( fileMap, pNode, pIncludedRoot );
+                                    buildTree( fileMap, pParentNode, pIncludedRoot, includeDefinitionFile, true );
                                 }
                                 else
                                 {
                                     //otherwise insert the root with the include identifier
-                                    interface::Element* pChild = addChild( *this, pNode, pIncludedRoot );
+                                    interface::Element* pChild = addChild( *this, pParentNode, pIncludedRoot );
                                     pChild->pIncludeIdentifier = pInclude;
-                                    buildTree( fileMap, pChild, pIncludedRoot );
+                                    buildTree( fileMap, pChild, pIncludedRoot, includeDefinitionFile, true );
                                 } 
                             }
                             else
                             {
-                                addChild( *this, pNode, pElement );
+                                addChild( *this, pParentNode, pChildElement );
+                            }
+                        }
+                        else if( input::Action* pElementAction = dynamic_cast< input::Action* >( pChildElement ) )
+                        {
+                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
+                            if( bInIncludeTree )
+                            {
+                                //if the action is defined then set the definition file to the include definition file
+                                if( pElementAction->getDefinitionFile() )
+                                {
+                                    ( (interface::Action*)pChild )->setDefinitionFile( includeDefinitionFile );
+                                }
+                                buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true );
+                            }
+                            else
+                            {
+                                //if the action is defined then use its definition file for any include sub trees
+                                if( pElementAction->getDefinitionFile() )
+                                {
+                                    ( (interface::Action*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile().value() );
+                                    buildTree( fileMap, pChild, pChildElement, pElementAction->getDefinitionFile().value(), false );
+                                }
+                                else
+                                {
+                                    buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree );
+                                }
                             }
                         }
                         else
                         {
-                            interface::Element* pChild = addChild( *this, pNode, pElement );
-                            buildTree( fileMap, pChild, pElement );
+                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
+                            buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree );
                         }
                     }
                 }
@@ -1535,27 +1584,38 @@ namespace eg
         }
     }
     
-    const interface::Root* ParserSession::buildAbstractTree()
+    const interface::Root* ParserSession::buildAbstractTree( std::ostream& osLog )
     {
         interface::Root* pMasterRoot = construct< interface::Root >();
         
         std::vector< input::Root* > roots = many< input::Root >( getMaster() );
         VERIFY_RTE( !roots.empty() );
         
+        input::Root* pInputMainRoot = nullptr;
+        
         FileElementMap fileMap;
         for( input::Root* pRootElement : roots )
         {
-            fileMap.insert( std::make_pair( pRootElement->getPath(), pRootElement ) );
-        }
-        
-        for( input::Root* pRootElement : roots )
-        {
-            if( pRootElement->isMainFile() )
+            if( std::optional< boost::filesystem::path > includePathOpt = pRootElement->getIncludePath() )
             {
-                interface::Element* pChild = addChild( *this, pMasterRoot, pRootElement );
-                buildTree( fileMap, pChild, pRootElement );
+                fileMap.insert( std::make_pair( includePathOpt.value(), pRootElement ) );
+            }
+            else
+            {
+                VERIFY_RTE( !pInputMainRoot );
+                pInputMainRoot = pRootElement;
+                if( !pInputMainRoot->getDefinitionFile() )
+                {
+                    THROW_RTE( "Root has no definition" );
+                }
             }
         }
+        
+        VERIFY_RTE( pInputMainRoot );
+        interface::Element* pChild = addChild( *this, pMasterRoot, pInputMainRoot );
+        ( (interface::Action*)pChild )->setDefinitionFile( pInputMainRoot->getDefinitionFile().value() );
+        
+        buildTree( fileMap, pChild, pInputMainRoot, pInputMainRoot->getDefinitionFile().value(), false );
         
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();

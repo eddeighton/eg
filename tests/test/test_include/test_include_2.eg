@@ -1,0 +1,8 @@
+
+
+action E
+{
+    int x;
+    
+    include( includes/test.eg );
+}

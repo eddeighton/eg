@@ -167,7 +167,9 @@ void build_parser_session( const Environment& environment, const Project& projec
         pParserSession->parse( egSourceCode, pFileManager, pDiagnosticsEngine );
         
         //build the eg master tree
-        const eg::interface::Root* pRoot = pParserSession->buildAbstractTree();
+        std::ostringstream osLog;
+        const eg::interface::Root* pRoot = pParserSession->buildAbstractTree( osLog );
+        //std::cout << osLog.str() << std::endl;
     
         //save the tree 
         pParserSession->store( project.getParserDBFileName() );

@@ -89,21 +89,53 @@ namespace interface
                 case eInputOpaque    :
                     if( bIncludeOpaque )
                     {
-                        m_pElement->print( os, strIndent, getIndex() );
+                        std::ostringstream osAnnotation;
+                        osAnnotation << getIndex();
+                        m_pElement->print( os, strIndent, osAnnotation.str() );
                     }
                     break;
                 case eInputDimension :
                 case eInputInclude   :
                 case eInputUsing     :
-                    m_pElement->print( os, strIndent, getIndex() );
+                    {
+                        std::ostringstream osAnnotation;
+                        osAnnotation << getIndex();
+                        m_pElement->print( os, strIndent, osAnnotation.str() );
+                        break;
+                    }
+                default:
+                    THROW_RTE( "Unsupported type" );
                     break;
+            }
+        }
+        else
+        {
+            for( const Element* pChildNode : m_children )
+            {
+                pChildNode->print( os, strIndent, bIncludeOpaque );
+            }
+        }
+    }
+    void Action::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
+    {
+        if( m_pElement )
+        {
+            switch( m_pElement->getType() )
+            {
                 case eInputRoot      :
                 case eInputAction    :
                     {
                         input::Action* pAction = dynamic_cast< input::Action* >( m_pElement );
                         VERIFY_RTE( pAction );
-                        
-                        pAction->printDeclaration( os, strIndent, getIndex() );
+                        {
+                            std::ostringstream osAnnotation;
+                            osAnnotation << getIndex();
+                            if( m_definitionFile )
+                            {
+                                osAnnotation << " " << m_definitionFile.value();
+                            }
+                            pAction->printDeclaration( os, strIndent, getIdentifier(), osAnnotation.str() );
+                        }
                         
                         std::ostringstream osNested;
                         {
@@ -120,7 +152,11 @@ namespace interface
                         const std::string str = osNested.str();
                         if( !str.empty() )
                         {
-                            os << "\n" << strIndent << "{\n" << str << "\n" << strIndent << "}\n";
+                            os << "\n" << strIndent << "{\n" << str << strIndent << "}\n";
+                        }
+                        else
+                        {
+                            os << "\n";
                         }
                     }
                     break;
@@ -365,6 +401,7 @@ namespace interface
             m_pAction = dynamic_cast< input::Action* >( m_pElement );
             VERIFY_RTE( m_pAction );
         }
+        loader.loadOptional( m_definitionFile );
         loader.load( m_size );
         loader.loadObjectVector( m_baseActions );
         loader.load( m_strBaseType );
@@ -377,6 +414,7 @@ namespace interface
     void Action::store( Storer& storer ) const
     {
         Element::store( storer );
+        storer.storeOptional( m_definitionFile );
         storer.store( m_size );
         storer.storeObjectVector( m_baseActions );
         storer.store( m_strBaseType );
@@ -516,21 +554,7 @@ namespace interface
     {
         Action::store( storer );
     }
-
-    std::optional< boost::filesystem::path > Root::getPath() const
-    {
-        std::optional< boost::filesystem::path > result;
-        if( m_pRoot )
-        {
-            result = m_pRoot->getPath();
-        }
-        return result;
-    }
-    bool Root::isMainFile() const
-    {
-        return m_pRoot ? m_pRoot->isMainFile() : false;
-    }
-
+    
     
 } //namespace interface
 } //namespace eg

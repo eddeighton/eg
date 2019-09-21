@@ -50,7 +50,7 @@ namespace input
         storer.store( m_str );
     }
     
-    void Opaque::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    void Opaque::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
         os << strIndent << m_str << "\n";// << "//" << szIndex;
     }
@@ -74,10 +74,10 @@ namespace input
         storer.storeObjectRef( m_pType );
     }
     
-    void Dimension::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    void Dimension::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
         VERIFY_RTE( m_pType );
-        os << strIndent << "dim " << m_pType->getStr() << " " << m_strIdentifier << ";//" << szIndex << "\n";
+        os << strIndent << "dim " << m_pType->getStr() << " " << m_strIdentifier << ";//" << strAnnotation << "\n";
     }
     
     Include::Include( const IndexedObject& object )
@@ -104,12 +104,12 @@ namespace input
         storer.store( m_bIsSystemInclude );
     }
     
-    void Include::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    void Include::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
         if( m_strIdentifier.empty() )
-            os << strIndent << "include( " << m_path.string() << " );//" << szIndex << "\n";
+            os << strIndent << "include( " << m_path.string() << " );//" << strAnnotation << "\n";
         else
-            os << strIndent << "include " << m_strIdentifier << "( " << m_path.string() << " );//" << szIndex << "\n";
+            os << strIndent << "include " << m_strIdentifier << "( " << m_path.string() << " );//" << strAnnotation << "\n";
     }
     
     void Include::setIncludeFilePath( const std::string& strIncludeFile )
@@ -155,10 +155,10 @@ namespace input
         storer.storeObjectRef( m_pType );
     }
     
-    void Using::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    void Using::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
         VERIFY_RTE( m_pType );
-        os << strIndent << "using " << m_strIdentifier << " = " << m_pType->getStr() << ";//" << szIndex << "\n";
+        os << strIndent << "using " << m_strIdentifier << " = " << m_pType->getStr() << ";//" << strAnnotation << "\n";
     }
     
     
@@ -175,7 +175,7 @@ namespace input
         loader.loadObjectVector( m_elements );
         m_pSize = loader.loadObjectRef< Opaque >();
         m_pParams = loader.loadObjectRef< Opaque >();
-        loader.load( m_bDefined );
+        loader.loadOptional( m_definitionFile );
         loader.load( m_strIdentifier );
         loader.load( m_bAbstract );
         loader.load( m_bLink );
@@ -187,7 +187,7 @@ namespace input
         storer.storeObjectVector( m_elements );
         storer.storeObjectRef( m_pSize );
         storer.storeObjectRef( m_pParams );
-        storer.store( m_bDefined );
+        storer.storeOptional( m_definitionFile );
         storer.store( m_strIdentifier );
         storer.store( m_bAbstract );
         storer.store( m_bLink );
@@ -207,7 +207,8 @@ namespace input
         return nullptr;
     }
     
-    void Action::printDeclaration( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    void Action::printDeclaration( std::ostream& os, std::string& strIndent, 
+        const std::string& strIdentifier, const std::string& strAnnotation ) const
     {
         if( m_bIsTemplate )
         {
@@ -216,19 +217,19 @@ namespace input
         
         if( m_bAbstract && m_bLink )
         {
-            os << strIndent << "abstract link " << m_strIdentifier;
+            os << strIndent << "abstract link " << strIdentifier;
         }
         else if( m_bAbstract )
         {
-            os << strIndent << "abstract " << m_strIdentifier;
+            os << strIndent << "abstract " << strIdentifier;
         }
         else if( m_bLink )
         {
-            os << strIndent << "link " << m_strIdentifier;
+            os << strIndent << "link " << strIdentifier;
         }
         else
         {
-            os << strIndent << "action " << m_strIdentifier;
+            os << strIndent << "action " << strIdentifier;
         }
         
         if( m_pSize )
@@ -244,35 +245,19 @@ namespace input
                 os << ", " << pInherited->getStr();
         }
         
-        os << " //" << szIndex;
+        os << " //" << strAnnotation;
     }
     
-    void Action::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    void Action::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
-        printDeclaration( os, strIndent, getIndex() );
-        
-        /*os << "\n" << strIndent << "{\n";
-
-        strIndent.push_back( ' ' );
-        strIndent.push_back( ' ' );
-
-        for( const Element* pElement : m_elements )
-        {
-            pElement->print( os, strIndent );
-        }
-
-        strIndent.pop_back();
-        strIndent.pop_back();
-
-        os << "\n" << strIndent << "}//" << szIndex << "\n";*/
+        printDeclaration( os, strIndent, m_strIdentifier, strAnnotation );
     }
     
     
     const std::string Root::RootTypeName = "root";
 
     Root::Root( const IndexedObject& object )
-        :   Action( object ),
-            m_bMainFile( false )
+        :   Action( object )
     {
         m_strIdentifier = RootTypeName;
     }
@@ -280,20 +265,18 @@ namespace input
     void Root::load( Loader& loader )
     {
         Action::load( loader );
-        loader.load( m_path );
-        loader.load( m_bMainFile );
+        loader.loadOptional( m_includePath );
     }
 
     void Root::store( Storer& storer ) const
     {
         Action::store( storer );
-        storer.store( m_path );
-        storer.store( m_bMainFile );
+        storer.storeOptional( m_includePath );
     }
     
-    void Root::print( std::ostream& os, std::string& strIndent, IndexedObject::Index szIndex ) const
+    void Root::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
-        Action::print( os, strIndent, szIndex );
+        Action::print( os, strIndent, strAnnotation );
     }
 
 } //namespace input

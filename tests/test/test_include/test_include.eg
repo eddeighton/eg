@@ -1,6 +1,20 @@
 
 action A
 {
-    action Function1;
+    int x;
+    
+    include( includes/test.eg );
+    
+    include Foo( includes/test.eg );
+    
+    action B
+    {
+        //stuff
+        action C
+        {
+            int z;
+        }
+    }
 }
 
+eg::sleep();
