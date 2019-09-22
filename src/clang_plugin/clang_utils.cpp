@@ -739,28 +739,31 @@ namespace clang
             }
             else
             {
-                CXXMethodDecl* pApplicationOperator = nullptr;
-                for( CXXRecordDecl::method_iterator i = pInterface->method_begin(),
-                    iEnd = pInterface->method_end(); i!=iEnd; ++i )
+                if( pAction->hasDefinition() )
                 {
-                    CXXMethodDecl* pMethod = *i;
-                    if( pMethod->getNameInfo().getName().getAsString() == "operator()" )
+                    CXXMethodDecl* pApplicationOperator = nullptr;
+                    for( CXXRecordDecl::method_iterator i = pInterface->method_begin(),
+                        iEnd = pInterface->method_end(); i!=iEnd; ++i )
                     {
-                        pApplicationOperator = pMethod;
-                        break;
+                        CXXMethodDecl* pMethod = *i;
+                        if( pMethod->getNameInfo().getName().getAsString() == "operator()" )
+                        {
+                            pApplicationOperator = pMethod;
+                            break;
+                        }
                     }
-                }
                 
-                if( !pApplicationOperator )
-                {
-                    std::ostringstream os;
-                    os << "Failed to locate interface member operator() for " << pAction->getFriendlyName();
-                    pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
-                    return false;
-                }
-                else
-                {
-                    AbstractMutator::setParameters( *pAction, pApplicationOperator->parameters() );
+                    if( !pApplicationOperator )
+                    {
+                        std::ostringstream os;
+                        os << "Failed to locate interface member operator() for " << pAction->getFriendlyName();
+                        pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
+                        return false;
+                    }
+                    else
+                    {
+                        AbstractMutator::setParameters( *pAction, pApplicationOperator->parameters() );
+                    }
                 }
             }
             

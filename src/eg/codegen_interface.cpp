@@ -60,7 +60,7 @@ namespace eg
         
         InterfaceVisitor( std::ostream& os ) : os( os ), depth( 0 ) {}
         
-        void addActionInterface( std::ostream& os, const std::string& strName, const input::Opaque* pParams, bool bIsIndirectlyAbstract )
+        void addActionInterface( std::ostream& os, const std::string& strName, const input::Opaque* pParams, bool bIsIndirectlyAbstract, bool bHasOperation )
         {
             const std::string strActionInterfaceType = getInterfaceType( strName );
             
@@ -130,13 +130,16 @@ namespace eg
             os << strIndent << "}\n";
             
             //operation
-            if( pParams )
+            if( bHasOperation )
             {
-                os << strIndent << "void operator()(" << pParams->getStr() << ") const;\n";
-            }
-            else
-            {
-                os << strIndent << "void operator()() const;\n";
+                if( pParams )
+                {
+                    os << strIndent << "void operator()(" << pParams->getStr() << ") const;\n";
+                }
+                else
+                {
+                    os << strIndent << "void operator()() const;\n";
+                }
             }
             
             //iterator type
@@ -177,6 +180,7 @@ namespace eg
         }     
         void push ( const input::Root* pElement, const interface::Element* pNode )
         {    
+            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
             ++depth;
             const std::string& strName = pNode->getIdentifier();
             os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth << 
@@ -184,18 +188,19 @@ namespace eg
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            addActionInterface( os, strName, pElement->getParams(), dynamic_cast< const interface::Action* >( pNode )->isIndirectlyAbstract() );
+            addActionInterface( os, strName, pElement->getParams(), pAction->isIndirectlyAbstract(), pAction->hasDefinition() );
             addActionTraits( os, pElement );
         }    
         void push ( const input::Action* pElement, const interface::Element* pNode )
         {
+            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
             ++depth;
             os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth <<
                 " >struct [[clang::eg_type(" << pNode->getIndex() << ")]]" << getInterfaceType( pElement->getIdentifier() ) << "\n";
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            addActionInterface( os, pElement->getIdentifier(), pElement->getParams(), dynamic_cast< const interface::Action* >( pNode )->isIndirectlyAbstract() );
+            addActionInterface( os, pElement->getIdentifier(), pElement->getParams(), pAction->isIndirectlyAbstract(), pAction->hasDefinition() );
             
             if( pElement->getSize() )
             {

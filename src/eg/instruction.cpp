@@ -1153,11 +1153,16 @@ namespace eg
     }
     void CallOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        os << generator.getIndent() << m_pTarget->getAction()->getStaticType() << " ref = " << m_pTarget->getName() << 
+        const interface::Action* pStaticType = m_pTarget->getAction();
+        
+        os << generator.getIndent() << pStaticType->getStaticType() << " ref = " << m_pTarget->getName() << 
             "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
         os << generator.getIndent() << "if( ref )\n";
         os << generator.getIndent() << "{\n";
+        if( pStaticType->hasDefinition() )
+        {
         os << generator.getIndent() << "    ref( args... );\n";
+        }
         os << generator.getIndent() << "    " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
         os << generator.getIndent() << "}\n";
         os << generator.getIndent() << "return ref;\n";
@@ -1187,42 +1192,47 @@ namespace eg
     }
     void StartOperation::generate( CodeGenerator& generator, std::ostream& os ) const
     {
-        os << generator.getIndent() << m_pTarget->getAction()->getStaticType() << " ref = " << m_pTarget->getName() << 
+        const interface::Action* pStaticType = m_pTarget->getAction();
+        
+        os << generator.getIndent() << pStaticType->getStaticType() << " ref = " << m_pTarget->getName() << 
             "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
             
-        const DataMember* pFiberData = generator.getLayout().getDataMember( m_pTarget->getFiber() );
-            
-        os << generator.getIndent() << "if( ref )\n";
-        os << generator.getIndent() << "{\n";
-        os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << " = " << EG_FIBER_TYPE << "\n";
-        os << generator.getIndent() << "    (\n";
-        os << generator.getIndent() << "        std::allocator_arg,\n";
-        os << generator.getIndent() << "        " << EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
-        os << generator.getIndent() << "        [ = ]()\n";
-        os << generator.getIndent() << "        {\n";
-        os << generator.getIndent() << "            try\n";
-        os << generator.getIndent() << "            {\n";
-        os << generator.getIndent() << "                ref( args... );\n"; 
-        os << generator.getIndent() << "            }\n";
-        os << generator.getIndent() << "            catch( std::exception& e )\n";
-        os << generator.getIndent() << "            {\n";
-        os << generator.getIndent() << "                ERR( e.what() );\n";
-        os << generator.getIndent() << "            }\n";
-        os << generator.getIndent() << "            catch( eg::termination_exception )\n";
-        os << generator.getIndent() << "            {\n";
-        os << generator.getIndent() << "            }\n";
-        os << generator.getIndent() << "            catch( ... )\n";
-        os << generator.getIndent() << "            {\n";
-        os << generator.getIndent() << "                ERR( \"Unknown exception occured in " << m_pTarget->getAction()->getFriendlyName() << "\" );\n";
-        os << generator.getIndent() << "            }\n";
-        os << generator.getIndent() << "            " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
-        os << generator.getIndent() << "        }\n";
-        os << generator.getIndent() << "    );\n";
-        os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << 
-            ".properties< eg::fiber_props >().setReference( ref.data );\n";
-        os << generator.getIndent() << "}\n";
-        os << generator.getIndent() << "return ref;\n";
-            
+        if( pStaticType->hasDefinition() )
+        {
+            const DataMember* pFiberData = generator.getLayout().getDataMember( m_pTarget->getFiber() );
+                
+            os << generator.getIndent() << "if( ref )\n";
+            os << generator.getIndent() << "{\n";
+            os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << " = " << EG_FIBER_TYPE << "\n";
+            os << generator.getIndent() << "    (\n";
+            os << generator.getIndent() << "        std::allocator_arg,\n";
+            os << generator.getIndent() << "        " << EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
+            os << generator.getIndent() << "        [ = ]()\n";
+            os << generator.getIndent() << "        {\n";
+            os << generator.getIndent() << "            try\n";
+            os << generator.getIndent() << "            {\n";
+            os << generator.getIndent() << "                ref( args... );\n"; 
+            os << generator.getIndent() << "            }\n";
+            os << generator.getIndent() << "            catch( std::exception& e )\n";
+            os << generator.getIndent() << "            {\n";
+            os << generator.getIndent() << "                ERR( e.what() );\n";
+            os << generator.getIndent() << "            }\n";
+            os << generator.getIndent() << "            catch( eg::termination_exception )\n";
+            os << generator.getIndent() << "            {\n";
+            os << generator.getIndent() << "            }\n";
+            os << generator.getIndent() << "            catch( ... )\n";
+            os << generator.getIndent() << "            {\n";
+            os << generator.getIndent() << "                ERR( \"Unknown exception occured in " << pStaticType->getFriendlyName() << "\" );\n";
+            os << generator.getIndent() << "            }\n";
+            os << generator.getIndent() << "            " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
+            os << generator.getIndent() << "        }\n";
+            os << generator.getIndent() << "    );\n";
+            os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << 
+                ".properties< eg::fiber_props >().setReference( ref.data );\n";
+            os << generator.getIndent() << "}\n";
+        }
+           
+        os << generator.getIndent() << "return ref;\n"; 
     }
     void StartOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {

@@ -272,6 +272,7 @@ namespace interface
         bool isSingular() const;
         std::size_t getSize() const { return m_size; }
         std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
+        bool hasDefinition() const { return m_definitionFile.has_value(); }
         
         void setDefinitionFile( std::optional< boost::filesystem::path > definitionFileOpt )
         {

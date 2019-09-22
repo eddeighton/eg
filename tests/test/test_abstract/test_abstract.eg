@@ -2,7 +2,7 @@ abstract A
 {
     abstract B
     {
-        TEST_MSG( false, "Uh oh B was run" );//this one should NOT get created
+        //TEST_MSG( false, "Uh oh B was run" );//this one should NOT get created
     }
 }
 

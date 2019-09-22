@@ -160,6 +160,12 @@ void build_parser_session( const Environment& environment, const Project& projec
     
     std::unique_ptr< eg::ParserSession > pParserSession;
     
+    //TODO: Implement some kind of delta detecting session type which can detect if the referential semantics
+    //of the database has changed.  Use this to optimise setting bParserDBChanged.  
+    //This basically means the idea that only if the object indices OR references to indices change then the
+    //parser db cannot simply be written over the interface db in place.  This assumes there is NO sensitivity
+    //to how any value could effect the way the interface analysis produces results UNLESS the tree has changed
+    bool bParserDBChanged = true;
     {
         LogEntry log( std::cout, "Parsing EG source code", bBenchCommands );
         
@@ -335,7 +341,7 @@ void build_parser_session( const Environment& environment, const Project& projec
         boost::filesystem::updateFileIfChanged( project.getInterfaceHeader(), osInterface.str() );
     }
     
-    if( fileTracker.isModified( project.getParserDBFileName() ) ||
+    if( bParserDBChanged /*fileTracker.isModified( project.getParserDBFileName() )*/ ||
         fileTracker.isModified( project.getIncludePCH() ) ||
         fileTracker.isModified( project.getInterfaceHeader() ) ||
         fileTracker.isModified( project.getInterfaceDBFileName() ) )

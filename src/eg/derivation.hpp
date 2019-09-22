@@ -156,7 +156,7 @@ namespace eg
         
         bool isAction( const interface::Action* pAction ) const
         {
-            return std::find( m_actions.begin(), m_actions.end(), pAction ) != m_actions.end();
+            return m_actions.count( pAction ) > 0U;
         }
         //using Invocations = std::vector< const InvocationSolution* >;
         //Invocations invocations;

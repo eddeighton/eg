@@ -1281,6 +1281,10 @@ namespace eg
                            pAction->m_definitionFile.value() << " and " << egSourceFile );
                     }
                 }
+                if( pAction->isAbstract() )
+                {
+                    THROW_RTE( "Action: " << pAction->getIdentifier() << " is abstract but has definition: " << egSourceFile );
+                }
                 pAction->m_definitionFile = egSourceFile;
             }
         }
