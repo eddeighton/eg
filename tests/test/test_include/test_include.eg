@@ -3,9 +3,9 @@ action A
 {
     int x;
     
-    include( includes/test.eg );
+    include( testIncludes/test.eg );
     
-    include Foo( includes/test.eg );
+    include Foo( testIncludes/test.eg );
     
     action B
     {
