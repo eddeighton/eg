@@ -843,7 +843,7 @@ namespace eg
             }
             else
             {
-                ASSERT( id < objects.size() );
+                ASSERT( id < static_cast< TypeID >( objects.size() ) );
                 const interface::Element* pElement = dynamic_cast< const interface::Element* >( objects[ id ] );
                 os << pElement->getStaticType();
             }

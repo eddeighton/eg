@@ -117,6 +117,8 @@ int main( int argc, const char* argv[] )
         po::variables_map vm;
         try
         {
+            bool bGeneralWait = false;
+            
             bool bCmdCreate = false;
             bool bCmdRun    = false;
             bool bCmdLog    = false;
@@ -129,7 +131,8 @@ int main( int argc, const char* argv[] )
             {
                 genericOptions.add_options()
                 
-                    ("help", "produce general or command help message")
+                    ("help", "Produce general or command help message")
+                    ("wait", po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" )
                 ;
             }
             
@@ -174,7 +177,6 @@ int main( int argc, const char* argv[] )
             {
                 commandHiddenOptions.add_options()
                     ( "args", po::value< std::vector< std::string > >( &commandArgs ) )
-                    //( "wait",   po::bool_switch( &bWait ) )
                     ;
             }
 
@@ -197,8 +199,9 @@ int main( int argc, const char* argv[] )
             po::store( parsedOptions, vm );
             po::notify( vm );
             
-            if( bWait )
+            if( bGeneralWait )
             {
+                std::cout << "Waiting for input..." << std::endl;
                 char c;
                 std::cin >> c;
             }

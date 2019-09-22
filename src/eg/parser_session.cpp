@@ -1412,6 +1412,12 @@ namespace eg
                 llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine,
                 ParserSession& session, bool bMainRoot )
     {
+        //check file exists
+        if( !boost::filesystem::exists( egSourceFile ) )
+        {
+            THROW_RTE( "File not found: " << egSourceFile );
+        }
+        
         Stuff stuff( pFileManager, pDiagnosticsEngine, egSourceFile );
 
         Parser parser( *stuff.pPreprocessor, 
