@@ -3,6 +3,7 @@
 action E
 {
     int x;
+    int i = 0;
     
     include( testIncludes/test.eg );
 }

@@ -335,7 +335,8 @@ void build_parser_session( const Environment& environment, const Project& projec
         boost::filesystem::updateFileIfChanged( project.getInterfaceHeader(), osInterface.str() );
     }
     
-    if( fileTracker.isModified( project.getIncludePCH() ) ||
+    if( fileTracker.isModified( project.getParserDBFileName() ) ||
+        fileTracker.isModified( project.getIncludePCH() ) ||
         fileTracker.isModified( project.getInterfaceHeader() ) ||
         fileTracker.isModified( project.getInterfaceDBFileName() ) )
     {
@@ -423,12 +424,11 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
     const eg::TranslationUnitAnalysis& tuAnalysis = interfaceSession.getTranslationUnitAnalysis();
     for( const eg::TranslationUnit* pTranslationUnit : tuAnalysis.getTranslationUnits() )
     {
-        const std::string& strTranslationUnitName = pTranslationUnit->getName();
         const std::string& strTUName = pTranslationUnit->getName();
         
         //generate the operation code
         {
-            LogEntry log( std::cout, "Generating operations", bBenchCommands );
+            LogEntry log( std::cout, "Generating operations: " + strTUName, bBenchCommands );
             std::ostringstream osOperations;
             eg::generateOperationSource( osOperations, interfaceSession.getTreeRoot(), *pTranslationUnit );
             boost::filesystem::updateFileIfChanged( project.getOperationsHeader( strTUName ), osOperations.str() );
@@ -442,7 +442,7 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
             fileTracker.isModified( project.getInterfaceDBFileName() ) ||
             fileTracker.isModified( project.getTUDBName( strTUName ) ) )
         {
-            LogEntry log( std::cout, "Compiling operations to pch", bBenchCommands );
+            LogEntry log( std::cout, "Compiling operations to pch: " + strTUName, bBenchCommands );
             
             std::ostringstream osCmd;
             environment.startCompilationCommand( osCmd );
@@ -514,7 +514,7 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         {
             //generate the implementation source code
             {
-                LogEntry log( std::cout, "Generating implementation", bBenchCommands );
+                LogEntry log( std::cout, "Generating implementation: " + pTranslationUnit->getName(), bBenchCommands );
                 std::ostringstream osImpl;
                 eg::generateImplementationSource( osImpl, *pImplementationSession, *pTranslationUnit );
                 boost::filesystem::updateFileIfChanged( project.getImplementationSource( pTranslationUnit->getName() ), osImpl.str() );
@@ -890,7 +890,6 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         FileWriteTracker fileTracker( project ); 
         
         build_parser_session( environment, project, fileTracker, bBenchCommands, bLogCommands, bNoPCH );
-        
         
         std::unique_ptr< eg::InterfaceSession > pInterfaceSession
              = std::make_unique< eg::InterfaceSession >( project.getInterfaceDBFileName() );

@@ -26,9 +26,16 @@ namespace eg
 {
 
     Storer::Storer( const boost::filesystem::path& filePath )
-        :   m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) ),
+        :   m_targetFilePath( filePath ),
+            m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) ),
             m_archive( *m_pFileStream )
     {
+        
+    }
+    
+    Storer::~Storer()
+    {
+        
     }
     
     void Storer::storeObject( const IndexedObject* pObject )

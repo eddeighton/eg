@@ -43,6 +43,7 @@ namespace eg
     {
     public:
         Storer( const boost::filesystem::path& filePath );
+        ~Storer();
         
         void storeObject( const IndexedObject* pObject );
         void storeObjectRef( const IndexedObject* pObject );
@@ -131,6 +132,7 @@ namespace eg
         }
         
     private:
+        const boost::filesystem::path m_targetFilePath;
         std::unique_ptr< boost::filesystem::ofstream > m_pFileStream;
         boost::archive::binary_oarchive m_archive;
     };

@@ -12,7 +12,6 @@ action A
         //stuff
         action C
         {
-            int z;
         }
     }
 }
