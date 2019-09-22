@@ -53,6 +53,7 @@ namespace eg
         
         eIdentifiers,
         eDerivationAnalysis,
+        eTranslationUnit,
         eTranslationUnitAnalysis,
         eInvocationSolution,
         

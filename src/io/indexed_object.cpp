@@ -23,6 +23,18 @@
 #include "loader.hpp"
 #include "storer.hpp"
 
+namespace
+{
+    class FakeObjectFactory : public eg::ObjectFactory
+    {
+    public:
+        virtual eg::IndexedObject* create( const eg::IndexedObject& objectSpec )
+        {
+            THROW_RTE( "UNREACHABLE" );
+        }
+    };
+}
+
 namespace eg
 {  
 
@@ -45,17 +57,34 @@ namespace eg
         
     }
 
-
     IndexedFile::IndexedFile( const boost::filesystem::path& filePath, IndexedObject::FileID fileID )
         :   m_filePath( filePath ),
             m_fileID( fileID )
     {
     }
         
+    IndexedObject::FileID IndexedFile::readFileID( const boost::filesystem::path& filePath )
+    {
+        FakeObjectFactory fakeFactory;
+        FileIDToFileMap fileMap;
+        Loader loader( filePath, fakeFactory, fileMap );
+        
+        IndexedObject::FileID loadedFileID = IndexedObject::NO_FILE;
+        loader.load( loadedFileID );
+        
+        return loadedFileID;
+    }
+        
     void IndexedFile::beginLoad( ObjectFactory& objectFactory, FileIDToFileMap& fileMap )
     {
         m_pLoader = std::make_shared< Loader >( m_filePath, objectFactory, fileMap );
         Loader& loader = *m_pLoader;
+        
+        //load and sanity check the file ID
+        IndexedObject::FileID loadedFileID = IndexedObject::NO_FILE;
+        loader.load( loadedFileID );
+        
+        VERIFY_RTE_MSG( loadedFileID == m_fileID, "File corruption detected. File ID does not match for: " << m_filePath );
         
         //load the file table
         {
@@ -123,10 +152,13 @@ namespace eg
         }
     }
     
-    void IndexedFile::store( const boost::filesystem::path& filePath, 
+    void IndexedFile::store( const boost::filesystem::path& filePath, IndexedObject::FileID fileID, 
             const FileIDtoPathMap& files, const IndexedObject::Array& objects )
     {
         Storer storer( filePath );
+        
+        //store the file ID of this file
+        storer.store( fileID );
         
         //store the file table
         {
@@ -159,6 +191,5 @@ namespace eg
             }
         }
     }
-        
         
 }

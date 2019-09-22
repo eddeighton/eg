@@ -42,14 +42,12 @@ namespace eg
     struct OperationsSourceVisitor
     {
         std::ostream& os;
-        const TranslationUnitAnalysis& m_translationUnits;
-        std::size_t m_szUnitIndex;
+        const eg::TranslationUnit& m_translationUnit;
         std::string strIndent;
         
-        OperationsSourceVisitor( std::ostream& os, const TranslationUnitAnalysis& translationUnits, std::size_t szUnitIndex ) 
+        OperationsSourceVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit ) 
             :   os( os ), 
-                m_translationUnits( translationUnits ),
-                m_szUnitIndex( szUnitIndex )
+                m_translationUnit( translationUnit )
         {
         }
         
@@ -71,65 +69,71 @@ namespace eg
         }    
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
-            //calculate the path to the root type
-            std::vector< const interface::Element* > path = getPath( pNode );
+            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            VERIFY_RTE( pAction );
             
-            //generate type comment
+            if( m_translationUnit.isAction( pAction ) )
             {
-                os << "\n//";
-                for( const interface::Element* pNodeIter : path )
+                //calculate the path to the root type
+                std::vector< const interface::Element* > path = getPath( pNode );
+                
+                //generate type comment
                 {
-                    if( pNodeIter != *path.begin())
-                        os << "::";
-                    os << pNodeIter->getIdentifier();
+                    os << "\n//";
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        if( pNodeIter != *path.begin())
+                            os << "::";
+                        os << pNodeIter->getIdentifier();
+                    }
+                    os << "\n";
                 }
-                os << "\n";
+                
+                //generate the template argument lists
+                {
+                    int iCounter = 1;
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        os << strIndent << "template<>\n";
+                        ++iCounter;
+                    }
+                }
+                
+                //just generate an explicit template specialisation
+                os << strIndent << "void ";
+                {
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
+                    }
+                    if( const input::Opaque* pParams = pElement->getParams() )
+                    {
+                        os << "operator()(" << pParams->getStr() << ") const\n";
+                    }
+                    else
+                    {
+                        os << "operator()() const\n";
+                    }
+                }
+                
+                //generate the function body
+                os << strIndent << "{\n";
+                strIndent.push_back( ' ' );
+                strIndent.push_back( ' ' );
+                
+                for( const interface::Element* pChild : pNode->getChildren() )
+                {
+                    if( const input::Opaque* pOpaque = 
+                            dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
+                    {
+                        os << strIndent << pOpaque->getStr() << "\n";
+                    }
+                }
+                
+                strIndent.pop_back();
+                strIndent.pop_back();
+                os << strIndent << "}\n";
             }
-            
-            //generate the template argument lists
-            {
-                int iCounter = 1;
-                for( const interface::Element* pNodeIter : path )
-                {
-                    os << strIndent << "template<>\n";
-                    ++iCounter;
-                }
-            }
-            
-            //just generate an explicit template specialisation
-            os << strIndent << "void ";
-            {
-                for( const interface::Element* pNodeIter : path )
-                {
-                    os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
-                }
-                if( const input::Opaque* pParams = pElement->getParams() )
-                {
-                    os << "operator()(" << pParams->getStr() << ") const\n";
-                }
-                else
-                {
-                    os << "operator()() const\n";
-                }
-            }
-            
-            //generate the function body
-            os << strIndent << "{\n";
-            strIndent.push_back( ' ' );
-            strIndent.push_back( ' ' );
-            
-            for( const interface::Element* pChild : pNode->getChildren() )
-            {
-                if( const input::Opaque* pOpaque = 
-                        dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
-                {
-                    os << strIndent << pOpaque->getStr() << "\n";
-                }
-            }
-            
-            strIndent.pop_back();
-            strIndent.pop_back();
-            os << strIndent << "}\n";
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
@@ -151,13 +155,13 @@ namespace eg
         }
     };
     
-    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const TranslationUnitAnalysis& translationUnits, std::size_t szUnitIndex )
+    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const eg::TranslationUnit& translationUnit )
     {
         generateIncludeGuard( os, "OPERATIONS" );
         
         //generate operations
         {
-            OperationsSourceVisitor visitor( os, translationUnits, szUnitIndex );
+            OperationsSourceVisitor visitor( os, translationUnit );
             pRoot->pushpop( visitor );
         }
         

@@ -84,12 +84,12 @@ namespace eg
     
     void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize );
 
-    class TranslationUnitAnalysis;
-    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const TranslationUnitAnalysis& translationUnits, std::size_t szUnitIndex );
+    class TranslationUnit;
+    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const eg::TranslationUnit& translationUnit );
     
     void generateBufferStructures( std::ostream& os, const ImplementationSession& program );
 
-    void generateImplementationSource( std::ostream& os, const ImplementationSession& program, std::size_t szTranslationUnitID );
+    void generateImplementationSource( std::ostream& os, const ImplementationSession& program, const eg::TranslationUnit& translationUnit );
         
     void generate_dynamic_interface( std::ostream& os, ImplementationSession& session );
     void generateActionInstanceFunctions( std::ostream& os, const ImplementationSession& program );

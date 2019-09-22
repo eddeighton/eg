@@ -46,7 +46,7 @@ namespace eg
         VERIFY_RTE( pFile );
         IndexedFile::FileIDtoPathMap files;
         files.insert( std::make_pair( IndexedObject::MASTER_FILE, filePath ) );
-        IndexedFile::store( filePath, files, pFile->getObjects() );
+        IndexedFile::store( filePath, IndexedObject::MASTER_FILE, files, pFile->getObjects() );
     }
 
     void InterfaceSession::linkAnalysis()
@@ -374,29 +374,106 @@ namespace eg
         dependencyAnalysis_recurse( pRoot );
     }
     
-    void InterfaceSession::translationUnitAnalysis_recurse( concrete::Action* pAction )
+    
+        
+    
+    void InterfaceSession::translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap )
     {
         const interface::Action* pInterfaceAction = pAction->getAction();
         
         if( std::optional< boost::filesystem::path > definitionFileOpt =
                 pInterfaceAction->getDefinitionFile() )
         {
-            m_pTranslationUnitAnalysis->m_translationUnits[ definitionFileOpt.value() ].insert( pInterfaceAction );
+            TranslationUnitMap::iterator iFind = translationUnitMap.find( definitionFileOpt.value() );
+            if( iFind != translationUnitMap.end() )
+            {
+                iFind->second.insert( pInterfaceAction );
+            }
+            else
+            {
+                translationUnitMap.insert( std::make_pair( 
+                    definitionFileOpt.value(), TranslationUnit::ActionSet{ pInterfaceAction } ) );
+            }
         }
         
         for( concrete::Element* pChild : pAction->m_children )
         {
             if( concrete::Action* pChildAction = dynamic_cast< concrete::Action* >( pChild ) )
             {
-                translationUnitAnalysis_recurse( pChildAction );
+                translationUnitAnalysis_recurse( pChildAction, translationUnitMap );
             }
         }
     }
     
-    void InterfaceSession::translationUnitAnalysis()
+    void InterfaceSession::translationUnitAnalysis( const boost::filesystem::path& intermediateFolder, TUFileIDIfExistsFPtr pTUFileIDIfExists )
     {
         concrete::Action* pRoot = root< concrete::Action >( getAppendingObjects() );  
-        translationUnitAnalysis_recurse( pRoot );
+        
+        TranslationUnitMap translationUnitMap;
+        translationUnitAnalysis_recurse( pRoot, translationUnitMap );
+        
+        //first transform each eg source file to a fileName
+        std::set< IndexedObject::FileID > usedTUFileIDs;
+        std::set< TranslationUnit* > unassignedTUs;
+        
+        for( TranslationUnitMap::const_iterator 
+                i = translationUnitMap.begin(),
+                iEnd = translationUnitMap.end(); i!=iEnd; ++i )
+        {
+            TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
+            pTranslationUnit->m_definitionFile  = i->first;
+            pTranslationUnit->m_actions         = i->second;
+            pTranslationUnit->m_strName         = TranslationUnit::TUNameFromEGSource( 
+                pTranslationUnit->m_definitionFile, intermediateFolder );
+                
+            pTranslationUnit->m_databaseFileID  = pTUFileIDIfExists( pTranslationUnit->m_strName );
+            
+            m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
+            
+            //now determine if the file actually exists and get the File ID if it does
+            if( pTranslationUnit->m_databaseFileID != IndexedObject::NO_FILE )
+            {
+                if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
+                {
+                    THROW_RTE( "Unreachable" );
+                }
+                usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
+            }
+            else
+            {
+                unassignedTUs.insert( pTranslationUnit );
+            }
+        }
+        
+        //assign FileIDs for unassigned
+        {
+            std::set< IndexedObject::FileID >::iterator i = usedTUFileIDs.begin();
+            IndexedObject::FileID nextLogicalID = eg::IndexedObject::TU_FILES_BEGIN;
+            for( TranslationUnit* pTranslationUnit : unassignedTUs )
+            {
+                while( i != usedTUFileIDs.end() )
+                {
+                    if( nextLogicalID == *i )
+                    {
+                        ++nextLogicalID;
+                        ++i;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                pTranslationUnit->m_databaseFileID = nextLogicalID;
+                ++nextLogicalID;
+            }
+        }
+        
+        
+    }
+    
+    void InterfaceSession::checkTranslationUnits( const boost::filesystem::path& intermediateFolder )
+    {
+        //m_pTranslationUnitAnalysis->checkTranslationUnits( intermediateFolder );
     }
     
     

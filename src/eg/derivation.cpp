@@ -77,37 +77,30 @@ namespace eg
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
+    void TranslationUnit::load( Loader& loader )
+    {
+        loader.load( m_definitionFile );
+        loader.load( m_strName );
+        loader.load( m_databaseFileID );
+        loader.loadObjectSet( m_actions );
+    }
+    
+    void TranslationUnit::store( Storer& storer ) const
+    {
+        storer.store( m_definitionFile );
+        storer.store( m_strName );
+        storer.store( m_databaseFileID );
+        storer.storeObjectSet( m_actions );
+    }
+    /////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////
     void TranslationUnitAnalysis::load( Loader& loader )
     {
-        {
-            std::size_t szSize = 0;
-            loader.load( szSize );
-            for( std::size_t sz = 0; sz != szSize; ++sz )
-            {
-                boost::filesystem::path thePath;
-                loader.load( thePath );
-                
-                TranslationUnit actions;
-                loader.loadObjectSet( actions );
-                
-                m_translationUnits.insert( std::make_pair( thePath, actions ) );
-            }
-        }
-        
+        loader.loadObjectVector( m_translationUnits );
     }
     void TranslationUnitAnalysis::store( Storer& storer ) const
     {
-        {
-            const std::size_t szSize = m_translationUnits.size();
-            storer.store( szSize );
-            for( TranslationUnitMap::const_iterator 
-                i = m_translationUnits.begin(),
-                iEnd = m_translationUnits.end(); i!=iEnd; ++i )
-            {
-                storer.store( i->first );
-                storer.storeObjectSet( i->second );
-            }
-        }
+        storer.storeObjectVector( m_translationUnits );
     }
     
 

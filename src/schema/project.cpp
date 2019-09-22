@@ -707,28 +707,28 @@ boost::filesystem::path Project::getInterfacePCH() const
 }
 
 
-boost::filesystem::path Project::getOperationsHeader( std::size_t szUnitID ) const
+boost::filesystem::path Project::getOperationsHeader( const std::string& strTUName ) const
 {
     std::ostringstream os;
-    os << "operations_" << std::setw( 3 ) << std::setfill( '0' ) << szUnitID - 2 << ".hpp";
+    os << "operations_" << strTUName << ".hpp";
     return boost::filesystem::edsCannonicalise(
         boost::filesystem::absolute( 
             getIntermediateFolder() / os.str() ) );
 }
 
-boost::filesystem::path Project::getTUName( std::size_t szUnitID ) const
+boost::filesystem::path Project::getTUDBName( const std::string& strTUName ) const
 {
     std::ostringstream os;
-    os << "tu_" << std::setw( 3 ) << std::setfill( '0' ) << szUnitID - 2 << ".db";
+    os << "tu_" << strTUName << ".db";
     return boost::filesystem::edsCannonicalise(
         boost::filesystem::absolute( 
             getIntermediateFolder() / os.str() ) );
 }
 
-boost::filesystem::path Project::getOperationsPCH( std::size_t szUnitID ) const
+boost::filesystem::path Project::getOperationsPCH( const std::string& strTUName ) const
 {
     std::ostringstream os;
-    os << "operations_" << std::setw( 3 ) << std::setfill( '0' ) << szUnitID - 2 << ".pch";
+    os << "operations_" << strTUName << ".pch";
     return boost::filesystem::edsCannonicalise(
         boost::filesystem::absolute( 
             getIntermediateFolder() / os.str() ) );
@@ -752,10 +752,10 @@ boost::filesystem::path Project::getDataStructureSource() const
             getIntermediateFolder() / os.str() ) );
 }
 
-boost::filesystem::path Project::getImplementationSource( int szUnitID ) const
+boost::filesystem::path Project::getImplementationSource( const std::string& strTUName ) const
 {
     std::ostringstream os;
-    os << "impl_" << std::setw( 3 ) << std::setfill( '0' ) << szUnitID - 2 << ".cpp";
+    os << "impl_" << strTUName << ".cpp";
     return boost::filesystem::edsCannonicalise(
                 boost::filesystem::absolute( 
                     getIntermediateFolder() / os.str() ) );
@@ -770,10 +770,10 @@ boost::filesystem::path Project::getRuntimeSource() const
                     getIntermediateFolder() / os.str() ) );
 }
     
-boost::filesystem::path Project::getObjectName( int szUnitID ) const
+boost::filesystem::path Project::getObjectName( const std::string& strTUName ) const
 {
     std::ostringstream os;
-    os << "object_" << std::setw( 3 ) << std::setfill( '0' ) << szUnitID - 2 << ".obj";
+    os << "object_" << strTUName << ".obj";
     return boost::filesystem::edsCannonicalise(
                 boost::filesystem::absolute( 
                     getIntermediateFolder() / os.str() ) );

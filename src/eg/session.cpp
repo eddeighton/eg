@@ -78,7 +78,7 @@ namespace eg
             iEnd = m_fileMap.end(); i!=iEnd; ++i )
         {
             IndexedFile* pFile = i->second;
-            IndexedFile::store( pFile->getPath(), files, pFile->getObjects() );
+            IndexedFile::store( pFile->getPath(), pFile->getFileID(), files, pFile->getObjects() );
         }
     }
     
@@ -107,7 +107,7 @@ namespace eg
             files.insert( std::make_pair( pFile->getFileID(), pFile->getPath() ) );
         }
         files.insert( std::make_pair( m_fileID, filePath ) );
-        IndexedFile::store( filePath, files, m_newObjects );
+        IndexedFile::store( filePath, m_fileID, files, m_newObjects );
     }
         
 

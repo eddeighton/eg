@@ -109,16 +109,16 @@ public:
     boost::filesystem::path getInterfaceHeader() const;
     boost::filesystem::path getInterfacePCH() const;
     
-    boost::filesystem::path getOperationsHeader( std::size_t szUnitID ) const;
-    boost::filesystem::path getTUName( std::size_t szUnitID ) const;
-    boost::filesystem::path getOperationsPCH( std::size_t szUnitID ) const;
+    boost::filesystem::path getOperationsHeader( const std::string& strTUName ) const;
+    boost::filesystem::path getTUDBName( const std::string& strTUName ) const;
+    boost::filesystem::path getOperationsPCH( const std::string& strTUName ) const;
     
     boost::filesystem::path getAnalysisFileName() const;
     boost::filesystem::path getDataStructureSource() const;
-    boost::filesystem::path getImplementationSource( int szUnitID ) const;
+    boost::filesystem::path getImplementationSource( const std::string& strTUName ) const;
     boost::filesystem::path getRuntimeSource() const;
     
-    boost::filesystem::path getObjectName( int szUnitID ) const;
+    boost::filesystem::path getObjectName( const std::string& strTUName ) const;
     boost::filesystem::path getObjectFile( const boost::filesystem::path& sourceFile ) const;
     
     std::vector< boost::filesystem::path > getCommands() const;

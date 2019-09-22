@@ -66,7 +66,7 @@ namespace eg
     {
         return std::isalnum( ch );
     }
-
+    
     std::string style_replace_non_alpha_numeric( const std::string& str, char r )
     {
         std::string strResult;
@@ -436,9 +436,10 @@ namespace eg
     struct InvokeVisitor
     {
         std::ostream& os;
+        const eg::TranslationUnit& m_translationUnit;
         std::string strIndent;
         
-        InvokeVisitor( std::ostream& os ) : os( os ) {}
+        InvokeVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit ) : os( os ), m_translationUnit( translationUnit ) {}
         
         
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
@@ -459,83 +460,89 @@ namespace eg
         }    
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
-            //calculate the path to the root type
-            std::vector< const interface::Element* > path = getPath( pNode );
+            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            VERIFY_RTE( pAction );
             
-            //generate type comment
+            if( m_translationUnit.isAction( pAction ) )
             {
-                os << "\n//";
-                for( const interface::Element* pNodeIter : path )
+                //calculate the path to the root type
+                std::vector< const interface::Element* > path = getPath( pNode );
+                
+                //generate type comment
                 {
-                    if( pNodeIter != *path.begin())
-                        os << "::";
-                    os << pNodeIter->getIdentifier();
+                    os << "\n//";
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        if( pNodeIter != *path.begin())
+                            os << "::";
+                        os << pNodeIter->getIdentifier();
+                    }
+                    os << "\n";
                 }
-                os << "\n";
-            }
-            
-            //generate the template argument lists
-            {
-                int iCounter = 1;
-                for( const interface::Element* pNodeIter : path )
+                
+                //generate the template argument lists
                 {
-                    os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >\n";
-                    ++iCounter;
+                    int iCounter = 1;
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >\n";
+                        ++iCounter;
+                    }
                 }
-            }
-            
-            //generate the member function template arguments
-            os << "template< typename TypePath, typename Operation, typename... Args >\n";
-            
-            std::ostringstream osTypeName;
-            {
-                int iCounter = 1;
-                for( const interface::Element* pNodeIter : path )
+                
+                //generate the member function template arguments
+                os << "template< typename TypePath, typename Operation, typename... Args >\n";
+                
+                std::ostringstream osTypeName;
                 {
-                    if( pNodeIter != *path.begin())
-                        osTypeName << "::";
-                    osTypeName << getInterfaceType( pNodeIter->getIdentifier() ) << 
-                        "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
-                    ++iCounter;
+                    int iCounter = 1;
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        if( pNodeIter != *path.begin())
+                            osTypeName << "::";
+                        osTypeName << getInterfaceType( pNodeIter->getIdentifier() ) << 
+                            "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
+                        ++iCounter;
+                    }
                 }
-            }
-            
-            //generate the return type
-            if( path.size() > 1U )
-            {
-                //if multiple elements then need typename and use of template keyword
-                os << "typename " << EG_RESULT_TYPE << "< typename ";
-                int iCounter = 1;
-                for( const interface::Element* pNodeIter : path )
+                
+                //generate the return type
+                if( path.size() > 1U )
                 {
-                    if( pNodeIter != *path.begin())
-                        os << "::template ";
-                    os << getInterfaceType( pNodeIter->getIdentifier() ) << 
-                        "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
-                    ++iCounter;
+                    //if multiple elements then need typename and use of template keyword
+                    os << "typename " << EG_RESULT_TYPE << "< typename ";
+                    int iCounter = 1;
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        if( pNodeIter != *path.begin())
+                            os << "::template ";
+                        os << getInterfaceType( pNodeIter->getIdentifier() ) << 
+                            "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
+                        ++iCounter;
+                    }
+                    os << ", TypePath, Operation >::Type\n";
                 }
-                os << ", TypePath, Operation >::Type\n";
+                else
+                {
+                    os << "typename " << EG_RESULT_TYPE << "< " << osTypeName.str() << ", TypePath, Operation >::Type\n";
+                }
+                
+                //generate the invoke member function name
+                os << osTypeName.str() << "::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args ) const\n";
+                os << strIndent << "{\n";
+                strIndent.push_back( ' ' );
+                strIndent.push_back( ' ' );
+                
+                //generate the implementation
+                os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
+                os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << 
+                    osTypeName.str() << ", TypePath, Operation >::Type, " << 
+                    osTypeName.str() << ", CanonicalTypePathType, Operation >()( *this, args... );\n";
+                
+                strIndent.pop_back();
+                strIndent.pop_back();
+                os << strIndent << "}\n";
             }
-            else
-            {
-                os << "typename " << EG_RESULT_TYPE << "< " << osTypeName.str() << ", TypePath, Operation >::Type\n";
-            }
-            
-            //generate the invoke member function name
-            os << osTypeName.str() << "::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args ) const\n";
-            os << strIndent << "{\n";
-            strIndent.push_back( ' ' );
-            strIndent.push_back( ' ' );
-            
-            //generate the implementation
-            os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
-            os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << 
-                osTypeName.str() << ", TypePath, Operation >::Type, " << 
-                osTypeName.str() << ", CanonicalTypePathType, Operation >()( *this, args... );\n";
-            
-            strIndent.pop_back();
-            strIndent.pop_back();
-            os << strIndent << "}\n";
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {    
@@ -967,7 +974,7 @@ namespace eg
     
     
     void generateImplementationSource( std::ostream& os, const ImplementationSession& program, 
-            std::size_t szTranslationUnitID )
+            const eg::TranslationUnit& translationUnit )
     {
         const interface::Root* pRoot = program.getTreeRoot();
         
@@ -1006,7 +1013,7 @@ namespace eg
         os << "};\n";
         
         std::vector< const InvocationSolution* > invocations;
-        program.getInvocations( szTranslationUnitID, invocations );
+        program.getInvocations( translationUnit.getDatabaseFileID(), invocations );
         for( const InvocationSolution* pInvocation : invocations )
         {
             os << "\n";
@@ -1130,7 +1137,7 @@ namespace eg
             pRoot->pushpop( visitor );
         }
         {
-            InvokeVisitor visitor( os );
+            InvokeVisitor visitor( os, translationUnit );
             pRoot->pushpop( visitor );
         }
                 

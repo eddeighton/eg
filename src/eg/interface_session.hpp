@@ -38,10 +38,14 @@ namespace eg
     public:
         InterfaceSession( const boost::filesystem::path& treePath );
         
+        using TUFileIDIfExistsFPtr = 
+            std::function< IndexedObject::FileID( const std::string& strName  ) >;
+        
         void linkAnalysis();
         concrete::Action* instanceAnalysis();
         void dependencyAnalysis();
-        void translationUnitAnalysis();
+        void translationUnitAnalysis( const boost::filesystem::path& intermediateFolder, TUFileIDIfExistsFPtr pTUFileIDIfExists );
+        void checkTranslationUnits( const boost::filesystem::path& intermediateFolder );
         
         //allow saving the interface session to new file
         void store() const { AppendingSession::store(); }
@@ -77,7 +81,11 @@ namespace eg
         void constructInstance( concrete::Action* pInstance );
         void constructAllocator( concrete::Action* pInstance );
         void dependencyAnalysis_recurse( concrete::Action* pAction );
-        void translationUnitAnalysis_recurse( concrete::Action* pAction );
+        
+        using TranslationUnitMap = std::map< boost::filesystem::path, TranslationUnit::ActionSet >;
+        void translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap );
+        
+    
     private:
         DerivationAnalysis* m_pDerivationAnalysis;
         TranslationUnitAnalysis* m_pTranslationUnitAnalysis;

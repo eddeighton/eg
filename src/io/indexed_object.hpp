@@ -210,12 +210,14 @@ namespace eg
         
         IndexedFile( const boost::filesystem::path& filePath, IndexedObject::FileID fileID );
             
+        static IndexedObject::FileID readFileID( const boost::filesystem::path& filePath );
+        
         static void load( ObjectFactory& objectFactory, FileIDToFileMap& fileMap,
             const boost::filesystem::path& filePath, IndexedObject::FileID fileID );
 
-        static void store( const boost::filesystem::path& filePath, 
+        static void store( const boost::filesystem::path& filePath, IndexedObject::FileID fileID, 
                 const FileIDtoPathMap& files, const IndexedObject::Array& objects );
-            
+                
         const boost::filesystem::path& getPath() const { return m_filePath; }
         const IndexedObject::FileID getFileID() const { return m_fileID; }
         const FileTable& getFiles() const { return m_files; }

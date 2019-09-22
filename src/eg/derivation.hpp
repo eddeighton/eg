@@ -28,6 +28,8 @@
 
 #include "eg/common.hpp"
 
+#include "common/file.hpp"
+
 #include <map>
 #include <set>
 #include <vector>
@@ -117,10 +119,60 @@ namespace eg
         virtual void store( Storer& storer ) const;
     };
     
+    extern std::string style_replace_non_alpha_numeric( const std::string& str, char r );
+    //class InvocationSolution;
+    class TranslationUnit : public IndexedObject
+    {
+        friend class ObjectFactoryImpl;
+        friend class InterfaceSession;
+    public:
+        static const ObjectType Type = eTranslationUnit;
+    protected:
+        TranslationUnit( const IndexedObject& object )
+            :   IndexedObject( object )
+        {
+    
+        }
+        
+    public:
+        using ActionSet = std::set< const interface::Action*, CompareIndexedObjects >; 
+    protected:
+        boost::filesystem::path m_definitionFile;
+        std::string m_strName;
+        IndexedObject::FileID m_databaseFileID;
+        ActionSet m_actions;
+        
+    public:
+        static std::string TUNameFromEGSource( const boost::filesystem::path& definitionPath, const boost::filesystem::path& intermediateFolder )
+        {
+            boost::filesystem::path relativePath = boost::filesystem::edsInclude( intermediateFolder, definitionPath );
+            return style_replace_non_alpha_numeric( relativePath.generic_string(), '_' );
+        }
+        
+        
+        const std::string& getName() const { return m_strName; }
+        IndexedObject::FileID getDatabaseFileID() const { return m_databaseFileID; }
+        const ActionSet& getActions() const { return m_actions; }
+        
+        bool isAction( const interface::Action* pAction ) const
+        {
+            return std::find( m_actions.begin(), m_actions.end(), pAction ) != m_actions.end();
+        }
+        //using Invocations = std::vector< const InvocationSolution* >;
+        //Invocations invocations;
+        
+    public:
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        
+    };
+    
+    
     
     class TranslationUnitAnalysis : public IndexedObject
     {
         friend class ObjectFactoryImpl;
+        friend class InterfaceSession;
     public:
         static const ObjectType Type = eTranslationUnitAnalysis;
     protected:
@@ -129,20 +181,14 @@ namespace eg
         {
     
         }
+    public:
+        using TranslationUnits = std::vector< TranslationUnit* >;
+    private:
+        TranslationUnits m_translationUnits;
         
     public:
-        using TranslationUnit = std::set< const interface::Action*, CompareIndexedObjects >; 
         
-        using TranslationUnitMap = std::map< boost::filesystem::path, TranslationUnit >;
-        
-        TranslationUnitMap m_translationUnits;
-        
-        std::size_t getTotalTranslationUnits() const
-        {
-            return 1U;
-        }
-        
-        
+        const TranslationUnits& getTranslationUnits() const { return m_translationUnits; }
     public:
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
