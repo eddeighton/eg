@@ -1,9 +1,6 @@
 abstract A
 {
-    abstract B
-    {
-        //TEST_MSG( false, "Uh oh B was run" );//this one should NOT get created
-    }
+    abstract B;
 }
 
 action C[ 5 ] : A
@@ -18,7 +15,7 @@ action E[ 5 ] : A
 {
     action F : A::B
     {
-        TEST( true );//this one should get created
+        TEST_MSG( true, "Correctly running F" );//this one should get created
     }
 }
 

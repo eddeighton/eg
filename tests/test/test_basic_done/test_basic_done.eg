@@ -1,14 +1,27 @@
 
 action A
 {
+    eg::wait();
+}
+
+action B
+{
 }
 
 TEST( Done() );
 
 A.Start();
 
-TEST( !Done() );
+TEST( !Done() ); //initially a has not run at all
 
 eg::wait();
 
-TEST( Done() );
+TEST( !Done() ); //now a has waited
+
+eg::wait();
+
+TEST( Done() ); //now a has stopped
+
+B.Start();
+
+TEST( Done() ); //because B is abstract it stopped immediately

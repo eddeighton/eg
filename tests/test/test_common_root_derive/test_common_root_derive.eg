@@ -24,3 +24,6 @@ action C
         dim int x;
     }
 }
+
+while( !Done() )
+    eg::sleep();

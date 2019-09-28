@@ -383,7 +383,8 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
-    
+    if( pAction->getAction()->hasDefinition() )
+    {
     const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
     os << "                            ref(";
     bool bFirst = true;
@@ -399,6 +400,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
         os << "pybind11::cast< " << strParamType << " >( args[ " << iIndex++ << " ] )";
     }
     os << ");\n";
+    }
     os << "                        " << pAction->getName() << "_stopper( ref.data.instance );\n";
     
     os << "                    }\n";
@@ -428,7 +430,8 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
-    
+            if( pAction->getAction()->hasDefinition() )
+            {
     const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
     
     os << "                        std::function< void() > functor = std::bind( &" << pAction->getAction()->getStaticType() << "::operator(), ref";
@@ -456,6 +459,11 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "                            }\n";
     os << "                        );\n";
     os << "                        getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );\n";
+            }
+            else
+            {
+    os << "                        " << pAction->getName() << "_stopper( ref.data.instance );\n";
+            }
     os << "                    }\n";
     os << "                    pStack->m_result = pybind11::reinterpret_borrow< pybind11::object >( g_pEGRefType->create( ref.data ) );\n";
     os << "                }\n";

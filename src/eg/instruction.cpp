@@ -1231,6 +1231,14 @@ namespace eg
                 ".properties< eg::fiber_props >().setReference( ref.data );\n";
             os << generator.getIndent() << "}\n";
         }
+        else
+        {
+            //just do the same as the call - immediately stop the action if it was started
+            os << generator.getIndent() << "if( ref )\n";
+            os << generator.getIndent() << "{\n";
+            os << generator.getIndent() << "    " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
+            os << generator.getIndent() << "}\n";
+        }
            
         os << generator.getIndent() << "return ref;\n"; 
     }

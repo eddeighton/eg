@@ -463,7 +463,8 @@ namespace eg
             const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
             VERIFY_RTE( pAction );
             
-            if( m_translationUnit.isAction( pAction ) )
+            //TODO ELIMINATION: only generate ::invoke member function definitions for the set of contexts the translation unit 
+            //actually uses - 
             {
                 //calculate the path to the root type
                 std::vector< const interface::Element* > path = getPath( pNode );
