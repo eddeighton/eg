@@ -23,9 +23,9 @@
 #define INTERFACE_SESSION_18_04_2019
 
 #include "session.hpp"
-#include "interface.hpp"
-#include "concrete.hpp"
-#include "derivation.hpp"
+#include "../interface.hpp"
+#include "../concrete.hpp"
+#include "../derivation.hpp"
 
 #include <map>
 

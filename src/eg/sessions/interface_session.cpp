@@ -21,7 +21,7 @@
 
 #include "interface_session.hpp"
 
-#include "interface.hpp"
+#include "../interface.hpp"
 
 namespace eg
 {

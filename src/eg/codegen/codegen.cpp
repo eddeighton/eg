@@ -20,15 +20,15 @@
 
 #include "codegen.hpp"
 
-#include "eg.hpp"
-#include "input.hpp"
-#include "interface.hpp"
-#include "concrete.hpp"
-#include "derivation.hpp"
-#include "layout.hpp"
-#include "identifiers.hpp"
-#include "derivation.hpp"
-#include "invocation.hpp"
+#include "../eg.hpp"
+#include "../input.hpp"
+#include "../interface.hpp"
+#include "../concrete.hpp"
+#include "../derivation.hpp"
+#include "../layout.hpp"
+#include "../identifiers.hpp"
+#include "../derivation.hpp"
+#include "../invocation.hpp"
 
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>

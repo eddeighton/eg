@@ -19,9 +19,9 @@
 
 #include "generators.hpp"
 
-#include "eg/implementation_session.hpp"
+#include "eg/sessions/implementation_session.hpp"
 #include "eg/interface.hpp"
-#include "eg/codegen.hpp"
+#include "eg/codegen/codegen.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"

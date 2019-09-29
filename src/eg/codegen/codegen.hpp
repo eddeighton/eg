@@ -22,9 +22,9 @@
 #define CODE_GEN_18_04_2019
 
 
-#include "interface.hpp"
-#include "implementation_session.hpp"
-#include "instruction.hpp"
+#include "../interface.hpp"
+#include "../sessions/implementation_session.hpp"
+#include "../instruction.hpp"
 
 #include <string>
 #include <cstddef>

@@ -21,7 +21,7 @@
 #ifndef SESSION_18_04_2019
 #define SESSION_18_04_2019
 
-#include "objects.hpp"
+#include "../objects.hpp"
 
 #include "io/indexed_object.hpp"
 

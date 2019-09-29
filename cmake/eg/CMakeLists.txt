@@ -31,26 +31,16 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/objects.cpp
     ${EG_SRC_DIR}/eg/input.hpp
     ${EG_SRC_DIR}/eg/input.cpp
-    ${EG_SRC_DIR}/eg/session.hpp
-    ${EG_SRC_DIR}/eg/session.cpp
-    ${EG_SRC_DIR}/eg/parser_session.hpp
-    ${EG_SRC_DIR}/eg/parser_session.cpp
     ${EG_SRC_DIR}/eg/interface.hpp
     ${EG_SRC_DIR}/eg/interface.cpp
     ${EG_SRC_DIR}/eg/concrete.hpp
     ${EG_SRC_DIR}/eg/concrete.cpp
     ${EG_SRC_DIR}/eg/derivation.hpp
     ${EG_SRC_DIR}/eg/derivation.cpp
-    ${EG_SRC_DIR}/eg/interface_session.hpp
-    ${EG_SRC_DIR}/eg/interface_session.cpp
     ${EG_SRC_DIR}/eg/layout.hpp
     ${EG_SRC_DIR}/eg/layout.cpp
-    ${EG_SRC_DIR}/eg/implementation_session.hpp
-    ${EG_SRC_DIR}/eg/implementation_session.cpp
     ${EG_SRC_DIR}/eg/identifiers.hpp
     ${EG_SRC_DIR}/eg/identifiers.cpp
-    ${EG_SRC_DIR}/eg/operations_session.hpp
-    ${EG_SRC_DIR}/eg/operations_session.cpp
     ${EG_SRC_DIR}/eg/name_resolution.hpp
     ${EG_SRC_DIR}/eg/name_resolution.cpp
     ${EG_SRC_DIR}/eg/invocation.hpp
@@ -58,12 +48,23 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/instruction.hpp
     ${EG_SRC_DIR}/eg/instruction.cpp
     
-    ${EG_SRC_DIR}/eg/codegen.hpp
-    ${EG_SRC_DIR}/eg/codegen.cpp
-    ${EG_SRC_DIR}/eg/codegen_includes.cpp
-    ${EG_SRC_DIR}/eg/codegen_interface.cpp
-    ${EG_SRC_DIR}/eg/codegen_operations.cpp
-    ${EG_SRC_DIR}/eg/codegen_runtime.cpp
+    ${EG_SRC_DIR}/eg/sessions/session.hpp
+    ${EG_SRC_DIR}/eg/sessions/session.cpp
+    ${EG_SRC_DIR}/eg/sessions/parser_session.hpp
+    ${EG_SRC_DIR}/eg/sessions/parser_session.cpp
+    ${EG_SRC_DIR}/eg/sessions/interface_session.hpp
+    ${EG_SRC_DIR}/eg/sessions/interface_session.cpp
+    ${EG_SRC_DIR}/eg/sessions/implementation_session.hpp
+    ${EG_SRC_DIR}/eg/sessions/implementation_session.cpp
+    ${EG_SRC_DIR}/eg/sessions/operations_session.hpp
+    ${EG_SRC_DIR}/eg/sessions/operations_session.cpp
+    
+    ${EG_SRC_DIR}/eg/codegen/codegen.hpp
+    ${EG_SRC_DIR}/eg/codegen/codegen.cpp
+    ${EG_SRC_DIR}/eg/codegen/codegen_includes.cpp
+    ${EG_SRC_DIR}/eg/codegen/codegen_interface.cpp
+    ${EG_SRC_DIR}/eg/codegen/codegen_operations.cpp
+    ${EG_SRC_DIR}/eg/codegen/codegen_runtime.cpp
     )
     
 add_library( eglib 

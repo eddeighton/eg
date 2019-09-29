@@ -21,11 +21,11 @@
 
 #include "clang_plugin/clang_plugin.hpp"
 
-#include "eg/interface_session.hpp"
-#include "eg/operations_session.hpp"
+#include "eg/sessions/interface_session.hpp"
+#include "eg/sessions/operations_session.hpp"
 #include "eg/identifiers.hpp"
 #include "eg/eg.hpp"
-#include "eg/codegen.hpp"
+#include "eg/codegen/codegen.hpp"
 #include "eg/name_resolution.hpp"
 #include "eg/invocation.hpp"
 

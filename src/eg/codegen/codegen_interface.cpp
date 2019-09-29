@@ -22,9 +22,9 @@
 
 #include "codegen.hpp"
 
-#include "eg.hpp"
-#include "input.hpp"
-#include "interface.hpp"
+#include "../eg.hpp"
+#include "../input.hpp"
+#include "../interface.hpp"
 
 
 #include <boost/bind.hpp>

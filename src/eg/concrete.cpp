@@ -19,7 +19,7 @@
 
 
 #include "concrete.hpp"
-#include "codegen.hpp"
+#include "eg/codegen/codegen.hpp"
 
 namespace eg
 {

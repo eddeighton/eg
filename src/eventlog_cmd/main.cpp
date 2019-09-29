@@ -20,7 +20,7 @@
 
 
 
-#include "eg/implementation_session.hpp"
+#include "eg/sessions/implementation_session.hpp"
 
 #include "eg/common.hpp"
 

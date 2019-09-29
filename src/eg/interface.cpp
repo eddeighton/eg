@@ -19,7 +19,7 @@
 
 
 #include "interface.hpp"
-#include "codegen.hpp"
+#include "eg/codegen/codegen.hpp"
 
 namespace eg
 {

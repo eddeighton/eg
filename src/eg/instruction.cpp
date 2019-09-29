@@ -18,7 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "instruction.hpp"
-#include "codegen.hpp"
+#include "eg/codegen/codegen.hpp"
 
 namespace eg
 {

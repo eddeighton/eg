@@ -24,11 +24,11 @@
 #include "egxml/eg_schema-pimpl.hxx"
 #include "egxml/eg_schema-simpl.hxx"
 
-#include "eg/parser_session.hpp"
-#include "eg/interface_session.hpp"
-#include "eg/operations_session.hpp"
-#include "eg/implementation_session.hpp"
-#include "eg/codegen.hpp"
+#include "eg/sessions/parser_session.hpp"
+#include "eg/sessions/interface_session.hpp"
+#include "eg/sessions/operations_session.hpp"
+#include "eg/sessions/implementation_session.hpp"
+#include "eg/codegen/codegen.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"

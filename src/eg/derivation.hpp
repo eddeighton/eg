@@ -24,7 +24,7 @@
 #include "eg.hpp"
 #include "objects.hpp"
 #include "concrete.hpp"
-#include "session.hpp"
+#include "sessions/session.hpp"
 
 #include "eg/common.hpp"
 

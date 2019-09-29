@@ -21,9 +21,9 @@
 
 #include "parser_session.hpp"
 
-#include "input.hpp"
-#include "interface.hpp"
-#include "identifiers.hpp"
+#include "../input.hpp"
+#include "../interface.hpp"
+#include "../identifiers.hpp"
 
 //disable clang warnings
 #pragma warning( push )

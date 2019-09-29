@@ -1,6 +1,6 @@
 
-#include "eg/implementation_session.hpp"
-#include "eg/codegen.hpp"
+#include "eg/sessions/implementation_session.hpp"
+#include "eg/codegen/codegen.hpp"
 #include "eg/input.hpp"
 
 #include <ostream>

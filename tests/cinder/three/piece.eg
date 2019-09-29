@@ -22,7 +22,7 @@ action Piece[ 256 ] : Cube
         Render();
         eg::sleep();
     }
-    
+                
     action Up;
     action Down;
     action Left;

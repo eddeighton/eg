@@ -20,7 +20,7 @@
 
 #include "eg_runtime/eg_runtime.hpp"
 
-#include "eg/implementation_session.hpp"
+#include "eg/sessions/implementation_session.hpp"
 #include "eg/derivation.hpp"
 
 #include "common/file.hpp"

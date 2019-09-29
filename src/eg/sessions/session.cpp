@@ -21,8 +21,6 @@
 
 #include "session.hpp"
 
-#include "objects.hpp"
-
 namespace eg
 {
 

@@ -22,11 +22,11 @@
 
 #include "codegen.hpp"
 
-#include "eg.hpp"
-#include "input.hpp"
-#include "interface.hpp"
+#include "../eg.hpp"
+#include "../input.hpp"
+#include "../interface.hpp"
 
-#include "derivation.hpp"
+#include "../derivation.hpp"
 
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>

@@ -21,8 +21,8 @@
 #include "clang_utils.hpp"
 
 #include "eg/eg.hpp"
-#include "eg/interface_session.hpp"
-#include "eg/codegen.hpp"
+#include "eg/sessions/interface_session.hpp"
+#include "eg/codegen/codegen.hpp"
 
 #pragma warning( push )
 #include "common/clang_warnings.hpp"
