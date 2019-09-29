@@ -82,14 +82,27 @@ namespace eg
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser );
     
-    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize );
+    void generateInterface( std::ostream& os, 
+        const interface::Root* pRoot, 
+        const Identifiers* pIdentifiers, 
+        std::size_t szFiberStackSize );
 
     class TranslationUnit;
-    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const eg::TranslationUnit& translationUnit );
+    void generateOperationSource( std::ostream& os, 
+        const interface::Root* pRoot, 
+        const eg::TranslationUnit& translationUnit );
     
     void generateBufferStructures( std::ostream& os, const ImplementationSession& program );
 
-    void generateImplementationSource( std::ostream& os, const ImplementationSession& program, const eg::TranslationUnit& translationUnit );
+    void generateGenerics(std::ostream& os, 
+        const ImplementationSession& program, 
+        const std::vector< const concrete::Action* >& actions, 
+        const std::vector< const concrete::Inheritance_Node* >& iNodes,
+        const eg::TranslationUnit& translationUnit )
+        
+    void generateImplementationSource( std::ostream& os, 
+        const ImplementationSession& program, 
+        const eg::TranslationUnit& translationUnit );
         
     void generate_dynamic_interface( std::ostream& os, ImplementationSession& session );
     void generateActionInstanceFunctions( std::ostream& os, const ImplementationSession& program );
