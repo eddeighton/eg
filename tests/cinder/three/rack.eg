@@ -11,8 +11,9 @@ action Rack
         dim int m_yPosition;
         dim int m_height;
         
-        m_height( 100 );
+        m_height( 50 );
         
+        //this is cool
     }
 
     while( true )

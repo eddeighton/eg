@@ -80,6 +80,103 @@ namespace interface
         storer.storeObjectVector( m_children );
     }
     
+    bool CompareElements( const Element* pLeft, const Element* pRight )
+    {
+        if( pLeft->getType() != pRight->getType() )
+        {
+            return pLeft->getType() < pRight->getType();
+        }
+        else if( pLeft->getIdentifier() != pRight->getIdentifier() )
+        {
+            return pLeft->getIdentifier() < pRight->getIdentifier(); 
+        }
+        else
+        {
+            THROW_RTE( "Duplicate identifiers" );
+        }
+    }
+    
+    bool Element::update( const Element* pNewElement )
+    {
+        bool bModified = false;
+        
+        std::vector< Opaque* > opaques;
+        std::vector< Element* > children;
+        {
+            for( Element* pElement : m_children )
+            {
+                if( Opaque* pOpaque = dynamic_cast< Opaque* >( pElement ) )
+                {
+                    if( !pOpaque->isSemantic() )
+                    {
+                        opaques.push_back( pOpaque );
+                    }
+                }
+                else
+                {
+                    children.push_back( pElement );
+                }
+            }
+            std::sort( children.begin(), children.end(), CompareElements);
+        }
+        
+        std::vector< const Opaque* > newOpaques;
+        std::vector< const Element* > newChildren;
+        {
+            const std::vector< Element* >& allNewChildren = pNewElement->getChildren();
+            for( const Element* pElement : allNewChildren )
+            {
+                if( const Opaque* pOpaque = dynamic_cast< const Opaque* >( pElement ) )
+                {
+                    if( !pOpaque->isSemantic() )
+                    {
+                        newOpaques.push_back( pOpaque );
+                    }
+                }
+                else
+                {
+                    newChildren.push_back( pElement );
+                }
+            }
+            std::sort( newChildren.begin(), newChildren.end(), CompareElements );
+        }
+        
+        if( std::equal( children.begin(), children.end(), newChildren.begin(), newChildren.end(), 
+            []( Element* pOldElement, const Element* pNewElement )
+            {
+                if( ( pOldElement->getType() == pNewElement->getType() ) && 
+                    ( pOldElement->getIdentifier() == pNewElement->getIdentifier() ) )
+                {
+                    return !pOldElement->update( pNewElement );
+                }
+                else
+                {
+                    return false;
+                }
+            } ) )
+        {
+            //structure of the tree is equal so we merge the opaques
+            if( opaques.size() == 1U && newOpaques.size() == 1U ) 
+            {
+                Opaque* pOldOpaque = opaques[ 0U ];
+                const Opaque* pNewOpaque = newOpaques[ 0U ];
+                pOldOpaque->modify( pNewOpaque );
+            }
+            else
+            {
+                VERIFY_RTE_MSG( opaques.size() == 0U && newOpaques.size() == 0U,
+                    "Incorrect number of body elements found" );
+            }
+        }
+        else
+        {
+            bModified = true;
+        }
+            
+        
+        return bModified;
+    }
+    
     void Element::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
     {
         if( m_pElement )
@@ -291,6 +388,20 @@ namespace interface
         storer.store( m_canonicalType );
         storer.store( m_size );
     }
+    
+    bool Dimension::update( const Element* pElement )
+    {
+        if( const Dimension* pNewDimension = dynamic_cast< const Dimension* >( pElement ) )
+        {
+            //require the opaque is equal
+            if( m_pDimension->equal( *pNewDimension->m_pDimension ) )
+            {
+                return Element::update( pElement );
+            }
+        }
+        return true;
+    }
+    
     const std::string& Dimension::getType() const
     {
         return m_pDimension->getType()->getStr();
@@ -349,6 +460,18 @@ namespace interface
         Element::store( storer );
         storer.store( m_canonicalType );
     }
+    bool Using::update( const Element* pElement )
+    {
+        if( const Using* pNewUsing = dynamic_cast< const Using* >( pElement ) )
+        {
+            //require the opaque is equal
+            if( m_pUsing->equal( *pNewUsing->m_pUsing ) )
+            {
+                return Element::update( pElement );
+            }
+        }
+        return true;
+    }
     const std::string& Using::getType() const
     {
         return m_pUsing->getType()->getStr();
@@ -379,6 +502,18 @@ namespace interface
     void Include::store( Storer& storer ) const
     {
         Element::store( storer );
+    }
+    bool Include::update( const Element* pElement )
+    {
+        if( const Include* pNewInclude = dynamic_cast< const Include* >( pElement ) )
+        {
+            //require the opaque is equal
+            if( m_pInclude->equal( *pNewInclude->m_pInclude ) )
+            {
+                return Element::update( pElement );
+            }
+        }
+        return true;
     }
     
     
@@ -422,6 +557,18 @@ namespace interface
         storer.store( m_parameterTypes );
         storer.storeObjectVector( m_inheriters );
         storer.storeObjectVector( m_linkers );
+    }
+    bool Action::update( const Element* pElement )
+    {
+        if( const Action* pNewAction = dynamic_cast< const Action* >( pElement ) )
+        {
+            //require the opaque is equal
+            if( m_pAction->equal( *pNewAction->m_pAction ) )
+            {
+                return Element::update( pElement );
+            }
+        }
+        return true;
     }
     
     void Action::getDimensions( std::vector< Dimension* >& dimensions ) const
@@ -553,6 +700,25 @@ namespace interface
     void Root::store( Storer& storer ) const
     {
         Action::store( storer );
+    }
+    bool Root::update( const Element* pElement )
+    {
+        if( const Root* pNewRoot = dynamic_cast< const Root* >( pElement ) )
+        {
+            //require the opaque is equal
+            if( ( m_pRoot == nullptr ) || ( pNewRoot->m_pRoot == nullptr ) )
+            {
+                if( ( m_pRoot == nullptr ) && ( pNewRoot->m_pRoot == nullptr ) )
+                {
+                    return Element::update( pElement );
+                }
+            }
+            else if( m_pRoot->equal( *pNewRoot->m_pRoot ) )
+            {
+                return Element::update( pElement );
+            }
+        }
+        return true;
     }
     
     

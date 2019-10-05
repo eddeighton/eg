@@ -36,17 +36,20 @@ namespace input
 
     
     Opaque::Opaque( const IndexedObject& object )
-        :  Element( object )
+        :   Element( object ),
+            m_bSemantic( true )
     {
     }
     
     void Opaque::load( Loader& loader )
     {
+        loader.load( m_bSemantic );
         loader.load( m_str );
     }
 
     void Opaque::store( Storer& storer ) const
     {
+        storer.store( m_bSemantic );
         storer.store( m_str );
     }
     
@@ -165,7 +168,8 @@ namespace input
     Action::Action( const IndexedObject& object )
         :   Element( object ),
             m_pSize( nullptr ),
-            m_pParams( nullptr )
+            m_pParams( nullptr ),
+            m_pBody( nullptr )
     {
 
     }
@@ -175,6 +179,7 @@ namespace input
         loader.loadObjectVector( m_elements );
         m_pSize = loader.loadObjectRef< Opaque >();
         m_pParams = loader.loadObjectRef< Opaque >();
+        m_pBody = loader.loadObjectRef< Opaque >();
         loader.loadOptional( m_definitionFile );
         loader.load( m_strIdentifier );
         loader.load( m_bAbstract );
@@ -187,6 +192,7 @@ namespace input
         storer.storeObjectVector( m_elements );
         storer.storeObjectRef( m_pSize );
         storer.storeObjectRef( m_pParams );
+        storer.storeObjectRef( m_pBody );
         storer.storeOptional( m_definitionFile );
         storer.store( m_strIdentifier );
         storer.store( m_bAbstract );

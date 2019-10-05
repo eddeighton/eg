@@ -51,6 +51,7 @@ namespace interface
     public:
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
+        virtual bool update( const Element* pElement );
 
         template< class T >
         class Collector
@@ -176,7 +177,8 @@ namespace interface
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
     public:
-    
+        bool isSemantic() const { return m_pOpaque->isSemantic(); }
+        void modify( const Opaque* pNew ) { m_pOpaque->modify( pNew->m_pOpaque->getStr() ); }
     private:
         input::Opaque* m_pOpaque = nullptr;
     };
@@ -194,7 +196,9 @@ namespace interface
         Dimension( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
+        virtual bool update( const Element* pElement );
     public:
+        //const input::Dimension* getInputDimension() const { return m_pDimension; }
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
         std::size_t getSize() const { return m_size; }
@@ -219,6 +223,7 @@ namespace interface
         Using( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
+        virtual bool update( const Element* pElement );
     public:
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
@@ -237,6 +242,7 @@ namespace interface
         Include( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
+        virtual bool update( const Element* pElement );
     public:
     
     private:
@@ -255,6 +261,7 @@ namespace interface
         Action( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
+        virtual bool update( const Element* pElement );
 
     public:
         virtual void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
@@ -303,6 +310,8 @@ namespace interface
         Root( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
+    public:
+        virtual bool update( const Element* pElement );
         
         mutable std::string m_strTemp;
     public:

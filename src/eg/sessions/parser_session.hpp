@@ -64,7 +64,7 @@ namespace eg
             std::shared_ptr< clang::FileManager > pFileManager,
             llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine );
             
-        const interface::Root* buildAbstractTree( std::ostream& osLog );
+        void buildAbstractTree();
         
         const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
         
@@ -72,6 +72,14 @@ namespace eg
     private:
         using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
         void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, const boost::filesystem::path&, bool bInIncludeTree );
+    };
+    
+    class IncrementalParserSession : public ParserSession
+    {
+    public:
+        IncrementalParserSession( const boost::filesystem::path& treePath );
+                
+        bool update( const ParserSession& parse );
     };
 
 }

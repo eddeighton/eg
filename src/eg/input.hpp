@@ -55,15 +55,31 @@ namespace eg
             friend class ::eg::Parser;
         public:
             static const ObjectType Type = eInputOpaque;
+            
+            static bool equalNullablePtrs( const Opaque* pLeft, const Opaque* pRight ) 
+            {
+                if( pLeft && pRight )
+                {
+                    return pLeft->getStr() == pRight->getStr();
+                }
+                else 
+                {
+                    return ( pLeft == nullptr ) && ( pRight == nullptr );
+                }
+            }
         protected:
             Opaque( const IndexedObject& object );
         public:
             const std::string& getStr() const { return m_str; }
+            bool isSemantic() const { return m_bSemantic; }
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+            
+            void modify( const std::string& strNew ) { m_str = strNew; }
         private:
             std::string m_str;
+            bool m_bSemantic;
         };
 
         class Dimension : public Element
@@ -81,6 +97,12 @@ namespace eg
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+            
+            bool equal( const Dimension& cmp ) const
+            {
+                return Opaque::equalNullablePtrs( m_pType, cmp.m_pType );
+            }
+                
         private:
             std::string m_strIdentifier;
             Opaque* m_pType;
@@ -105,6 +127,10 @@ namespace eg
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             void setIncludeFilePath( const std::string& strIncludeFile );
             
+            bool equal( const Include& cmp ) const
+            {
+                return m_path == cmp.m_path;
+            }
         private:
             std::string m_strIdentifier;
             boost::filesystem::path m_path;
@@ -128,6 +154,10 @@ namespace eg
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
+            bool equal( const Using& cmp ) const
+            {
+                return Opaque::equalNullablePtrs( m_pType, cmp.m_pType );
+            }
         private:
             std::string m_strIdentifier;
             Opaque* m_pType;
@@ -145,6 +175,7 @@ namespace eg
             const std::vector< Element* >& getElements() const { return m_elements; }
             const Opaque* getSize() const { return m_pSize; }
             const Opaque* getParams() const { return m_pParams; }
+            const Opaque* getBody() const { return m_pBody; }
             const std::string& getIdentifier() const { return m_strIdentifier; }
             const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
             bool isLink() const { return m_bLink; }
@@ -157,10 +188,23 @@ namespace eg
             void printDeclaration( std::ostream& os, std::string& strIndent, const std::string& strIdentifier, const std::string& strAnnotation  ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
+            bool equal( const Action& cmp ) const
+            {
+                return  Opaque::equalNullablePtrs( m_pSize, cmp.m_pSize ) &&
+                        Opaque::equalNullablePtrs( m_pParams, cmp.m_pParams ) && 
+                        m_definitionFile == cmp.m_definitionFile &&
+                        m_bIsTemplate == cmp.m_bIsTemplate &&
+                        m_bAbstract == cmp.m_bAbstract &&
+                        m_bLink == cmp.m_bLink &&
+                        std::equal( m_inheritance.begin(), m_inheritance.end(),
+                            cmp.m_inheritance.begin(), cmp.m_inheritance.end(),
+                            []( const Opaque* pLeft, const Opaque* pRight ) { return pLeft->getStr() == pRight->getStr(); } );
+            }
         protected:
             std::vector< Element* > m_elements;
             Opaque* m_pSize;
             Opaque* m_pParams;
+            Opaque* m_pBody;
             std::optional< boost::filesystem::path > m_definitionFile;
             bool m_bIsTemplate = false;
             std::string m_strIdentifier;
@@ -184,6 +228,12 @@ namespace eg
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+            
+            bool equal( const Root& cmp ) const
+            {
+                return Action::equal( cmp ) && 
+                    m_includePath == cmp.m_includePath;
+            }
         private:
             std::optional< boost::filesystem::path > m_includePath; //null if main root
         };

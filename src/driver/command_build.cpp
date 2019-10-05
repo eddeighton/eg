@@ -160,25 +160,41 @@ void build_parser_session( const Environment& environment, const Project& projec
     
     std::unique_ptr< eg::ParserSession > pParserSession;
     
-    //TODO: Implement some kind of delta detecting session type which can detect if the referential semantics
-    //of the database has changed.  Use this to optimise setting bParserDBChanged.  
-    //This basically means the idea that only if the object indices OR references to indices change then the
-    //parser db cannot simply be written over the interface db in place.  This assumes there is NO sensitivity
-    //to how any value could effect the way the interface analysis produces results UNLESS the tree has changed
     bool bParserDBChanged = true;
     {
         LogEntry log( std::cout, "Parsing EG source code", bBenchCommands );
+        
+        //is there an old parser database
+        
+        std::unique_ptr< eg::IncrementalParserSession > pOldParserSession;
+        if( boost::filesystem::exists( project.getParserDBFileName() ) )
+        {
+            //actually load the interface database here NOT the parser database
+            pOldParserSession = 
+                std::make_unique< eg::IncrementalParserSession >( project.getInterfaceDBFileName() );
+        }
         
         pParserSession = std::make_unique< eg::ParserSession >();
         pParserSession->parse( egSourceCode, pFileManager, pDiagnosticsEngine );
         
         //build the eg master tree
-        std::ostringstream osLog;
-        const eg::interface::Root* pRoot = pParserSession->buildAbstractTree( osLog );
-        //std::cout << osLog.str() << std::endl;
-    
-        //save the tree 
-        pParserSession->store( project.getParserDBFileName() );
+        pParserSession->buildAbstractTree();
+        if( pOldParserSession && !pOldParserSession->update( *pParserSession ) )
+        {
+            std::cout << "Reusing old parser database" << std::endl;
+            
+            //rewrite the interface database where only the opaques have changed
+            pOldParserSession->store( project.getInterfaceDBFileName() );
+            
+            pParserSession.reset( pOldParserSession.get() );
+            pOldParserSession.release();
+            bParserDBChanged = false;
+        }
+        else
+        {
+            //save the tree 
+            pParserSession->store( project.getParserDBFileName() );
+        }
     }
     
     bool bReUsePCH = false;
@@ -214,81 +230,7 @@ void build_parser_session( const Environment& environment, const Project& projec
             {
                 bReUsePCH = true;
             }
-            
-            /*if( boost::filesystem::exists( project.getPreprocessedFile() ) )
-            {
-                {
-                    std::ostringstream osCmd;
-                    environment.startCompilationCommand( osCmd );
-                    osCmd << " " << project.getCompilerFlags() << " ";
-                    
-                    osCmd << environment.printPath( project.getIncludeHeader() ) << " ";
-                    
-                    osCmd << "-I " << environment.getEGLibraryInclude().generic_string() << " ";
-                    
-                    for( const boost::filesystem::path& includeDirectory : project.getIncludeDirectories() )
-                    {
-                        osCmd << "-I " << environment.printPath( includeDirectory ) << " ";
-                    }
-                    
-                    osCmd << " -E -o " << environment.printPath( project.getPreprocessedCompareFile() ) << " ";
-                    
-                    if( bLogCommands )
-                    {
-                        std::cout << "\n" << osCmd.str() << std::endl;
-                    }
-                    
-                    {
-                        const int iResult = boost::process::system( osCmd.str() );
-                        if( iResult )
-                        {
-                            THROW_RTE( "Error invoking clang++ " << iResult );
-                        }
-                    }
-                }
-                
-                //compare the file contents
-                if( boost::filesystem::compareFiles( project.getPreprocessedFile(), project.getPreprocessedCompareFile() ) )
-                {
-                    std::cout << "Automatically reusing include.pch precompiled header" << std::endl;
-                    bUsePCH = true;
-                }
-            }*/
         }
-        
-        //generate the preprocessed file
-        /*if( !bUsePCH )
-        {
-            LogEntry log( std::cout, "Generating include preprocessed file", bBenchCommands );
-        
-            std::ostringstream osCmd;
-            environment.startCompilationCommand( osCmd );
-            osCmd << " " << project.getCompilerFlags() << " ";
-            
-            osCmd << environment.printPath( project.getIncludeHeader() ) << " ";
-            
-            osCmd << "-I " << environment.getEGLibraryInclude().generic_string() << " ";
-            
-            for( const boost::filesystem::path& includeDirectory : project.getIncludeDirectories() )
-            {
-                osCmd << "-I " << environment.printPath( includeDirectory ) << " ";
-            }
-            
-            osCmd << " -E -o " << environment.printPath( project.getPreprocessedFile() ) << " ";
-            
-            if( bLogCommands )
-            {
-                std::cout << "\n" << osCmd.str() << std::endl;
-            }
-            
-            {
-                const int iResult = boost::process::system( osCmd.str() );
-                if( iResult )
-                {
-                    THROW_RTE( "Error invoking clang++ " << iResult );
-                }
-            }
-        }*/
         
         //compile the includes header to pch file
         if( !bReUsePCH )
@@ -341,10 +283,9 @@ void build_parser_session( const Environment& environment, const Project& projec
         boost::filesystem::updateFileIfChanged( project.getInterfaceHeader(), osInterface.str() );
     }
     
-    if( bParserDBChanged /*fileTracker.isModified( project.getParserDBFileName() )*/ ||
+    if( bParserDBChanged ||
         fileTracker.isModified( project.getIncludePCH() ) ||
-        fileTracker.isModified( project.getInterfaceHeader() ) ||
-        fileTracker.isModified( project.getInterfaceDBFileName() ) )
+        fileTracker.isModified( project.getInterfaceHeader() ) )
     {
         {
             LogEntry log( std::cout, "Compiling interface to pch", bBenchCommands );
@@ -445,7 +386,7 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
             fileTracker.isModified( project.getInterfacePCH() ) ||
             fileTracker.isModified( project.getOperationsPCH( strTUName ) ) ||
             fileTracker.isModified( project.getOperationsHeader( strTUName ) ) ||
-            fileTracker.isModified( project.getInterfaceDBFileName() ) ||
+            /*fileTracker.isModified( project.getInterfaceDBFileName() ) || */
             fileTracker.isModified( project.getTUDBName( strTUName ) ) )
         {
             LogEntry log( std::cout, "Compiling operations to pch: " + strTUName, bBenchCommands );

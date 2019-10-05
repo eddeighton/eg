@@ -1,0 +1,21 @@
+
+
+action A
+{
+    std::cout << "Do stuff" << std::endl;
+    
+    action B
+    {
+    }
+    
+    B();
+    
+    std::cout << "Do stuff again" << std::endl;
+    
+}
+
+
+A();
+
+
+

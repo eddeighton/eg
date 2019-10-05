@@ -918,6 +918,16 @@ namespace eg
                 }
             }
         }
+        
+        input::Action* constructAction( ParserSession& session, input::Action* pParentAction )
+        {
+            input::Action* pNewAction = session.construct< input::Action >();
+            pNewAction->m_pBody = session.construct< input::Opaque >();
+            pNewAction->m_elements.push_back( pNewAction->m_pBody );
+            pNewAction->m_pBody->m_bSemantic = false;
+            pParentAction->m_elements.push_back( pNewAction );
+            return pNewAction;
+        }
 
         void parse_action( ParserSession& session, input::Action* pAction, const boost::filesystem::path& egSourceFile )
         {
@@ -932,8 +942,7 @@ namespace eg
                     input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
                     if( !pNestedAction )
                     {
-                        pNestedAction = session.construct< input::Action >();
-                        pAction->m_elements.push_back( pNestedAction );
+                        pNestedAction = constructAction( session, pAction );
                         pNestedAction->m_strIdentifier = pIdentifier->getName();
                     }
                     pAction = pNestedAction;
@@ -1081,8 +1090,7 @@ namespace eg
             {
                 if( Tok.is( clang::tok::kw_template ) )
                 {
-                    input::Action* pNestedAction = session.construct< input::Action >();
-                    pAction->m_elements.push_back( pNestedAction );
+                    input::Action* pNestedAction = constructAction( session, pAction );
                     parse_template( session, pNestedAction );
                     if( Tok.is( clang::tok::kw_action ) )
                     {
@@ -1115,9 +1123,8 @@ namespace eg
                         input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
                         if( !pNestedAction )
                         {
-                            pNestedAction = session.construct< input::Action >();
+                            pNestedAction = constructAction( session, pAction );
                             pNestedAction->m_strIdentifier = pIdentifier->getName();
-                            pAction->m_elements.push_back( pNestedAction );
                         }
                         ConsumeToken();
                         parse_action( session, pNestedAction, egSourceFile );
@@ -1149,11 +1156,10 @@ namespace eg
                         input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
                         if( !pNestedAction )
                         {
-                            pNestedAction = session.construct< input::Action >();
+                            pNestedAction = constructAction( session, pAction );
                             pNestedAction->m_strIdentifier = pIdentifier->getName();
                             pNestedAction->m_bLink = bIsLink;
                             pNestedAction->m_bAbstract = true;
-                            pAction->m_elements.push_back( pNestedAction );
                         }
                         else
                         {
@@ -1184,11 +1190,10 @@ namespace eg
                         input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
                         if( !pNestedAction )
                         {
-                            pNestedAction = session.construct< input::Action >();
+                            pNestedAction = constructAction( session, pAction );
                             pNestedAction->m_strIdentifier = pIdentifier->getName();
                             pNestedAction->m_bLink = true;
                             pNestedAction->m_bAbstract = bIsAbstract;
-                            pAction->m_elements.push_back( pNestedAction );
                         }
                         else
                         {
@@ -1230,9 +1235,6 @@ namespace eg
                 }
                 else
                 {
-                    input::Opaque* pOpaque = session.construct< input::Opaque >();
-                    pAction->m_elements.push_back( pOpaque );
-                    
                     clang::SourceLocation startLoc = Tok.getLocation();
                     clang::SourceLocation endLoc   = Tok.getEndLoc();
                     ConsumeAnyToken();
@@ -1260,7 +1262,17 @@ namespace eg
                         ConsumeAnyToken();
                     }
                     
-                    VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
+                    {
+                        std::string strBodyPart;
+                        VERIFY_RTE( getSourceText( startLoc, endLoc, strBodyPart ) );
+                        
+                        if( !strBodyPart.empty() )
+                        {
+                            std::ostringstream os;
+                            os << pAction->m_pBody->m_str << "\n" << strBodyPart;
+                            pAction->m_pBody->m_str = os.str();
+                        }
+                    }
                 }
             }
             
@@ -1299,12 +1311,19 @@ namespace eg
                 if( !pRoot )
                 {
                     pRoot = session.construct< input::Root >();
+                    pRoot->m_pBody = session.construct< input::Opaque >();
+                    pRoot->m_elements.push_back( pRoot->m_pBody );
+                    pRoot->m_pBody->m_bSemantic = false;
                 }
                 parse_action_body( session, pRoot, egSourceFile );
             }
             else
             {
                 pRoot = session.construct< input::Root >();
+                pRoot->m_pBody = session.construct< input::Opaque >();
+                pRoot->m_elements.push_back( pRoot->m_pBody );
+                pRoot->m_pBody->m_bSemantic = false;
+                
                 pRoot->m_includePath = egSourceFile;
                 parse_action_body( session, pRoot, egSourceFile );
             }
@@ -1594,7 +1613,7 @@ namespace eg
         }
     }
     
-    const interface::Root* ParserSession::buildAbstractTree( std::ostream& osLog )
+    void ParserSession::buildAbstractTree()
     {
         interface::Root* pMasterRoot = construct< interface::Root >();
         
@@ -1630,9 +1649,28 @@ namespace eg
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();
         pIdentifiers->populate( getMaster() );
-        
-        return pMasterRoot;
     }
     
+    
+    
+    IncrementalParserSession::IncrementalParserSession( const boost::filesystem::path& treePath )
+    {
+        VERIFY_RTE( m_fileID == IndexedObject::MASTER_FILE );
+        ObjectFactoryImpl objectFactory;
+        IndexedFile::load( objectFactory, m_fileMap, treePath, m_fileID );
+        
+        IndexedFile* pRootFile = m_fileMap[ m_fileID ];
+        VERIFY_RTE( pRootFile );
+        
+        m_newObjects.swap( pRootFile->getObjects() );
+        delete pRootFile;
+        m_fileMap.clear();
+    }
 
+    bool IncrementalParserSession::update( const ParserSession& parse )
+    {
+        interface::Root* pOldRoot = eg::root< eg::interface::Root >( getMaster() );
+        return pOldRoot->update( parse.getTreeRoot() );
+    }
+    
 } //namespace eg
