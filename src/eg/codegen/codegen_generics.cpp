@@ -191,7 +191,7 @@ namespace eg
             //conversion constructor
             os << osTemplateArgLists.str();
             os << "template< typename TFrom >\n";
-            os << osTypeName.str() << "::" << strActionInterfaceType << "( const TFrom& from )\n";
+            os << "inline " << osTypeName.str() << "::" << strActionInterfaceType << "( const TFrom& from )\n";
             os << "{\n";
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
             if( !dynamicCompatibleTypes.empty() )
@@ -218,7 +218,7 @@ namespace eg
             //assignment operator
             os << osTemplateArgLists.str();
             os << "template< typename TFrom >\n";
-            os << osTypeNameAsType.str() << "& " << osTypeName.str() << "::operator=( const TFrom& from )\n";
+            os << "inline " << osTypeNameAsType.str() << "& " << osTypeName.str() << "::operator=( const TFrom& from )\n";
             os << "{\n";
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
             if( !dynamicCompatibleTypes.empty() )
@@ -430,7 +430,7 @@ namespace eg
                 if( path.size() > 1U )
                 {
                     //if multiple elements then need typename and use of template keyword
-                    os << "typename " << EG_RESULT_TYPE << "< typename ";
+                    os << "inline typename " << EG_RESULT_TYPE << "< typename ";
                     int iCounter = 1;
                     for( const interface::Element* pNodeIter : path )
                     {
@@ -444,7 +444,7 @@ namespace eg
                 }
                 else
                 {
-                    os << "typename " << EG_RESULT_TYPE << "< " << osTypeName.str() << ", TypePath, Operation >::Type\n";
+                    os << "inline typename " << EG_RESULT_TYPE << "< " << osTypeName.str() << ", TypePath, Operation >::Type\n";
                 }
                 
                 //generate the invoke member function name
@@ -493,6 +493,120 @@ namespace eg
     {
         const Layout& layout = program.getLayout();
         const interface::Root* pRoot = program.getTreeRoot();
+        
+        
+        //generate the invoke definitions
+        
+        //generic one for variant
+        os << "\n//generic variant invocation adaptor\n";
+        os << "template< typename... Ts >\n";
+        os << "template< typename TypePath, typename Operation, typename... Args >\n";
+        os << "inline typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE << "< Ts... >, TypePath, Operation >::Type\n";
+        os << EG_VARIANT_TYPE << "< Ts... >::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args )\n";
+        os << "{\n";
+        os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
+        os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE << 
+                "< Ts... >, TypePath, Operation >::Type, " << EG_VARIANT_TYPE << 
+                "< Ts... >, CanonicalTypePathType, Operation >()( *this, args... );\n";
+        os << "}\n";
+        os << "\n";
+            
+        std::vector< const InvocationSolution* > invocations;
+        program.getInvocations( translationUnit.getDatabaseFileID(), invocations );
+        
+        //generate variant getTimestamp functions
+        std::set< InvocationSolution::Context > variantTypes;
+        for( const InvocationSolution* pInvocation : invocations )
+        {
+            const InvocationSolution::Context& returnTypes = pInvocation->getReturnTypes();
+            if( returnTypes.size() > 1U )
+            {
+                if( variantTypes.count( returnTypes ) == 0U )
+                {
+                    variantTypes.insert( returnTypes );
+                    
+                    //std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
+                    std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
+                    {
+                        for( const concrete::Inheritance_Node* pINode : iNodes )
+                        {
+                            if( std::find( returnTypes.begin(), returnTypes.end(), pINode->getAbstractAction() ) != returnTypes.end() )
+                            //if( pINode->getAbstractAction() == pNodeAction )
+                            {
+                                for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
+                                {
+                                    //staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
+                                    dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
+                                }
+                                //pINode->getStaticDerived( staticCompatibleTypes );
+                                pINode->getDynamicDerived( dynamicCompatibleTypes );
+                            }
+                        }
+                    }
+                    ASSERT( !dynamicCompatibleTypes.empty() );
+                    if( !dynamicCompatibleTypes.empty() )
+                    {
+        os << "template<>\n";
+        os << "inline " << EG_TIME_STAMP << " getTimestamp< ";
+        printActionType( os, returnTypes );
+        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
+        os << "{\n";
+        os << "    switch( type )\n";
+        os << "    {\n";
+        
+        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
+        {
+            const DataMember* pReference = layout.getDataMember( pConcreteAction->getReference() );
+        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
+        os << "            return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
+        }
+        os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
+        
+        os << "    }\n";
+        os << "}\n";
+        
+        os << "template<>\n";
+        os << "inline " << EG_TIME_STAMP << " getStopCycle< ";
+        printActionType( os, returnTypes );
+        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
+        os << "{\n";
+        os << "    switch( type )\n";
+        os << "    {\n";
+        
+        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
+        {
+            const DataMember* pReference = layout.getDataMember( pConcreteAction->getStopCycle() );
+        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
+        os << "            return " << Printer( pReference, "instance" ) << ";\n";
+        }
+        os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
+        
+        os << "    }\n";
+        os << "}\n";
+                    
+        os << "template<>\n";
+        os << "inline " << EG_ACTION_STATE << " getState< ";
+        printActionType( os, returnTypes );
+        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
+        os << "{\n";
+        os << "    switch( type )\n";
+        os << "    {\n";
+        
+        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
+        {
+            const DataMember* pState = layout.getDataMember( pConcreteAction->getState() );
+        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
+        os << "            return " << Printer( pState, "instance" ) << ";\n";
+        }
+        os << "        default: return " << EG_INVALID_STATE << ";\n";
+        
+        os << "    }\n";
+        os << "}\n";
+                    }
+                }
+            }
+        }
+        
         {
             SpecialMemberFunctionVisitor visitor( os, actions, iNodes, layout );
             pRoot->pushpop( visitor );

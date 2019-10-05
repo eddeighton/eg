@@ -381,7 +381,7 @@ namespace eg
         }
         
         
-        os << "    "; printReturnType( os, objects, invocation ); os << " operator()( "; printContextType( os, objects, invocation ); os << " context"; 
+        os << "    inline "; printReturnType( os, objects, invocation ); os << " operator()( "; printContextType( os, objects, invocation ); os << " context"; 
         
         //invocation parameters
         switch( invocation.getOperation() )
@@ -469,7 +469,9 @@ namespace eg
         os << "struct " << EG_INVOKE_IMPL_TYPE;
         os << "{\n";
         os << "    template< typename... Args >\n";
-        os << "    ResultType operator()( ContextType, Args... )\n";
+        //should this be inline?
+        os << "    inline ResultType operator()( ContextType, Args... )\n";
+        //os << "    ResultType operator()( ContextType, Args... )\n";
         os << "    {\n";
         os << "        static_assert( 0 && typeid( ResultType ).name() && typeid( ContextType ).name() && typeid( TypePathType ).name(), " << 
             "\"Critical error: Invocation system failed to match implementation\" );\n";
@@ -484,117 +486,9 @@ namespace eg
             generateInvocation( os, objects, derivationAnalysis, layout, *pInvocation );
         }
         
-        //generate the invoke definitions
-        
-        //generic one for variant
-        os << "\n//generic variant invocation adaptor\n";
-        os << "template< typename... Ts >\n";
-        os << "template< typename TypePath, typename Operation, typename... Args >\n";
-        os << "typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE << "< Ts... >, TypePath, Operation >::Type\n";
-        os << EG_VARIANT_TYPE << "< Ts... >::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args )\n";
-        os << "{\n";
-        os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
-        os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE << 
-                "< Ts... >, TypePath, Operation >::Type, " << EG_VARIANT_TYPE << 
-                "< Ts... >, CanonicalTypePathType, Operation >()( *this, args... );\n";
-        os << "}\n";
-        os << "\n";
         
         std::vector< const concrete::Inheritance_Node* > iNodes = 
             many_cst< const concrete::Inheritance_Node >( objects );
-            
-        //generate variant getTimestamp functions
-        std::set< InvocationSolution::Context > variantTypes;
-        for( const InvocationSolution* pInvocation : invocations )
-        {
-            const InvocationSolution::Context& returnTypes = pInvocation->getReturnTypes();
-            if( returnTypes.size() > 1U )
-            {
-                if( variantTypes.count( returnTypes ) == 0U )
-                {
-                    variantTypes.insert( returnTypes );
-                    
-                    //std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
-                    std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
-                    {
-                        for( const concrete::Inheritance_Node* pINode : iNodes )
-                        {
-                            if( std::find( returnTypes.begin(), returnTypes.end(), pINode->getAbstractAction() ) != returnTypes.end() )
-                            //if( pINode->getAbstractAction() == pNodeAction )
-                            {
-                                for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
-                                {
-                                    //staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
-                                    dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
-                                }
-                                //pINode->getStaticDerived( staticCompatibleTypes );
-                                pINode->getDynamicDerived( dynamicCompatibleTypes );
-                            }
-                        }
-                    }
-                    ASSERT( !dynamicCompatibleTypes.empty() );
-                    if( !dynamicCompatibleTypes.empty() )
-                    {
-        os << "template<>\n";
-        os << "inline " << EG_TIME_STAMP << " getTimestamp< ";
-        printActionType( os, returnTypes );
-        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
-        os << "{\n";
-        os << "    switch( type )\n";
-        os << "    {\n";
-        
-        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
-        {
-            const DataMember* pReference = layout.getDataMember( pConcreteAction->getReference() );
-        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
-        os << "            return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
-        }
-        os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
-        
-        os << "    }\n";
-        os << "}\n";
-        
-        os << "template<>\n";
-        os << "inline " << EG_TIME_STAMP << " getStopCycle< ";
-        printActionType( os, returnTypes );
-        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
-        os << "{\n";
-        os << "    switch( type )\n";
-        os << "    {\n";
-        
-        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
-        {
-            const DataMember* pReference = layout.getDataMember( pConcreteAction->getStopCycle() );
-        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
-        os << "            return " << Printer( pReference, "instance" ) << ";\n";
-        }
-        os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
-        
-        os << "    }\n";
-        os << "}\n";
-                    
-        os << "template<>\n";
-        os << "inline " << EG_ACTION_STATE << " getState< ";
-        printActionType( os, returnTypes );
-        os << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
-        os << "{\n";
-        os << "    switch( type )\n";
-        os << "    {\n";
-        
-        for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
-        {
-            const DataMember* pState = layout.getDataMember( pConcreteAction->getState() );
-        os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
-        os << "            return " << Printer( pState, "instance" ) << ";\n";
-        }
-        os << "        default: return " << EG_INVALID_STATE << ";\n";
-        
-        os << "    }\n";
-        os << "}\n";
-                    }
-                }
-            }
-        }
         
         generateGenerics( os, program, actions, iNodes, translationUnit );
                 

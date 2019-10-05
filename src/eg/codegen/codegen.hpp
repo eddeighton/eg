@@ -74,6 +74,8 @@ namespace eg
     
     void generateIncludeGuard( std::ostream& os, const char* pszName );
     
+    void printActionType( std::ostream& os, const InvocationSolution::Context& returnTypes );
+    
     std::string getInterfaceType( const std::string& strType );
     std::string getBaseTraitType( std::size_t szIndex );
     std::string getInterfaceInstantiationType( const std::string& strType, int iDepth );
@@ -98,7 +100,7 @@ namespace eg
         const ImplementationSession& program, 
         const std::vector< const concrete::Action* >& actions, 
         const std::vector< const concrete::Inheritance_Node* >& iNodes,
-        const eg::TranslationUnit& translationUnit )
+        const eg::TranslationUnit& translationUnit );
         
     void generateImplementationSource( std::ostream& os, 
         const ImplementationSession& program, 
