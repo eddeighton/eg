@@ -28,14 +28,14 @@ pother.pos( [ -s -4, -s ] )
 pother.movetime( 20 )
 pother.Move.Start( [ -s -4, -s ], [ -s -4, s - 1 ] )
 
-while pyeg.ct() < start + 10:
+while pyeg.ct() < start + 4:
         
-    seq = [ 0, 2, 1, 3 ]
+    seq = [ 0, 0, 0, 2, 2, 2, 1, 1, 1, 3, 3, 3 ]
         
     plans = []
     for p in pieces:
         plan = p.Plan.Start()
-        random.shuffle( seq )
+        #random.shuffle( seq )
         plan.plan( seq )
         #seq = numpy.roll( seq, 1 )
         plans.append( plan )
