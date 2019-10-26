@@ -33,6 +33,17 @@ action Piece[ 256 ] : Cube
     action Plan;
 }
 
+action SolvePieces
+{
+    root rt = root.Get();
+    
+    auto r = rt.Piece.Range();
+    
+    std::vector< Piece > pieces( r.begin(), r.end() );
+    
+    std::cout << "Total pieces: " << pieces.size() << std::endl;
+}
+
 action Piece::Move( glm::vec2 from, glm::vec2 to )
 {
     pos( from );

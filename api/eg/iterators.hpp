@@ -78,7 +78,7 @@ public:
     inline __eg_ReferenceRawIterator operator++(int) {__eg_ReferenceRawIterator tmp(*this); operator++(); return tmp;}
     inline bool operator==(const __eg_ReferenceRawIterator& rhs) const {return (instance==rhs.instance) && (type==rhs.type);}
     inline bool operator!=(const __eg_ReferenceRawIterator& rhs) const {return !(rhs==*this);}
-    inline const value_type operator*()
+    inline const value_type operator*() const
     {
         return eg::reference{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
     }
@@ -109,7 +109,7 @@ public:
     inline __eg_ReferenceIterator operator++(int) {__eg_ReferenceIterator tmp(*this); operator++(); return tmp;}
     inline bool operator==(const __eg_ReferenceIterator& rhs) const {return (instance==rhs.instance) && (type==rhs.type);}
     inline bool operator!=(const __eg_ReferenceIterator& rhs) const {return !(rhs==*this);}
-    inline const value_type operator*()
+    inline const value_type operator*() const
     {
         return eg::reference{ instance, type, getTimestamp< ReferenceType >( type, instance ) };
     }
@@ -178,7 +178,7 @@ public:
     }
     inline bool operator!=(const __eg_MultiIterator& rhs) const {return !(rhs==*this);}
     
-    inline const value_type operator*()
+    inline const value_type operator*() const
     {
         return *iterators[ szIndex ];
     }

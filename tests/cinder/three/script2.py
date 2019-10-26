@@ -7,7 +7,7 @@ print( "Test script running" )
 
 piece = this.Piece.Start()
 piece.pos( [ 0, 0 ] )
-piece.movetime( .5 )
+piece.movetime( .2 )
 
 actions = [ "a", "b", "c", "d", "e", "f", "g", "h" ]
 
@@ -89,7 +89,7 @@ delta = {
 
 state = 0
 
-for i in range( 50 ):
+for i in range( 10 ):
     choice = actions[ random.randint( 0, len( delta[ state ] ) - 1 ) ]
     posFrom = positions[ state ]
     state = delta[ state ][ choice ]
@@ -98,6 +98,9 @@ for i in range( 50 ):
         
 piece.Stop()
 #m = piece.Move.Start( [ 0, 0 ], [ 1, 0 ] )
-#pyeg.sleep( m )
+
+this.SolvePieces()
+pyeg.sleep()
+this.SolvePieces()
     
 print( "Test script complete" )
