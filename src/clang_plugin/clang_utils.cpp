@@ -64,19 +64,36 @@ namespace clang
                 }
             }
             
-            if( const RecordType* pRecordType = canonicalType->getAs< RecordType >() )
+            if( const CXXRecordDecl* pRecordDecl = canonicalType->getAsCXXRecordDecl() )
             {
-                if( const CXXRecordDecl* pRecordDecl = dyn_cast<CXXRecordDecl>( pRecordType->getDecl() ) )
+                if( pRecordDecl->hasAttr< EGTypeIDAttr >() )
                 {
-                    if( pRecordDecl->hasAttr< EGTypeIDAttr >() )
+                    if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
                     {
-                        if( EGTypeIDAttr* pAttr = pRecordDecl->getAttr< EGTypeIDAttr >() )
-                        {
-                            return pAttr->getId();
-                        }
+                        return pAttr->getId();
                     }
                 }
             }
+            
+            /*
+                if( canonicalType->hasAttr< EGTypeIDAttr >() )
+                {
+                    if( EGTypeIDAttr* pAttr = canonicalType->getAttr< EGTypeIDAttr >() )
+                    {
+                        return pAttr->getId();
+                    }
+                }
+                */
+                
+                
+            /*
+            if( const AttributedType* pAttributedType = canonicalType->getAs< AttributedType >() )
+            {
+                if( pAttributedType->getAttrKind() == ParsedAttr::AT_EGTypeID )
+                {
+                    
+                }
+            }*/
         }
         
         return result;

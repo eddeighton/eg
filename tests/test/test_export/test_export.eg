@@ -1,0 +1,18 @@
+
+
+
+include( test_generic.hpp );
+
+dim float x;
+
+action Thing
+{
+    std::cout << "Thing" << std::endl;
+}
+
+export GetX = x;
+export RunThing = Thing.Start;
+
+x( 123 );
+
+generic::testInvoke( root.Get() );

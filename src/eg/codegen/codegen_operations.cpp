@@ -38,45 +38,162 @@
 namespace eg
 {
 
+    struct ExportSourceVisitor
+    {
+        std::ostream& os;
+        const eg::TranslationUnit& m_translationUnit;
+        std::string strIndent;
+
+        ExportSourceVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit )
+            :   os( os ),
+                m_translationUnit( translationUnit )
+        {
+        }
+
+        void push ( const input::Opaque*    pElement, const interface::Element* pNode )
+        {
+        }
+        void push ( const input::Dimension* pElement, const interface::Element* pNode )
+        {
+        }
+        void push ( const input::Include*   pElement, const interface::Element* pNode )
+        {
+        }
+        void push ( const input::Using*   pElement, const interface::Element* pNode )
+        {
+        }
+        void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
+        void push ( const input::Root*      pElement, const interface::Element* pNode )
+        {
+            push( (input::Action*) pElement, pNode );
+        }
+        void push ( const input::Action*    pElement, const interface::Element* pNode )
+        {
+            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            VERIFY_RTE( pAction );
+
+            //calculate the path to the root type
+            std::vector< const interface::Element* > path = getPath( pNode );
+
+            
+            std::vector< interface::Export* > exports;
+            pAction->getExports( exports );
+            for( interface::Export* pExport : exports )
+            {
+                //generate type comment
+                {
+                    os << "\n//";
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        if( pNodeIter != *path.begin())
+                            os << "::";
+                        os << pNodeIter->getIdentifier();
+                    }
+                    os << "::foobar\n";
+                }
+
+                //generate the template argument lists
+                {
+                    int iCounter = 1;
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        //os << strIndent << "template< typename _EG" << iCounter << " >\n";
+                        os << strIndent << "template<>\n";
+                        ++iCounter;
+                    }
+                }
+
+                //os << strIndent << "template< typename... Args >\n";
+
+                //just generate an explicit template specialisation
+                os << strIndent << "inline auto ";
+                {
+                    int iCounter = 1;
+                    for( const interface::Element* pNodeIter : path )
+                    {
+                        //os << getInterfaceType( pNodeIter->getIdentifier() ) << "< _EG" << iCounter << " >::";
+                        os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
+                        ++iCounter;
+                    }
+
+                    {
+                        os << pExport->getIdentifier() << "() const\n";
+                    }
+                }
+
+                //generate the function body
+                os << strIndent << "{\n";
+                //os << strIndent << "  __eg_root< void > r = *this;\n";
+                os << strIndent << "  return " << pExport->getType() << "();\n";
+                os << strIndent << "}\n";
+            }
+        }
+        void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
+        {
+        }
+        void pop ( const input::Dimension* pElement, const interface::Element* pNode )
+        {
+        }
+        void pop ( const input::Include*   pElement, const interface::Element* pNode )
+        {
+        }
+        void pop ( const input::Using*   pElement, const interface::Element* pNode )
+        {
+        }
+        void pop ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
+        void pop ( const input::Root*      pElement, const interface::Element* pNode )
+        {
+        }
+        void pop ( const input::Action*    pElement, const interface::Element* pNode )
+        {
+        }
+    };
 
     struct OperationsSourceVisitor
     {
         std::ostream& os;
         const eg::TranslationUnit& m_translationUnit;
         std::string strIndent;
-        
-        OperationsSourceVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit ) 
-            :   os( os ), 
+
+        OperationsSourceVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit )
+            :   os( os ),
                 m_translationUnit( translationUnit )
         {
         }
-        
+
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }      
+        {
+        }
         void push ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }      
+        {
+        }
         void push ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }  
+        {
+        }
+        void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
+        {
             push( (input::Action*) pElement, pNode );
-        }    
+        }
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
             VERIFY_RTE( pAction );
-            
+
             if( m_translationUnit.isAction( pAction ) )
             {
                 //calculate the path to the root type
                 std::vector< const interface::Element* > path = getPath( pNode );
-                
+
                 //generate type comment
                 {
                     os << "\n//";
@@ -88,7 +205,7 @@ namespace eg
                     }
                     os << "\n";
                 }
-                
+
                 //generate the template argument lists
                 {
                     int iCounter = 1;
@@ -98,7 +215,7 @@ namespace eg
                         ++iCounter;
                     }
                 }
-                
+
                 //just generate an explicit template specialisation
                 os << strIndent << "void ";
                 {
@@ -115,60 +232,69 @@ namespace eg
                         os << "operator()() const\n";
                     }
                 }
-                
+
                 //generate the function body
                 os << strIndent << "{\n";
                 strIndent.push_back( ' ' );
                 strIndent.push_back( ' ' );
-                
+
                 for( const interface::Element* pChild : pNode->getChildren() )
                 {
-                    if( const input::Opaque* pOpaque = 
+                    if( const input::Opaque* pOpaque =
                             dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
                     {
                         os << strIndent << pOpaque->getStr() << "\n";
                     }
                 }
-                
+
                 strIndent.pop_back();
                 strIndent.pop_back();
                 os << strIndent << "}\n";
             }
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }      
+        {
+        }
         void pop ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }     
+        {
+        }
         void pop ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }   
+        {
+        }
+        void pop ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
-    
+
     void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const eg::TranslationUnit& translationUnit )
     {
         generateIncludeGuard( os, "OPERATIONS" );
-        
+
+        //generate exports first
+        {
+            ExportSourceVisitor visitor( os, translationUnit );
+            pRoot->pushpop( visitor );
+        }
+
         //generate operations
         {
             OperationsSourceVisitor visitor( os, translationUnit );
             pRoot->pushpop( visitor );
         }
-        
+
         os << "\n" << pszLine << pszLine;
         os << "#endif\n";
-    }    
-    
-    
+    }
+
+
 }
 

@@ -38,7 +38,7 @@
 
 namespace eg
 {
-    
+
     struct SpecialMemberFunctionVisitor
     {
         std::ostream& os;
@@ -46,41 +46,44 @@ namespace eg
         const std::vector< const concrete::Inheritance_Node* >& iNodes;
         const Layout& layout;
         std::string strIndent;
-        
-        SpecialMemberFunctionVisitor( std::ostream& os, 
-            const std::vector< const concrete::Action* >& instances, 
+
+        SpecialMemberFunctionVisitor( std::ostream& os,
+            const std::vector< const concrete::Action* >& instances,
             const std::vector< const concrete::Inheritance_Node* >& iNodes,
-            const Layout& layout ) 
-        :   os( os ), 
-            instances( instances ), 
-            iNodes( iNodes ), 
+            const Layout& layout )
+        :   os( os ),
+            instances( instances ),
+            iNodes( iNodes ),
             layout( layout )
         {
-            
+
         }
-        
-        
+
+
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }      
+        {
+        }
         void push ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }  
+        {
+        }
+        void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
+        {
             push( (input::Action*) pElement, pNode );
-        }    
+        }
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
             std::vector< const interface::Element* > path = getPath( pNode );
-            
+
             //generate type comment
             {
                 os << "\n//";
@@ -92,7 +95,7 @@ namespace eg
                 }
                 os << "\n";
             }
-            
+
             //generate the template argument lists
             bool bMultipleElements = false;
             std::ostringstream osTemplateArgLists;
@@ -108,7 +111,7 @@ namespace eg
                 if( iCounter > 2 )
                     bMultipleElements = true;
             }
-            
+
             std::ostringstream osTypeName;
             {
                 int iCounter = 1;
@@ -116,12 +119,12 @@ namespace eg
                 {
                     if( pNodeIter != *path.begin())
                         osTypeName << "::";
-                    osTypeName << getInterfaceType( pNodeIter->getIdentifier() ) << 
+                    osTypeName << getInterfaceType( pNodeIter->getIdentifier() ) <<
                         "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
                     ++iCounter;
                 }
             }
-            
+
             std::ostringstream osTypeNameAsType;
             {
                 int iCounter = 1;
@@ -131,7 +134,7 @@ namespace eg
                         osTypeNameAsType << "::template ";
                     else if( bMultipleElements )
                         osTypeNameAsType << "typename ";
-                    osTypeNameAsType << getInterfaceType( pNodeIter->getIdentifier() ) << 
+                    osTypeNameAsType << getInterfaceType( pNodeIter->getIdentifier() ) <<
                         "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
                     ++iCounter;
                 }
@@ -145,11 +148,11 @@ namespace eg
                     osTypeVoid << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
                 }
             }
-            
+
             std::string strActionInterfaceType = getInterfaceType( pNode->getIdentifier() );
-            
+
             const interface::Action* pNodeAction = dynamic_cast< const interface::Action* >( pNode );
-            
+
             std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
             std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
             {
@@ -167,7 +170,7 @@ namespace eg
                     }
                 }
             }
-            
+
             //conversion traits
             for( const interface::Action* pCompatible : staticCompatibleTypes )
             {
@@ -187,7 +190,7 @@ namespace eg
             os << "    static constexpr const bool value = true;\n";
             os << "};\n";
             }
-            
+
             //conversion constructor
             os << osTemplateArgLists.str();
             os << "template< typename TFrom >\n";
@@ -214,7 +217,7 @@ namespace eg
             os << "    data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             }
             os << "}\n";
-            
+
             //assignment operator
             os << osTemplateArgLists.str();
             os << "template< typename TFrom >\n";
@@ -242,7 +245,7 @@ namespace eg
             }
             os << "  return *this;\n";
             os << "}\n";
-            
+
             //getTimestamp
             if( !dynamicCompatibleTypes.empty() )
             {
@@ -271,7 +274,7 @@ namespace eg
             os << "}\n";
             os << "\n";
             }
-            
+
             //getStopCycle
             if( !dynamicCompatibleTypes.empty() )
             {
@@ -300,7 +303,7 @@ namespace eg
             os << "}\n";
             os << "\n";
             }
-            
+
             //getState
             if( !dynamicCompatibleTypes.empty() )
             {
@@ -329,65 +332,71 @@ namespace eg
             os << "}\n";
             os << "\n";
             }
-            
+
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }     
+        {
+        }
         void pop ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }  
+        {
+        }
+        void pop ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
-    
-    
+
+
     struct InvokeVisitor
     {
         std::ostream& os;
         const eg::TranslationUnit& m_translationUnit;
         std::string strIndent;
-        
+
         InvokeVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit ) : os( os ), m_translationUnit( translationUnit ) {}
-        
-        
+
+
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }      
+        {
+        }
         void push ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }  
+        {
+        }
+        void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
+        {
             push( (input::Action*) pElement, pNode );
-        }    
+        }
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
             VERIFY_RTE( pAction );
-            
-            //TODO ELIMINATION: only generate ::invoke member function definitions for the set of contexts the translation unit 
-            //actually uses - 
+
+            //TODO ELIMINATION: only generate ::invoke member function definitions for the set of contexts the translation unit
+            //actually uses -
             {
                 //calculate the path to the root type
                 std::vector< const interface::Element* > path = getPath( pNode );
-                
+
                 //generate type comment
                 {
                     os << "\n//";
@@ -399,7 +408,7 @@ namespace eg
                     }
                     os << "\n";
                 }
-                
+
                 //generate the template argument lists
                 {
                     int iCounter = 1;
@@ -409,10 +418,10 @@ namespace eg
                         ++iCounter;
                     }
                 }
-                
+
                 //generate the member function template arguments
                 os << "template< typename TypePath, typename Operation, typename... Args >\n";
-                
+
                 std::ostringstream osTypeName;
                 {
                     int iCounter = 1;
@@ -420,12 +429,12 @@ namespace eg
                     {
                         if( pNodeIter != *path.begin())
                             osTypeName << "::";
-                        osTypeName << getInterfaceType( pNodeIter->getIdentifier() ) << 
+                        osTypeName << getInterfaceType( pNodeIter->getIdentifier() ) <<
                             "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
                         ++iCounter;
                     }
                 }
-                
+
                 //generate the return type
                 if( path.size() > 1U )
                 {
@@ -436,7 +445,7 @@ namespace eg
                     {
                         if( pNodeIter != *path.begin())
                             os << "::template ";
-                        os << getInterfaceType( pNodeIter->getIdentifier() ) << 
+                        os << getInterfaceType( pNodeIter->getIdentifier() ) <<
                             "< " << EG_INTERFACE_PARAMETER_TYPE << iCounter << " >";
                         ++iCounter;
                     }
@@ -446,57 +455,60 @@ namespace eg
                 {
                     os << "inline typename " << EG_RESULT_TYPE << "< " << osTypeName.str() << ", TypePath, Operation >::Type\n";
                 }
-                
+
                 //generate the invoke member function name
                 os << osTypeName.str() << "::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args ) const\n";
                 os << strIndent << "{\n";
                 strIndent.push_back( ' ' );
                 strIndent.push_back( ' ' );
-                
+
                 //generate the implementation
                 os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
-                os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << 
-                    osTypeName.str() << ", TypePath, Operation >::Type, " << 
+                os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " <<
+                    osTypeName.str() << ", TypePath, Operation >::Type, " <<
                     osTypeName.str() << ", CanonicalTypePathType, Operation >()( *this, args... );\n";
-                
+
                 strIndent.pop_back();
                 strIndent.pop_back();
                 os << strIndent << "}\n";
             }
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }     
+        {
+        }
         void pop ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }  
+        {
+        }
+        void pop ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
-    
-    
-    void generateGenerics(std::ostream& os, 
-        const ImplementationSession& program, 
-        const std::vector< const concrete::Action* >& actions, 
+
+
+    void generateGenerics(std::ostream& os,
+        const ImplementationSession& program,
+        const std::vector< const concrete::Action* >& actions,
         const std::vector< const concrete::Inheritance_Node* >& iNodes,
         const eg::TranslationUnit& translationUnit )
     {
         const Layout& layout = program.getLayout();
         const interface::Root* pRoot = program.getTreeRoot();
-        
-        
+
+
         //generate the invoke definitions
-        
+
         //generic one for variant
         os << "\n//generic variant invocation adaptor\n";
         os << "template< typename... Ts >\n";
@@ -505,15 +517,15 @@ namespace eg
         os << EG_VARIANT_TYPE << "< Ts... >::" << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args )\n";
         os << "{\n";
         os << "    using CanonicalTypePathType = typename " << EG_TYPE_PATH_CANNON_TYPE << "< TypePath >::Type;\n";
-        os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE << 
-                "< Ts... >, TypePath, Operation >::Type, " << EG_VARIANT_TYPE << 
+        os << "    return " << EG_INVOKE_IMPL_TYPE << "< typename " << EG_RESULT_TYPE << "< " << EG_VARIANT_TYPE <<
+                "< Ts... >, TypePath, Operation >::Type, " << EG_VARIANT_TYPE <<
                 "< Ts... >, CanonicalTypePathType, Operation >()( *this, args... );\n";
         os << "}\n";
         os << "\n";
-            
+
         std::vector< const InvocationSolution* > invocations;
         program.getInvocations( translationUnit.getDatabaseFileID(), invocations );
-        
+
         //generate variant getTimestamp functions
         std::set< InvocationSolution::Context > variantTypes;
         for( const InvocationSolution* pInvocation : invocations )
@@ -524,7 +536,7 @@ namespace eg
                 if( variantTypes.count( returnTypes ) == 0U )
                 {
                     variantTypes.insert( returnTypes );
-                    
+
                     //std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
                     std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
                     {
@@ -553,7 +565,7 @@ namespace eg
         os << "{\n";
         os << "    switch( type )\n";
         os << "    {\n";
-        
+
         for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
         {
             const DataMember* pReference = layout.getDataMember( pConcreteAction->getReference() );
@@ -561,10 +573,10 @@ namespace eg
         os << "            return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
         }
         os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
-        
+
         os << "    }\n";
         os << "}\n";
-        
+
         os << "template<>\n";
         os << "inline " << EG_TIME_STAMP << " getStopCycle< ";
         printActionType( os, returnTypes );
@@ -572,7 +584,7 @@ namespace eg
         os << "{\n";
         os << "    switch( type )\n";
         os << "    {\n";
-        
+
         for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
         {
             const DataMember* pReference = layout.getDataMember( pConcreteAction->getStopCycle() );
@@ -580,10 +592,10 @@ namespace eg
         os << "            return " << Printer( pReference, "instance" ) << ";\n";
         }
         os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
-        
+
         os << "    }\n";
         os << "}\n";
-                    
+
         os << "template<>\n";
         os << "inline " << EG_ACTION_STATE << " getState< ";
         printActionType( os, returnTypes );
@@ -591,7 +603,7 @@ namespace eg
         os << "{\n";
         os << "    switch( type )\n";
         os << "    {\n";
-        
+
         for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
         {
             const DataMember* pState = layout.getDataMember( pConcreteAction->getState() );
@@ -599,14 +611,14 @@ namespace eg
         os << "            return " << Printer( pState, "instance" ) << ";\n";
         }
         os << "        default: return " << EG_INVALID_STATE << ";\n";
-        
+
         os << "    }\n";
         os << "}\n";
                     }
                 }
             }
         }
-        
+
         {
             SpecialMemberFunctionVisitor visitor( os, actions, iNodes, layout );
             pRoot->pushpop( visitor );
@@ -615,8 +627,8 @@ namespace eg
             InvokeVisitor visitor( os, translationUnit );
             pRoot->pushpop( visitor );
         }
-        
+
     }
-    
-    
+
+
 }

@@ -164,6 +164,32 @@ namespace input
         os << strIndent << "using " << m_strIdentifier << " = " << m_pType->getStr() << ";//" << strAnnotation << "\n";
     }
     
+    Export::Export( const IndexedObject& object )
+        :   Element( object ),
+            m_pType( nullptr )
+    {
+
+    }
+
+    void Export::load( Loader& loader )
+    {
+        //loader.load( m_prefix );
+        loader.load( m_strIdentifier );
+        m_pType = loader.loadObjectRef< Opaque >();
+    }
+
+    void Export::store( Storer& storer ) const
+    {
+        //storer.store( m_prefix );
+        storer.store( m_strIdentifier );
+        storer.storeObjectRef( m_pType );
+    }
+    
+    void Export::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
+    {
+        VERIFY_RTE( m_pType );
+        os << strIndent << "export " << m_strIdentifier << " = " << m_pType->getStr() << ";//" << strAnnotation << "\n";
+    }
     
     Action::Action( const IndexedObject& object )
         :   Element( object ),

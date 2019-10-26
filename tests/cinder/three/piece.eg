@@ -33,15 +33,27 @@ action Piece[ 256 ] : Cube
     action Plan;
 }
 
+action Test
+{
+    std::cout << "Hello from test action" << std::endl;
+}
+
+//export foobar : Test.Start();
+/*
+export Stuff : var< Piece, Things >
+{
+    export Go : Start();
+}*/
+
 action SolvePieces
 {
-    root rt = root.Get();
+    include( test_generic.hpp );
+    generic::printRangeInfo( root.Get().Piece.Range() );
     
-    auto r = rt.Piece.Range();
+    //decltype( root.Get().Test.Start() );
+    //export root::foobar : root.Test.Start();
     
-    std::vector< Piece > pieces( r.begin(), r.end() );
-    
-    std::cout << "Total pieces: " << pieces.size() << std::endl;
+    //generic::testInvoke( root.Get() );
 }
 
 action Piece::Move( glm::vec2 from, glm::vec2 to )

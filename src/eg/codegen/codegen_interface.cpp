@@ -51,19 +51,20 @@ namespace eg
             }
         }
     }
-    
+
     struct InterfaceVisitor
     {
         std::ostream& os;
         std::string strIndent;
         int depth;
-        
+
         InterfaceVisitor( std::ostream& os ) : os( os ), depth( 0 ) {}
-        
-        void addActionInterface( std::ostream& os, const std::string& strName, const input::Opaque* pParams, bool bIsIndirectlyAbstract, bool bHasOperation )
+
+        void addActionInterface( std::ostream& os, const interface::Action* pAction, const std::string& strName, 
+            const input::Opaque* pParams, bool bIsIndirectlyAbstract, bool bHasOperation )
         {
             const std::string strActionInterfaceType = getInterfaceType( strName );
-            
+
             //default constructor
             os << strIndent << strActionInterfaceType << "()\n";
             os << strIndent << "{\n";
@@ -71,30 +72,39 @@ namespace eg
             os << strIndent << "  data.type = 0;\n";
             os << strIndent << "  data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
             os << strIndent << "}\n";
-            
+
             //impl constructor
             os << strIndent << strActionInterfaceType << "( const " << EG_REFERENCE_TYPE << "& reference )\n";
             os << strIndent << "{\n";
             os << strIndent << "  data = reference;\n";
             os << strIndent << "}\n";
-            
+
             //conversion constructor
             os << strIndent << "template< typename TFrom >\n";
             os << strIndent << strActionInterfaceType << "( const TFrom& from );\n";
-            
+
             //assignment operator
             os << strIndent << "template< typename TFrom >\n";
             os << strIndent << strActionInterfaceType << "& operator=( const TFrom& from );\n";
-            
+
             //invocation
             os << strIndent << "template< typename TypePath, typename Operation, typename... Args >\n";
-            os << strIndent << "typename " << EG_RESULT_TYPE << "< " << 
+            os << strIndent << "typename " << EG_RESULT_TYPE << "< " <<
                 getInterfaceInstantiationType( strName, depth ) <<
                 ", TypePath, Operation >::Type " << EG_INVOKE_MEMBER_FUNCTION_NAME << "( Args... args ) const;\n";
+
+            //generate all exported member functions
+            std::vector< interface::Export* > exports;
+            pAction->getExports( exports );
+            for( interface::Export* pExport : exports )
+            {
+                //os << strIndent << "template< typename... Args >\n";
+                os << strIndent << "inline auto " << pExport->getIdentifier() << "() const;\n";
+            }
             
             //event access
             //os << strIndent << EG_EVENT_TYPE << " get_next_event() const;\n";
-            
+
             //void* operator
             os << strIndent << "operator const void*() const\n";
             os << strIndent << "{\n";
@@ -107,28 +117,28 @@ namespace eg
             os << strIndent << "          return nullptr;\n";
             os << strIndent << "      }\n";
             os << strIndent << "}\n";
-            
+
             //equality operator
             os << strIndent << "template< typename TComp >\n";
             os << strIndent << "bool operator==( const TComp& cmp ) const\n";
             os << strIndent << "{\n";
             os << strIndent << "    return data == cmp.data;\n";
             os << strIndent << "}\n";
-            
+
             //in-equality operator
             os << strIndent << "template< typename TComp >\n";
             os << strIndent << "bool operator!=( const TComp& cmp ) const\n";
             os << strIndent << "{\n";
             os << strIndent << "    return !(data == cmp.data);\n";
             os << strIndent << "}\n";
-            
+
             //comparison operator
             os << strIndent << "template< typename TComp >\n";
             os << strIndent << "bool operator<( const TComp& cmp ) const\n";
             os << strIndent << "{\n";
             os << strIndent << "    return data < cmp.data;\n";
             os << strIndent << "}\n";
-            
+
             //operation
             if( bHasOperation )
             {
@@ -141,13 +151,13 @@ namespace eg
                     os << strIndent << "void operator()() const;\n";
                 }
             }
-            
+
             //iterator type
             os << strIndent << "using Iterator = " << EG_REFERENCE_ITERATOR_TYPE << "< " << strActionInterfaceType << " >;\n";
-            
+
             //range type
             os << strIndent << "using EGRangeType = " << EG_RANGE_TYPE << "< Iterator >;\n";
-            
+
             //member variables
             os << strIndent << EG_REFERENCE_TYPE << " data;\n";
         }
@@ -156,41 +166,44 @@ namespace eg
             std::size_t szCounter = 0;
             for( const input::Opaque* pOpaque : pAction->getInheritance() )
             {
-                os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth << 
-                    " >struct [[clang::eg_type(" << pOpaque->getIndex() << ")]]" << 
+                os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth <<
+                    " >struct [[clang::eg_type(" << pOpaque->getIndex() << ")]]" <<
                     getBaseTraitType( szCounter ) << ";\n";
                 ++szCounter;
             }
         }
-        
+
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        } 
+        {
+        }
         void push ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
+        {
             ++depth;
-            os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth << 
+            os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth <<
                 " >struct [[clang::eg_type(" << pNode->getIndex() << ")]]" << getInterfaceType( pElement->getIdentifier() ) << ";\n";
-        }    
+        }
         void push ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }   
+        {
+        }
         void push ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }     
+        {
+        }
+        void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root* pElement, const interface::Element* pNode )
-        {    
+        {
             const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
             ++depth;
             const std::string& strName = pNode->getIdentifier();
-            os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth << 
+            os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth <<
                 " >struct [[clang::eg_type(" << pNode->getIndex() << ")]]" << getInterfaceType( strName ) << "\n";
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            addActionInterface( os, strName, pElement->getParams(), pAction->isIndirectlyAbstract(), pAction->hasDefinition() );
+            addActionInterface( os, pAction, strName, pElement->getParams(), pAction->isIndirectlyAbstract(), pAction->hasDefinition() );
             addActionTraits( os, pElement );
-        }    
+        }
         void push ( const input::Action* pElement, const interface::Element* pNode )
         {
             const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
@@ -200,8 +213,8 @@ namespace eg
             os << strIndent << "{\n";
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            addActionInterface( os, pElement->getIdentifier(), pElement->getParams(), pAction->isIndirectlyAbstract(), pAction->hasDefinition() );
-            
+            addActionInterface( os, pAction, pElement->getIdentifier(), pElement->getParams(), pAction->isIndirectlyAbstract(), pAction->hasDefinition() );
+
             if( pElement->getSize() )
             {
                 os << strIndent << "static const " << EG_INSTANCE << " SIZE = " << pElement->getSize()->getStr() << ";\n";
@@ -209,70 +222,76 @@ namespace eg
             addActionTraits( os, pElement );
         }
         void pop ( const input::Opaque* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
+        {
             --depth;
-            //os << strIndent << "using " << pElement->getIdentifier() << " = " << 
+            //os << strIndent << "using " << pElement->getIdentifier() << " = " <<
             //    getInterfaceType( pElement->getIdentifier() ) << "< " << EG_INTERFACE_PARAMETER_TYPE << depth << " >;\n";
-        }    
+        }
         void pop ( const input::Include* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Using* pElement, const interface::Element* pNode )
-        {   
-            os << strIndent << "using " << pElement->getIdentifier() << " = " << pElement->getType()->getStr() << ";\n"; 
-        }    
+        {
+            os << strIndent << "using " << pElement->getIdentifier() << " = " << pElement->getType()->getStr() << ";\n";
+        }
+        void pop ( const input::Export* pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root* pElement, const interface::Element* pNode )
-        {    
+        {
             --depth;
             const std::string& strName = pNode->getIdentifier();
             strIndent.pop_back();
             strIndent.pop_back();
             os << strIndent << "};\n";
             if( strName != input::Root::RootTypeName )
-                os << strIndent << "using " << strName << " = " << 
+                os << strIndent << "using " << strName << " = " <<
                     getInterfaceType( strName ) << "< " << EG_INTERFACE_PARAMETER_TYPE << depth << " >;\n";
             else
-                os << strIndent << "using " << strName << " = " << 
+                os << strIndent << "using " << strName << " = " <<
                     getInterfaceType( strName ) << "< void >;\n";
-        }    
+        }
         void pop ( const input::Action* pElement, const interface::Element* pNode )
         {
             --depth;
             strIndent.pop_back();
             strIndent.pop_back();
             os << strIndent << "};\n";
-            os << strIndent << "using " << pElement->getIdentifier() << " = " << 
+            os << strIndent << "using " << pElement->getIdentifier() << " = " <<
                 getInterfaceType( pElement->getIdentifier() ) << "< " << EG_INTERFACE_PARAMETER_TYPE << depth << " >;\n";
         }
     };
-    
-    
-    
+
+
+
     struct ExplicitInstantiationVisitor
     {
         std::ostream& os;
-        
+
         ExplicitInstantiationVisitor( std::ostream& os ) : os( os ) {}
-        
+
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }      
+        {
+        }
         void push ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
+        void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
+        {
             push( (input::Action*) pElement, pNode );
-        }    
+        }
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
@@ -290,44 +309,47 @@ namespace eg
             }
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }      
+        {
+        }
         void pop ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }   
+        {
+        }
         void pop ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }     
+        {
+        }
+        void pop ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
     };
 
-    
+
     struct ExplicitTraitInstantiationVisitor
     {
         std::ostream& os;
-        
+
         ExplicitTraitInstantiationVisitor( std::ostream& os ) : os( os ) {}
-                
+
         void push ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }  
-           
+        {
+        }
+
         void push ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
+        {
             std::vector< const interface::Element* > path = getPath( pNode );
             //generate dimension trait explicit template specialisation
-            
+
             for( const interface::Element* pNodeIter : path )
                 os << "template<>\n";
-            
+
             os << "struct ";
             for( const interface::Element* pNodeIter : path )
             {
@@ -342,27 +364,30 @@ namespace eg
             os << "  using Get   = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Get;\n";
             os << "  static const " << EG_INSTANCE << " Size = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Size;\n";
             os << "};\n";
-        }    
+        }
         void push ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }   
+        {
+        }
+        void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             std::vector< const interface::Element* > path = getPath( pNode );
-            
+
             std::size_t szCounter = 0;
             for( const input::Opaque* pOpaque : pElement->getInheritance() )
             {
                 for( const interface::Element* pNodeIter : path )
                     os << "template<>\n";
                 os << "template<>\n";
-                
+
                 os << "struct ";
                 for( const interface::Element* pNodeIter : path )
                 {
@@ -370,10 +395,10 @@ namespace eg
                         os << "::";
                     os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
                 }
-            
+
                 os << "::" << getBaseTraitType( szCounter ) << "< void >";
                 ++szCounter;
-                
+
                 os << "\n{\n";
                 os << "  using Type  = " << pOpaque->getStr() << ";\n";
                 os << "  using Dependency = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::Dependency;\n";
@@ -382,20 +407,23 @@ namespace eg
             }
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
-        {    
-        }     
+        {
+        }
         void pop ( const input::Dimension* pElement, const interface::Element* pNode )
-        {    
-        }   
+        {
+        }
         void pop ( const input::Include*   pElement, const interface::Element* pNode )
-        {    
-        }     
+        {
+        }
         void pop ( const input::Using*   pElement, const interface::Element* pNode )
-        {    
-        }   
+        {
+        }
+        void pop ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
-        {    
-        }    
+        {
+        }
         void pop ( const input::Action*    pElement, const interface::Element* pNode )
         {
         }
@@ -404,34 +432,34 @@ namespace eg
     void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize )
     {
         generateIncludeGuard( os, "INTERFACE" );
-        
+
         os << "\n\n#define EG_FIBER_STACK_SIZE ( " << szFiberStackSize << " )\n\n";
-        
+
         generateForwardDeclarations( os, pIdentifiers );
-        
+
         {
             os << "\n//EG Interface\n";
             InterfaceVisitor interfaceVisitor( os );
             pRoot->pushpop( interfaceVisitor );
             os << "\n";
         }
-        
+
         {
             os << "\n//Explicit Template Instantiations\n";
             ExplicitInstantiationVisitor visitor( os );
             pRoot->pushpop( visitor );
             os << "\n";
         }
-        
+
         {
             os << "\n//Explicit Trait Template Instantiations\n";
             ExplicitTraitInstantiationVisitor visitor( os );
             pRoot->pushpop( visitor );
             os << "\n";
         }
-        
+
         os << "\n" << pszLine << pszLine;
         os << "#endif\n";
     }
-    
+
 }

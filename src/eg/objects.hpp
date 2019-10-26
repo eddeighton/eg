@@ -35,6 +35,7 @@ namespace eg
         eInputDimension,
         eInputInclude,
         eInputUsing,
+        eInputExport,
         eInputAction,
         eInputRoot,
 
@@ -42,6 +43,7 @@ namespace eg
         eAbstractDimension,
         eAbstractInclude,
         eAbstractUsing,
+        eAbstractExport,
         eAbstractAction,
         eAbstractRoot,
         

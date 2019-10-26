@@ -92,6 +92,7 @@ namespace interface
                     case eInputDimension : visitor( dynamic_cast< const input::Dimension* >(  m_pElement ) ); break;
                     case eInputInclude   : visitor( dynamic_cast< const input::Include* >(    m_pElement ) ); break;
                     case eInputUsing     : visitor( dynamic_cast< const input::Using* >(      m_pElement ) ); break;
+                    case eInputExport    : visitor( dynamic_cast< const input::Export* >(     m_pElement ) ); break;
                     case eInputRoot      : visitor( dynamic_cast< const input::Root* >(       m_pElement ) ); break;
                     case eInputAction    : visitor( dynamic_cast< const input::Action* >(     m_pElement ) ); break;
                         break;
@@ -117,6 +118,7 @@ namespace interface
                     case eInputDimension : visitor.push( dynamic_cast< const input::Dimension* >(  m_pElement ), this ); break;
                     case eInputInclude   : visitor.push( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
                     case eInputUsing     : visitor.push( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
+                    case eInputExport    : visitor.push( dynamic_cast< const input::Export* >(     m_pElement ), this ); break;
                     case eInputRoot      : visitor.push( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
                     case eInputAction    : visitor.push( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
                         break;
@@ -137,6 +139,7 @@ namespace interface
                     case eInputDimension : visitor.pop( dynamic_cast< const input::Dimension* >(  m_pElement ), this ); break;
                     case eInputInclude   : visitor.pop( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
                     case eInputUsing     : visitor.pop( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
+                    case eInputExport    : visitor.pop( dynamic_cast< const input::Export* >(     m_pElement ), this ); break;
                     case eInputRoot      : visitor.pop( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
                     case eInputAction    : visitor.pop( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
                         break;
@@ -232,6 +235,24 @@ namespace interface
         std::string m_canonicalType;
     };
     
+    class Export : public Element
+    {
+        friend class ::eg::ObjectFactoryImpl;
+        //friend class ::clang::AbstractMutator;
+    public:
+        static const ObjectType Type = eAbstractExport;
+    protected:
+        Export( const IndexedObject& indexedObject );
+        Export( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        virtual bool update( const Element* pElement );
+    public:
+        const std::string& getType() const;
+    private:
+        input::Export* m_pExport = nullptr;
+    };
+    
     class Include : public Element
     {
         friend class ::eg::ObjectFactoryImpl;
@@ -268,6 +289,7 @@ namespace interface
     public:
         void getDimensions( std::vector< Dimension* >& dimensions ) const;
         void getUsings( std::vector< Using* >& usings ) const;
+        void getExports( std::vector< Export* >& exports ) const;
         std::size_t getBaseCount() const;
         const std::vector< Action* >& getBaseActions() const { return m_baseActions; }
         const std::string& getBaseType() const { return m_strBaseType; }

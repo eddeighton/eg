@@ -163,6 +163,33 @@ namespace eg
             Opaque* m_pType;
         };
 
+        class Export : public Element
+        {
+            friend class ::eg::ObjectFactoryImpl;
+            friend class ::eg::Parser;
+        public:
+            static const ObjectType Type = eInputExport;
+        protected:
+            Export( const IndexedObject& object );
+        public:
+            const std::vector< std::string >& getPrefix() const { return m_prefix; }
+            const std::string& getIdentifier() const { return m_strIdentifier; }
+            const Opaque* getType() const { return m_pType; }
+            
+            virtual void load( Loader& loader );
+            virtual void store( Storer& storer ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+            
+            bool equal( const Export& cmp ) const
+            {
+                return Opaque::equalNullablePtrs( m_pType, cmp.m_pType );
+            }
+        private:
+            std::vector< std::string > m_prefix;
+            std::string m_strIdentifier;
+            Opaque* m_pType;
+        };
+
         class Action : public Element
         {
             friend class ::eg::ObjectFactoryImpl;

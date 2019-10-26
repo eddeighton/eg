@@ -286,6 +286,7 @@ namespace eg
             return isTokenStringLiteral() || isTokenParen() || isTokenBracket() ||
                 isTokenBrace() || Tok.is( clang::tok::code_completion ) || Tok.isAnnotation();
         }
+        
         void UnconsumeToken( clang::Token &Consumed )
         {
             clang::Token Next = Tok;
@@ -868,6 +869,77 @@ namespace eg
             }
         }
         
+        void parse_export( ParserSession& session, input::Export* pExport )
+        {
+            if( Tok.is( clang::tok::kw_export ) )
+            {
+                ConsumeAnyToken();
+            }
+            
+            {
+                if( Tok.is( clang::tok::identifier ) )
+                {
+                    clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
+                    pExport->m_prefix.push_back( pIdentifier->getName() );
+                    ConsumeToken();
+                }
+                else
+                {
+                    EG_PARSER_ERROR( "Expected identifier" );
+                }
+                
+                while( Tok.is( clang::tok::coloncolon ) )
+                {
+                    ConsumeToken();
+
+                    if( Tok.is( clang::tok::identifier ) )
+                    {
+                        clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
+                        pExport->m_prefix.push_back( pIdentifier->getName() );
+                        ConsumeToken();
+                    }
+                    else
+                    {
+                        EG_PARSER_ERROR( "Expected identifier" );
+                    }
+                }
+            }
+            
+            pExport->m_strIdentifier = pExport->m_prefix.back();
+            pExport->m_prefix.pop_back();
+            
+            if( Tok.is( clang::tok::equal ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                EG_PARSER_ERROR( "Expected equals after export" );
+            }
+            
+            //parse the type
+            {
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                
+                while( !Tok.is( clang::tok::semi ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeToken();
+                }
+                
+                pExport->m_pType = session.construct< input::Opaque >();
+                VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pType->m_str ) );
+            }
+            
+            if( !TryConsumeToken( clang::tok::semi ) )
+            {
+                //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
+                EG_PARSER_ERROR( "Expected semicolon" );
+            }
+        }
+        
+        /*
         bool try_consume_template( clang::SourceLocation& endLoc )
         {
             endLoc = Tok.getEndLoc();
@@ -901,8 +973,9 @@ namespace eg
                 return true;
             }
             return false;
-        }
+        }*/
 
+        /*
         void parse_template( ParserSession& session, input::Action* pAction  )
         {
             if( Tok.is( clang::tok::kw_template ) )
@@ -917,7 +990,7 @@ namespace eg
                     EG_PARSER_ERROR( "template arrow missing" );
                 }
             }
-        }
+        }*/
         
         input::Action* constructAction( ParserSession& session, input::Action* pParentAction )
         {
@@ -1036,7 +1109,7 @@ namespace eg
                     
                     while( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
                     {
-                        if( !try_consume_template( endLoc ) )
+                        //if( !try_consume_template( endLoc ) )
                         {
                             endLoc = Tok.getEndLoc();
                             ConsumeAnyToken();
@@ -1088,7 +1161,7 @@ namespace eg
 
             while( !isEofOrEom() )
             {
-                if( Tok.is( clang::tok::kw_template ) )
+                /*if( Tok.is( clang::tok::kw_template ) )
                 {
                     input::Action* pNestedAction = constructAction( session, pAction );
                     parse_template( session, pNestedAction );
@@ -1113,7 +1186,8 @@ namespace eg
                         EG_PARSER_ERROR( "Missing action" );
                     }
                 }
-                else if( Tok.is( clang::tok::kw_action ) )
+                else*/
+                if( Tok.is( clang::tok::kw_action ) )
                 {
                     ConsumeToken();
 
@@ -1228,6 +1302,13 @@ namespace eg
                     pAction->m_elements.push_back( pUsing );
                     parse_using( session, pUsing );
                 }
+                else if( Tok.is( clang::tok::kw_export ) )
+                {
+                    ConsumeToken();
+                    input::Export* pExport = session.construct< input::Export >();
+                    pAction->m_elements.push_back( pExport );
+                    parse_export( session, pExport );
+                }
                 else if( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) )
                 {
                     //leave the r_brace to be consumed by parent
@@ -1248,6 +1329,7 @@ namespace eg
                                 clang::tok::kw_link, 
                                 clang::tok::kw_include,
                                 clang::tok::kw_using,
+                                clang::tok::kw_export,
                                 clang::tok::kw_template 
                              ) && 
                         !( ( BraceCount == braceStack.back() ) && Tok.is( clang::tok::r_brace ) )
@@ -1505,6 +1587,7 @@ namespace eg
             case eInputDimension:      pNewNode = session.construct< interface::Dimension >( pParent, pElement ); break;
             case eInputInclude:        pNewNode = session.construct< interface::Include >(   pParent, pElement ); break;
             case eInputUsing:          pNewNode = session.construct< interface::Using >(     pParent, pElement ); break;
+            case eInputExport:         pNewNode = session.construct< interface::Export >(    pParent, pElement ); break;
             case eInputAction:         pNewNode = session.construct< interface::Action >(    pParent, pElement ); break;
             case eInputRoot:           pNewNode = session.construct< interface::Root >(      pParent, pElement ); break;
             default:
@@ -1534,6 +1617,11 @@ namespace eg
                 THROW_RTE( "unreachable" );
                 break;
             case eInputUsing     :
+                {
+                    //do nothing
+                }
+                break;
+            case eInputExport    :
                 {
                     //do nothing
                 }
@@ -1599,6 +1687,11 @@ namespace eg
                                 }
                             }
                         }
+                        else if( input::Export* pElementExport = dynamic_cast< input::Export* >( pChildElement ) )
+                        {
+                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
+                            buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree );
+                        }
                         else
                         {
                             interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
@@ -1612,6 +1705,53 @@ namespace eg
                 break;
         }
     }
+    
+    
+    void generateExports( ParserSession& session, interface::Element* pInterfaceRoot, input::Element* pElement )
+    {
+        switch( pElement->getType() )
+        {
+            case eInputOpaque    :
+            case eInputDimension :
+            case eInputInclude   :
+            case eInputUsing     :
+                {
+                    //do nothing
+                }
+                break;
+            case eInputExport    :
+                {
+                    input::Export* pExport = dynamic_cast< input::Export* >( pElement );
+                    
+                    //find the context interface type and add the export
+                    //input::Element* 
+                    if( pExport->getPrefix().empty() )
+                    {
+                    }
+                    else
+                    {
+                        
+                    }
+                }
+                break;
+            case eInputAction    :
+            case eInputRoot      :
+                {
+                    input::Action* pAction = dynamic_cast< input::Action* >( pElement );
+                    VERIFY_RTE( pAction );
+                    
+                    for( input::Element* pChildElement : pAction->getElements() )
+                    {
+                        generateExports( session, pInterfaceRoot, pChildElement );
+                    }
+                }
+                break;
+            default:
+                THROW_RTE( "Unsupported type" );
+                break;
+        }
+    }
+    
     
     void ParserSession::buildAbstractTree()
     {
@@ -1641,10 +1781,12 @@ namespace eg
         }
         
         VERIFY_RTE( pInputMainRoot );
-        interface::Element* pChild = addChild( *this, pMasterRoot, pInputMainRoot );
-        ( (interface::Action*)pChild )->setDefinitionFile( pInputMainRoot->getDefinitionFile().value() );
+        interface::Element* pInterfaceRoot = addChild( *this, pMasterRoot, pInputMainRoot );
+        ( (interface::Action*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile().value() );
         
-        buildTree( fileMap, pChild, pInputMainRoot, pInputMainRoot->getDefinitionFile().value(), false );
+        buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile().value(), false );
+        
+        generateExports( *this, pMasterRoot, pInputMainRoot );
         
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();

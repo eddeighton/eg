@@ -194,6 +194,7 @@ namespace interface
                 case eInputDimension :
                 case eInputInclude   :
                 case eInputUsing     :
+                case eInputExport    :
                     {
                         std::ostringstream osAnnotation;
                         osAnnotation << getIndex();
@@ -289,6 +290,7 @@ namespace interface
                 case eInputDimension :  return dynamic_cast< input::Dimension* >(  m_pElement )->getIdentifier();
                 case eInputInclude   :  return dynamic_cast< input::Include* >(    m_pElement )->getIdentifier();
                 case eInputUsing     :  return dynamic_cast< input::Using* >(      m_pElement )->getIdentifier();
+                case eInputExport    :  return dynamic_cast< input::Export* >(     m_pElement )->getIdentifier();
                 case eInputRoot      :  return dynamic_cast< input::Root* >(       m_pElement )->getIdentifier();
                 case eInputAction    :  return dynamic_cast< input::Action* >(     m_pElement )->getIdentifier();
                     break;
@@ -478,6 +480,47 @@ namespace interface
     }
 
     
+    Export::Export( const IndexedObject& indexedObject )
+        :   Element( indexedObject, nullptr, nullptr )
+    {
+    }
+    Export::Export( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Element( indexedObject, pParent, pElement ),
+            m_pExport( dynamic_cast< input::Export* >( pElement ) )
+    {
+        VERIFY_RTE( m_pExport );
+    }
+
+    void Export::load( Loader& loader )
+    {
+        Element::load( loader );
+        if( m_pElement )
+        {
+            m_pExport = dynamic_cast< input::Export* >( m_pElement );
+            VERIFY_RTE( m_pExport );
+        }
+    }
+    void Export::store( Storer& storer ) const
+    {
+        Element::store( storer );
+    }
+    bool Export::update( const Element* pElement )
+    {
+        if( const Export* pNewExport = dynamic_cast< const Export* >( pElement ) )
+        {
+            //require the opaque is equal
+            if( m_pExport->equal( *pNewExport->m_pExport ) )
+            {
+                return Element::update( pElement );
+            }
+        }
+        return true;
+    }
+    const std::string& Export::getType() const
+    {
+        return m_pExport->getType()->getStr();
+    }
+    
     Include::Include( const IndexedObject& indexedObject )
         :   Element( indexedObject, nullptr, nullptr )
     {
@@ -580,6 +623,7 @@ namespace interface
                 case eAbstractDimension :  dimensions.push_back( dynamic_cast< Dimension* >( pElement ) ); break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  break;
+                case eAbstractExport    :  break;
                 case eAbstractRoot      :  break;
                 case eAbstractAction    :  break;
                 case eAbstractOpaque    :  break;
@@ -599,6 +643,27 @@ namespace interface
                 case eAbstractDimension :  break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  usings.push_back( dynamic_cast< Using* >( pElement ) ); break;
+                case eAbstractExport    :  break;
+                case eAbstractRoot      :  break;
+                case eAbstractAction    :  break;
+                case eAbstractOpaque    :  break;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break;
+            }
+        }
+    }
+    
+    void Action::getExports( std::vector< Export* >& exports ) const
+    {
+        for( Element* pElement : m_children )
+        {
+            switch( pElement->getType() )
+            {
+                case eAbstractDimension :  break;
+                case eAbstractInclude   :  break;
+                case eAbstractUsing     :  break;
+                case eAbstractExport    :  exports.push_back( dynamic_cast< Export* >( pElement ) ); break;
                 case eAbstractRoot      :  break;
                 case eAbstractAction    :  break;
                 case eAbstractOpaque    :  break;
@@ -630,6 +695,7 @@ namespace interface
                 case eAbstractDimension :  break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  break;
+                case eAbstractExport    :  break;
                 case eAbstractRoot      :  actions.push_back( dynamic_cast< Action* >( pElement ) ); break;
                 case eAbstractAction    :  actions.push_back( dynamic_cast< Action* >( pElement ) ); break;
                 case eAbstractOpaque    :  break;

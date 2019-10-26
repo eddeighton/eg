@@ -315,6 +315,7 @@ namespace eg
                     case eAbstractDimension : os << dynamic_cast< const interface::Dimension* >(  pElement )->getIdentifier(); break;
                     case eAbstractAction    : os << dynamic_cast< const interface::Action* >(     pElement )->getIdentifier(); break;
                     case eAbstractUsing     : os << dynamic_cast< const interface::Using* >(      pElement )->getIdentifier(); break;
+                    case eAbstractExport    :
                     case eAbstractRoot      : 
                     case eAbstractOpaque    :
                     case eAbstractInclude   :

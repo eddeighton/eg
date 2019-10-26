@@ -42,6 +42,7 @@ namespace eg
             case eInputDimension             : pObject = new input::Dimension               ( object );  break;
             case eInputInclude               : pObject = new input::Include                 ( object );  break;
             case eInputUsing                 : pObject = new input::Using                   ( object );  break;
+            case eInputExport                : pObject = new input::Export                  ( object );  break;
             case eInputAction                : pObject = new input::Action                  ( object );  break;
             case eInputRoot                  : pObject = new input::Root                    ( object );  break;
                                                                                            
@@ -49,6 +50,7 @@ namespace eg
             case eAbstractDimension          : pObject = new interface::Dimension           ( object );  break;
             case eAbstractInclude            : pObject = new interface::Include             ( object );  break;
             case eAbstractUsing              : pObject = new interface::Using               ( object );  break;
+            case eAbstractExport             : pObject = new interface::Export              ( object );  break;
             case eAbstractAction             : pObject = new interface::Action              ( object );  break;
             case eAbstractRoot               : pObject = new interface::Root                ( object );  break;
                                 
