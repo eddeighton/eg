@@ -50,4 +50,19 @@ namespace generic
                          std::endl;
         } 
     }
+    
+    template< typename T >
+    struct GenericThing
+    {
+        std::vector< T > data;
+        
+        void DoStuff()
+        {
+            for( T i : data )
+            {
+                i.Go();
+                
+            }
+        }
+    };
 }

@@ -11,6 +11,8 @@ action Thing[ 64 ]
     dim float y;
     export void Y( float f ) { y( f ); }
     export float Y() { return y(); }
+    
+    export void Go() { Start(); }
 }
 
 export const float&     X()          { return x(); }
@@ -22,3 +24,9 @@ x( 123 );
 
 generic::testInvoke( root.Get() );
 generic::printThings( root.Get() );
+
+dim generic::GenericThing< Thing > genericThing;
+
+genericThing.Get().data.push_back( *Thing.Raw().begin() );
+
+genericThing.Get().DoStuff();
