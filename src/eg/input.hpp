@@ -172,9 +172,10 @@ namespace eg
         protected:
             Export( const IndexedObject& object );
         public:
-            const std::vector< std::string >& getPrefix() const { return m_prefix; }
             const std::string& getIdentifier() const { return m_strIdentifier; }
-            const Opaque* getType() const { return m_pType; }
+            const Opaque* getReturnType() const { return m_pReturnType; }
+            const Opaque* getParameters() const { return m_pParameters; }
+            const Opaque* getBody() const { return m_pBody; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
@@ -182,12 +183,15 @@ namespace eg
             
             bool equal( const Export& cmp ) const
             {
-                return Opaque::equalNullablePtrs( m_pType, cmp.m_pType );
+                return Opaque::equalNullablePtrs( m_pReturnType, cmp.m_pReturnType ) &&
+                        Opaque::equalNullablePtrs( m_pParameters, cmp.m_pParameters ) &&
+                        Opaque::equalNullablePtrs( m_pBody, cmp.m_pBody ) ;
             }
         private:
-            std::vector< std::string > m_prefix;
             std::string m_strIdentifier;
-            Opaque* m_pType;
+            Opaque* m_pReturnType;
+            Opaque* m_pParameters;
+            Opaque* m_pBody;
         };
 
         class Action : public Element

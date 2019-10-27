@@ -166,29 +166,38 @@ namespace input
     
     Export::Export( const IndexedObject& object )
         :   Element( object ),
-            m_pType( nullptr )
+            m_pReturnType( nullptr ),
+            m_pParameters( nullptr ),
+            m_pBody( nullptr )
     {
 
     }
 
     void Export::load( Loader& loader )
     {
-        //loader.load( m_prefix );
         loader.load( m_strIdentifier );
-        m_pType = loader.loadObjectRef< Opaque >();
+        m_pReturnType = loader.loadObjectRef< Opaque >();
+        m_pParameters = loader.loadObjectRef< Opaque >();
+        m_pBody = loader.loadObjectRef< Opaque >();
     }
 
     void Export::store( Storer& storer ) const
     {
-        //storer.store( m_prefix );
         storer.store( m_strIdentifier );
-        storer.storeObjectRef( m_pType );
+        storer.storeObjectRef( m_pReturnType );
+        storer.storeObjectRef( m_pParameters );
+        storer.storeObjectRef( m_pBody );
     }
     
     void Export::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
-        VERIFY_RTE( m_pType );
-        os << strIndent << "export " << m_strIdentifier << " = " << m_pType->getStr() << ";//" << strAnnotation << "\n";
+        VERIFY_RTE( m_pReturnType );
+        VERIFY_RTE( m_pParameters );
+        VERIFY_RTE( m_pBody );
+        
+        os << strIndent << "export " << m_pReturnType->getStr() << " " << 
+            m_strIdentifier << "( " << m_pParameters->getStr() << " )//" << strAnnotation << "\n";
+        os << "{ " << m_pBody->getStr() << " }\n";
     }
     
     Action::Action( const IndexedObject& object )

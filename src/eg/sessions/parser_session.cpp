@@ -474,6 +474,7 @@ namespace eg
             clang::SourceLocation ( Parser::*Consumer )( );
             clang::SourceLocation LOpen, LClose;
 
+            /*
             unsigned short &getDepth()
             {
                 switch( Kind )
@@ -483,7 +484,7 @@ namespace eg
                     case clang::tok::l_paren: return P.ParenCount;
                     default: llvm_unreachable( "Wrong token kind" );
                 }
-            }
+            }*/
 
             //bool diagnoseOverflow();
             bool diagnoseMissingClose()
@@ -871,72 +872,116 @@ namespace eg
         
         void parse_export( ParserSession& session, input::Export* pExport )
         {
+            //export returnType name( parameter list )
+            //{
+            //  impl;
+            //}
+            
             if( Tok.is( clang::tok::kw_export ) )
             {
                 ConsumeAnyToken();
             }
             
-            {
-                if( Tok.is( clang::tok::identifier ) )
-                {
-                    clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                    pExport->m_prefix.push_back( pIdentifier->getName() );
-                    ConsumeToken();
-                }
-                else
-                {
-                    EG_PARSER_ERROR( "Expected identifier" );
-                }
-                
-                while( Tok.is( clang::tok::coloncolon ) )
-                {
-                    ConsumeToken();
-
-                    if( Tok.is( clang::tok::identifier ) )
-                    {
-                        clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                        pExport->m_prefix.push_back( pIdentifier->getName() );
-                        ConsumeToken();
-                    }
-                    else
-                    {
-                        EG_PARSER_ERROR( "Expected identifier" );
-                    }
-                }
-            }
-            
-            pExport->m_strIdentifier = pExport->m_prefix.back();
-            pExport->m_prefix.pop_back();
-            
-            if( Tok.is( clang::tok::equal ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                EG_PARSER_ERROR( "Expected equals after export" );
-            }
-            
-            //parse the type
+            //return type - parse opaque UNTIL identifier lparen
             {
                 clang::SourceLocation startLoc = Tok.getLocation();
                 clang::SourceLocation endLoc   = Tok.getEndLoc();
                 
-                while( !Tok.is( clang::tok::semi ) )
+                clang::Token next = NextToken();
+                while( !next.is( clang::tok::l_paren ) )
                 {
                     endLoc = Tok.getEndLoc();
                     ConsumeToken();
+                    next = NextToken();
                 }
                 
-                pExport->m_pType = session.construct< input::Opaque >();
-                VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pType->m_str ) );
+                pExport->m_pReturnType = session.construct< input::Opaque >();
+                VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pReturnType->m_str ) );
+                
             }
             
-            if( !TryConsumeToken( clang::tok::semi ) )
+            //identifier
+            if( Tok.is( clang::tok::identifier ) )
             {
-                //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
-                EG_PARSER_ERROR( "Expected semicolon" );
+                clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
+                pExport->m_strIdentifier = pIdentifier->getName();
+                ConsumeToken();
             }
+            else
+            {
+                EG_PARSER_ERROR( "Expected identifier" );
+            }
+            
+            
+            
+            //parse optional argument list
+            if( Tok.is( clang::tok::l_paren ) )
+            {
+                pExport->m_pParameters = session.construct< input::Opaque >();
+                        
+                BalancedDelimiterTracker T( *this, clang::tok::l_paren );
+                T.consumeOpen();
+                
+                if( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                {
+                    clang::SourceLocation startLoc = Tok.getLocation();
+                    clang::SourceLocation endLoc   = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                    
+                    while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                    {
+                        endLoc = Tok.getEndLoc();
+                        ConsumeAnyToken();
+                    }
+                    VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pParameters->m_str ) );
+                }
+                
+                //SkipUntil( clang::tok::r_paren, StopBeforeMatch );
+                T.consumeClose();
+            }
+            else
+            {
+                EG_PARSER_ERROR( "Expected parameter list" );
+            }
+            
+            //maybe a comment?
+            while( Tok.is( clang::tok::comment ) )
+            {
+                ConsumeToken();
+            }
+            
+            //now get the body
+            if( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                
+                braceStack.push_back( BraceCount );
+            
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeAnyToken();
+                
+                while( !isEofOrEom() && !( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                }
+                
+                pExport->m_pBody = session.construct< input::Opaque >();
+                VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pBody->m_str ) );
+
+                VERIFY_RTE( BraceCount == braceStack.back() );
+                braceStack.pop_back();
+                
+                T.consumeClose();
+            }
+            else
+            {
+                EG_PARSER_ERROR( "Expected body" );
+            }
+            
+            
         }
         
         /*
@@ -1706,7 +1751,7 @@ namespace eg
         }
     }
     
-    
+    /*
     void generateExports( ParserSession& session, interface::Element* pInterfaceRoot, input::Element* pElement )
     {
         switch( pElement->getType() )
@@ -1725,13 +1770,6 @@ namespace eg
                     
                     //find the context interface type and add the export
                     //input::Element* 
-                    if( pExport->getPrefix().empty() )
-                    {
-                    }
-                    else
-                    {
-                        
-                    }
                 }
                 break;
             case eInputAction    :
@@ -1750,7 +1788,7 @@ namespace eg
                 THROW_RTE( "Unsupported type" );
                 break;
         }
-    }
+    }*/
     
     
     void ParserSession::buildAbstractTree()
@@ -1786,7 +1824,7 @@ namespace eg
         
         buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile().value(), false );
         
-        generateExports( *this, pMasterRoot, pInputMainRoot );
+        //generateExports( *this, pMasterRoot, pInputMainRoot );
         
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();

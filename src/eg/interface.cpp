@@ -516,9 +516,17 @@ namespace interface
         }
         return true;
     }
-    const std::string& Export::getType() const
+    const std::string& Export::getReturnType() const
     {
-        return m_pExport->getType()->getStr();
+        return m_pExport->getReturnType()->getStr();
+    }
+    const std::string& Export::getParameters() const
+    {
+        return m_pExport->getParameters()->getStr();
+    }
+    const std::string& Export::getBody() const
+    {
+        return m_pExport->getBody()->getStr();
     }
     
     Include::Include( const IndexedObject& indexedObject )

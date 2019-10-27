@@ -5,14 +5,20 @@ include( test_generic.hpp );
 
 dim float x;
 
-action Thing
+action Thing[ 64 ]
 {
     std::cout << "Thing" << std::endl;
+    dim float y;
+    export void Y( float f ) { y( f ); }
+    export float Y() { return y(); }
 }
 
-export GetX = x;
-export RunThing = Thing.Start;
+export const float&     X()          { return x(); }
+export void             X( float f ) { x( f ); }
+
+export auto Things() { return Thing.Raw(); }
 
 x( 123 );
 
 generic::testInvoke( root.Get() );
+generic::printThings( root.Get() );

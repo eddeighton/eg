@@ -28,8 +28,26 @@ namespace generic
     template< typename T >
     void testInvoke( T actionRef )
     {
-        std::cout << "Test Invoke: " << actionRef.GetX() << std::endl;
-        actionRef.RunThing();
+        std::cout << "Test Invoke: " << actionRef.X() << std::endl;
+        //actionRef.RunThing();
+        
+        for( auto i : actionRef.Things() )
+        {
+            i.Y( 123.0f );
+        }
+        
     }
     
+    template< typename T >
+    void printThings( T actionRef )
+    {
+        for( auto a : actionRef.Things() )
+        {
+            std::cout << "Instance: " << a.data.instance <<
+                         " Type: " << a.data.type <<
+                         " timestamp: " << a.data.timestamp <<
+                         " y: " << a.Y() <<
+                         std::endl;
+        } 
+    }
 }

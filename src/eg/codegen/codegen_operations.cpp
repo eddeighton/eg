@@ -108,7 +108,7 @@ namespace eg
                 //os << strIndent << "template< typename... Args >\n";
 
                 //just generate an explicit template specialisation
-                os << strIndent << "inline auto ";
+                os << strIndent << "inline " << pExport->getReturnType() << " ";
                 {
                     int iCounter = 1;
                     for( const interface::Element* pNodeIter : path )
@@ -119,14 +119,13 @@ namespace eg
                     }
 
                     {
-                        os << pExport->getIdentifier() << "() const\n";
+                        os << pExport->getIdentifier() << "( " << pExport->getParameters() << " ) const\n";
                     }
                 }
 
                 //generate the function body
                 os << strIndent << "{\n";
-                //os << strIndent << "  __eg_root< void > r = *this;\n";
-                os << strIndent << "  return " << pExport->getType() << "();\n";
+                os << strIndent << "  " << pExport->getBody() << "\n";
                 os << strIndent << "}\n";
             }
         }

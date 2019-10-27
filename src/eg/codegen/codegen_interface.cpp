@@ -99,7 +99,8 @@ namespace eg
             for( interface::Export* pExport : exports )
             {
                 //os << strIndent << "template< typename... Args >\n";
-                os << strIndent << "inline auto " << pExport->getIdentifier() << "() const;\n";
+                os << strIndent << "inline " << pExport->getReturnType() << " " << pExport->getIdentifier() << "( " << 
+                    pExport->getParameters() << " ) const;\n";
             }
             
             //event access
