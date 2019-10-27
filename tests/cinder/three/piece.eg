@@ -22,6 +22,13 @@ action Piece[ 256 ] : Cube
         Render();
         eg::sleep();
     }
+    
+    export std::string Info()
+    {
+        std::ostringstream os;
+        os << "position: " << pos().x << "," << pos().y;
+        return os.str();
+    }
                 
     action Up;
     action Down;
@@ -38,61 +45,53 @@ action Test
     std::cout << "Hello from test action" << std::endl;
 }
 
-//export foobar : Test.Start();
-/*
-export Stuff : var< Piece, Things >
-{
-    export Go : Start();
-}*/
-
-action SolvePieces
+action PrintPieceState
 {
     include( test_generic.hpp );
     generic::printRangeInfo( root.Get().Piece.Range() );
-    
-    //decltype( root.Get().Test.Start() );
-    //export root::foobar : root.Test.Start();
-    
-    //generic::testInvoke( root.Get() );
 }
 
-action Piece::Move( glm::vec2 from, glm::vec2 to )
+action Piece::Move( glm::vec2 _to )
 {
-    pos( from );
+    dim glm::vec2 from;
+    dim glm::vec2 to;
+    
+    from( pos() );
+    to( _to );
     
     const float startTime = clock::ct();
-    const glm::vec2 distance = to - from;
+    const glm::vec2 distance = to() - from();
     
     while( clock::ct() < ( startTime + movetime() ) )
     {
         float elapsed = ( clock::ct() - startTime ) / movetime();
-        pos( from + elapsed * distance );
+        pos( from() + elapsed * distance );
         eg::sleep();
     }
     
     //snap to final position
-    pos( to );
+    pos( to() );
     eg::sleep();
 }
 
 action Piece::Up
 {
-    Move( pos(), pos() + glm::vec2( 0, 1 ) );
+    Move( pos() + glm::vec2( 0, 1 ) );
 }
 
 action Piece::Down
 {
-    Move( pos(), pos() + glm::vec2( 0, -1 ) );
+    Move( pos() + glm::vec2( 0, -1 ) );
 }
 
 action Piece::Left
 {
-    Move( pos(), pos() + glm::vec2( -1, 0 ) );
+    Move( pos() + glm::vec2( -1, 0 ) );
 }
 
 action Piece::Right
 {
-    Move( pos(), pos() + glm::vec2( 1, 0 ) );
+    Move( pos() + glm::vec2( 1, 0 ) );
 }
 
 action Piece::Plan

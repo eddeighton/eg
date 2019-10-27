@@ -20,8 +20,6 @@ action Python[ 16 ]
     }
 }
 
-action TestParser;
-
 Camera cam = Camera.Start();
 
 Gui gui = Gui.Start();

@@ -20,6 +20,7 @@ namespace generic
             std::cout << "Instance: " << a.data.instance <<
                          " Type: " << a.data.type <<
                          " timestamp: " << a.data.timestamp <<
+                         " info: " << a.Info() <<
                          std::endl;
         }
         
