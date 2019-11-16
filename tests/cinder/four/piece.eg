@@ -1,0 +1,103 @@
+
+
+action BoardLine[ 256 ] : LineSegment
+{
+    while( true )
+    {
+        Render();
+        eg::sleep();
+    }
+}
+
+action Piece[ 256 ] : Cube
+{
+    size( cinder::vec3( 1.0, 1.0, 1.0 ) );
+    
+    dim glm::vec2 pos;
+    dim float movetime;
+    
+    while( true )
+    {
+        position( cinder::vec3( pos().x + 0.5, 0.5, pos().y + 0.5 ) );
+        Render();
+        eg::sleep();
+    }
+    
+    export std::string Info()
+    {
+        std::ostringstream os;
+        os << "position: " << pos().x << "," << pos().y;
+        return os.str();
+    }
+                
+    action Up;
+    action Down;
+    action Left;
+    action Right;
+    
+    action Move;
+    
+    action Plan;
+}
+
+action Piece::Move( glm::vec2 _to )
+{
+    dim glm::vec2 from;
+    dim glm::vec2 to;
+    
+    from( pos() );
+    to( _to );
+    
+    const float startTime = clock::ct();
+    const glm::vec2 distance = to() - from();
+    
+    while( clock::ct() < ( startTime + movetime() ) )
+    {
+        float elapsed = ( clock::ct() - startTime ) / movetime();
+        pos( from() + elapsed * distance );
+        eg::sleep();
+    }
+    
+    //snap to final position
+    pos( to() );
+    eg::sleep();
+}
+
+action Piece::Up
+{
+    Move( pos() + glm::vec2( 0, 1 ) );
+}
+
+action Piece::Down
+{
+    Move( pos() + glm::vec2( 0, -1 ) );
+}
+
+action Piece::Left
+{
+    Move( pos() + glm::vec2( -1, 0 ) );
+}
+
+action Piece::Right
+{
+    Move( pos() + glm::vec2( 1, 0 ) );
+}
+
+action Piece::Plan
+{
+    dim std::vector< int > plan;
+    
+    for( int i : plan() )
+    {
+        switch( i )
+        {
+            case 0: Up();       break;
+            case 1: Down();     break;
+            case 2: Left();     break;
+            case 3: Right();    break;
+            default:
+                eg::sleep( movetime() );
+                break;
+        }
+    }
+}

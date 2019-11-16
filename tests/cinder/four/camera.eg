@@ -1,0 +1,94 @@
+
+
+action Camera
+{
+    dim cinder::CameraPersp perspective;
+    dim cinder::vec3 eye;
+    dim cinder::vec3 offset;
+    
+    eye( cinder::vec3( 8, 8, 2 ) );
+    
+    action Orbit
+    {
+        dim float rate;
+        dim float radius;
+        
+        while( true )
+        {
+            float fAngle = clock::ct() * rate() * M_PI * 2.0f;
+            cinder::vec2 v( sin( fAngle ), cos( fAngle ) );
+            eye( cinder::vec3( v.x, v.y, 2 ) * radius() );
+            eg::sleep();
+        }
+    }
+    
+    action Mouse
+    {
+        dim float radius;
+        dim cinder::vec2 rate;
+        
+        boost::optional< cinder::vec2 > lastPos;
+        cinder::vec3 lastEye;
+        float fAngle, fSetAngle;
+        
+        while( true )
+        {
+            //read mouse events
+            while( boost::optional< cinder::app::InputEvent > eventOpt = Input::getEvent() )
+            {
+                const cinder::app::InputEvent& e = eventOpt.get();
+                switch( e.type )
+                {
+                    case cinder::app::InputEvent::eMouseDown:
+                        {
+                            lastPos = e.mouseEvent.getPos();
+                            lastEye = eye();
+                            fAngle = fSetAngle;
+                        }
+                        break;
+                    case cinder::app::InputEvent::eMouseUp:
+                        {
+                            lastPos = boost::optional< cinder::vec2 >();
+                        }
+                        break;
+                    case cinder::app::InputEvent::eMouseMove:
+                        break;
+                    case cinder::app::InputEvent::eMouseDrag:
+                        if( lastPos )
+                        {
+                            const cinder::vec2 mousePos( e.mouseEvent.getPos() );
+                            const cinder::vec2 dir = ( mousePos - lastPos.get() );
+                            
+                            fSetAngle = fAngle - dir.x * rate().x;
+                            eye( cinder::vec3( sin( fSetAngle ) * radius(), lastEye.y + dir.y * rate().y, cos( fSetAngle ) * radius() ) );
+                        }
+                        else
+                        {
+                            LOG( "Mouse Drag: no lastpos"  );
+                        }
+                        break;
+                    case cinder::app::InputEvent::eMouseWheel:
+                        break;
+                    case cinder::app::InputEvent::eKeyDown:
+                        break;
+                    case cinder::app::InputEvent::eKeyUp:
+                        break;
+                }
+            
+            }
+                  
+            
+            eg::sleep();
+        }
+    }
+    
+    while( true )
+    {
+        const cinder::vec2 wndSize = cinder::app::getWindow()->getSize();
+        perspective.Get().setAspectRatio( static_cast< float >( wndSize.x ) / static_cast< float >( wndSize.y ) );
+        perspective.Get().lookAt( offset() + eye(), cinder::vec3( 0 ) );
+        eg::sleep();
+    }
+}
+
+

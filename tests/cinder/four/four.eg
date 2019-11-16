@@ -1,0 +1,60 @@
+
+
+cinder::app::getWindow()->setTitle( "Four" );
+cinder::app::getWindow()->setSize( 800, 800 );
+cinder::app::setWindowPos( 300, 100 );
+
+resource::set< eg::TextResourceHandler >( "script.py" );
+
+action Python[ 16 ]
+{
+    eg::TextResource::Ptr pText = resource::get< eg::TextResource >( "script.py" );
+    try
+    {
+        std::cout << "Executing: script.py" << std::endl;
+        pybind11::exec( pText->get(), pybind11::globals(), eg::createPythonContext( *this ) );
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
+}
+
+
+resource::set< eg::TextResourceHandler >( "automata.py" );
+
+action AutomataScript[ 16 ]
+{
+    eg::TextResource::Ptr pText = resource::get< eg::TextResource >( "automata.py" );
+    try
+    {
+        std::cout << "Executing: automata.py" << std::endl;
+        pybind11::exec( pText->get(), pybind11::globals(), eg::createPythonContext( *this ) );
+    }
+    catch( std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
+}
+
+action Automata
+{
+    include( automata/automata.hpp );
+    
+    std::cout << automata::getVersion() << std::endl;
+}
+
+Camera cam = Camera.Start();
+
+Gui gui = Gui.Start();
+
+//main render loop
+while( !Done() )
+{
+    cinder::gl::clear();
+    cinder::gl::enableDepthRead();
+    cinder::gl::enableDepthWrite();
+    cinder::gl::setMatrices( perspective() );
+
+    eg::sleep();
+}
