@@ -19,3 +19,6 @@
 [submodule "submodules/simongeilfus/Cinder-ImGui"]
 	path = submodules/simongeilfus/Cinder-ImGui
 	url = https://github.com/simongeilfus/Cinder-ImGui.git
+[submodule "submodules/automata"]
+	path = submodules/automata
+	url = https://github.com/eddeighton/automata.git
