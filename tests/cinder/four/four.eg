@@ -20,7 +20,6 @@ action Python[ 16 ]
     }
 }
 
-
 resource::set< eg::TextResourceHandler >( "automata.py" );
 
 action AutomataScript[ 16 ]
@@ -42,6 +41,18 @@ action Automata
     include( automata/automata.hpp );
     
     std::cout << automata::getVersion() << std::endl;
+    
+    dim automata::TransitionTable< automata::TOTAL_ACTIONS, 16 >::Table table;
+    
+    table( automata::generateGrid< 4 >() );
+    /*
+    action GetActions( automata::State state )
+    {
+        dim automata::TransitionTable< automata::TOTAL_ACTIONS, 16 >::Actions actions;
+        actions
+    }*/
+    
+    
 }
 
 Camera cam = Camera.Start();

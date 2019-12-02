@@ -12,8 +12,8 @@ mouse = r.Camera.Mouse.Start()
 mouse.radius( 10 )
 mouse.rate( [ 0.01, 0.4 ] )
 
-gridsize = 20
-linewidth = 2
+gridsize = 4
+linewidth = 1
 linecolour = [ 0.1, 0.4, 0.5 ]
 
 #grid
