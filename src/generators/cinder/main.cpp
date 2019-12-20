@@ -78,15 +78,9 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
 
 std::deque< cinder::app::InputEvent > _cinder_events;
     
-boost::optional< cinder::app::InputEvent > Input::getEvent()
+std::pair< Input::Iter, Input::Iter > Input::getEvents()
 {
-    boost::optional< cinder::app::InputEvent > event;
-    if( !_cinder_events.empty() )
-    {
-        event = _cinder_events.front();
-        _cinder_events.pop_front();
-    }
-    return event;
+    return std::make_pair( _cinder_events.begin(), _cinder_events.end() );
 }
     
     )";

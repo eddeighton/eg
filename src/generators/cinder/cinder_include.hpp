@@ -21,11 +21,11 @@
 #ifndef CINDER_INCLUDE_12_04_2019
 #define CINDER_INCLUDE_12_04_2019
 
-#include <boost/optional.hpp>
-
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
+
+#include <deque>
 
 namespace cinder
 {
@@ -47,9 +47,9 @@ namespace cinder
             cinder::app::MouseEvent mouseEvent;
             cinder::app::KeyEvent keyEvent;
             
-            InputEvent(){}
-            InputEvent( Type type, const cinder::app::MouseEvent& mouseEvent ) : type( type ), mouseEvent( mouseEvent ) {}
-            InputEvent( Type type, const cinder::app::KeyEvent& keyEvent ) : type( type ), keyEvent( keyEvent ) {}
+            inline InputEvent(){}
+            inline InputEvent( Type type, const cinder::app::MouseEvent& mouseEvent ) : type( type ), mouseEvent( mouseEvent ) {}
+            inline InputEvent( Type type, const cinder::app::KeyEvent& keyEvent ) : type( type ), keyEvent( keyEvent ) {}
         };
     }
 }
@@ -57,7 +57,8 @@ namespace cinder
 class Input
 {
 public:
-    static boost::optional< cinder::app::InputEvent > getEvent();
+    using Iter = std::deque< cinder::app::InputEvent >::const_iterator;
+    static std::pair< Iter, Iter > getEvents();
 };
 
 #endif //CINDER_INCLUDE_12_04_2019

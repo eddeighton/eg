@@ -12,13 +12,17 @@ b = r.Ball.Start()
 b.radius( 0.5 )
 b.colour( [1,0,0] )
 
-mouse = r.Camera.Mouse.Start()
-mouse.radius( 10 )
-mouse.rate( [ 0.01, 0.4 ] )
-
 gridsize = 4
-linewidth = 1
+linewidth = 2
 linecolour = [ 0.1, 0.4, 0.5 ]
+
+
+r.Mouse.Start()
+c = r.Camera.CameraMouse.Start()
+c.radius( 10 )
+c.rate( [ 0.01, 0.4 ] )
+#r.Mouse.mouseHandler( c )
+
 
 #grid
 for x in range( -gridsize, gridsize + 1 ):

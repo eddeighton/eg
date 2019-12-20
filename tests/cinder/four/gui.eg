@@ -5,6 +5,8 @@ action Gui
 {
     cinder::app::AppBase* pTheApp = cinder::app::AppBase::get();
     
+    bool bCameraMode = false;
+            
     bool bContinue = true;
     while( bContinue )
     {
@@ -58,6 +60,24 @@ action Gui
                     Rack.Start();
                 }
             }
+            
+            //camera control
+            ImGui::SameLine();
+            ImGui::Checkbox( "Camera", &bCameraMode );
+            if( bCameraMode )
+            {
+                auto r = root.Get().Camera.CameraMouse.Raw();
+                if( Camera::CameraMouse cameraMouse = ::eg::one< Camera::CameraMouse >( r ) )
+                {
+                    Mouse.mouseHandler( cameraMouse );
+                }
+            }
+            else
+            {
+                Camera::CameraMouse null;
+                Mouse.mouseHandler( null );
+            }
+            
             
             //run script
             ImGui::SameLine();

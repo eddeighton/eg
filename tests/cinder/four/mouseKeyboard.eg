@@ -1,0 +1,101 @@
+
+
+
+
+action Mouse
+{
+    abstract Handler
+    {
+        abstract Capture
+        {
+            dim cinder::vec2 down;
+            
+            abstract Move
+            {
+                dim cinder::vec2 current;
+            }
+            
+            abstract Release
+            {
+                dim cinder::vec2 result;
+            }
+        }
+    }
+    
+    dim Handler mouseHandler;
+    
+    while( true )
+    {
+        //read mouse events
+        Handler handler = mouseHandler();
+        if( handler )
+        {
+            auto inputEvents = Input::getEvents();
+            for( auto i = inputEvents.first; i != inputEvents.second; ++i )
+            {
+                const cinder::app::InputEvent& e = *i;
+                
+                switch( e.type )
+                {
+                    case cinder::app::InputEvent::eMouseDown:
+                        {
+                            Handler::Capture m = handler.Capture.Start();
+                            m.down( e.mouseEvent.getPos() );
+                        }
+                        break;
+                    case cinder::app::InputEvent::eMouseUp:
+                        {
+                            if( Handler::Capture m = handler.Capture.Get() )
+                            {
+                                m.Release.result( e.mouseEvent.getPos() );
+                                m.Release();
+                                m.Stop();
+                            }
+                        }
+                        break;
+                    case cinder::app::InputEvent::eMouseMove:
+                        break;
+                    case cinder::app::InputEvent::eMouseDrag:
+                        {
+                            if( Handler::Capture m = handler.Capture.Get() )
+                            {
+                                m.Move.current( e.mouseEvent.getPos() );
+                                m.Move();
+                            }
+                        }
+                        break;
+                    case cinder::app::InputEvent::eMouseWheel:
+                        break;
+                    case cinder::app::InputEvent::eKeyDown:
+                        break;
+                    case cinder::app::InputEvent::eKeyUp:
+                        break;
+                }
+            }
+        }   
+        
+        eg::sleep();
+    }
+
+}
+
+action MouseTester[ 2 ] : Mouse::Handler
+{
+    action Capture : Mouse::Handler::Capture
+    {
+        std::cout << "Mouse capture: " << down().x << "," << down().y << std::endl;
+        
+        action Move : Mouse::Handler::Capture::Move
+        {
+            std::cout << "Mouse move" << current().x << "," << current().y << std::endl;
+        }
+        
+        action Release : Mouse::Handler::Capture::Release
+        {
+            std::cout << "Mouse release" << result().x << "," << result().y  << std::endl;
+        }
+        
+        while( true )
+            eg::sleep();
+    }
+}

@@ -77,22 +77,22 @@ action Piece::Move( glm::vec2 _to )
 
 action Piece::Up
 {
-    Move( pos() + glm::vec2( 0, 1 ) );
+    Piece.Move( pos() + glm::vec2( 0, 1 ) );
 }
 
 action Piece::Down
 {
-    Move( pos() + glm::vec2( 0, -1 ) );
+    Piece.Move( pos() + glm::vec2( 0, -1 ) );
 }
 
 action Piece::Left
 {
-    Move( pos() + glm::vec2( -1, 0 ) );
+    Piece.Move( pos() + glm::vec2( -1, 0 ) );
 }
 
 action Piece::Right
 {
-    Move( pos() + glm::vec2( 1, 0 ) );
+    Piece.Move( pos() + glm::vec2( 1, 0 ) );
 }
 
 action Piece::Plan
