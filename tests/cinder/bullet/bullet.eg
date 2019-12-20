@@ -1,6 +1,6 @@
 
 
-cinder::app::getWindow()->setTitle( "Four" );
+cinder::app::getWindow()->setTitle( "Bullet Physics!" );
 cinder::app::getWindow()->setSize( 800, 800 );
 cinder::app::setWindowPos( 300, 100 );
 
@@ -71,6 +71,6 @@ while( !Done() )
     cinder::gl::enableDepthRead();
     cinder::gl::enableDepthWrite();
     cinder::gl::setMatrices( perspective() );
-    
+
     eg::sleep();
 }

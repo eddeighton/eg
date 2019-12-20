@@ -25,3 +25,6 @@
 [submodule "submodules/indicators"]
 	path = submodules/indicators
 	url = https://github.com/eddeighton/indicators.git
+[submodule "submodules/bullet3"]
+	path = submodules/bullet3
+	url = https://github.com/eddeighton/bullet3.git

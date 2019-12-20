@@ -7,12 +7,6 @@ abstract Cube
     
     action Render
     {
-    /*
-    auto lambert = cinder::gl::ShaderDef().lambert().color();
-    auto shader = cinder::gl::getStockShader( lambert );
-    shader->bind();
-*/
-
         cinder::gl::drawColorCube( position(), size() );
     }
 }
