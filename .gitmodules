@@ -22,3 +22,6 @@
 [submodule "submodules/automata"]
 	path = submodules/automata
 	url = https://github.com/eddeighton/automata.git
+[submodule "submodules/indicators"]
+	path = submodules/indicators
+	url = https://github.com/eddeighton/indicators.git

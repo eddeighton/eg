@@ -13,6 +13,9 @@ include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 #get clang
 include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 
+#get indicators
+include( ${EG_ROOT_DIR}/cmake/indicators_include.cmake )
+
 #get eg
 include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 
