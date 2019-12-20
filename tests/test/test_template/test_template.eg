@@ -1,0 +1,91 @@
+
+
+abstract Namespace
+{
+    abstract Generic
+    {
+        std::cout << "Hello from template" << std::endl;
+        
+        action Foo
+        {
+            std::cout << "Hello from Foo" << std::endl;
+            Bar();
+        }
+    }
+    
+    abstract Thing
+    {
+        action Other
+        {
+            std::cout << "Hello from Other" << std::endl;
+        }
+    }
+}
+
+
+action Instance1[2] : Namespace::Generic
+{
+    action Foo : Namespace::Generic::Foo
+    {
+        std::cout << "Hello from Instance1 Foo" << std::endl;
+        Bar();
+        
+        action Works
+        {
+            std::cout << "Hello from Instance1 Foo Works" << std::endl;
+        }
+    }
+
+    std::cout << "Hello from Instance1" << std::endl;
+    Foo();
+    
+    action Bar : Namespace::Thing
+    {
+        std::cout << "Hello from Bar1" << std::endl;
+        
+        action Other
+        {
+            std::cout << "Hello from Other overridden" << std::endl;
+        }
+    }
+}
+
+
+action Instance2[2] : Namespace::Generic
+{
+
+    action Foo : Namespace::Generic::Foo
+    {
+        std::cout << "Hello from Instance2 Foo" << std::endl;
+        Bar();
+        
+        action Works
+        {
+            std::cout << "Hello from Instance2 Foo Works" << std::endl;
+        }
+    }
+    
+    std::cout << "Hello from Instance2" << std::endl;
+    Foo();
+    
+    action Bar : Namespace::Thing
+    {
+        std::cout << "Hello from Bar2" << std::endl;
+    }
+}
+
+std::vector< Namespace::Generic > ins;
+ins.push_back( Instance1() );
+ins.push_back( Instance2() );
+
+for( Namespace::Generic g : ins )
+{
+    Namespace::Generic::Foo f = g.Foo();
+    //Var< Instance1::Foo::Works, Instance2::Foo::Works >
+    if( auto v = f.Works() )
+    {
+        std::cout << "variant works" << std::endl;
+        auto v2 = v.Other();
+        v2.Works();
+    }
+}

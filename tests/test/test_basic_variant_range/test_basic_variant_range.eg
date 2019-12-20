@@ -14,7 +14,7 @@ action B
     }
 }
 
-Var< A, B > v;
+Var< A, B > v = B();
 
 v.Test.Range();
 

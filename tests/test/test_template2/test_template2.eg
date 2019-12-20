@@ -1,0 +1,23 @@
+
+
+
+abstract Generic
+{
+    dim int x;
+    
+    action Nested
+    {
+        dim int y;
+    }
+}
+
+
+action Instance : Generic
+{
+    using Foo = int;
+    
+    std::cout << x() << std::endl;
+}
+
+
+Instance();
