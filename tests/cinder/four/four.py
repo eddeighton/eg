@@ -8,6 +8,10 @@ r = pyeg.root()
 #camOrbit.radius( 6 )
 #camOrbit.offset( [0, 16, 0 ] )
 
+b = r.Ball.Start()
+b.radius( 0.5 )
+b.colour( [1,0,0] )
+
 mouse = r.Camera.Mouse.Start()
 mouse.radius( 10 )
 mouse.rate( [ 0.01, 0.4 ] )

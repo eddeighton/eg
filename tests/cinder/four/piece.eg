@@ -9,6 +9,18 @@ action BoardLine[ 256 ] : LineSegment
     }
 }
 
+action Ball[ 256 ] : Sphere
+{
+    dim glm::vec2 pos;
+    
+    while( true )
+    {
+        position( cinder::vec3( pos().x + 0.5, 0.5, pos().y + 0.5 ) );
+        Render();
+        eg::sleep();
+    }
+}
+
 action Piece[ 256 ] : Cube
 {
     size( cinder::vec3( 1.0, 1.0, 1.0 ) );

@@ -264,7 +264,7 @@ void BasicApp::draw()
 }
 
 // This line tells Cinder to actually create and run the application.
-CINDER_APP( BasicApp, RendererGl, prepareSettings )
+CINDER_APP( BasicApp, RendererGl( RendererGl::Options().msaa( 8 ) ), prepareSettings )
 
 std::vector< std::string > BasicApp::g_strScripts;
 std::string BasicApp::g_strDatabase;

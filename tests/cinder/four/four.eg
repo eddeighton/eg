@@ -55,6 +55,11 @@ action Automata
     
 }
 
+
+cinder::app::setFrameRate( 120 );
+
+cinder::gl::enableVerticalSync( false );
+
 Camera cam = Camera.Start();
 
 Gui gui = Gui.Start();

@@ -11,6 +11,19 @@ abstract Cube
     }
 }
 
+abstract Sphere
+{
+    dim cinder::vec3 position;
+    dim float radius;
+    dim cinder::vec3 colour;
+    
+    action Render
+    {
+        cinder::gl::color( colour().x, colour().y, colour().z );
+        cinder::gl::drawSphere( position(), Sphere.radius(), 16 );
+    }
+}
+
 abstract LineSegment
 {
     dim cinder::vec3 start;
