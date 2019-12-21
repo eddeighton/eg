@@ -71,11 +71,11 @@ action Gui
                 
                 if( bCameraMode )
                 {
-                    if( cameraOrbit )
+                    if( eg::isActive( cameraOrbit ) )
                     {
                         cameraOrbit.Stop();
                     }
-                    if( !cameraMouse )
+                    if( !eg::isActive( cameraMouse ) )
                     {
                         cameraMouse = Camera.CameraMouse.Start();
                     }
@@ -83,11 +83,11 @@ action Gui
                 }
                 else
                 {
-                    if( cameraMouse )
+                    if( eg::isActive( cameraMouse ) )
                     {
                         cameraMouse.Stop();
                     }
-                    if( !cameraOrbit )
+                    if( !eg::isActive( cameraOrbit ) )
                     {
                         cameraOrbit = Camera.Orbit.Start();
                     }

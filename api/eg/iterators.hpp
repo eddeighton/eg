@@ -60,6 +60,26 @@ inline eg::ActionState getState( eg::TypeID type, eg::Instance instance );
 template< typename ReferenceType >
 inline eg::TimeStamp getStopCycle( eg::TypeID type, eg::Instance instance );
 
+template< typename ReferenceType >
+inline bool isActionActive( eg::TypeID type, eg::Instance instance )
+{
+    return 
+        ( getState< ReferenceType >( type, instance ) != eg::action_stopped ) ||
+        ( getStopCycle< ReferenceType >( type, instance ) == clock::cycle() );
+}
+
+namespace eg
+{
+    template< typename ReferenceType >
+    inline bool isActive( const ReferenceType& ref )
+    {
+        if( ref.data.timestamp != eg::INVALID_TIMESTAMP )
+            return isActionActive< ReferenceType >( ref.data.type, ref.data.instance );
+        else
+            return false;
+    }
+}
+
 template< class ReferenceType >
 class __eg_ReferenceRawIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
 {
@@ -99,9 +119,7 @@ public:
         while( true )
         {
             ++instance;
-            if( ( instance == sentinal ) || 
-                ( getState< ReferenceType >( type, instance ) != eg::action_stopped ) ||
-                ( getStopCycle< ReferenceType >( type, instance ) == clock::cycle() ) )
+            if( ( instance == sentinal ) || ( isActionActive< ReferenceType >( type, instance ) ) )
                 break;
         }
         return *this;
