@@ -64,18 +64,35 @@ action Gui
             //camera control
             ImGui::SameLine();
             ImGui::Checkbox( "Camera", &bCameraMode );
-            if( bCameraMode )
+            
             {
-                auto r = root.Get().Camera.CameraMouse.Raw();
-                if( Camera::CameraMouse cameraMouse = ::eg::one< Camera::CameraMouse >( r ) )
+                Camera::CameraMouse cameraMouse = Camera.CameraMouse.Get();
+                Camera::Orbit cameraOrbit = Camera.Orbit.Get();
+                
+                if( bCameraMode )
                 {
+                    if( cameraOrbit )
+                    {
+                        cameraOrbit.Stop();
+                    }
+                    if( !cameraMouse )
+                    {
+                        cameraMouse = Camera.CameraMouse.Start();
+                    }
                     Mouse.mouseHandler( cameraMouse );
                 }
-            }
-            else
-            {
-                Camera::CameraMouse null;
-                Mouse.mouseHandler( null );
+                else
+                {
+                    if( cameraMouse )
+                    {
+                        cameraMouse.Stop();
+                    }
+                    if( !cameraOrbit )
+                    {
+                        cameraOrbit = Camera.Orbit.Start();
+                    }
+                    Mouse.mouseHandler( cameraOrbit );
+                }
             }
             
             

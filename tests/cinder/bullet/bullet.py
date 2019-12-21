@@ -18,10 +18,12 @@ linecolour = [ 0.1, 0.4, 0.5 ]
 
 
 r.Mouse.Start()
-c = r.Camera.CameraMouse.Start()
-c.radius( 10 )
-c.rate( [ 0.01, 0.4 ] )
-#r.Mouse.mouseHandler( c )
+r.Camera.CameraMouse.radius( 10 )
+r.Camera.CameraMouse.rate( [ 0.01, 0.4 ] )
+
+r.Camera.Orbit.orbit_rate( 0.2 )
+r.Camera.Orbit.orbit_radius( 6 )
+r.Camera.Orbit.orbit_magic( 3 )
 
 
 #grid

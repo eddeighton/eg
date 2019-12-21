@@ -55,6 +55,33 @@ action Automata
     
 }
 
+include( bullet/btBulletDynamicsCommon.h );
+
+
+btDefaultCollisionConfiguration* collisionSystem
+    = new btDefaultCollisionConfiguration();
+    
+btCollisionDispatcher* collisionDispatcher
+    = new btCollisionDispatcher( collisionSystem );
+    
+btBroadphaseInterface* broadphaseInterface
+    = new btDbvtBroadphase();
+    
+btSequentialImpulseConstraintSolver* constraintSolver
+    = new btSequentialImpulseConstraintSolver();
+    
+dim btDiscreteDynamicsWorld* physics;
+    
+btDiscreteDynamicsWorld* dynamicsWorld
+    = new btDiscreteDynamicsWorld( 
+        collisionDispatcher, 
+        broadphaseInterface,
+        constraintSolver,
+        collisionSystem );
+        
+physics( dynamicsWorld );
+        
+dynamicsWorld->setGravity( btVector3( 0, -10, 0 ) );
 
 cinder::app::setFrameRate( 120 );
 
@@ -72,5 +99,12 @@ while( !Done() )
     cinder::gl::enableDepthWrite();
     cinder::gl::setMatrices( perspective() );
 
+    dynamicsWorld->stepSimulation( clock::dt(), 10 );
+    
     eg::sleep();
 }
+
+delete dynamicsWorld;
+delete constraintSolver;
+delete broadphaseInterface;
+delete collisionDispatcher;
