@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 2.8)
 
 
+find_package(Boost 1.73 REQUIRED COMPONENTS 
+			filesystem )
+
 #get boost
-include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
+#include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 
 set( EVENTLOG_SOURCE_DIR ${EG_ROOT_DIR}/src/eventlog )
-#file( GLOB EVENTLOG_SOURCE_HEADERS ${EVENTLOG_SOURCE_DIR}/*.hpp )
-#file( GLOB EVENTLOG_SOURCE_SOURCES ${EVENTLOG_SOURCE_DIR}/*.cpp )
 
 set( EVENTLOG_COMMON_SOURCE
     ${EG_ROOT_DIR}/src/common/assert_verify.hpp
@@ -42,9 +43,9 @@ add_library( eventloglib
 					${EVENTLOG_COMMON_SOURCE}
                     ${EVENTLOG_SOURCE_DIR_SOURCES}
 				)
-		
+				
 set_target_properties( eventloglib PROPERTIES DEBUG_POSTFIX d )
 
-link_boost_usual( eventloglib )
-
+target_link_libraries( eventloglib Boost::filesystem )
+				
 install( TARGETS eventloglib DESTINATION bin)
