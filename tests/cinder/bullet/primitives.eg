@@ -1,14 +1,64 @@
 
+include( btBulletDynamicsCommon.h );
+include( LinearMath/btVector3.h );
+include( LinearMath/btAlignedObjectArray.h );
+include( BulletCollision/CollisionDispatch/btCollisionObject.h );
+include( BulletCollision/CollisionShapes/btCollisionShape.h );
+include( BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h );
 
 abstract Cube
 {
     dim cinder::vec3 position;
     dim cinder::vec3 size;
     
+    dim float mass;
+    dim btMotionState* motion;
+    dim btBoxShape* shape;
+    dim btRigidBody* body;
+    dim btTransform transform;
+    
+    action Constructor
+    {
+        transform.Get().setIdentity();
+        mass( 1.0f );
+        
+        {
+            btMotionState* pMotion = new btDefaultMotionState();
+            pMotion->setWorldTransform( transform() );
+            motion( pMotion );
+        }
+            
+        {
+            btBoxShape* pShape = new btBoxShape( 
+                btVector3( btScalar( 0.5f ), btScalar( 0.5f ), btScalar( 0.5f ) ) );
+            shape( pShape );
+        }
+        
+        {
+            btRigidBody* pBody = new btRigidBody(
+                mass(), motion(), shape() );
+            body( pBody );
+            
+            physics()->addRigidBody( pBody );
+        }
+    }
+    
+    action Destructor
+    {
+        physics()->removeRigidBody( body() );
+        delete motion();
+        delete shape();
+        delete body();
+    }
+    
     action Render
     {
+    
+    
+    
         cinder::gl::drawColorCube( position(), size() );
     }
+    
 }
 
 abstract Sphere

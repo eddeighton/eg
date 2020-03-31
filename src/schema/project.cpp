@@ -218,6 +218,7 @@ void Environment::startCompilationCommand( std::ostream& os ) const
     os << printPath( CLANG ) << " ";
 }
 
+
 void Environment::startLogCommand( std::ostream& os ) const
 {
     static boost::filesystem::path EGLOG;
@@ -246,6 +247,16 @@ const boost::filesystem::path& Environment::getEGLibraryInclude() const
         EG_LIBRARY = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "library";
     }
     return EG_LIBRARY;
+}
+
+const boost::filesystem::path& Project::getClangPluginDll() const
+{
+    static boost::filesystem::path EG_CLANG_PLUGIN;
+    if( EG_CLANG_PLUGIN.empty() )
+    {
+        EG_CLANG_PLUGIN = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg_clang_plugin.dll";
+    }
+    return EG_CLANG_PLUGIN;
 }
 
 std::string Environment::expand( const std::string& strPath ) const

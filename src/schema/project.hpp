@@ -59,6 +59,7 @@ public:
     void startLogCommand( std::ostream& os ) const;
     void startDriverCommand( std::ostream& os ) const;
     const boost::filesystem::path& getEGLibraryInclude() const;
+    const boost::filesystem::path& getClangPluginDll() const;
     
     std::string expand( const std::string& strPath ) const;
     

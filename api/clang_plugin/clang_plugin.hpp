@@ -21,6 +21,7 @@
 #ifndef DATABASE_HEADER_15_04_2019
 #define DATABASE_HEADER_15_04_2019
 
+#include "eg/eg_common_strings.hpp"
 
 #ifdef EG_DATABASE_SHARED_MODULE
     #define EGDB_EXPORT __declspec( dllexport )
@@ -43,29 +44,31 @@ namespace eg
 {
     using EGChar = char;
     
-    EGDB_EXPORT const EGChar* getTypePathString();
-    EGDB_EXPORT const EGChar* getInvocationString();
-    EGDB_EXPORT const EGChar* getVariantString();
-    EGDB_EXPORT const EGChar* getInvokeString();
-    EGDB_EXPORT const EGChar* getResultTypeTrait();
+    struct EGDB_EXPORT EG_PLUGIN_INTERFACE
+    {
+        virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema )=0;
+        virtual void initialiseMode_Interface( const EGChar* strDatabasePath )=0;
+        virtual void initialiseMode_Operations( const EGChar* strDatabasePath, 
+            const EGChar* strTranslationUnitDatabasePath, unsigned uiTranslationUnitID )=0;
+        virtual void initialiseMode_Implementation()=0;
+        virtual void runFinalAnalysis()=0;
 
-    EGDB_EXPORT void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema );
-    EGDB_EXPORT void initialiseMode_Interface( const EGChar* strDatabasePath );
-    EGDB_EXPORT void initialiseMode_Operations( const EGChar* strDatabasePath, 
-        const EGChar* strTranslationUnitDatabasePath, unsigned uiTranslationUnitID );
-    EGDB_EXPORT void initialiseMode_Implementation();
-    EGDB_EXPORT void runFinalAnalysis();
-
-    EGDB_EXPORT bool isEGEnabled();
-    EGDB_EXPORT bool isEGType( const clang::QualType& type );
-    EGDB_EXPORT bool isPossibleEGType( const clang::QualType& type );
-    EGDB_EXPORT bool isPossibleEGTypeIdentifier( const clang::Token& token );
-    EGDB_EXPORT int isPossibleEGTypeIdentifierDecl( const clang::Token& token, bool bIsTypePathParsing );
-    EGDB_EXPORT bool getInvocationOperationType( const clang::SourceLocation& loc, const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType );
-    EGDB_EXPORT bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& baseType, clang::QualType& resultType );
+        virtual bool isEGEnabled()=0;
+        virtual bool isEGType( const clang::QualType& type )=0;
+        virtual bool isPossibleEGType( const clang::QualType& type )=0;
+        virtual bool isPossibleEGTypeIdentifier( const clang::Token& token )=0;
+        virtual int isPossibleEGTypeIdentifierDecl( const clang::Token& token, bool bIsTypePathParsing )=0;
+        virtual bool getInvocationOperationType( const clang::SourceLocation& loc, const clang::QualType& typePathType, bool bHasArguments, clang::QualType& operationType )=0;
+        virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& baseType, clang::QualType& resultType )=0;
+    };
 }
 
+typedef void* (*EG_PLUGIN_INTERFACE_GETTER )();
 
 
+extern "C"
+{
+    void* GET_EG_PLUGIN_INTERFACE();
+}
 
 #endif //DATABASE_HEADER_15_04_2019

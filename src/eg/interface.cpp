@@ -92,7 +92,7 @@ namespace interface
         }
         else
         {
-            THROW_RTE( "Duplicate identifiers" );
+            THROW_RTE( "Duplicate identifiers: " << pLeft->getIdentifier() );
         }
     }
     

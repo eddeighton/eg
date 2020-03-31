@@ -298,6 +298,7 @@ void build_parser_session( const Environment& environment, const Project& projec
             
             osCmd << "-Xclang -emit-pch -o " << environment.printPath( project.getInterfacePCH() ) << " ";
             osCmd << "-Xclang -egdb=" << environment.printPath( project.getParserDBFileName() ) << " ";
+            osCmd << "-Xclang -egdll=" << environment.printPath( project.getClangPluginDll() ) << " ";
             
             osCmd << "-I " << environment.getEGLibraryInclude().generic_string() << " ";
             
@@ -403,6 +404,7 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
             
             osCmd << "-Xclang -emit-pch -o " << environment.printPath( project.getOperationsPCH( strTUName ) ) << " ";
             osCmd << "-Xclang -egdb=" << environment.printPath( project.getInterfaceDBFileName() ) << " ";
+            osCmd << "-Xclang -egdll=" << environment.printPath( project.getClangPluginDll() ) << " ";
             
             osCmd << "-Xclang -egtu=" << environment.printPath( project.getTUDBName( strTUName ) ) << " ";
             osCmd << "-Xclang -egtuid=" << pTranslationUnit->getDatabaseFileID() << " ";

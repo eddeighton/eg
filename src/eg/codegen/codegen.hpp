@@ -21,6 +21,7 @@
 #ifndef CODE_GEN_18_04_2019
 #define CODE_GEN_18_04_2019
 
+#include "eg/eg_common_strings.hpp"
 
 #include "../interface.hpp"
 #include "../sessions/implementation_session.hpp"
@@ -45,15 +46,10 @@ namespace eg
     static const char* EG_INVALID_STATE = "eg::TOTAL_ACTION_STATES";
     static const char* EG_OBJECT_TRAITS = "eg::ObjectTraits";
     static const char* EG_DIMENSION_TRAITS = "eg::DimensionTraits";
-    static const char* EG_TYPE_PATH = "__eg_type_path";
-    static const char* EG_VARIANT_TYPE = "__eg_variant";
-    static const char* EG_INVOCATION_TYPE = "__eg_invocation";
-    static const char* EG_INVOKE_MEMBER_FUNCTION_NAME = "invoke";
     static const char* EG_INVOKE_IMPL_TYPE = "__invoke_impl";
     static const char* EG_REFERENCE_ITERATOR_TYPE = "__eg_ReferenceIterator";
     static const char* EG_REFERENCE_RAW_ITERATOR_TYPE = "__eg_ReferenceRawIterator";
     static const char* EG_MULTI_ITERATOR_TYPE = "__eg_MultiIterator";
-    static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
     static const char* EG_RANGE_TYPE = "__eg_Range";
     static const char* EG_RESULT_TYPE = "eg::result_type";
     static const char* EG_FIBER_TYPE = "boost::fibers::fiber";
