@@ -63,15 +63,23 @@ const boost::filesystem::path Environment::INSTALLATION_FILE = std::string( "ins
 const boost::filesystem::path Environment::WIZARD_FILE = std::string( "wizard.xml" );
 
 const boost::filesystem::path Environment::PYTHON_FILE_EXTENSION = std::string( ".py" );
+
 const std::string Environment::ENV_KEY_EG_INSTALLATION = "EG";
-const std::string Environment::ENV_KEY_CURRENT_PROJECT = "PROJECT";
+/*
 const std::string Environment::ENV_KEY_WINDOWS_10_SDK = "WINDOWS_10_SDK";
 const std::string Environment::ENV_KEY_VISUALSTUDIO = "EG_VISUAL_STUDIO";
-const std::string Environment::ENV_KEY_PYTHONHOME = "PYTHONHOME";
+const std::string Environment::ENV_KEY_PYTHONHOME = "PYTHONHOME";*/
+
+const std::string Environment::ENV_KEY_CURRENT_PROJECT = "PROJECT";
 
 void Environment::commonCtor()
 {
-    std::optional< boost::filesystem::path > egInstallationPath;
+	if( m_environment.count( ENV_KEY_EG_INSTALLATION ) == 0U )
+	{
+        THROW_RTE( "Missing EG environment variable for eg installation location." );
+	}
+	
+    /*std::optional< boost::filesystem::path > egInstallationPath;
     std::optional< boost::filesystem::path > egInstallationXMLFile;
     {
         boost::system::error_code errorCode;
@@ -95,7 +103,7 @@ void Environment::commonCtor()
     }
     if( !egInstallationPath || !egInstallationXMLFile )
     {
-        THROW_RTE( "Failed to locate eg installation" );
+        THROW_RTE( "Failed to locate eg installation.  Missing " );
     }
     else
     {
@@ -160,7 +168,7 @@ void Environment::commonCtor()
         os << "XML error opening: " << egInstallationXMLFile.value().generic_string() << 
             " " << e.line() << ":" << e.column() << ": " << e.text();
         throw std::runtime_error( os.str() );
-    }
+    }*/
 }
 
 Environment::Environment()
@@ -201,10 +209,11 @@ std::string Environment::printPath( const boost::filesystem::path& thePath ) con
 
 void Environment::startCompilationCommand( std::ostream& os ) const
 {
-    static boost::filesystem::path CLANG;// = boost::process::search_path( "clang.exe" );
+    static boost::filesystem::path CLANG = boost::process::search_path( "clang.exe" );
     if( CLANG.empty() )
     {
-        boost::process::environment::const_iterator iFind = m_environment.find( "EG_CLANG" );
+		THROW_RTE("Failed to locate clang.exe in path.  Please ensure the correct clang.exe is configured.");
+        /*boost::process::environment::const_iterator iFind = m_environment.find( "EG_CLANG" );
         if( iFind != m_environment.end() )
         {
             std::vector< std::string > strs = iFind->to_vector();
@@ -213,7 +222,7 @@ void Environment::startCompilationCommand( std::ostream& os ) const
             CLANG = os.str();
         }
         if( CLANG.empty() )
-            CLANG = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "third_party/install/llvm/bin/clang.exe";
+            CLANG = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "third_party/install/llvm/bin/clang.exe";*/
     }
     os << printPath( CLANG ) << " ";
 }
@@ -239,17 +248,7 @@ void Environment::startDriverCommand( std::ostream& os ) const
     os << printPath( EGDRIVER ) << " ";
 }
 
-const boost::filesystem::path& Environment::getEGLibraryInclude() const
-{
-    static boost::filesystem::path EG_LIBRARY;
-    if( EG_LIBRARY.empty() )
-    {
-        EG_LIBRARY = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "library";
-    }
-    return EG_LIBRARY;
-}
-
-const boost::filesystem::path& Project::getClangPluginDll() const
+const boost::filesystem::path& Environment::getClangPluginDll() const
 {
     static boost::filesystem::path EG_CLANG_PLUGIN;
     if( EG_CLANG_PLUGIN.empty() )
@@ -257,6 +256,16 @@ const boost::filesystem::path& Project::getClangPluginDll() const
         EG_CLANG_PLUGIN = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg_clang_plugin.dll";
     }
     return EG_CLANG_PLUGIN;
+}
+
+const boost::filesystem::path& Environment::getEGLibraryInclude() const
+{
+    static boost::filesystem::path EG_LIBRARY;
+    if( EG_LIBRARY.empty() )
+    {
+        EG_LIBRARY = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "include";
+    }
+    return EG_LIBRARY;
 }
 
 std::string Environment::expand( const std::string& strPath ) const
@@ -268,8 +277,7 @@ const egxml::Host& Environment::getHost( const std::string& strHost ) const
 {
     VERIFY_RTE_MSG( !strHost.empty(), "Empty host specification" );
     
-    boost::filesystem::path hostPath = 
-        boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "third_party/install" / strHost / Environment::EG_FILE_EXTENSION;
+    boost::filesystem::path hostPath = strHost / Environment::EG_FILE_EXTENSION;
     VERIFY_RTE_MSG( boost::filesystem::exists( hostPath ), "Failed to locate host at: " << hostPath.generic_string() );
     
     XMLManager::XMLDocPtr pDoc = XMLManager::load( hostPath );
@@ -279,8 +287,7 @@ const egxml::Host& Environment::getHost( const std::string& strHost ) const
 
 const egxml::Package& Environment::getPackage( const std::string& strPackage ) const
 {
-    boost::filesystem::path packagePath = 
-        boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "third_party/install" / strPackage / Environment::EG_FILE_EXTENSION;
+    boost::filesystem::path packagePath = strPackage / Environment::EG_FILE_EXTENSION;
     VERIFY_RTE_MSG( boost::filesystem::exists( packagePath ), "Failed to locate package at: " << packagePath.generic_string() );
     
     XMLManager::XMLDocPtr pDoc = XMLManager::load( packagePath );

@@ -1,20 +1,13 @@
-cmake_minimum_required(VERSION 2.8)
 
-
-find_package(Boost 1.73 REQUIRED COMPONENTS 
-			filesystem )
+cmake_minimum_required( VERSION 3.1...3.16 )
 
 #get boost
-#include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
+
+#get common
+include( ${EG_ROOT_DIR}/cmake/common/common_include.cmake )
 
 set( EVENTLOG_SOURCE_DIR ${EG_ROOT_DIR}/src/eventlog )
-
-set( EVENTLOG_COMMON_SOURCE
-    ${EG_ROOT_DIR}/src/common/assert_verify.hpp
-    ${EG_ROOT_DIR}/src/common/backtrace.hpp
-    ${EG_ROOT_DIR}/src/common/backtrace.cpp
-    ${EG_ROOT_DIR}/src/common/file.hpp
-    ${EG_ROOT_DIR}/src/common/file.cpp )
 
 set( EVENTLOG_SOURCE_HEADERS
     ${EVENTLOG_SOURCE_DIR}/client.hpp  
@@ -39,13 +32,14 @@ set( EVENTLOG_SOURCE_DIR_SOURCES ${EVENTLOG_SOURCE_HEADERS} ${EVENTLOG_SOURCE_SO
 
 include_directories( ${EVENTLOG_SOURCE_DIR} )
 
-add_library( eventloglib
-					${EVENTLOG_COMMON_SOURCE}
-                    ${EVENTLOG_SOURCE_DIR_SOURCES}
-				)
-				
+add_library( eventloglib ${EVENTLOG_SOURCE_DIR_SOURCES} )
+
+set_target_properties( eventloglib PROPERTIES FOLDER log )
+		
 set_target_properties( eventloglib PROPERTIES DEBUG_POSTFIX d )
 
-target_link_libraries( eventloglib Boost::filesystem )
-				
-install( TARGETS eventloglib DESTINATION bin)
+link_boost_usual( eventloglib )
+link_common( eventloglib )
+
+install( FILES ${EVENTLOG_SOURCE_HEADERS} DESTINATION include/eventlog )
+install( TARGETS eventloglib DESTINATION lib )

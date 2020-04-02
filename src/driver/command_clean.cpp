@@ -26,11 +26,10 @@
 #include "egxml/eg_schema-pimpl.hxx"
 #include "egxml/eg_schema-simpl.hxx"
 
-
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
-#include <indicators/progress_bar.hpp>
+#include "indicators/progress_bar.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/optional.hpp>

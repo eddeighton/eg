@@ -44,9 +44,9 @@ public:
     static const boost::filesystem::path PYTHON_FILE_EXTENSION;
     static const std::string ENV_KEY_EG_INSTALLATION;
     static const std::string ENV_KEY_CURRENT_PROJECT;
-    static const std::string ENV_KEY_WINDOWS_10_SDK;
-    static const std::string ENV_KEY_VISUALSTUDIO;
-    static const std::string ENV_KEY_PYTHONHOME;
+    //static const std::string ENV_KEY_WINDOWS_10_SDK;
+    //static const std::string ENV_KEY_VISUALSTUDIO;
+    //static const std::string ENV_KEY_PYTHONHOME;
     
     void commonCtor();
     
@@ -65,7 +65,7 @@ public:
     
     const std::string get( const std::string& strKey ) const;
     
-    const egxml::Host&  getHost( const std::string& strHost ) const;
+    const egxml::Host& getHost( const std::string& strHost ) const;
     const egxml::Package& getPackage( const std::string& strPackage ) const;
     
     const boost::process::environment& getEnvironment() const { return m_environment; }

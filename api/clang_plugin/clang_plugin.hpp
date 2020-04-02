@@ -68,7 +68,7 @@ typedef void* (*EG_PLUGIN_INTERFACE_GETTER )();
 
 extern "C"
 {
-    void* GET_EG_PLUGIN_INTERFACE();
+    EGDB_EXPORT void* GET_EG_PLUGIN_INTERFACE();
 }
 
 #endif //DATABASE_HEADER_15_04_2019
