@@ -12,7 +12,8 @@ echo %1
 set TestFolder=%1
 pushd %TestFolder%
 
-eg --log fail pass error
+if exist build/database.db ( eg --log fail pass error 
+) else ( echo NO DATABASE! )
 
 popd
 

@@ -4,7 +4,7 @@ abstract Namespace
 {
     abstract Generic
     {
-        std::cout << "Hello from template" << std::endl;
+        //std::cout << "Hello from template" << std::endl;
         
         action Foo
         {

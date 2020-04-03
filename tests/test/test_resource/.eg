@@ -2,7 +2,6 @@
   <Project>
     <Name>test_resource</Name>
     <Host>${ROOT}/basic</Host>
-    <Package>common</Package>
     <Files>
         <Include>testResourceHandler.hpp</Include>
         <Source>testResourceHandler.cpp</Source>
