@@ -46,9 +46,6 @@ int main( int argc, const char* argv[] )
     
     os << "#include \"structures.hpp\"\n";
     
-    //detect if we want scripting package support
-    if( cmdLine.packages.count( "pybind11" ) )
-    {
     const char pszPythonScripts[] = R"(
 extern std::vector< std::function< void() > > loadPythonScripts( const std::vector< std::string >& scripts, const std::string& strDatabaseFile );
 std::vector< std::function< void() > > loadScripts( const std::vector< std::string >& scripts, const std::string& strDatabase )
@@ -57,22 +54,6 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
 }
     )";
     os << pszPythonScripts;
-    }
-    else
-    {
-    const char pszPythonScripts[] = R"(
-std::vector< std::function< void() > > loadScripts( const std::vector< std::string >& scripts, const std::string& strDatabase )
-{
-    if( !scripts.empty() )
-    {
-        throw std::runtime_error( "Scripts specified when no scripting package enabled" );
-    }
-    std::vector< std::function< void() > > doNothing;
-    return doNothing;
-}
-    )";
-    os << pszPythonScripts;
-    }
     
     const char* pszInputEventsImpl = R"(
 
@@ -198,7 +179,7 @@ void BasicApp::setup()
 {
     boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
     
-    ImGui::initialize();
+    ImGui::Initialize();
         
     extraRootFunctions = loadScripts( g_strScripts, g_strDatabase );
         

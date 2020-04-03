@@ -276,8 +276,12 @@ std::string Environment::expand( const std::string& strPath ) const
 const egxml::Host& Environment::getHost( const std::string& strHost ) const
 {
     VERIFY_RTE_MSG( !strHost.empty(), "Empty host specification" );
-    
-    boost::filesystem::path hostPath = strHost / Environment::EG_FILE_EXTENSION;
+	
+	const boost::filesystem::path hostPath =
+		boost::filesystem::edsCannonicalise(
+			expand( strHost ) / Environment::EG_FILE_EXTENSION );
+
+    //boost::filesystem::path hostPath = strHost / Environment::EG_FILE_EXTENSION;
     VERIFY_RTE_MSG( boost::filesystem::exists( hostPath ), "Failed to locate host at: " << hostPath.generic_string() );
     
     XMLManager::XMLDocPtr pDoc = XMLManager::load( hostPath );
@@ -287,7 +291,13 @@ const egxml::Host& Environment::getHost( const std::string& strHost ) const
 
 const egxml::Package& Environment::getPackage( const std::string& strPackage ) const
 {
-    boost::filesystem::path packagePath = strPackage / Environment::EG_FILE_EXTENSION;
+    VERIFY_RTE_MSG( !strPackage.empty(), "Empty package specification" );
+	
+	const boost::filesystem::path packagePath =
+		boost::filesystem::edsCannonicalise(
+			expand( strPackage ) / Environment::EG_FILE_EXTENSION );
+			
+    //boost::filesystem::path packagePath = strPackage / Environment::EG_FILE_EXTENSION;
     VERIFY_RTE_MSG( boost::filesystem::exists( packagePath ), "Failed to locate package at: " << packagePath.generic_string() );
     
     XMLManager::XMLDocPtr pDoc = XMLManager::load( packagePath );

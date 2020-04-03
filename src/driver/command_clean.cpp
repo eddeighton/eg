@@ -62,7 +62,7 @@ void command_clean( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        
+        /*
         indicators::ProgressBar bar;
         {
             // Configure the bar
@@ -84,7 +84,7 @@ void command_clean( bool bHelp, const std::vector< std::string >& args )
                 break;
             using namespace std::literals;
             std::this_thread::sleep_for( 100ms );
-        }
+        }*/
         
         const boost::filesystem::path projectDirectory = 
             boost::filesystem::edsCannonicalise(
