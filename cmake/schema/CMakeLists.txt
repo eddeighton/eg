@@ -7,6 +7,9 @@ include( ${EG_ROOT_DIR}/cmake/xsde_include.cmake )
 #get boost
 include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 
+#get common
+include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
+
 #handle the schema code gen
 set( SCHEMA_SOURCE_DIR ${EG_ROOT_DIR}/src/schema )
 
@@ -86,6 +89,7 @@ set_target_properties( schemalib PROPERTIES DEBUG_POSTFIX d )
 
 link_xsde( schemalib )
 link_boost( schemalib filesystem )
+link_common( schemalib )
 
 install( FILES  ${OTHER_HEADERS} DESTINATION include/schema )
 install( FILES  ${EG_SCHEMA_GENERATED_HEADERS} DESTINATION include/schema/egxml )

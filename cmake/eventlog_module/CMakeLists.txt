@@ -5,7 +5,7 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 
 #get common
-include( ${EG_ROOT_DIR}/cmake/common/common_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
 
 #get eventlog lib
 include( ${EG_ROOT_DIR}/cmake/eventlog/eventlog_include.cmake )

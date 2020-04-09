@@ -5,7 +5,7 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 
 #get common
-include( ${EG_ROOT_DIR}/cmake/common/common_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
 
 #get eventlog
 include( ${EG_ROOT_DIR}/cmake/eventlog/eventlog_include.cmake )
@@ -33,7 +33,7 @@ link_boost( eglog program_options )
 link_boost( eglog filesystem )
 link_boost( eglog system )
 link_boost( eglog date_time )
-link_common( eglib )
+link_common( eglog )
 link_eventlog( eglog )
 link_eg( eglog )
 

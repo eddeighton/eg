@@ -11,7 +11,7 @@ include( ${EG_ROOT_DIR}/cmake/schema/schema_include.cmake )
 include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 
 #get common
-include( ${EG_ROOT_DIR}/cmake/common/common_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
 
 #glob the rest of the source code
 set( INNOSETUP_SOURCE_DIR ${EG_ROOT_DIR}/src/innosetup )

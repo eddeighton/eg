@@ -24,7 +24,7 @@
 #include "derivation.hpp"
 #include "invocation.hpp"
 
-#include "common/require_semicolon.hpp"
+#include "common/requireSemicolon.hpp"
 
 #include <exception>
 

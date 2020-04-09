@@ -58,7 +58,7 @@ include (InstallRequiredSystemLibraries)
 #now simply add all the actual targets
 
 add_subdirectory(schema)
-add_subdirectory(common)
+#add_subdirectory(common)
 add_subdirectory(eventlog)
 add_subdirectory(eg)
 add_subdirectory(eventlog_cmd)

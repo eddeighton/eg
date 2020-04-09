@@ -11,7 +11,7 @@ include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 include( ${EG_ROOT_DIR}/cmake/gtest_include.cmake )
 
 #get common
-include( ${EG_ROOT_DIR}/cmake/common/common_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
 
 #get the unit test utils
 #include( ${MODULE_DIR}/test_utils/cmake/test_utils_include.cmake )

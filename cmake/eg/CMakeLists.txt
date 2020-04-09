@@ -8,7 +8,7 @@ include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 
 #get common
-include( ${EG_ROOT_DIR}/cmake/common/common_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
 
 set( EG_LIBRARY
 	${EG_API_DIR}/eg/backtrace.hpp

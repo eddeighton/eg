@@ -17,7 +17,7 @@ include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 include( ${EG_ROOT_DIR}/cmake/indicators_include.cmake )
 
 #get common
-include( ${EG_ROOT_DIR}/cmake/common/common_include.cmake )
+include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
 
 #get eg
 include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
