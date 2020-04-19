@@ -21,7 +21,7 @@
 
 
 
-#include "eg/sessions/implementation_session.hpp"
+#include "eg_compiler/sessions/implementation_session.hpp"
 
 #include "schema/project.hpp"
 

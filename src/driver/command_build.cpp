@@ -24,16 +24,16 @@
 #include "egxml/eg_schema-pimpl.hxx"
 #include "egxml/eg_schema-simpl.hxx"
 
-#include "eg/sessions/parser_session.hpp"
-#include "eg/sessions/interface_session.hpp"
-#include "eg/sessions/operations_session.hpp"
-#include "eg/sessions/implementation_session.hpp"
-#include "eg/codegen/codegen.hpp"
+#include "eg_compiler/sessions/parser_session.hpp"
+#include "eg_compiler/sessions/interface_session.hpp"
+#include "eg_compiler/sessions/operations_session.hpp"
+#include "eg_compiler/sessions/implementation_session.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
-
+/*
 #pragma warning( push )
 #include "common/clang_warnings.hpp"
 
@@ -44,7 +44,7 @@
 #include "clang/Basic/Diagnostic.h"
 
 #pragma warning( pop ) 
-
+*/
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -59,23 +59,6 @@
 #include <iostream>
 #include <memory>
 #include <map>
-
-
-class EGDiagConsumer : public clang::DiagnosticConsumer 
-{
-    virtual void anchor()
-    {
-    }
-
-    void HandleDiagnostic( clang::DiagnosticsEngine::Level DiagLevel,
-                        const clang::Diagnostic &Info) override 
-    {
-        llvm::SmallString< 100 > msg;
-        Info.FormatDiagnostic( msg );
-        std::string str = msg.str();
-        std::cout << str << std::endl;
-    }
-};
 
 struct LogEntry
 {
@@ -145,19 +128,11 @@ private:
 void build_parser_session( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, 
     bool bBenchCommands, bool bLogCommands, bool bNoReUsePCH )
 {
-    //create clang file manager
-    clang::FileSystemOptions fileSystemOptions = { boost::filesystem::current_path().string() };
-    std::shared_ptr< clang::FileManager > pFileManager =
-        std::make_shared< clang::FileManager >( fileSystemOptions );
-        
-    //create clang diagnostics engine
-    llvm::IntrusiveRefCntPtr< clang::DiagnosticOptions > pDiagnosticOptions( new clang::DiagnosticOptions() );
-    llvm::IntrusiveRefCntPtr< clang::DiagnosticIDs > pDiagnosticIDs( new clang::DiagnosticIDs() );
-    llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine( 
-        new clang::DiagnosticsEngine( pDiagnosticIDs, pDiagnosticOptions, new EGDiagConsumer() ) );
-        
+	
     const std::vector< boost::filesystem::path > egSourceCode = project.getEGSourceCode();
     
+	eg::ParserDiagnosticSystem diagnosticSystem( boost::filesystem::current_path().string(), std::cout );
+	
     std::unique_ptr< eg::ParserSession > pParserSession;
     
     bool bParserDBChanged = true;
@@ -175,7 +150,7 @@ void build_parser_session( const Environment& environment, const Project& projec
         }
         
         pParserSession = std::make_unique< eg::ParserSession >();
-        pParserSession->parse( egSourceCode, pFileManager, pDiagnosticsEngine );
+        pParserSession->parse( egSourceCode, diagnosticSystem );
         
         //build the eg master tree
         pParserSession->buildAbstractTree();

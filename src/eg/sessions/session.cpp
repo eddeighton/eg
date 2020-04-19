@@ -19,7 +19,7 @@
 
 
 
-#include "session.hpp"
+#include "eg_compiler/sessions/session.hpp"
 
 namespace eg
 {

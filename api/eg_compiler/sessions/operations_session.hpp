@@ -22,10 +22,10 @@
 #define OPERATIONS_SESSION_19_04_2019
 
 #include "session.hpp"
-#include "../derivation.hpp"
-#include "../identifiers.hpp"
-#include "../derivation.hpp"
-#include "../invocation.hpp"
+#include "eg_compiler/derivation.hpp"
+#include "eg_compiler/identifiers.hpp"
+#include "eg_compiler/derivation.hpp"
+#include "eg_compiler/invocation.hpp"
 
 #include "eg/common.hpp"
 

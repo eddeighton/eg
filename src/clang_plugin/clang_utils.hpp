@@ -21,7 +21,7 @@
 #ifndef CLANG_UTILS_19_04_2019
 #define CLANG_UTILS_19_04_2019
 
-#include "eg/eg.hpp"
+#include "eg_compiler/eg.hpp"
 
 #pragma warning( push )
 #include "common/clang_warnings.hpp"

@@ -20,8 +20,8 @@
 
 #include "generators.hpp"
 
-#include "eg/sessions/implementation_session.hpp"
-#include "eg/codegen/codegen.hpp"
+#include "eg_compiler/sessions/implementation_session.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"

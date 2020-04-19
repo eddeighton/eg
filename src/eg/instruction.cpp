@@ -17,8 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "instruction.hpp"
-#include "eg/codegen/codegen.hpp"
+#include "eg_compiler/instruction.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
 namespace eg
 {

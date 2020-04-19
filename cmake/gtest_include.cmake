@@ -16,10 +16,10 @@ find_package( GTest REQUIRED )
 
 function( link_gtest targetname )
 	target_include_directories( ${targetname} PRIVATE ${GTEST_INCLUDE_DIR} )
-	target_link_libraries( ${targetname} debug ${GTEST_LIBRARY_DEBUG} optimized ${GTEST_LIBRARY} )
+	target_link_libraries( ${targetname} PUBLIC debug ${GTEST_LIBRARY_DEBUG} optimized ${GTEST_LIBRARY} )
 endfunction( link_gtest )
 
 function( link_gtest_main targetname )
 	target_include_directories( ${targetname} PRIVATE ${GTEST_INCLUDE_DIR} )
-	target_link_libraries( ${targetname} debug ${GTEST_MAIN_LIBRARY_DEBUG} optimized ${GTEST_MAIN_LIBRARY} )
+	target_link_libraries( ${targetname} PUBLIC debug ${GTEST_MAIN_LIBRARY_DEBUG} optimized ${GTEST_MAIN_LIBRARY} )
 endfunction( link_gtest_main )

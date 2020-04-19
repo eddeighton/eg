@@ -18,10 +18,10 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "indexed_object.hpp"
+#include "eg_compiler/io/indexed_object.hpp"
 
-#include "loader.hpp"
-#include "storer.hpp"
+#include "eg_compiler/io/loader.hpp"
+#include "eg_compiler/io/storer.hpp"
 
 namespace
 {

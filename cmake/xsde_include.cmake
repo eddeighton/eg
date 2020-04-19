@@ -14,7 +14,7 @@ INCLUDE_DIRECTORIES( optimized ${XSDE_BUILD_RELEASE_DIR} debug ${XSDE_BUILD_DEBU
 LINK_DIRECTORIES( optimized ${XSDE_BUILD_RELEASE_DIR} debug ${XSDE_BUILD_DEBUG_DIR} )
 
 function( link_xsde targetname )
-    target_link_libraries( ${targetname} optimized ${XSDE_RELEASE_LIB} debug ${XSDE_DEBUG_LIB} )
+    target_link_libraries( ${targetname} PUBLIC optimized ${XSDE_RELEASE_LIB} debug ${XSDE_DEBUG_LIB} )
 endfunction( link_xsde )
 
 macro( compile_schema target_name xml_schema nmspace output_directory )

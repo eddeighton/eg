@@ -18,7 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "identifiers.hpp"
+#include "eg_compiler/identifiers.hpp"
 
 namespace eg
 {

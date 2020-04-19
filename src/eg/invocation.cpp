@@ -19,10 +19,9 @@
 
 
 
-#include "invocation.hpp"
-
-#include "identifiers.hpp"
-#include "name_resolution.hpp"
+#include "eg_compiler/invocation.hpp"
+#include "eg_compiler/identifiers.hpp"
+#include "eg_compiler/name_resolution.hpp"
 
 namespace eg
 {

@@ -64,7 +64,7 @@ set( INSTALLATION_SCHEMA_GENERATED_SOURCE
         
 set( OTHER_HEADERS
         ${SCHEMA_SOURCE_DIR}/environment_string.hpp
-        ${SCHEMA_SOURCE_DIR}/project.hpp )
+        ${SCHEMA_SOURCE_DIR}/project.hpp)
 set( OTHER_SOURCES
         ${SCHEMA_SOURCE_DIR}/environment_string.cpp
         ${SCHEMA_SOURCE_DIR}/project.cpp )

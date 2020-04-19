@@ -18,7 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "loader.hpp"
+#include "eg_compiler/io/loader.hpp"
 
 #include "common/file.hpp"
 

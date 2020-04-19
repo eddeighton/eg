@@ -19,7 +19,7 @@
 
 
 
-#include "derivation.hpp"
+#include "eg_compiler/derivation.hpp"
 
 namespace eg
 {

@@ -23,7 +23,7 @@
 
 #include "interface.hpp"
 
-#include <io/indexed_object.hpp>
+#include "eg_compiler/io/indexed_object.hpp"
 
 #include <map>
 

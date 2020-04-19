@@ -20,9 +20,9 @@
 
 #include "clang_utils.hpp"
 
-#include "eg/eg.hpp"
-#include "eg/sessions/interface_session.hpp"
-#include "eg/codegen/codegen.hpp"
+#include "eg_compiler/eg.hpp"
+#include "eg_compiler/sessions/interface_session.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
 #pragma warning( push )
 #include "common/clang_warnings.hpp"

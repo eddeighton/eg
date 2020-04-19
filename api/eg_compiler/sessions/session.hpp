@@ -21,9 +21,8 @@
 #ifndef SESSION_18_04_2019
 #define SESSION_18_04_2019
 
-#include "../objects.hpp"
-
-#include "io/indexed_object.hpp"
+#include "eg_compiler/objects.hpp"
+#include "eg_compiler/io/indexed_object.hpp"
 
 namespace eg
 {

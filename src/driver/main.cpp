@@ -20,11 +20,11 @@
 #include "egxml/eg_schema.hxx"
 #include "egxml/eg_schema-pimpl.hxx"
 
-#include "eg/sessions/parser_session.hpp"
-#include "eg/sessions/interface_session.hpp"
-#include "eg/sessions/operations_session.hpp"
-#include "eg/sessions/implementation_session.hpp"
-#include "eg/codegen/codegen.hpp"
+#include "eg_compiler/sessions/parser_session.hpp"
+#include "eg_compiler/sessions/interface_session.hpp"
+#include "eg_compiler/sessions/operations_session.hpp"
+#include "eg_compiler/sessions/implementation_session.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
 #pragma warning( push )
 #include "common/clang_warnings.hpp"

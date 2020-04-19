@@ -18,7 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "implementation_session.hpp"
+#include "eg_compiler/sessions/implementation_session.hpp"
 
 namespace eg
 {

@@ -18,7 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "name_resolution.hpp"
+#include "eg_compiler/name_resolution.hpp"
 
 namespace eg
 {

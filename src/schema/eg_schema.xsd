@@ -43,7 +43,7 @@
 			<xs:element name="Description" type="xs:string" minOccurs="0"/>
 			<xs:element name="Package" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="Files" type="Files" minOccurs="0"/>
-			<xs:element name="Build" maxOccurs="unbounded">
+			<xs:element name="Build" minOccurs="0" maxOccurs="unbounded">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="Name" type="xs:string"/>
@@ -52,7 +52,7 @@
 					</xs:sequence>
 				</xs:complexType>
 			</xs:element>
-			<xs:element name="Run" maxOccurs="unbounded">
+			<xs:element name="Run" minOccurs="0" maxOccurs="unbounded">
 				<xs:complexType>
 					<xs:sequence>
 						<xs:element name="Name" type="xs:string"/>

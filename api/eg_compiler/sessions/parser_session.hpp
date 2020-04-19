@@ -23,8 +23,6 @@
 
 #include "session.hpp"
 
-#include "llvm/ADT/IntrusiveRefCntPtr.h"
-
 #include <boost/filesystem.hpp>
 
 #include <vector>
@@ -54,6 +52,15 @@ namespace eg
         class Element;
         class Root;
     }
+	
+	class ParserDiagnosticSystem
+	{
+	public:
+		ParserDiagnosticSystem( const boost::filesystem::path& currentPath, std::ostream& os );
+		
+		class Pimpl;
+		std::shared_ptr< Pimpl > m_pImpl;
+	};
         
     class ParserSession : public CreatingSession
     {
@@ -61,8 +68,7 @@ namespace eg
         ParserSession();
         
         void parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles, 
-            std::shared_ptr< clang::FileManager > pFileManager,
-            llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine );
+			ParserDiagnosticSystem& diagnosticSystem );
             
         void buildAbstractTree();
         

@@ -21,13 +21,13 @@
 
 #include "clang_plugin/clang_plugin.hpp"
 
-#include "eg/sessions/interface_session.hpp"
-#include "eg/sessions/operations_session.hpp"
-#include "eg/identifiers.hpp"
-#include "eg/eg.hpp"
-#include "eg/codegen/codegen.hpp"
-#include "eg/name_resolution.hpp"
-#include "eg/invocation.hpp"
+#include "eg_compiler/sessions/interface_session.hpp"
+#include "eg_compiler/sessions/operations_session.hpp"
+#include "eg_compiler/identifiers.hpp"
+#include "eg_compiler/eg.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
+#include "eg_compiler/name_resolution.hpp"
+#include "eg_compiler/invocation.hpp"
 
 #include "common/backtrace.hpp"
 

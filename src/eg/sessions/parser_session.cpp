@@ -19,11 +19,11 @@
 
 
 
-#include "parser_session.hpp"
+#include "eg_compiler/sessions/parser_session.hpp"
 
-#include "../input.hpp"
-#include "../interface.hpp"
-#include "../identifiers.hpp"
+#include "eg_compiler/input.hpp"
+#include "eg_compiler/interface.hpp"
+#include "eg_compiler/identifiers.hpp"
 
 //disable clang warnings
 #pragma warning( push )
@@ -44,6 +44,9 @@
 #include "clang/Lex/PreprocessorOptions.h"
 #include "clang/Lex/Preprocessor.h"
 #include "clang/Parse/ParseDiagnostic.h"
+#include "clang/Basic/FileSystemOptions.h"
+#include "clang/Basic/DiagnosticIDs.h"
+#include "clang/Basic/DiagnosticOptions.h"
 
 #pragma warning( pop ) 
 
@@ -51,6 +54,71 @@
 
 namespace eg
 {
+	
+class ParserDiagnosticSystem::Pimpl
+{
+	class EGDiagConsumer : public clang::DiagnosticConsumer 
+	{
+		std::ostream& m_outStream;
+	public:
+		EGDiagConsumer( std::ostream& os )
+			:	m_outStream( os )
+		{
+			
+		}
+		
+		virtual void anchor()
+		{
+		}
+
+		void HandleDiagnostic( clang::DiagnosticsEngine::Level DiagLevel,
+							const clang::Diagnostic &Info) override 
+		{
+			llvm::SmallString< 100 > msg;
+			Info.FormatDiagnostic( msg );
+			std::string str = msg.str();
+			m_outStream << str << "\n";
+		}
+	};
+
+public:
+	std::shared_ptr< clang::FileManager > m_pFileManager;
+	
+	llvm::IntrusiveRefCntPtr< clang::DiagnosticOptions > m_pDiagnosticOptions;
+	llvm::IntrusiveRefCntPtr< clang::DiagnosticIDs > m_pDiagnosticIDs;
+	llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > m_pDiagnosticsEngine;
+		
+	Pimpl( const boost::filesystem::path& currentPath, std::ostream& os )
+		:	m_pFileManager( std::make_shared< clang::FileManager >( clang::FileSystemOptions{ currentPath.string() } ) ),
+		
+			m_pDiagnosticOptions( new clang::DiagnosticOptions() ),
+			m_pDiagnosticIDs( new clang::DiagnosticIDs() ),
+			m_pDiagnosticsEngine( 
+				new clang::DiagnosticsEngine( 
+					m_pDiagnosticIDs, 
+					m_pDiagnosticOptions, 
+					new EGDiagConsumer( os ) ) )
+	{
+	}
+};
+	
+ParserDiagnosticSystem::ParserDiagnosticSystem( const boost::filesystem::path& currentPath, std::ostream& os )
+	:	m_pImpl( new Pimpl( currentPath, os ) )
+{
+	
+}
+
+std::shared_ptr< clang::FileManager >
+	get_clang_fileManager( ParserDiagnosticSystem& diagnosticSystem )
+{
+	return diagnosticSystem.m_pImpl->m_pFileManager;
+}
+
+llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
+	get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem )
+{
+	return diagnosticSystem.m_pImpl->m_pDiagnosticsEngine;
+}
 
 #define EG_PARSER_ERROR( msg ) \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
@@ -1558,8 +1626,8 @@ namespace eg
     
 
     input::Root* parse( const boost::filesystem::path& egSourceFile,
-                std::shared_ptr< clang::FileManager > pFileManager,
-                llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine,
+				std::shared_ptr< clang::FileManager > pFileManager,
+				llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine,
                 ParserSession& session, bool bMainRoot )
     {
         //check file exists
@@ -1587,9 +1655,14 @@ namespace eg
     }
 
     void ParserSession::parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles, 
-        std::shared_ptr< clang::FileManager > pFileManager,
-        llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine )
+		ParserDiagnosticSystem& diagnosticSystem )
     {
+        std::shared_ptr< clang::FileManager > pFileManager = 
+			get_clang_fileManager( diagnosticSystem );
+			
+		llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = 
+			get_llvm_diagnosticEngine( diagnosticSystem );
+		
         std::set< boost::filesystem::path > includePaths;
         for( const boost::filesystem::path& filePath : egSourceCodeFiles )
         {

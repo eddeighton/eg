@@ -31,52 +31,63 @@ set( EG_LIBRARY
 	${EG_API_DIR}/eg/type_path.hpp
 	${EG_API_DIR}/eg/variant.hpp
 	)
-
+	
+set( EG_API
+    ${EG_API_DIR}/eg_compiler/eg.hpp
+    ${EG_API_DIR}/eg_compiler/objects.hpp
+    ${EG_API_DIR}/eg_compiler/input.hpp
+    ${EG_API_DIR}/eg_compiler/interface.hpp
+    ${EG_API_DIR}/eg_compiler/concrete.hpp
+    ${EG_API_DIR}/eg_compiler/derivation.hpp
+    ${EG_API_DIR}/eg_compiler/layout.hpp
+    ${EG_API_DIR}/eg_compiler/identifiers.hpp
+    ${EG_API_DIR}/eg_compiler/name_resolution.hpp
+    ${EG_API_DIR}/eg_compiler/invocation.hpp
+    ${EG_API_DIR}/eg_compiler/instruction.hpp
+	)
+	
+set( EG_API_SESSIONS
+    ${EG_API_DIR}/eg_compiler/sessions/session.hpp
+    ${EG_API_DIR}/eg_compiler/sessions/parser_session.hpp
+    ${EG_API_DIR}/eg_compiler/sessions/interface_session.hpp
+    ${EG_API_DIR}/eg_compiler/sessions/implementation_session.hpp
+    ${EG_API_DIR}/eg_compiler/sessions/operations_session.hpp
+	)
+	
+set( EG_API_CODEGEN
+    ${EG_API_DIR}/eg_compiler/codegen/codegen.hpp
+	)
+	
+set( EG_API_IO
+    ${EG_API_DIR}/eg_compiler/io/archive.hpp
+    ${EG_API_DIR}/eg_compiler/io/indexed_object.hpp
+    ${EG_API_DIR}/eg_compiler/io/loader.hpp
+    ${EG_API_DIR}/eg_compiler/io/storer.hpp
+	)
+	
 set( EG_SOURCES
-    
-    ${EG_SRC_DIR}/io/archive.hpp
-    ${EG_SRC_DIR}/io/indexed_object.hpp
     ${EG_SRC_DIR}/io/indexed_object.cpp
-    ${EG_SRC_DIR}/io/loader.hpp
     ${EG_SRC_DIR}/io/loader.cpp
-    ${EG_SRC_DIR}/io/storer.hpp
     ${EG_SRC_DIR}/io/storer.cpp
     
-    ${EG_SRC_DIR}/eg/eg.hpp
     ${EG_SRC_DIR}/eg/eg.cpp
-    ${EG_SRC_DIR}/eg/objects.hpp
     ${EG_SRC_DIR}/eg/objects.cpp
-    ${EG_SRC_DIR}/eg/input.hpp
     ${EG_SRC_DIR}/eg/input.cpp
-    ${EG_SRC_DIR}/eg/interface.hpp
     ${EG_SRC_DIR}/eg/interface.cpp
-    ${EG_SRC_DIR}/eg/concrete.hpp
     ${EG_SRC_DIR}/eg/concrete.cpp
-    ${EG_SRC_DIR}/eg/derivation.hpp
     ${EG_SRC_DIR}/eg/derivation.cpp
-    ${EG_SRC_DIR}/eg/layout.hpp
     ${EG_SRC_DIR}/eg/layout.cpp
-    ${EG_SRC_DIR}/eg/identifiers.hpp
     ${EG_SRC_DIR}/eg/identifiers.cpp
-    ${EG_SRC_DIR}/eg/name_resolution.hpp
     ${EG_SRC_DIR}/eg/name_resolution.cpp
-    ${EG_SRC_DIR}/eg/invocation.hpp
     ${EG_SRC_DIR}/eg/invocation.cpp
-    ${EG_SRC_DIR}/eg/instruction.hpp
     ${EG_SRC_DIR}/eg/instruction.cpp
     
-    ${EG_SRC_DIR}/eg/sessions/session.hpp
     ${EG_SRC_DIR}/eg/sessions/session.cpp
-    ${EG_SRC_DIR}/eg/sessions/parser_session.hpp
     ${EG_SRC_DIR}/eg/sessions/parser_session.cpp
-    ${EG_SRC_DIR}/eg/sessions/interface_session.hpp
     ${EG_SRC_DIR}/eg/sessions/interface_session.cpp
-    ${EG_SRC_DIR}/eg/sessions/implementation_session.hpp
     ${EG_SRC_DIR}/eg/sessions/implementation_session.cpp
-    ${EG_SRC_DIR}/eg/sessions/operations_session.hpp
     ${EG_SRC_DIR}/eg/sessions/operations_session.cpp
     
-    ${EG_SRC_DIR}/eg/codegen/codegen.hpp
     ${EG_SRC_DIR}/eg/codegen/codegen.cpp
     ${EG_SRC_DIR}/eg/codegen/codegen_includes.cpp
     ${EG_SRC_DIR}/eg/codegen/codegen_interface.cpp
@@ -89,11 +100,14 @@ set( EG_SOURCES
     
 add_library( eglib 
                     ${DATABASE_API}
+					${EG_API}
+					${EG_API_IO}
+					${EG_API_SESSIONS}
+					${EG_API_CODEGEN}
                     ${EG_SOURCES}
 				)
 
 set_target_properties( eglib PROPERTIES FOLDER eg )
-
 set_target_properties( eglib PROPERTIES DEBUG_POSTFIX d )
 
 link_boost( eglib filesystem )
@@ -103,4 +117,9 @@ link_clang( eglib )
 link_common( eglib )
 
 install( FILES ${EG_LIBRARY} DESTINATION include/eg )
-install( TARGETS eglib DESTINATION lib)
+install( FILES ${EG_API} DESTINATION include/eg_compiler )
+install( FILES ${EG_API_IO} DESTINATION include/eg_compiler/io )
+install( FILES ${EG_API_SESSIONS} DESTINATION include/eg_compiler/sessions )
+install( FILES ${EG_API_CODEGEN} DESTINATION include/eg_compiler/codegen )
+install( TARGETS eglib EXPORT eg DESTINATION lib)
+install( EXPORT eg NAMESPACE EG:: FILE eg-config.cmake DESTINATION share )

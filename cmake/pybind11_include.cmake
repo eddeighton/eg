@@ -17,6 +17,6 @@ function( link_pybind11 targetname )
 
 	#target_include_directories( ${targetname} PRIVATE ${INDICATORS_INCLUDEDIR} )
 	
-    target_link_libraries( ${targetname} pybind11::embed) 
+    target_link_libraries( ${targetname} PUBLIC pybind11::embed) 
 	
 endfunction( link_pybind11 )

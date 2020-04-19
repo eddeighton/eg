@@ -18,8 +18,8 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "layout.hpp"
-#include "concrete.hpp"
+#include "eg_compiler/layout.hpp"
+#include "eg_compiler/concrete.hpp"
 
 namespace eg
 {

@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "eg/sessions/operations_session.hpp"
+#include "eg_compiler/sessions/operations_session.hpp"
 
 #include "test_utils.hpp"
 

@@ -22,11 +22,11 @@
 #define IMPLEMENTATION_SESSION_18_02_2019
 
 #include "session.hpp"
-#include "../concrete.hpp"
-#include "../derivation.hpp"
-#include "../layout.hpp"
-#include "../identifiers.hpp"
-#include "../invocation.hpp"
+#include "eg_compiler/concrete.hpp"
+#include "eg_compiler/derivation.hpp"
+#include "eg_compiler/layout.hpp"
+#include "eg_compiler/identifiers.hpp"
+#include "eg_compiler/invocation.hpp"
 
 namespace eg
 {

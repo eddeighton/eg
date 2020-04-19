@@ -19,9 +19,9 @@
 
 
 
-#include "interface_session.hpp"
+#include "eg_compiler/sessions/interface_session.hpp"
 
-#include "../interface.hpp"
+#include "eg_compiler/interface.hpp"
 
 namespace eg
 {

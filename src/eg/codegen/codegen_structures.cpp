@@ -18,17 +18,17 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "codegen.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
-#include "../eg.hpp"
-#include "../input.hpp"
-#include "../interface.hpp"
-#include "../concrete.hpp"
-#include "../derivation.hpp"
-#include "../layout.hpp"
-#include "../identifiers.hpp"
-#include "../derivation.hpp"
-#include "../invocation.hpp"
+#include "eg_compiler/eg.hpp"
+#include "eg_compiler/input.hpp"
+#include "eg_compiler/interface.hpp"
+#include "eg_compiler/concrete.hpp"
+#include "eg_compiler/derivation.hpp"
+#include "eg_compiler/layout.hpp"
+#include "eg_compiler/identifiers.hpp"
+#include "eg_compiler/derivation.hpp"
+#include "eg_compiler/invocation.hpp"
 
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>

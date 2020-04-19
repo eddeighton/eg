@@ -18,8 +18,8 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "interface.hpp"
-#include "eg/codegen/codegen.hpp"
+#include "eg_compiler/interface.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
 namespace eg
 {

@@ -18,9 +18,9 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "eg/sessions/implementation_session.hpp"
-#include "eg/codegen/codegen.hpp"
-#include "eg/input.hpp"
+#include "eg_compiler/sessions/implementation_session.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
+#include "eg_compiler/input.hpp"
 
 #include <ostream>
 

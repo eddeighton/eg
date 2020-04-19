@@ -18,8 +18,8 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-#include "input.hpp"
-#include "eg.hpp"
+#include "eg_compiler/input.hpp"
+#include "eg_compiler/eg.hpp"
 
 #include "common/file.hpp"
 

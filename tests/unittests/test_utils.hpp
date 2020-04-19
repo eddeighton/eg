@@ -4,7 +4,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include "io/indexed_object.hpp"
+#include "eg_compiler/io/indexed_object.hpp"
 
 #include "common/file.hpp"
 
