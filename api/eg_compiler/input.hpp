@@ -36,6 +36,7 @@
 namespace eg
 {
     class Parser;
+	class ParserSession;
     class ObjectFactoryImpl;
     
     namespace input
@@ -53,6 +54,7 @@ namespace eg
         {
             friend class ObjectFactoryImpl;
             friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
         public:
             static const ObjectType Type = eInputOpaque;
             
@@ -86,6 +88,7 @@ namespace eg
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
         public:
             static const ObjectType Type = eInputDimension;
         protected:
@@ -112,6 +115,7 @@ namespace eg
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
         public:
             static const ObjectType Type = eInputInclude;
         protected:
@@ -142,6 +146,7 @@ namespace eg
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
         public:
             static const ObjectType Type = eInputUsing;
         protected:
@@ -167,6 +172,7 @@ namespace eg
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
         public:
             static const ObjectType Type = eInputExport;
         protected:
@@ -198,6 +204,7 @@ namespace eg
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
         public:
             static const ObjectType Type = eInputAction;
         protected:
@@ -248,6 +255,7 @@ namespace eg
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
         public:
             static const ObjectType Type = eInputRoot;
             static const std::string RootTypeName;

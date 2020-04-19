@@ -1495,36 +1495,11 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 pAction->m_definitionFile = egSourceFile;
             }
         }
-        
-        input::Root* parse_root( ParserSession& session, const boost::filesystem::path& egSourceFile, bool bMainRoot )
-        {
-            input::Root* pRoot = nullptr;
-            //if main file then reuse root
-            if( bMainRoot )
-            {
-                pRoot = oneOpt< input::Root >( session.getNewObjects() );
-                if( !pRoot )
-                {
-                    pRoot = session.construct< input::Root >();
-                    pRoot->m_pBody = session.construct< input::Opaque >();
-                    pRoot->m_elements.push_back( pRoot->m_pBody );
-                    pRoot->m_pBody->m_bSemantic = false;
-                }
-                parse_action_body( session, pRoot, egSourceFile );
-            }
-            else
-            {
-                pRoot = session.construct< input::Root >();
-                pRoot->m_pBody = session.construct< input::Opaque >();
-                pRoot->m_elements.push_back( pRoot->m_pBody );
-                pRoot->m_pBody->m_bSemantic = false;
-                
-                pRoot->m_includePath = egSourceFile;
-                parse_action_body( session, pRoot, egSourceFile );
-            }
-            
-            return pRoot;
-        }
+		
+		void parse_file( ParserSession& session, input::Root* pRoot, const boost::filesystem::path& egSourceFile )
+		{
+			parse_action_body( session, pRoot, egSourceFile );
+		}
     };
 
     struct Stuff
@@ -1625,11 +1600,16 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     };
     
 
-    input::Root* parse( const boost::filesystem::path& egSourceFile,
-				std::shared_ptr< clang::FileManager > pFileManager,
-				llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine,
-                ParserSession& session, bool bMainRoot )
+    void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
+				ParserDiagnosticSystem& diagnosticSystem,
+                ParserSession& session, input::Root* pRoot )
     {
+        std::shared_ptr< clang::FileManager > pFileManager = 
+			get_clang_fileManager( diagnosticSystem );
+			
+		llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = 
+			get_llvm_diagnosticEngine( diagnosticSystem );
+			
         //check file exists
         if( !boost::filesystem::exists( egSourceFile ) )
         {
@@ -1644,7 +1624,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             *stuff.pHeaderSearch,
             pDiagnosticsEngine );
         parser.ConsumeToken();
-        return parser.parse_root( session, egSourceFile, bMainRoot );
+		
+        parser.parse_file( session, pRoot, egSourceFile );
     }
 
 
@@ -1653,23 +1634,115 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     {
         
     }
-
+	
+	input::Root* ParserSession::getMegaRoot( 
+		input::Root* pMegaStructureRoot,
+		const SourceCodeTree::RootFolder& rootFolder,
+		const SourceCodeTree::ProjectNameFolder& projectNameFolder,
+		std::map< boost::filesystem::path, input::Root* >& rootTree )
+	{
+		boost::filesystem::path::const_iterator
+			i = rootFolder.begin(), iEnd = rootFolder.end(),
+			j = projectNameFolder.begin(), jEnd = projectNameFolder.end();
+			
+		//iterate until they become different
+		for( ; i!=iEnd && j!=jEnd && *i == *j; ++i, ++j ){}
+		
+		VERIFY_RTE_MSG( i == iEnd, 
+			"Project name folder: " << projectNameFolder.string() << 
+			" does NOT exist within mega structure root folder: " << rootFolder.string() );
+			
+		input::Root* pRoot = pMegaStructureRoot;
+		{
+			boost::filesystem::path treePath = rootFolder;
+			for( ; j!=jEnd; ++j )
+			{
+				treePath = treePath / *j;
+		
+				input::Root* pNestedRoot = nullptr;
+		
+				std::map< boost::filesystem::path, input::Root* >::iterator 
+					iFind = rootTree.find( treePath );
+				if( iFind != rootTree.end() )
+				{
+					pNestedRoot = iFind->second;
+				}
+				else
+				{
+					pNestedRoot = construct< input::Root >();
+					{
+						pNestedRoot->m_pBody = construct< input::Opaque >();
+						pNestedRoot->m_elements.push_back( pNestedRoot->m_pBody );
+						pNestedRoot->m_pBody->m_bSemantic = false;
+						pNestedRoot->m_strIdentifier = j->string();
+					}
+					pRoot->m_elements.push_back( pNestedRoot );
+					
+					rootTree.insert( std::make_pair( treePath, pNestedRoot ) );
+				}
+				
+				pRoot = pNestedRoot;
+			}
+		}
+		
+		return pRoot;
+	}
+	
+	void ParserSession::parse( const SourceCodeTree& egSourceCodeFiles, 
+		ParserDiagnosticSystem& diagnosticSystem )
+	{
+		input::Root* pMegaStructureRoot = construct< input::Root >();
+		{
+			pMegaStructureRoot->m_pBody = construct< input::Opaque >();
+			pMegaStructureRoot->m_elements.push_back( pMegaStructureRoot->m_pBody );
+			pMegaStructureRoot->m_pBody->m_bSemantic = false;
+		}
+		
+        std::set< boost::filesystem::path > includePaths;
+		std::map< boost::filesystem::path, input::Root* > rootTree;
+		
+		for( SourceCodeTree::FileMap::const_iterator 
+			i = egSourceCodeFiles.files.begin(),
+			iEnd = egSourceCodeFiles.files.begin();
+			i != iEnd; ++i )
+		{
+			const SourceCodeTree::ProjectNameFolder& projectNameFolder = i->first;
+			const SourceCodeTree::EGSourceFile& egSourceFile = i->second;
+			
+			boost::filesystem::path sourceFile = projectNameFolder / egSourceFile;
+			
+			input::Root* pRoot = getMegaRoot( pMegaStructureRoot, egSourceCodeFiles.root, projectNameFolder, rootTree );
+			
+            ::eg::parseEGSourceFile( sourceFile, diagnosticSystem, *this, pRoot ); //parse main root
+            includePaths.insert( sourceFile );
+		}
+		
+		handleInputIncludes( includePaths, diagnosticSystem );
+	}
+	
     void ParserSession::parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles, 
 		ParserDiagnosticSystem& diagnosticSystem )
     {
-        std::shared_ptr< clang::FileManager > pFileManager = 
-			get_clang_fileManager( diagnosticSystem );
-			
-		llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = 
-			get_llvm_diagnosticEngine( diagnosticSystem );
+		input::Root* pRoot = construct< input::Root >();
+		{
+			pRoot->m_pBody = construct< input::Opaque >();
+			pRoot->m_elements.push_back( pRoot->m_pBody );
+			pRoot->m_pBody->m_bSemantic = false;
+		}
 		
         std::set< boost::filesystem::path > includePaths;
         for( const boost::filesystem::path& filePath : egSourceCodeFiles )
         {
-            input::Root* pRoot = ::eg::parse( filePath, pFileManager, pDiagnosticsEngine, *this, true ); //parse main root
+            ::eg::parseEGSourceFile( filePath, diagnosticSystem, *this, pRoot ); //parse main root
             includePaths.insert( filePath );
         }
         
+		handleInputIncludes( includePaths, diagnosticSystem );
+    }
+    
+	void ParserSession::handleInputIncludes( std::set< boost::filesystem::path >& includePaths, 
+		ParserDiagnosticSystem& diagnosticSystem )
+	{
         std::set< boost::filesystem::path > newIncludePaths;
         
         //greedy parse all includes 
@@ -1677,7 +1750,15 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         {
             for( const boost::filesystem::path& includePath : newIncludePaths )
             {
-                ::eg::parse( includePath, pFileManager, pDiagnosticsEngine, *this, false ); //parse include - non-main root
+				input::Root* pIncludeRoot = construct< input::Root >();
+				{
+					pIncludeRoot->m_pBody = construct< input::Opaque >();
+					pIncludeRoot->m_elements.push_back( pIncludeRoot->m_pBody );
+					pIncludeRoot->m_pBody->m_bSemantic = false;
+					pIncludeRoot->m_includePath = includePath;
+				}
+				
+                ::eg::parseEGSourceFile( includePath, diagnosticSystem, *this, pIncludeRoot ); //parse include - non-main root
                 includePaths.insert( includePath );
             }
             newIncludePaths.clear();
@@ -1693,8 +1774,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 }
             }
         }while( !newIncludePaths.empty() );
-    }
-    
+	}
     
     interface::Element* addChild( ParserSession& session, interface::Element* pParent, input::Element* pElement )
     {

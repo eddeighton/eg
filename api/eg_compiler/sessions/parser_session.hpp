@@ -28,6 +28,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <set>
 #include <ostream>
 #include <optional>
 
@@ -61,21 +62,49 @@ namespace eg
 		class Pimpl;
 		std::shared_ptr< Pimpl > m_pImpl;
 	};
+	
+	
+	
+	
+	
         
     class ParserSession : public CreatingSession
     {
     public:
         ParserSession();
+		
+		struct SourceCodeTree
+		{
+			using RootFolder = boost::filesystem::path;
+			using ProjectNameFolder = boost::filesystem::path;
+			using EGSourceFile = boost::filesystem::path;
+			using FileMap = std::multimap< ProjectNameFolder, EGSourceFile >;
+			RootFolder root;
+			FileMap files;
+		};
+		
+        void parse( const SourceCodeTree& egSourceCodeFiles, 
+			ParserDiagnosticSystem& diagnosticSystem );
         
         void parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles, 
 			ParserDiagnosticSystem& diagnosticSystem );
-            
+			
         void buildAbstractTree();
         
         const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
         
         const Identifiers* getIdentifiers() const { return eg::one_cst< eg::Identifiers >( getMaster() ); }
     private:
+	
+		input::Root* getMegaRoot( 
+			input::Root* pMegaStructureRoot,
+			const SourceCodeTree::RootFolder& rootFolder,
+			const SourceCodeTree::ProjectNameFolder& projectNameFolder,
+			std::map< boost::filesystem::path, input::Root* >& rootTree );
+			
+		void handleInputIncludes( std::set< boost::filesystem::path >& includePaths, 
+			ParserDiagnosticSystem& diagnosticSystem );
+	
         using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
         void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, const boost::filesystem::path&, bool bInIncludeTree );
     };
