@@ -106,7 +106,8 @@ namespace eg
 			ParserDiagnosticSystem& diagnosticSystem );
 	
         using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
-        void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, const boost::filesystem::path&, bool bInIncludeTree );
+        void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, 
+			std::optional< boost::filesystem::path > , bool bInIncludeTree );
     };
     
     class IncrementalParserSession : public ParserSession

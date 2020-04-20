@@ -1696,6 +1696,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 			pMegaStructureRoot->m_pBody = construct< input::Opaque >();
 			pMegaStructureRoot->m_elements.push_back( pMegaStructureRoot->m_pBody );
 			pMegaStructureRoot->m_pBody->m_bSemantic = false;
+			pMegaStructureRoot->m_bIsMegaRoot = true;
 		}
 		
         std::set< boost::filesystem::path > includePaths;
@@ -1703,7 +1704,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 		
 		for( SourceCodeTree::FileMap::const_iterator 
 			i = egSourceCodeFiles.files.begin(),
-			iEnd = egSourceCodeFiles.files.begin();
+			iEnd = egSourceCodeFiles.files.end();
 			i != iEnd; ++i )
 		{
 			const SourceCodeTree::ProjectNameFolder& projectNameFolder = i->first;
@@ -1728,6 +1729,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 			pRoot->m_pBody = construct< input::Opaque >();
 			pRoot->m_elements.push_back( pRoot->m_pBody );
 			pRoot->m_pBody->m_bSemantic = false;
+			pRoot->m_bIsMegaRoot = true;
 		}
 		
         std::set< boost::filesystem::path > includePaths;
@@ -1797,7 +1799,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     }
     
     void ParserSession::buildTree( const FileElementMap& fileMap, interface::Element* pParentNode, 
-        input::Element* pElement, const boost::filesystem::path& includeDefinitionFile, bool bInIncludeTree )
+        input::Element* pElement,
+		std::optional< boost::filesystem::path > includeDefinitionFile, 
+		bool bInIncludeTree )
     {
         switch( pElement->getType() )
         {
@@ -1867,9 +1871,12 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                 //if the action is defined then set the definition file to the include definition file
                                 if( pElementAction->getDefinitionFile() )
                                 {
-                                    ( (interface::Action*)pChild )->setDefinitionFile( includeDefinitionFile );
+									if( includeDefinitionFile )
+										( (interface::Action*)pChild )->setDefinitionFile( includeDefinitionFile );
+									else
+										( (interface::Action*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile() );
                                 }
-                                buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true );
+								buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true );
                             }
                             else
                             {
@@ -1962,20 +1969,23 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             }
             else
             {
-                VERIFY_RTE( !pInputMainRoot );
-                pInputMainRoot = pRootElement;
-                if( !pInputMainRoot->getDefinitionFile() )
+				if( pRootElement->isMegaRoot() )
+				{
+					VERIFY_RTE( !pInputMainRoot );
+					pInputMainRoot = pRootElement;
+				}
+                /*if( !pInputMainRoot->getDefinitionFile() )
                 {
                     THROW_RTE( "Root has no definition" );
-                }
+                }*/
             }
         }
         
         VERIFY_RTE( pInputMainRoot );
         interface::Element* pInterfaceRoot = addChild( *this, pMasterRoot, pInputMainRoot );
-        ( (interface::Action*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile().value() );
+        ( (interface::Action*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile() );
         
-        buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile().value(), false );
+        buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile(), false );
         
         //generateExports( *this, pMasterRoot, pInputMainRoot );
         

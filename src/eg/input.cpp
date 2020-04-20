@@ -301,18 +301,21 @@ namespace input
         :   Action( object )
     {
         m_strIdentifier = RootTypeName;
+		m_bIsMegaRoot = false;
     }
     
     void Root::load( Loader& loader )
     {
         Action::load( loader );
         loader.loadOptional( m_includePath );
+        loader.load( m_bIsMegaRoot );
     }
 
     void Root::store( Storer& storer ) const
     {
         Action::store( storer );
         storer.storeOptional( m_includePath );
+        storer.store( m_bIsMegaRoot );
     }
     
     void Root::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
