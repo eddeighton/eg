@@ -17,6 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include <chrono>
+
+#include "common.hpp"
+#include "clock.hpp"
+
 namespace
 {
 

@@ -54,4 +54,4 @@ link_common( eg_runtime )
 link_eg( eg_runtime )
 
 install( FILES ${EG_RUNTIME_API} DESTINATION include/eg_runtime )
-install( TARGETS eg_runtime DESTINATION bin)
+install( TARGETS eg_runtime EXPORT eg DESTINATION bin)

@@ -23,7 +23,7 @@
 
 #include "common.hpp"
 #include "event.hpp"
-#include "result_type.hpp"
+//#include "result_type.hpp"
 
 namespace eg
 {

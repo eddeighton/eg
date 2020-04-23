@@ -383,7 +383,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
-    if( pAction->getAction()->hasDefinition() )
+    if( false && pAction->getAction()->hasDefinition() )
     {
     const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
     os << "                            ref(";
@@ -430,7 +430,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
-            if( pAction->getAction()->hasDefinition() )
+            if( false && pAction->getAction()->hasDefinition() )
             {
     const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
     

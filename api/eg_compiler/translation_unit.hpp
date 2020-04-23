@@ -130,6 +130,14 @@ namespace eg
         TranslationUnits m_translationUnits;
         
     public:
+		enum MegaRelation
+		{
+			eProcess,
+			eMachine,
+			ePlanet
+		};
+		
+		
         
         const TranslationUnits& getTranslationUnits() const { return m_translationUnits; }
     public:
