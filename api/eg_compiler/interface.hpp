@@ -337,11 +337,14 @@ namespace interface
     public:
         virtual bool update( const Element* pElement );
         
+		RootType getRootType() const { return m_rootType; }
+			
         mutable std::string m_strTemp;
     public:
         
     private:
         input::Root* m_pRoot = nullptr;
+		RootType m_rootType;
     };
 
 } //namespace interface

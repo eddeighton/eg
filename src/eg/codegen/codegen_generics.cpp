@@ -28,6 +28,7 @@
 #include "eg_compiler/layout.hpp"
 #include "eg_compiler/identifiers.hpp"
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/translation_unit.hpp"
 #include "eg_compiler/invocation.hpp"
 
 #include <boost/bind.hpp>

@@ -23,6 +23,7 @@
 #include "eg_compiler/interface.hpp"
 #include "eg_compiler/concrete.hpp"
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/translation_unit.hpp"
 #include "eg_compiler/layout.hpp"
 #include "eg_compiler/identifiers.hpp"
 #include "eg_compiler/derivation.hpp"

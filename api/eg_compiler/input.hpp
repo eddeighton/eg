@@ -263,7 +263,8 @@ namespace eg
             Root( const IndexedObject& object );
         public:
             std::optional< boost::filesystem::path > getIncludePath() const { return m_includePath; }
-			bool isMegaRoot() const { return m_bIsMegaRoot; }
+			
+			RootType getRootType() const { return m_rootType; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
@@ -276,7 +277,7 @@ namespace eg
             }
         private:
             std::optional< boost::filesystem::path > m_includePath; //null if main root
-			bool m_bIsMegaRoot;
+			RootType m_rootType;
         };
 
     } //namespace input

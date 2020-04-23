@@ -305,7 +305,7 @@ void build_parser_session( const Environment& environment, const Project& projec
             pInterfaceSession->instanceAnalysis();
             pInterfaceSession->dependencyAnalysis();
             
-            pInterfaceSession->translationUnitAnalysis( project.getIntermediateFolder(), 
+            pInterfaceSession->translationUnitAnalysis( project.getProjectDir(), 
                 [ &project ]( const std::string& strName )
                 {
                     eg::IndexedObject::FileID fileID = eg::IndexedObject::NO_FILE;

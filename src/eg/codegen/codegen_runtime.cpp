@@ -262,7 +262,7 @@ namespace eg
         os << "                                                                                            \n";
         os << "            try                                                                             \n";
         os << "            {                                                                               \n";
-        os << "                reference();                                                                \n";
+        //os << "                reference();                                                                \n";
         os << "            }                                                                               \n";
         os << "            catch( eg::termination_exception )                                              \n";
         os << "            {                                                                               \n";

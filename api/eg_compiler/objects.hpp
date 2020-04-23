@@ -29,6 +29,51 @@
 
 namespace eg
 {
+	
+	enum RootType : std::size_t
+	{
+		eFile,
+		eMegaRoot,
+		eCoordinator,
+		eHostName,
+		eProjectName,
+		eSubFolder,
+		TOTAL_ROOT_TYPES
+	};
+	
+	static const char* g_RootTypeStrings[ TOTAL_ROOT_TYPES ] = 
+	{
+		"File",
+		"MegaRoot",
+		"Coordinator",
+		"HostName",
+		"ProjectName",
+		"SubFolder"
+	};
+
+    inline std::ostream& operator<<( std::ostream& os, const RootType type )
+    {
+		return os << g_RootTypeStrings[ type ];
+    }
+
+    inline std::istream& operator<<( std::istream& is, RootType& type )
+    {
+		std::string str;
+		is >> str;
+		
+		for( std::size_t sz = 0u; sz != TOTAL_ROOT_TYPES; ++sz )
+		{
+			if( str == g_RootTypeStrings[ sz ] )
+			{
+				type = static_cast< RootType >( sz );
+				return is;
+			}
+		}
+		
+		type = TOTAL_ROOT_TYPES;
+		return is;
+    }
+			
     enum ObjectType : std::size_t
     {
         eInputOpaque,

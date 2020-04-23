@@ -26,6 +26,7 @@
 #include "eg_compiler/interface.hpp"
 #include "eg_compiler/concrete.hpp"
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/translation_unit.hpp"
 
 #include <map>
 
@@ -44,8 +45,8 @@ namespace eg
         void linkAnalysis();
         concrete::Action* instanceAnalysis();
         void dependencyAnalysis();
-        void translationUnitAnalysis( const boost::filesystem::path& intermediateFolder, TUFileIDIfExistsFPtr pTUFileIDIfExists );
-        void checkTranslationUnits( const boost::filesystem::path& intermediateFolder );
+        void translationUnitAnalysis( const boost::filesystem::path& rootFolder, TUFileIDIfExistsFPtr pTUFileIDIfExists );
+        //void checkTranslationUnits( const boost::filesystem::path& rootFolder );
         
         //allow saving the interface session to new file
         void store() const { AppendingSession::store(); }
@@ -81,11 +82,10 @@ namespace eg
         void constructInstance( concrete::Action* pInstance );
         void constructAllocator( concrete::Action* pInstance );
         void dependencyAnalysis_recurse( concrete::Action* pAction );
-        
-        using TranslationUnitMap = std::map< boost::filesystem::path, TranslationUnit::ActionSet >;
+		
+        using TranslationUnitMap = std::map< TranslationUnit::CoordinatorHostnameDefinitionFile, TranslationUnit::ActionSet >;
         void translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap );
         
-    
     private:
         DerivationAnalysis* m_pDerivationAnalysis;
         TranslationUnitAnalysis* m_pTranslationUnitAnalysis;

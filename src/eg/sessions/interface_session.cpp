@@ -23,6 +23,8 @@
 
 #include "eg_compiler/interface.hpp"
 
+#include <iostream>
+
 namespace eg
 {
 
@@ -375,26 +377,59 @@ namespace eg
     }
     
     
-        
+	bool getInterfaceActionCoordinatorHostname( const interface::Action* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )
+	{
+		const interface::Action* pIter = pInterfaceAction;
+		
+		pCoordinator = nullptr;
+		pHostname = nullptr;
+		
+		while( pIter && !( pCoordinator && pHostname ) )
+		{
+			if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pIter ) )
+			{
+				switch( pRoot->getRootType() )
+				{
+					case eFile           :
+					case eMegaRoot       :
+					case eCoordinator    :	pCoordinator 	= pRoot; break;
+					case eHostName       :  pHostname 		= pRoot; break;
+					case eProjectName    :
+					case eSubFolder      :
+					case TOTAL_ROOT_TYPES:
+						break;
+				}
+			}
+			
+			pIter = dynamic_cast< const interface::Action* >( pIter->getParent() );
+		}
+		return pCoordinator && pHostname;
+	}
     
     void InterfaceSession::translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap )
     {
         const interface::Action* pInterfaceAction = pAction->getAction();
         
-        if( std::optional< boost::filesystem::path > definitionFileOpt =
-                pInterfaceAction->getDefinitionFile() )
-        {
-            TranslationUnitMap::iterator iFind = translationUnitMap.find( definitionFileOpt.value() );
-            if( iFind != translationUnitMap.end() )
-            {
-                iFind->second.insert( pInterfaceAction );
-            }
-            else
-            {
-                translationUnitMap.insert( std::make_pair( 
-                    definitionFileOpt.value(), TranslationUnit::ActionSet{ pInterfaceAction } ) );
-            }
-        }
+		TranslationUnit::CoordinatorHostnameDefinitionFile coordinatorHostnameDefinitionFile;
+		coordinatorHostnameDefinitionFile.definitionFile = pInterfaceAction->getDefinitionFile();
+		
+		if( !getInterfaceActionCoordinatorHostname( pInterfaceAction, 
+				coordinatorHostnameDefinitionFile.pCoordinator, 
+				coordinatorHostnameDefinitionFile.pHostName ) )
+		{
+			//?
+		}
+		
+		TranslationUnitMap::iterator iFind = translationUnitMap.find( coordinatorHostnameDefinitionFile );
+		if( iFind != translationUnitMap.end() )
+		{
+			iFind->second.insert( pInterfaceAction );
+		}
+		else
+		{
+			translationUnitMap.insert( std::make_pair( coordinatorHostnameDefinitionFile, 
+				TranslationUnit::ActionSet{ pInterfaceAction } ) );
+		}
         
         for( concrete::Element* pChild : pAction->m_children )
         {
@@ -405,7 +440,7 @@ namespace eg
         }
     }
     
-    void InterfaceSession::translationUnitAnalysis( const boost::filesystem::path& intermediateFolder, TUFileIDIfExistsFPtr pTUFileIDIfExists )
+    void InterfaceSession::translationUnitAnalysis( const boost::filesystem::path& rootFolder, TUFileIDIfExistsFPtr pTUFileIDIfExists )
     {
         concrete::Action* pRoot = root< concrete::Action >( getAppendingObjects() );  
         
@@ -420,29 +455,38 @@ namespace eg
                 i = translationUnitMap.begin(),
                 iEnd = translationUnitMap.end(); i!=iEnd; ++i )
         {
-            TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
-            pTranslationUnit->m_definitionFile  = i->first;
-            pTranslationUnit->m_actions         = i->second;
-            pTranslationUnit->m_strName         = TranslationUnit::TUNameFromEGSource( 
-                pTranslationUnit->m_definitionFile, intermediateFolder );
-                
-            pTranslationUnit->m_databaseFileID  = pTUFileIDIfExists( pTranslationUnit->m_strName );
-            
-            m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
-            
-            //now determine if the file actually exists and get the File ID if it does
-            if( pTranslationUnit->m_databaseFileID != IndexedObject::NO_FILE )
-            {
-                if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
-                {
-                    THROW_RTE( "Unreachable" );
-                }
-                usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
-            }
-            else
-            {
-                unassignedTUs.insert( pTranslationUnit );
-            }
+			if( i->first.definitionFile )
+			{
+				TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
+				pTranslationUnit->m_coordinatorHostnameDefinitionFile   = i->first;
+				pTranslationUnit->m_actions         					= i->second;
+				pTranslationUnit->m_strName         					= 
+					TranslationUnit::TUNameFromEGSource( 
+						rootFolder,
+						i->first.definitionFile.value() );
+						
+				std::cout << "intermediate: " << rootFolder.string() << 
+					" definition file: " << i->first.definitionFile.value() << 
+					" name: " << pTranslationUnit->m_strName << std::endl;
+					
+				pTranslationUnit->m_databaseFileID  = pTUFileIDIfExists( pTranslationUnit->m_strName );
+				
+				m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
+				
+				//now determine if the file actually exists and get the File ID if it does
+				if( pTranslationUnit->m_databaseFileID != IndexedObject::NO_FILE )
+				{
+					if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
+					{
+						THROW_RTE( "Unreachable" );
+					}
+					usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
+				}
+				else
+				{
+					unassignedTUs.insert( pTranslationUnit );
+				}
+			}
         }
         
         //assign FileIDs for unassigned
@@ -471,10 +515,10 @@ namespace eg
         
     }
     
-    void InterfaceSession::checkTranslationUnits( const boost::filesystem::path& intermediateFolder )
-    {
-        //m_pTranslationUnitAnalysis->checkTranslationUnits( intermediateFolder );
-    }
+    //void InterfaceSession::checkTranslationUnits( const boost::filesystem::path& rootFolder )
+    //{
+    //    //m_pTranslationUnitAnalysis->checkTranslationUnits( intermediateFolder );
+    //}
     
     
 }

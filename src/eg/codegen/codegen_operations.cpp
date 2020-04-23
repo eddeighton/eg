@@ -26,6 +26,7 @@
 #include "eg_compiler/input.hpp"
 #include "eg_compiler/interface.hpp"
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/translation_unit.hpp"
 
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>

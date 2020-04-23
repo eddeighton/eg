@@ -1655,7 +1655,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 		input::Root* pRoot = pMegaStructureRoot;
 		{
 			boost::filesystem::path treePath = rootFolder;
-			for( ; j!=jEnd; ++j )
+			int iFolderDepth = 0;
+			for( ; j!=jEnd; ++j, ++iFolderDepth )
 			{
 				treePath = treePath / *j;
 		
@@ -1675,6 +1676,21 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 						pNestedRoot->m_elements.push_back( pNestedRoot->m_pBody );
 						pNestedRoot->m_pBody->m_bSemantic = false;
 						pNestedRoot->m_strIdentifier = j->string();
+						switch( iFolderDepth )
+						{
+							case 0:
+								pNestedRoot->m_rootType = eCoordinator;
+								break;
+							case 1:
+								pNestedRoot->m_rootType = eHostName;
+								break;
+							case 2:
+								pNestedRoot->m_rootType = eProjectName;
+								break;
+							default:
+								pNestedRoot->m_rootType = eSubFolder;
+								break;
+						}
 					}
 					pRoot->m_elements.push_back( pNestedRoot );
 					
@@ -1696,9 +1712,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 			pMegaStructureRoot->m_pBody = construct< input::Opaque >();
 			pMegaStructureRoot->m_elements.push_back( pMegaStructureRoot->m_pBody );
 			pMegaStructureRoot->m_pBody->m_bSemantic = false;
-			pMegaStructureRoot->m_bIsMegaRoot = true;
+			pMegaStructureRoot->m_rootType = eMegaRoot;
 		}
-		
+			
         std::set< boost::filesystem::path > includePaths;
 		std::map< boost::filesystem::path, input::Root* > rootTree;
 		
@@ -1729,7 +1745,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 			pRoot->m_pBody = construct< input::Opaque >();
 			pRoot->m_elements.push_back( pRoot->m_pBody );
 			pRoot->m_pBody->m_bSemantic = false;
-			pRoot->m_bIsMegaRoot = true;
+			pRoot->m_rootType = eMegaRoot;
 		}
 		
         std::set< boost::filesystem::path > includePaths;
@@ -1758,6 +1774,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 					pIncludeRoot->m_elements.push_back( pIncludeRoot->m_pBody );
 					pIncludeRoot->m_pBody->m_bSemantic = false;
 					pIncludeRoot->m_includePath = includePath;
+					pIncludeRoot->m_rootType = eFile;
 				}
 				
                 ::eg::parseEGSourceFile( includePath, diagnosticSystem, *this, pIncludeRoot ); //parse include - non-main root
@@ -1911,46 +1928,6 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         }
     }
     
-    /*
-    void generateExports( ParserSession& session, interface::Element* pInterfaceRoot, input::Element* pElement )
-    {
-        switch( pElement->getType() )
-        {
-            case eInputOpaque    :
-            case eInputDimension :
-            case eInputInclude   :
-            case eInputUsing     :
-                {
-                    //do nothing
-                }
-                break;
-            case eInputExport    :
-                {
-                    input::Export* pExport = dynamic_cast< input::Export* >( pElement );
-                    
-                    //find the context interface type and add the export
-                    //input::Element* 
-                }
-                break;
-            case eInputAction    :
-            case eInputRoot      :
-                {
-                    input::Action* pAction = dynamic_cast< input::Action* >( pElement );
-                    VERIFY_RTE( pAction );
-                    
-                    for( input::Element* pChildElement : pAction->getElements() )
-                    {
-                        generateExports( session, pInterfaceRoot, pChildElement );
-                    }
-                }
-                break;
-            default:
-                THROW_RTE( "Unsupported type" );
-                break;
-        }
-    }*/
-    
-    
     void ParserSession::buildAbstractTree()
     {
         interface::Root* pMasterRoot = construct< interface::Root >();
@@ -1963,21 +1940,18 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         FileElementMap fileMap;
         for( input::Root* pRootElement : roots )
         {
-            if( std::optional< boost::filesystem::path > includePathOpt = pRootElement->getIncludePath() )
+			std::optional< boost::filesystem::path > includePathOpt = 
+				pRootElement->getIncludePath();
+			
+			if( eMegaRoot == pRootElement->getRootType() )
+			{
+				VERIFY_RTE( !includePathOpt );
+				VERIFY_RTE( !pInputMainRoot );
+				pInputMainRoot = pRootElement;
+			}
+            else if( includePathOpt )
             {
                 fileMap.insert( std::make_pair( includePathOpt.value(), pRootElement ) );
-            }
-            else
-            {
-				if( pRootElement->isMegaRoot() )
-				{
-					VERIFY_RTE( !pInputMainRoot );
-					pInputMainRoot = pRootElement;
-				}
-                /*if( !pInputMainRoot->getDefinitionFile() )
-                {
-                    THROW_RTE( "Root has no definition" );
-                }*/
             }
         }
         
@@ -1986,14 +1960,11 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         ( (interface::Action*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile() );
         
         buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile(), false );
-        
-        //generateExports( *this, pMasterRoot, pInputMainRoot );
-        
+                
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();
         pIdentifiers->populate( getMaster() );
     }
-    
     
     
     IncrementalParserSession::IncrementalParserSession( const boost::filesystem::path& treePath )

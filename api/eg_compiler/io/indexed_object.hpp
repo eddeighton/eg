@@ -186,6 +186,7 @@ namespace eg
     {
         inline bool operator()( const IndexedObject* pLeft, const IndexedObject* pRight ) const
         {
+			VERIFY_RTE( pLeft && pRight );
             return  ( pLeft->getFileID() != pRight->getFileID() ) ? 
                     ( pLeft->getFileID() < pRight->getFileID() ) :
                     ( pLeft->getIndex() < pRight->getIndex() );

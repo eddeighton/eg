@@ -39,6 +39,7 @@ set( EG_API
     ${EG_API_DIR}/eg_compiler/interface.hpp
     ${EG_API_DIR}/eg_compiler/concrete.hpp
     ${EG_API_DIR}/eg_compiler/derivation.hpp
+    ${EG_API_DIR}/eg_compiler/translation_unit.hpp
     ${EG_API_DIR}/eg_compiler/layout.hpp
     ${EG_API_DIR}/eg_compiler/identifiers.hpp
     ${EG_API_DIR}/eg_compiler/name_resolution.hpp
@@ -76,6 +77,7 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/interface.cpp
     ${EG_SRC_DIR}/eg/concrete.cpp
     ${EG_SRC_DIR}/eg/derivation.cpp
+    ${EG_SRC_DIR}/eg/translation_unit.cpp
     ${EG_SRC_DIR}/eg/layout.cpp
     ${EG_SRC_DIR}/eg/identifiers.cpp
     ${EG_SRC_DIR}/eg/name_resolution.cpp

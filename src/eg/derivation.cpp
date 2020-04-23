@@ -74,34 +74,6 @@ namespace eg
             }
         }
     }
-    
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////
-    void TranslationUnit::load( Loader& loader )
-    {
-        loader.load( m_definitionFile );
-        loader.load( m_strName );
-        loader.load( m_databaseFileID );
-        loader.loadObjectSet( m_actions );
-    }
-    
-    void TranslationUnit::store( Storer& storer ) const
-    {
-        storer.store( m_definitionFile );
-        storer.store( m_strName );
-        storer.store( m_databaseFileID );
-        storer.storeObjectSet( m_actions );
-    }
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////
-    void TranslationUnitAnalysis::load( Loader& loader )
-    {
-        loader.loadObjectVector( m_translationUnits );
-    }
-    void TranslationUnitAnalysis::store( Storer& storer ) const
-    {
-        storer.storeObjectVector( m_translationUnits );
-    }
-    
+        
 
 } //namespace eg

@@ -232,6 +232,10 @@ namespace interface
                             {
                                 osAnnotation << " " << m_definitionFile.value();
                             }
+							if( const Root* pIsRoot = dynamic_cast< const Root* >( this ) )
+							{
+                                osAnnotation << " " << pIsRoot->getRootType();
+							}
                             pAction->printDeclaration( os, strIndent, getIdentifier(), osAnnotation.str() );
                         }
                         
@@ -757,7 +761,8 @@ namespace interface
     }
     Root::Root( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
         :   Action( indexedObject, pParent, pElement ),
-            m_pRoot( dynamic_cast< input::Root* >( pElement ) )
+            m_pRoot( dynamic_cast< input::Root* >( pElement ) ),
+			m_rootType( m_pRoot->getRootType() )
     {
         VERIFY_RTE( m_pRoot );
     }
@@ -770,10 +775,12 @@ namespace interface
             m_pRoot = dynamic_cast< input::Root* >( m_pElement );
             VERIFY_RTE( m_pRoot );
         }
+        loader.load( m_rootType );
     }
     void Root::store( Storer& storer ) const
     {
         Action::store( storer );
+        storer.store( m_rootType );
     }
     bool Root::update( const Element* pElement )
     {
@@ -794,7 +801,6 @@ namespace interface
         }
         return true;
     }
-    
     
 } //namespace interface
 } //namespace eg
