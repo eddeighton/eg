@@ -422,14 +422,17 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         //perform the full program analysis
         std::unique_ptr< eg::ImplementationSession > pImplementationSession = 
             std::make_unique< eg::ImplementationSession >( allFiles );
-                
         pImplementationSession->fullProgramAnalysis();
         pImplementationSession->store( project.getAnalysisFileName() );
+	}
+	
+	{
+		eg::ReadSession session( project.getAnalysisFileName() );
         
         {
             LogEntry log( std::cout, "Compiling data structures", bBenchCommands );
             std::ostringstream osStructures;
-            eg::generateBufferStructures( osStructures, *pImplementationSession );
+            eg::generateBufferStructures( osStructures, session );
             boost::filesystem::updateFileIfChanged( project.getDataStructureSource(), osStructures.str() );
         }
         
@@ -440,7 +443,7 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
             {
                 LogEntry log( std::cout, "Generating implementation: " + pTranslationUnit->getName(), bBenchCommands );
                 std::ostringstream osImpl;
-                eg::generateImplementationSource( osImpl, *pImplementationSession, *pTranslationUnit );
+                eg::generateImplementationSource( osImpl, session, *pTranslationUnit );
                 boost::filesystem::updateFileIfChanged( project.getImplementationSource( pTranslationUnit->getName() ), osImpl.str() );
             }
         }
@@ -449,8 +452,8 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         {
             std::ostringstream osImpl;
             osImpl << "#include \"structures.hpp\"\n";
-            eg::generate_dynamic_interface( osImpl, *pImplementationSession );
-            eg::generateActionInstanceFunctions( osImpl, *pImplementationSession );
+            eg::generate_dynamic_interface( osImpl, session );
+            eg::generateActionInstanceFunctions( osImpl, session );
             boost::filesystem::updateFileIfChanged( project.getRuntimeSource(), osImpl.str() );
         }
     }

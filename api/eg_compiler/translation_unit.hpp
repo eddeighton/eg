@@ -77,7 +77,24 @@ namespace eg
 					return CompareIndexedObjects()( pHostName, cmp.pHostName);
 				return definitionFile < cmp.definitionFile;
 			}
+			
+			inline bool isHost( const std::string& strHostName ) const
+			{
+				if( pHostName )
+				{
+					return pHostName->getIdentifier() == strHostName;
+				}
+				else
+				{
+					return false;
+				}
+			}
 		};
+		
+		const CoordinatorHostnameDefinitionFile& getCoordinatorHostnameDefinitionFile() const
+		{
+			return m_coordinatorHostnameDefinitionFile;
+		}
 		
     protected:
 		CoordinatorHostnameDefinitionFile m_coordinatorHostnameDefinitionFile;
@@ -86,10 +103,25 @@ namespace eg
         ActionSet m_actions;
         
     public:
-        static std::string TUNameFromEGSource( const boost::filesystem::path& projectFolder, const boost::filesystem::path& definitionPath )
+        static std::string TUNameFromEGSource( 
+			const boost::filesystem::path& projectFolder, 
+			const CoordinatorHostnameDefinitionFile& coordinatorHostnameDefinitionFile )
         {
-            boost::filesystem::path relativePath = boost::filesystem::edsInclude( projectFolder, definitionPath );
-            return style_replace_non_alpha_numeric( relativePath.generic_string(), '_' );
+			if( coordinatorHostnameDefinitionFile.definitionFile )
+			{
+				boost::filesystem::path relativePath = boost::filesystem::edsInclude( projectFolder, coordinatorHostnameDefinitionFile.definitionFile.value() );
+				return style_replace_non_alpha_numeric( relativePath.generic_string(), '_' );
+			}
+			else
+			{
+				std::ostringstream os;
+				if( coordinatorHostnameDefinitionFile.pCoordinator )
+					os << coordinatorHostnameDefinitionFile.pCoordinator->getIdentifier() << "_";
+				if( coordinatorHostnameDefinitionFile.pHostName )
+					os << coordinatorHostnameDefinitionFile.pHostName->getIdentifier() << "_";
+				os << "definition";
+				return os.str();
+			}
         }
         
         
@@ -126,19 +158,13 @@ namespace eg
         }
     public:
         using TranslationUnits = std::vector< TranslationUnit* >;
+		using ActionTUMap = std::map< const interface::Action*, const TranslationUnit*, CompareIndexedObjects >;
     private:
         TranslationUnits m_translationUnits;
-        
+        ActionTUMap m_actionTUMap;
     public:
-		enum MegaRelation
-		{
-			eProcess,
-			eMachine,
-			ePlanet
-		};
+		const TranslationUnit* getActionTU( const interface::Action* pAction ) const;
 		
-		
-        
         const TranslationUnits& getTranslationUnits() const { return m_translationUnits; }
     public:
         virtual void load( Loader& loader );

@@ -30,7 +30,6 @@
 #include "eg_compiler/derivation.hpp"
 #include "eg_compiler/invocation.hpp"
 
-#include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>
@@ -70,8 +69,7 @@ namespace eg
     std::string style_replace_non_alpha_numeric( const std::string& str, char r )
     {
         std::string strResult;
-        std::replace_copy_if( str.begin(), str.end(), std::back_inserter( strResult ), 
-                              !boost::bind( &eds_isalnum, _1 ), r );
+        std::replace_copy_if( str.begin(), str.end(), std::back_inserter( strResult ), []( char c ){ return !eds_isalnum( c ); }, r );
         return strResult;
     }
     

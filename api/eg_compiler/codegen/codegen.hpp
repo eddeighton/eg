@@ -90,20 +90,20 @@ namespace eg
         const interface::Root* pRoot, 
         const eg::TranslationUnit& translationUnit );
     
-    void generateBufferStructures( std::ostream& os, const ImplementationSession& program );
+    void generateBufferStructures( std::ostream& os, const ReadSession& program );
 
     void generateGenerics(std::ostream& os, 
-        const ImplementationSession& program, 
+        const ReadSession& program, 
         const std::vector< const concrete::Action* >& actions, 
         const std::vector< const concrete::Inheritance_Node* >& iNodes,
         const eg::TranslationUnit& translationUnit );
         
     void generateImplementationSource( std::ostream& os, 
-        const ImplementationSession& program, 
+        const ReadSession& program, 
         const eg::TranslationUnit& translationUnit );
         
-    void generate_dynamic_interface( std::ostream& os, ImplementationSession& session );
-    void generateActionInstanceFunctions( std::ostream& os, const ImplementationSession& program );
+    void generate_dynamic_interface( std::ostream& os, const ReadSession& session );
+    void generateActionInstanceFunctions( std::ostream& os, const ReadSession& program );
             
     class DataMember;
 

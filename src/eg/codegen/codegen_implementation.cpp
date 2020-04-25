@@ -439,7 +439,7 @@ namespace eg
     }
     
     void generateImplementationSource( std::ostream& os, 
-        const ImplementationSession& program, 
+        const ReadSession& program, 
         const eg::TranslationUnit& translationUnit )
     {
         const interface::Root* pRoot = program.getTreeRoot();

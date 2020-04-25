@@ -39,7 +39,7 @@
 namespace eg
 {
     
-    void generateBufferStructures( std::ostream& os, const ImplementationSession& program )
+    void generateBufferStructures( std::ostream& os, const ReadSession& program )
     {
         const Layout& layout = program.getLayout();
         

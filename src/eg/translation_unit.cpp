@@ -49,11 +49,20 @@ namespace eg
     void TranslationUnitAnalysis::load( Loader& loader )
     {
         loader.loadObjectVector( m_translationUnits );
+		loader.loadObjectMap( m_actionTUMap );
     }
     void TranslationUnitAnalysis::store( Storer& storer ) const
     {
         storer.storeObjectVector( m_translationUnits );
+		storer.storeObjectMap( m_actionTUMap );
     }
     
+	const TranslationUnit* TranslationUnitAnalysis::getActionTU( const interface::Action* pAction ) const
+	{
+		ActionTUMap::const_iterator iFind = m_actionTUMap.find( pAction );
+		if( iFind != m_actionTUMap.end() )
+			return iFind->second;
+		return nullptr;
+	}
 
 } //namespace eg

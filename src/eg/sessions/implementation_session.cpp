@@ -44,7 +44,12 @@ namespace eg
     {
         return *one< Layout >( getObjects( IndexedObject::ANALYSIS_FILE ) );
     }
-
+        
+    const TranslationUnitAnalysis& ImplementationSession::getTranslationUnitAnalysis() const
+    {
+        return *one< TranslationUnitAnalysis >( getObjects( IndexedObject::ANALYSIS_FILE ) );
+    }
+	
     void ImplementationSession::getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const
     {
         invocations = many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
@@ -288,6 +293,10 @@ namespace eg
     const Layout& ReadSession::getLayout() const
     {
         return *one< Layout >( getObjects( IndexedObject::ANALYSIS_FILE ) );
+    }
+    const TranslationUnitAnalysis& ReadSession::getTranslationUnitAnalysis() const
+    {
+        return *one< TranslationUnitAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
     }
     const concrete::Action* ReadSession::getConcreteAction( TypeID id ) const
     {

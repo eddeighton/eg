@@ -455,37 +455,40 @@ namespace eg
                 i = translationUnitMap.begin(),
                 iEnd = translationUnitMap.end(); i!=iEnd; ++i )
         {
-			if( i->first.definitionFile )
-			{
-				TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
-				pTranslationUnit->m_coordinatorHostnameDefinitionFile   = i->first;
-				pTranslationUnit->m_actions         					= i->second;
-				pTranslationUnit->m_strName         					= 
-					TranslationUnit::TUNameFromEGSource( 
-						rootFolder,
-						i->first.definitionFile.value() );
-						
-				std::cout << "intermediate: " << rootFolder.string() << 
-					" definition file: " << i->first.definitionFile.value() << 
-					" name: " << pTranslationUnit->m_strName << std::endl;
+			TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
+			pTranslationUnit->m_coordinatorHostnameDefinitionFile   = i->first;
+			pTranslationUnit->m_actions         					= i->second;
+			pTranslationUnit->m_strName         					= 
+				TranslationUnit::TUNameFromEGSource( 
+					rootFolder,
+					pTranslationUnit->m_coordinatorHostnameDefinitionFile );
 					
-				pTranslationUnit->m_databaseFileID  = pTUFileIDIfExists( pTranslationUnit->m_strName );
+			//std::cout << "intermediate: " << rootFolder.string() << 
+			//	" definition file: " << ( i->first.definitionFile ? i->first.definitionFile.value() : "none" ) << 
+			//	" name: " << pTranslationUnit->m_strName << std::endl;
 				
-				m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
-				
-				//now determine if the file actually exists and get the File ID if it does
-				if( pTranslationUnit->m_databaseFileID != IndexedObject::NO_FILE )
+			pTranslationUnit->m_databaseFileID  = pTUFileIDIfExists( pTranslationUnit->m_strName );
+			
+			m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
+			
+			for( const interface::Action* pAction : pTranslationUnit->m_actions )
+			{
+				m_pTranslationUnitAnalysis->m_actionTUMap.insert( 
+					std::make_pair( pAction, pTranslationUnit ) );
+			}
+			
+			//now determine if the file actually exists and get the File ID if it does
+			if( pTranslationUnit->m_databaseFileID != IndexedObject::NO_FILE )
+			{
+				/*if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
 				{
-					if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
-					{
-						THROW_RTE( "Unreachable" );
-					}
-					usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
-				}
-				else
-				{
-					unassignedTUs.insert( pTranslationUnit );
-				}
+					THROW_RTE( "Unreachable" );
+				}*/
+				usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
+			}
+			else
+			{
+				unassignedTUs.insert( pTranslationUnit );
 			}
         }
         
@@ -511,14 +514,6 @@ namespace eg
                 ++nextLogicalID;
             }
         }
-        
-        
     }
-    
-    //void InterfaceSession::checkTranslationUnits( const boost::filesystem::path& rootFolder )
-    //{
-    //    //m_pTranslationUnitAnalysis->checkTranslationUnits( intermediateFolder );
-    //}
-    
     
 }

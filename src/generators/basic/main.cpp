@@ -30,8 +30,8 @@
 
 #include <iostream>
 
-extern void generate_dynamic_interface( std::ostream& os, eg::ReadSession& session );
-extern void generate_python( std::ostream& os, eg::ReadSession& session );
+extern void generate_dynamic_interface( std::ostream& os, const eg::ReadSession& session );
+extern void generate_python( std::ostream& os, const eg::ReadSession& session );
 
 int main( int argc, const char* argv[] )
 {

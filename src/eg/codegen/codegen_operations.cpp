@@ -188,7 +188,7 @@ namespace eg
             const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
             VERIFY_RTE( pAction );
 
-            if( m_translationUnit.isAction( pAction ) )
+            if( m_translationUnit.isAction( pAction ) && pAction->getDefinitionFile() )
             {
                 //calculate the path to the root type
                 std::vector< const interface::Element* > path = getPath( pNode );
@@ -202,7 +202,7 @@ namespace eg
                             os << "::";
                         os << pNodeIter->getIdentifier();
                     }
-                    os << "\n";
+					os << " " << pAction->getDefinitionFile().value() << "\n";
                 }
 
                 //generate the template argument lists

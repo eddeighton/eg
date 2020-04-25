@@ -499,7 +499,7 @@ namespace eg
 
 
     void generateGenerics(std::ostream& os,
-        const ImplementationSession& program,
+        const ReadSession& program,
         const std::vector< const concrete::Action* >& actions,
         const std::vector< const concrete::Inheritance_Node* >& iNodes,
         const eg::TranslationUnit& translationUnit )

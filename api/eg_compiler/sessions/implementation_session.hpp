@@ -27,6 +27,7 @@
 #include "eg_compiler/layout.hpp"
 #include "eg_compiler/identifiers.hpp"
 #include "eg_compiler/invocation.hpp"
+#include "eg_compiler/translation_unit.hpp"
 
 namespace eg
 {
@@ -39,6 +40,7 @@ namespace eg
         const concrete::Action* getInstanceRoot() const;
         const DerivationAnalysis& getDerivationAnalysis() const;
         const Layout& getLayout() const;
+		const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
         
         using Invocations = std::vector< const InvocationSolution* >;
         void getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const;
@@ -59,6 +61,8 @@ namespace eg
         const DerivationAnalysis& getDerivationAnalysis() const;
         const Identifiers& getIdentifiers() const;
         const Layout& getLayout() const;
+		const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
+		
         //const interface::Action* getAbstractAction( TypeID id ) const;
         const concrete::Action* getConcreteAction( TypeID id ) const;
         

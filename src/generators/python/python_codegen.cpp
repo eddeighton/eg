@@ -39,7 +39,7 @@ inline std::string getFuncName( const eg::DataMember* pDataMember, const char* p
 }
 
 
-void generate_python( std::ostream& os, eg::ReadSession& session )
+void generate_python( std::ostream& os, const eg::ReadSession& session )
 {
     const eg::interface::Root* pRoot = session.getTreeRoot();
     const eg::concrete::Action* pInstanceRoot = nullptr;
