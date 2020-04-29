@@ -78,16 +78,14 @@ namespace eg
 				return definitionFile < cmp.definitionFile;
 			}
 			
+			inline bool isCoordinator( const std::string& strCoordinator ) const
+			{
+                return pCoordinator ? ( pCoordinator->getIdentifier() == strCoordinator ) : false;
+			}
+			
 			inline bool isHost( const std::string& strHostName ) const
 			{
-				if( pHostName )
-				{
-					return pHostName->getIdentifier() == strHostName;
-				}
-				else
-				{
-					return false;
-				}
+                return pHostName ? ( pHostName->getIdentifier() == strHostName ) : false;
 			}
 		};
 		
