@@ -27,10 +27,13 @@ namespace eg
                     //options
                     ("debug",       po::bool_switch( &bDebug ), 
                         "Wait at startup to allow attaching a debugger" )
-                    ("database",     po::value< std::string >( &strProgram ),                     "EG program database" )
-                    ("dir",         po::value< boost::filesystem::path >( &cmdLine.strBuildDir ), "Build directory" )
-                    ("name",        po::value< std::string >( &cmdLine.strName ),                 "Program Name" )
-                    ("package",     po::value< std::vector< std::string > >( &packages ),         "Packages" )
+                    ("database",    po::value< std::string >( &strProgram ),                        "EG program database" )
+                    ("dir",         po::value< boost::filesystem::path >( &cmdLine.strBuildDir ),   "Build directory" )
+                    ("target",      po::value< std::string >( &cmdLine.targetFileName ),            "Target File Name" )
+                    ("name",        po::value< std::string >( &cmdLine.strName ),                   "Program Name" )
+                    ("package",     po::value< std::vector< std::string > >( &packages ),           "Packages" )
+					
+					
                 ;
 
                 po::positional_options_description p;

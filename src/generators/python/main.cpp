@@ -565,8 +565,18 @@ std::vector< std::function< void() > > loadPythonScripts( const std::vector< std
 
 )";
     os << pszPythonRun;
+	
+	boost::filesystem::path targetFilePath;
+	if( cmdLine.targetFileName.empty() )
+    {
+        targetFilePath = cmdLine.strBuildDir / std::string( "python_bindings.cpp" );
+    }
+    else
+    {
+        targetFilePath = cmdLine.strBuildDir / cmdLine.targetFileName;
+    }
     
-    boost::filesystem::updateFileIfChanged( cmdLine.strBuildDir / std::string( "python_bindings.cpp" ), os.str() );
+    boost::filesystem::updateFileIfChanged( targetFilePath, os.str() );
     
     return 0;
 }

@@ -17,6 +17,7 @@ namespace eg
         boost::filesystem::path strBuildDir = boost::filesystem::current_path();
         std::set< std::string > packages;
         boost::filesystem::path programDataBaseFile;
+        std::string targetFileName;
     };
 
     CmdLine handleCommandLine( int argc, const char* argv[] );
