@@ -63,6 +63,7 @@ namespace eg
     static const char* EG_DEPENDENCY_PROVIDER_TYPE = "eg::DependencyProvider";
     //static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::pooled_fixedsize_stack( EG_FIBER_STACK_SIZE )";
     static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE )";
+	static const char* EG_TRAITS_SIZE = "Size";
     static const char* pszLine = 
     "//////////////////////////////////////////////////////////////////////////////////\n";
     

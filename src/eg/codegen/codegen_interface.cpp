@@ -363,7 +363,7 @@ namespace eg
             os << "  using Read  = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Read;\n";
             os << "  using Write = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Write;\n";
             os << "  using Get   = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Get;\n";
-            os << "  static const " << EG_INSTANCE << " Size = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Size;\n";
+            os << "  static const " << EG_INSTANCE << " " << EG_TRAITS_SIZE << " = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::" << EG_TRAITS_SIZE << ";\n";
             os << "};\n";
         }
         void push ( const input::Include*   pElement, const interface::Element* pNode )
@@ -403,7 +403,7 @@ namespace eg
                 os << "\n{\n";
                 os << "  using Type  = " << pOpaque->getStr() << ";\n";
                 os << "  using Dependency = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::Dependency;\n";
-                os << "  static const " << EG_INSTANCE << " Size = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::Size;\n";
+                os << "  static const " << EG_INSTANCE << " " << EG_TRAITS_SIZE << " = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::" << EG_TRAITS_SIZE << ";\n";
                 os << "};\n";
             }
         }

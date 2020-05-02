@@ -190,6 +190,8 @@ namespace interface
     
     class Dimension : public Element
     {
+		static const std::size_t SIZE_NOT_SET = std::numeric_limits< std::size_t >::max();
+		
         friend class ::eg::ObjectFactoryImpl;
         friend class ::clang::AbstractMutator;
     public:
@@ -204,7 +206,7 @@ namespace interface
         //const input::Dimension* getInputDimension() const { return m_pDimension; }
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
-        std::size_t getSize() const { return m_size; }
+        std::size_t getSize() const { VERIFY_RTE_MSG( m_size != SIZE_NOT_SET, "Size not calculated for: " << getType() ); return m_size; }
         const std::vector< Action* >& getActionTypes() const { return m_actionTypes; }
         static bool isHomogenous( const std::vector< const Dimension* >& dimensions );
         //std::string getStaticType() const;
@@ -212,7 +214,7 @@ namespace interface
         input::Dimension* m_pDimension = nullptr;
         std::vector< Action* > m_actionTypes;
         std::string m_canonicalType;
-        std::size_t m_size;
+        std::size_t m_size = SIZE_NOT_SET;
     };
     
     class Using : public Element

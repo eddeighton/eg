@@ -785,7 +785,7 @@ namespace clang
             }
             
             //get the optional allocation size
-            if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, result.pContext, result.loc, "SIZE" ) )
+            if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, result.pContext, result.loc, ::eg::EG_TRAITS_SIZE ) )
             {
                 AbstractMutator::setSize( *pAction, static_cast< std::size_t >( sizeOpt.value() ) );
             }
@@ -842,7 +842,7 @@ namespace clang
                         }
                     }
                     //determine the size
-                    if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, "SIZE" ) )
+                    if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, ::eg::EG_TRAITS_SIZE ) )
                     {
                         AbstractMutator::setSize( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
                     }
