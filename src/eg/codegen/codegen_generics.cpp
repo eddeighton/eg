@@ -556,7 +556,7 @@ namespace eg
                             }
                         }
                     }
-                    ASSERT( !dynamicCompatibleTypes.empty() );
+                    //ASSERT( !dynamicCompatibleTypes.empty() );
                     if( !dynamicCompatibleTypes.empty() )
                     {
         os << "template<>\n";

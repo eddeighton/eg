@@ -218,7 +218,7 @@ namespace eg
 
             if( pElement->getSize() )
             {
-                os << strIndent << "static const " << EG_INSTANCE << " SIZE = " << pElement->getSize()->getStr() << ";\n";
+                os << strIndent << "static const " << EG_INSTANCE << " " << ::eg::EG_TRAITS_SIZE << " = " << pElement->getSize()->getStr() << ";\n";
             }
             addActionTraits( os, pElement );
         }

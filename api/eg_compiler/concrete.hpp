@@ -163,6 +163,8 @@ namespace concrete
         virtual void printDeallocation( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const = 0;
         virtual void printStart( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const = 0;
         virtual void printStop( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const = 0;
+        virtual void printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const = 0;
+        virtual void printDecode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const = 0;
     };
     
     /////////////////////////////////////////////////////////////////////////////////////
@@ -195,6 +197,8 @@ namespace concrete
         virtual void printDeallocation( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
         virtual void printStart( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
         virtual void printStop( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
+        virtual void printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
+        virtual void printDecode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
     public:
         bool isEGType() const
         {
@@ -209,7 +213,7 @@ namespace concrete
         const ::eg::interface::Dimension* getDimension() const { return dynamic_cast< const ::eg::interface::Dimension* >( m_pElement ); }
         
     private:
-        Dimension_Generated* m_pTimestamp = nullptr;
+        //Dimension_Generated* m_pTimestamp = nullptr;
     };
     
     /////////////////////////////////////////////////////////////////////////////////////
@@ -224,7 +228,7 @@ namespace concrete
         
         enum DimensionType
         {
-            eDimensionTimestamp,
+            //eDimensionTimestamp,
             eActionStopCycle,
             eActionState,
             eActionFiber,
@@ -253,6 +257,8 @@ namespace concrete
         virtual void printDeallocation( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
         virtual void printStart( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
         virtual void printStop( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
+        virtual void printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
+        virtual void printDecode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const;
 
     public:
         DimensionType getDimensionType() const { return m_type; }
@@ -316,6 +322,8 @@ namespace concrete
         std::string getFriendlyName() const { return getAction()->getFriendlyName(); }
         void print( std::ostream& os, std::string& strIndent ) const;
         virtual void printType( std::ostream& os ) const;
+        void printEncode( std::ostream& os, const std::string& strIndex ) const;
+        void printDecode( std::ostream& os, const std::string& strIndex ) const;
         
     private:
         Inheritance_Node* m_inheritance;

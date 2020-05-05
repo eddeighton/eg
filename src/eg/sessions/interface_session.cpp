@@ -244,12 +244,14 @@ namespace eg
                 
                 dimensionInstances.insert( std::make_pair( pChildDimension, pChildInstance ) );
                 
+				/*
                 pChildInstance->m_pTimestamp = 
                     construct< concrete::Dimension_Generated >();
                 pChildInstance->m_pTimestamp->m_type = concrete::Dimension_Generated::eDimensionTimestamp;
                 pChildInstance->m_pTimestamp->m_pUserDimension = pChildInstance;
     
                 pInstance->m_children.push_back( pChildInstance->m_pTimestamp );
+				*/
 
             }
             else

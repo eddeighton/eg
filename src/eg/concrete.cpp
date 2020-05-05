@@ -107,13 +107,13 @@ namespace concrete
     void Dimension_User::load( Loader& loader )
     {
         Dimension::load( loader );
-        m_pTimestamp = loader.loadObjectRef< Dimension_Generated >();
+        //m_pTimestamp = loader.loadObjectRef< Dimension_Generated >();
     }
     
     void Dimension_User::store( Storer& storer ) const
     {
         Dimension::store( storer );
-        storer.storeObjectRef( m_pTimestamp );
+        //storer.storeObjectRef( m_pTimestamp );
     }
     
     void Dimension_User::print( std::ostream& os, std::string& strIndent ) const
@@ -188,6 +188,32 @@ namespace concrete
     void Dimension_User::printStop( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
     {
     }
+	void Dimension_User::printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	{
+        static const std::string strIndent = "        ";
+        
+        //use the traits
+        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
+        if( pNodeDimension->getActionTypes().empty() )
+        {
+            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::encode( stream, ";
+            printer.printVariableAccess( os, strIndex );
+            os << ");";
+        }
+	}
+	void Dimension_User::printDecode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	{
+        static const std::string strIndent = "        ";
+        
+        //use the traits
+        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
+        if( pNodeDimension->getActionTypes().empty() )
+        {
+            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::decode( stream, ";
+            printer.printVariableAccess( os, strIndex );
+            os << ");";
+        }
+	}
     
     void Dimension_Generated::load( Loader& loader )
     {
@@ -218,9 +244,9 @@ namespace concrete
     {
         switch( m_type )
         {
-            case eDimensionTimestamp :
-                os << EG_TIME_STAMP;
-                break;
+            //case eDimensionTimestamp :
+            //    os << EG_TIME_STAMP;
+            //    break;
             case eActionStopCycle    :
                 os << EG_TIME_STAMP;
                 break;
@@ -268,8 +294,8 @@ namespace concrete
     {
         switch( m_type )
         {
-            case eDimensionTimestamp :
-                return 4;
+            //case eDimensionTimestamp :
+            //    return 4;
             case eActionStopCycle    :
                 return 4;
             case eActionState        :
@@ -299,13 +325,13 @@ namespace concrete
         static const std::string strIndent = "        ";
         switch( m_type )
         {
-            case eDimensionTimestamp :
-                {
-                    os << strIndent; 
-                    printer.printVariableAccess( os, strIndex ); 
-                    os << " = " << EG_INVALID_TIMESTAMP << ";\n";
-                }
-                break;
+            //case eDimensionTimestamp :
+            //    {
+            //        os << strIndent; 
+            //        printer.printVariableAccess( os, strIndex ); 
+            //        os << " = " << EG_INVALID_TIMESTAMP << ";\n";
+            //    }
+            //    break;
             case eActionStopCycle   :
                 {
                     os << strIndent; 
@@ -366,7 +392,7 @@ namespace concrete
         static const std::string strIndent = "        ";
         switch( m_type )
         {
-            case eDimensionTimestamp :
+            //case eDimensionTimestamp :
             case eActionStopCycle    :
             case eActionState        :
                 break;
@@ -407,7 +433,7 @@ namespace concrete
         
         switch( m_type )
         {
-            case eDimensionTimestamp    :
+            //case eDimensionTimestamp    :
             case eActionStopCycle       :
             case eActionState           :
             case eActionFiber           : 
@@ -448,7 +474,7 @@ namespace concrete
         static const std::string strIndent = "         ";
         switch( m_type )
         {
-            case eDimensionTimestamp    :
+            //case eDimensionTimestamp    :
             case eActionStopCycle       :
             case eActionState           :
             case eActionFiber           : 
@@ -485,7 +511,121 @@ namespace concrete
         }
     }
     
-    
+	void Dimension_Generated::printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	{
+        static const std::string strIndent = "        ";
+        
+		os << strIndent << "::eg::DimensionTraits< ";
+		
+        switch( m_type )
+        {
+            //case eDimensionTimestamp :
+            //    os << EG_TIME_STAMP;
+            //    break;
+            case eActionStopCycle    :
+                os << EG_TIME_STAMP;
+                break;
+            case eActionState        :
+                os << EG_ACTION_STATE;
+                break;
+            case eActionFiber        :
+                os << EG_FIBER_TYPE;
+                break;
+            case eActionObject       :
+                //use the type traits in the interface
+                {
+                    VERIFY_RTE( m_pAction );
+                    const interface::Action* pAction = m_pAction->getAction();
+                    
+                    os << EG_OBJECT_TRAITS << "< ";
+                    
+                    os << pAction->getBaseType();
+                    
+                    os << " >::PtrType";
+                }
+                break;
+            case eActionReference    :
+                {
+                    VERIFY_RTE( m_pAction );
+                    const interface::Action* pAction = m_pAction->getAction();
+                    os << pAction->getStaticType();
+                }
+                break;
+            case eActionAllocatorData:
+                os << EG_INSTANCE;
+                break;
+            case eActionAllocatorHead:
+                os << "std::atomic< std::uint64_t >";
+                break;
+            case eRingIndex:
+                os << EG_INSTANCE;
+                break;
+            default:
+                THROW_RTE( "Unknown generated dimension type" );
+        }
+		
+		os << " >::encode( stream, ";
+		printer.printVariableAccess( os, strIndex );
+		os << ");";
+	}
+	void Dimension_Generated::printDecode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	{
+        static const std::string strIndent = "        ";
+        
+		os << strIndent << "::eg::DimensionTraits< ";
+		
+        switch( m_type )
+        {
+            //case eDimensionTimestamp :
+            //    os << EG_TIME_STAMP;
+            //    break;
+            case eActionStopCycle    :
+                os << EG_TIME_STAMP;
+                break;
+            case eActionState        :
+                os << EG_ACTION_STATE;
+                break;
+            case eActionFiber        :
+                os << EG_FIBER_TYPE;
+                break;
+            case eActionObject       :
+                //use the type traits in the interface
+                {
+                    VERIFY_RTE( m_pAction );
+                    const interface::Action* pAction = m_pAction->getAction();
+                    
+                    os << EG_OBJECT_TRAITS << "< ";
+                    
+                    os << pAction->getBaseType();
+                    
+                    os << " >::PtrType";
+                }
+                break;
+            case eActionReference    :
+                {
+                    VERIFY_RTE( m_pAction );
+                    const interface::Action* pAction = m_pAction->getAction();
+                    os << pAction->getStaticType();
+                }
+                break;
+            case eActionAllocatorData:
+                os << EG_INSTANCE;
+                break;
+            case eActionAllocatorHead:
+                os << "std::atomic< std::uint64_t >";
+                break;
+            case eRingIndex:
+                os << EG_INSTANCE;
+                break;
+            default:
+                THROW_RTE( "Unknown generated dimension type" );
+        }
+		
+		os << " >::decode( stream, ";
+		printer.printVariableAccess( os, strIndex );
+		os << ");";
+	}
+		
     void Action::load( Loader& loader )
     {
         Element::load( loader );
@@ -558,6 +698,13 @@ namespace concrete
     {
         os << getAction()->getStaticType();
     }
+	void Action::printEncode( std::ostream& os, const std::string& strIndex ) const
+	{
+		
+	}
+	void Action::printDecode( std::ostream& os, const std::string& strIndex ) const
+	{
+	}
     
     int Action::getDataSize() const
     {

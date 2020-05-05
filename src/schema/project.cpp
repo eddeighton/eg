@@ -233,7 +233,11 @@ void Environment::startLogCommand( std::ostream& os ) const
     static boost::filesystem::path EGLOG;
     if( EGLOG.empty() )
     {
+#ifdef _DEBUG
+        EGLOG = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eglogd.exe";
+#else
         EGLOG = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eglog.exe";
+#endif
     }
     os << printPath( EGLOG ) << " ";
 }
@@ -243,7 +247,11 @@ void Environment::startDriverCommand( std::ostream& os ) const
     static boost::filesystem::path EGDRIVER;
     if( EGDRIVER.empty() )
     {
+#ifdef _DEBUG
+        EGDRIVER = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/egd.exe";
+#else
         EGDRIVER = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg.exe";
+#endif
     }
     os << printPath( EGDRIVER ) << " ";
 }
@@ -253,7 +261,11 @@ const boost::filesystem::path& Environment::getClangPluginDll() const
     static boost::filesystem::path EG_CLANG_PLUGIN;
     if( EG_CLANG_PLUGIN.empty() )
     {
+#ifdef _DEBUG
+        EG_CLANG_PLUGIN = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg_clang_plugind.dll";
+#else
         EG_CLANG_PLUGIN = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg_clang_plugin.dll";
+#endif
     }
     return EG_CLANG_PLUGIN;
 }

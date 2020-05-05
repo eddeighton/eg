@@ -19,11 +19,23 @@
 
 #include "testResourceHandler.hpp"
 
-#include "common/file.hpp"
+#include <fstream>
+#include <string>
+#include <memory>
+
+void loadAsciiFile( const boost::filesystem::path& filePath, std::string& strFileData, bool bAddCR /*= true*/ )
+{
+    std::ifstream inputFileStream( filePath.native().c_str(), std::ios::in );
+    std::string fileContents( (std::istreambuf_iterator<char>( inputFileStream )),
+                               std::istreambuf_iterator<char>() );
+    if( bAddCR )
+        fileContents.push_back( '\n' );//add carriage return onto end just in case...
+    strFileData.swap( fileContents );
+}
 
 eg::Resource::Ptr SimpleResourceHandler::reload( const eg::ResourcePath& path )
 {
     std::shared_ptr< SimpleResource > pResource = std::make_shared< SimpleResource >();
-    boost::filesystem::loadAsciiFile( path, pResource->m_str, false );
+    loadAsciiFile( path, pResource->m_str, false );
     return pResource;
 }

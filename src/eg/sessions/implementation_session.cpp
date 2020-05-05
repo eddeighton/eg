@@ -125,7 +125,7 @@ namespace eg
                         switch( pGenDim->getDimensionType() )
                         {
                             //no need for this at the moment while no multi threading...
-                            case concrete::Dimension_Generated::eDimensionTimestamp:
+                            //case concrete::Dimension_Generated::eDimensionTimestamp:
                             //    {
                             //        pDimensionInstance = construct< DataMember >();
                             //        
@@ -136,7 +136,7 @@ namespace eg
                             //            generateName( 'g', pUserDim, pAction ) + "_timestamp";
                             //        
                             //    }
-                                break;
+                            //    break;
                                 
                             case concrete::Dimension_Generated::eActionStopCycle :
                                 {

@@ -10,7 +10,7 @@ TEST( Done() );
 
 std::vector< A > as;
 
-for( int i = 0; i < A::SIZE; ++i )
+for( int i = 0; i < A::Size; ++i )
 {
     as.push_back( A() );
 }
@@ -21,7 +21,7 @@ for( A a : A.Range() )
 {
     ++iCounter;
 }
-TEST( iCounter == A::SIZE );
+TEST( iCounter == A::Size );
 
 for( A a : as )
 {

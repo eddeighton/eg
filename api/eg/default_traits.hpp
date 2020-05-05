@@ -21,6 +21,8 @@
 #ifndef EG_DEFAULT_TRAITS
 #define EG_DEFAULT_TRAITS
 
+#include <cstddef>
+
 namespace eg
 {
 
@@ -31,7 +33,7 @@ struct DimensionTraits
     using Read  = const T&;
     using Write = T;
     using Get   = T&;
-    static const Instance Size = sizeof( T );
+    static const std::size_t Size = sizeof( T );
     
     static void initialise( T& value )
     {
@@ -47,7 +49,7 @@ struct ObjectTraits
     
     using PtrType = T*;
     
-    static const Instance Size = sizeof( PtrType );
+    static const std::size_t Size = sizeof( PtrType );
     
     static PtrType Allocate()
     {

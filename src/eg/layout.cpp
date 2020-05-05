@@ -82,6 +82,15 @@ void DataMember::printStop( std::ostream& os, const std::string& strIndex ) cons
     return m_pDimension->printStop( os, *this, strIndex );
 }
 
+void DataMember::printEncode( std::ostream& os, const std::string& strIndex ) const
+{
+    return m_pDimension->printEncode( os, *this, strIndex );
+}
+void DataMember::printDecode( std::ostream& os, const std::string& strIndex ) const
+{
+    return m_pDimension->printDecode( os, *this, strIndex );
+}
+
 void Buffer::load( Loader& loader )
 {
     m_pAction = loader.loadObjectRef< concrete::Action >();

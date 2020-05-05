@@ -58,7 +58,8 @@ namespace eg
         void printDeallocation( std::ostream& os, const std::string& strIndex ) const;
         void printStart( std::ostream& os, const std::string& strIndex ) const;
         void printStop( std::ostream& os, const std::string& strIndex ) const;
-        
+        void printEncode( std::ostream& os, const std::string& strIndex ) const;
+        void printDecode( std::ostream& os, const std::string& strIndex ) const;
     private:
         const concrete::Dimension* m_pDimension;
         std::size_t offset;
