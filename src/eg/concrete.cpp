@@ -196,7 +196,7 @@ namespace concrete
         const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
         if( pNodeDimension->getActionTypes().empty() )
         {
-            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::encode( stream, ";
+            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::encode( buffer, ";
             printer.printVariableAccess( os, strIndex );
             os << ");";
         }
@@ -209,7 +209,7 @@ namespace concrete
         const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
         if( pNodeDimension->getActionTypes().empty() )
         {
-            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::decode( stream, ";
+            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::decode( buffer, ";
             printer.printVariableAccess( os, strIndex );
             os << ");";
         }
@@ -564,7 +564,7 @@ namespace concrete
                 THROW_RTE( "Unknown generated dimension type" );
         }
 		
-		os << " >::encode( stream, ";
+		os << " >::encode( buffer, ";
 		printer.printVariableAccess( os, strIndex );
 		os << ");";
 	}
@@ -621,7 +621,7 @@ namespace concrete
                 THROW_RTE( "Unknown generated dimension type" );
         }
 		
-		os << " >::decode( stream, ";
+		os << " >::decode( buffer, ";
 		printer.printVariableAccess( os, strIndex );
 		os << ");";
 	}
@@ -700,12 +700,15 @@ namespace concrete
     }
 	void Action::printEncode( std::ostream& os, const std::string& strIndex ) const
 	{
-		
+		const std::vector< std::string >& params = getAction()->getParameters();
+		//TODO - generate dimensions for parameters for defered / remote calls
 	}
 	void Action::printDecode( std::ostream& os, const std::string& strIndex ) const
 	{
+		const std::vector< std::string >& params = getAction()->getParameters();
+		//TODO - generate dimensions for parameters for defered / remote calls
 	}
-    
+	
     int Action::getDataSize() const
     {
         return 0;
