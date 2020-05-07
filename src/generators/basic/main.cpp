@@ -50,7 +50,7 @@ int main( int argc, const char* argv[] )
     os << "#include \"structures.hpp\"\n";
     
     //detect if we want scripting package support
-    if( cmdLine.packages.count( "pybind11" ) )
+    if( cmdLine.bRunPythonScriptsInMainAction )
     {
     const char pszPythonScripts[] = R"(
 extern std::vector< std::function< void() > > loadPythonScripts( const std::vector< std::string >& scripts, const std::string& strDatabaseFile );
@@ -173,6 +173,7 @@ int main( int argc, const char* argv[] )
         //wait for input 
         if( bDebug )
         {
+			std::cout << "Waiting for input..." << std::endl;
 #ifdef _DEBUG
             Common::debug_break();
 #else

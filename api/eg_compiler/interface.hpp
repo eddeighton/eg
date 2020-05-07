@@ -311,6 +311,9 @@ namespace interface
         {
             m_definitionFile = definitionFileOpt;
         }
+		
+		virtual bool isExecutable() const;
+		virtual bool isMainExecutable() const;
         
     protected:
         input::Action* m_pAction = nullptr;
@@ -340,6 +343,9 @@ namespace interface
         virtual bool update( const Element* pElement );
         
 		RootType getRootType() const { return m_rootType; }
+		
+		virtual bool isExecutable() const;
+		virtual bool isMainExecutable() const;
 			
         mutable std::string m_strTemp;
     public:

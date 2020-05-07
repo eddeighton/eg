@@ -754,9 +754,21 @@ namespace interface
     {
         return ( m_size == 1U ) ? true : false;
     }
+	
+	bool Action::isExecutable() const
+	{
+		return true;
+	}
+		
+	bool Action::isMainExecutable() const
+	{
+		return false;
+	}
+			
     
     Root::Root( const IndexedObject& indexedObject )
-        :   Action( indexedObject )
+        :   Action( indexedObject ),
+			m_rootType( eInterfaceRoot )
     {
     }
     Root::Root( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
@@ -802,5 +814,43 @@ namespace interface
         return true;
     }
     
+	bool Root::isExecutable() const
+	{
+		switch( m_rootType )
+		{
+			case eInterfaceRoot:
+				break;
+			case eFile         :
+			case eFileRoot     :
+				return true;
+			case eMegaRoot     :
+			case eCoordinator  :
+			case eHostName     :
+			case eProjectName  :
+			case eSubFolder    :
+				break;
+		}
+		return false;
+	}
+		
+	bool Root::isMainExecutable() const
+	{
+		switch( m_rootType )
+		{
+			case eInterfaceRoot:
+				break;
+			case eFile         :
+				break;
+			case eFileRoot     :
+				return true;
+			case eMegaRoot     :
+			case eCoordinator  :
+			case eHostName     :
+			case eProjectName  :
+			case eSubFolder    :
+				break;
+		}
+		return false;
+	}
 } //namespace interface
 } //namespace eg

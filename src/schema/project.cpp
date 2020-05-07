@@ -846,19 +846,20 @@ std::vector< boost::filesystem::path > Project::getCommands() const
     
     return result;
 }
-        
-std::vector< std::string > Project::getPackages() const
-{
-    std::vector< std::string > packages;
-    
-    for( const std::string& strPackage : m_project.Package() )
-    {
-        packages.push_back( strPackage );
-    }
-    
-    return packages;
-}
 
+bool Project::isPybindRequired() const
+{
+    for( const egxml::Package& package : m_packages )
+    {
+		if( package.Name() == "pybind11" )
+		{
+			return true;
+		}
+    }
+	
+	return false;
+}
+	
 boost::filesystem::path Project::getProgramName() const
 {
     return boost::filesystem::edsCannonicalise(

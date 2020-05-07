@@ -32,7 +32,9 @@ namespace eg
 	
 	enum RootType : std::size_t
 	{
+		eInterfaceRoot,
 		eFile,
+		eFileRoot,
 		eMegaRoot,
 		eCoordinator,
 		eHostName,
@@ -43,7 +45,9 @@ namespace eg
 	
 	static const char* g_RootTypeStrings[ TOTAL_ROOT_TYPES ] = 
 	{
+		"InterfaceRoot",
 		"File",
+		"FileRoot",
 		"MegaRoot",
 		"Coordinator",
 		"HostName",

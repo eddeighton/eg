@@ -123,8 +123,10 @@ public:
     boost::filesystem::path getObjectFile( const boost::filesystem::path& sourceFile ) const;
     
     std::vector< boost::filesystem::path > getCommands() const;
-    std::vector< std::string > getPackages() const;
+   // std::vector< std::string > getPackages() const;
     boost::filesystem::path getProgramName() const;
+	
+	bool isPybindRequired() const;
 private:
     const boost::filesystem::path m_projectDir;
     Environment m_environment;

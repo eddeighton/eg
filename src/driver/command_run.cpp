@@ -38,10 +38,10 @@
 
 #include <iostream>
 
-void command_run( bool bHelp, const std::vector< std::string >& args )
+void command_run( bool bHelp, const std::string& strRunCommand, const std::vector< std::string >& args )
 {
     std::string strDirectory;
-    std::string strCommand = "default";
+    std::string strCommand = strRunCommand;
     bool bWait = false;
     
     namespace po = boost::program_options;
@@ -49,7 +49,6 @@ void command_run( bool bHelp, const std::vector< std::string >& args )
     {
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
-            ("cmd",     po::value< std::string >( &strCommand ), "Run command name" )
             ("wait",    po::bool_switch( &bWait ), "Wait at startup to attach debugger" )
         ;
     }

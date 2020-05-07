@@ -172,7 +172,7 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
     
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getAction()->isExecutable() )
         {
             os << "void " << getFuncName( pAction, "pause" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
@@ -376,8 +376,9 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() && pAction->getParent()->getParent() )
+        if( pAction->getAction()->isExecutable() && !pAction->getAction()->isMainExecutable() )
         {
+			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                {\n";
     os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
@@ -423,8 +424,9 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() && pAction->getParent()->getParent() )
+        if( pAction->getAction()->isExecutable() && !pAction->getAction()->isMainExecutable() )
         {
+			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                {\n";
     os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
@@ -483,7 +485,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getAction()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                " << pAction->getName() << "_stopper( reference.instance );\n";
@@ -503,7 +505,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getAction()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                " << getFuncName( pAction, "pause" ) << "( reference.instance );\n";
@@ -523,7 +525,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getAction()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                " << getFuncName( pAction, "resume" ) << "( reference.instance );\n";
@@ -543,7 +545,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() )
+        if( pAction->getAction()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                pStack->m_result = pybind11::cast( " << getFuncName( pAction, "done" ) << "( reference.instance ) );\n";

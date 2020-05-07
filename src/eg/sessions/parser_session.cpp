@@ -1745,7 +1745,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 			pRoot->m_pBody = construct< input::Opaque >();
 			pRoot->m_elements.push_back( pRoot->m_pBody );
 			pRoot->m_pBody->m_bSemantic = false;
-			pRoot->m_rootType = eMegaRoot;
+			pRoot->m_rootType = eFileRoot;
 		}
 		
         std::set< boost::filesystem::path > includePaths;
@@ -1930,8 +1930,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     
     void ParserSession::buildAbstractTree()
     {
-        interface::Root* pMasterRoot = construct< interface::Root >();
-        
+        interface::Root* pMasterRoot = construct< interface::Root >(); //eTreeRoot
+		
         std::vector< input::Root* > roots = many< input::Root >( getMaster() );
         VERIFY_RTE( !roots.empty() );
         
@@ -1943,7 +1943,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 			std::optional< boost::filesystem::path > includePathOpt = 
 				pRootElement->getIncludePath();
 			
-			if( eMegaRoot == pRootElement->getRootType() )
+			if( eMegaRoot == pRootElement->getRootType() || 
+				eFileRoot == pRootElement->getRootType() )
 			{
 				VERIFY_RTE( !includePathOpt );
 				VERIFY_RTE( !pInputMainRoot );

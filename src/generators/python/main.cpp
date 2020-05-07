@@ -54,11 +54,12 @@ int main( int argc, const char* argv[] )
         eg::many_cst< eg::concrete::Action >( objects );
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getParent() && pAction->getParent()->getParent() )
+        if( pAction->getAction()->isExecutable() && !pAction->getAction()->isMainExecutable() )
         {
+			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
     os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
         }
-        if( pAction->getParent() )
+        if( pAction->getAction()->isExecutable() )
         {
     os << "extern void " << pAction->getName() << "_stopper( " << eg::EG_INSTANCE << " _gid );\n";
         }

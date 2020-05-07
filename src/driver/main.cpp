@@ -77,7 +77,7 @@ class EGDiagConsumer : public clang::DiagnosticConsumer
 
 extern void command_create( bool bHelp, const std::vector< std::string >& args );
 extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
-extern void command_run( bool bHelp, const std::vector< std::string >& args );
+extern void command_run( bool bHelp, const std::string& strRunCommand, const std::vector< std::string >& args );
 extern void command_log( bool bHelp, const std::vector< std::string >& args );
 extern void command_clean( bool bHelp, const std::vector< std::string >& args );
 extern void command_info( bool bHelp, const std::vector< std::string >& args );
@@ -108,7 +108,7 @@ int main( int argc, const char* argv[] )
     MainCommand cmd = TOTAL_MAIN_COMMANDS;
     
     //commands
-    std::string strBuildCommand;
+    std::string strBuildCommand, strRunCommand;
     
     {
         std::vector< std::string > commandArgs;
@@ -120,7 +120,6 @@ int main( int argc, const char* argv[] )
             bool bGeneralWait = false;
             
             bool bCmdCreate = false;
-            bool bCmdRun    = false;
             bool bCmdLog    = false;
             bool bCmdClean  = false;
             bool bCmdInfo   = false;
@@ -147,7 +146,7 @@ int main( int argc, const char* argv[] )
                     ("build", po::value< std::string >( &strBuildCommand )->implicit_value("release"), 
                         "Build an eg project" )
                         
-                    ("run",   po::bool_switch( &bCmdRun ),
+                    ("run",   po::value< std::string >( &strRunCommand )->implicit_value("default"),
                         "Run an eg project" )
                         
                     ("log",   po::bool_switch( &bCmdLog ),
@@ -216,7 +215,7 @@ int main( int argc, const char* argv[] )
                 cmds.set( eCmd_Build );
                 cmd = eCmd_Build;
             }
-            if( bCmdRun )
+            if( !strRunCommand.empty() )
             {
                 cmds.set( eCmd_Run );
                 cmd = eCmd_Run;
@@ -248,7 +247,7 @@ int main( int argc, const char* argv[] )
             {                
                 case eCmd_Create          : command_create( bShowHelp, commandArguments );                   break;
                 case eCmd_Build           : command_build(  bShowHelp, strBuildCommand, commandArguments );  break;
-                case eCmd_Run             : command_run(    bShowHelp, commandArguments );                   break;
+                case eCmd_Run             : command_run(    bShowHelp, strRunCommand, commandArguments );    break;
                 case eCmd_Log             : command_log(    bShowHelp, commandArguments );                   break;
                 case eCmd_Clean           : command_clean(  bShowHelp, commandArguments );                   break;
                 //case eCmd_CMake           : command_cmake(  bShowHelp, commandArguments );                   break;

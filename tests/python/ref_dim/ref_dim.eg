@@ -16,6 +16,7 @@ while( !aRef() )
         break;
 }
     
+TEST( aRef() );
 TEST( A.Get() );
 TEST( aRef() == A.Get() );
 TEST( aRef.x() == 123 );

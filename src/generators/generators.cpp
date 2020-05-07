@@ -14,7 +14,6 @@ namespace eg
         bool bDebug = false;
         std::string strProgram;
         CmdLine cmdLine;
-        std::vector< std::string > packages;
         {
             namespace po = boost::program_options;
             po::variables_map vm;
@@ -31,8 +30,7 @@ namespace eg
                     ("dir",         po::value< boost::filesystem::path >( &cmdLine.strBuildDir ),   "Build directory" )
                     ("target",      po::value< std::string >( &cmdLine.targetFileName ),            "Target File Name" )
                     ("name",        po::value< std::string >( &cmdLine.strName ),                   "Program Name" )
-                    ("package",     po::value< std::vector< std::string > >( &packages ),           "Packages" )
-					
+					("python",      po::bool_switch( &cmdLine.bRunPythonScriptsInMainAction ),		"Run python script with main action" )
 					
                 ;
 
@@ -56,11 +54,6 @@ namespace eg
                 std::cout << "Invalid input. Type '--help' for options\n";
                 std::abort();
             }
-        }
-        
-        for( const std::string& strPackage : packages )
-        {
-            cmdLine.packages.insert( strPackage );
         }
         
         cmdLine.programDataBaseFile =

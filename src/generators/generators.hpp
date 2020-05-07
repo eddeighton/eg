@@ -15,7 +15,7 @@ namespace eg
     {
         std::string strName = "Demo";
         boost::filesystem::path strBuildDir = boost::filesystem::current_path();
-        std::set< std::string > packages;
+		bool bRunPythonScriptsInMainAction;
         boost::filesystem::path programDataBaseFile;
         std::string targetFileName;
     };

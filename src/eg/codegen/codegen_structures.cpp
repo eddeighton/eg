@@ -30,7 +30,6 @@
 #include "eg_compiler/derivation.hpp"
 #include "eg_compiler/invocation.hpp"
 
-#include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>

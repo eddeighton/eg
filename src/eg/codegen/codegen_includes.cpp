@@ -24,8 +24,6 @@
 #include "eg_compiler/input.hpp"
 #include "eg_compiler/interface.hpp"
 
-
-#include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>

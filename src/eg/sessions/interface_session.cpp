@@ -392,8 +392,10 @@ namespace eg
 			{
 				switch( pRoot->getRootType() )
 				{
+					case eInterfaceRoot  :
+					case eFileRoot       :
 					case eFile           :
-					case eMegaRoot       :
+					case eMegaRoot       :  break;
 					case eCoordinator    :	pCoordinator 	= pRoot; break;
 					case eHostName       :  pHostname 		= pRoot; break;
 					case eProjectName    :

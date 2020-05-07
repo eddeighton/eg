@@ -128,26 +128,23 @@ namespace eg
         os << "\n";
         
     }
-
-    void generateActionInstanceFunctions( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
-    {
-        if( pAction->getStopCycle() && pAction->getState() && pAction->getFiber() )
-        {
-            if( pAction->getParent() && pAction->getParent()->getParent() )
-            {
-           
-                const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
-                VERIFY_RTE( pParentAction );
-                
-                const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
-                const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
-                const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
-                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
-                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
-                const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-                const DataMember* pRingIndex = layout.getDataMember( pAction->getRingIndex() );
-                const DataMember* pObject = pAction->getMappedObject() ? 
-                    layout.getDataMember( pAction->getMappedObject() ) : nullptr;
+	
+	
+	void generateExecutableActionStarter( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+	{
+		VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
+		const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
+		VERIFY_RTE( pParentAction );
+		
+		const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
+		const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
+		//const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+		const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
+		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+		const DataMember* pRingIndex = layout.getDataMember( pAction->getRingIndex() );
+		const DataMember* pObject = pAction->getMappedObject() ? 
+			layout.getDataMember( pAction->getMappedObject() ) : nullptr;
                     
         /////starter
         {
@@ -219,15 +216,16 @@ namespace eg
         os << "}\n";
         os << "\n";
         }
-            }
-            else
-            {
-                //simple starter for root
-                const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
-                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
-                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
-                const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-                        
+	}
+	
+	void generateMainActionStarter( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+	{
+		//simple starter for root
+		//const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+		const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
+		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+				
         pAction->printType( os ); os << " " << pAction->getName() << "_starter( std::vector< std::function< void() > >& functions )\n";
         os << "{\n";
         os << "    const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
@@ -262,7 +260,10 @@ namespace eg
         os << "                                                                                            \n";
         os << "            try                                                                             \n";
         os << "            {                                                                               \n";
-        //os << "                reference();                                                                \n";
+		if( pAction->getAction()->hasDefinition() )
+		{
+        os << "                reference();                                                                \n";
+		}
         os << "            }                                                                               \n";
         os << "            catch( eg::termination_exception )                                              \n";
         os << "            {                                                                               \n";
@@ -285,29 +286,63 @@ namespace eg
         os << "    return reference;\n";
         os << "}\n";
         os << "\n";
-                
-            }
-        
-        ////stopper
+	}
+	
+	
+	void generateMainActionStopper( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+	{
         os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
         os << "{\n";
         os << "     " << EG_INSTANCE << " _parent_id = _gid / " << pAction->getLocalDomainSize() << ";\n";
         
-            if( pAction->getParent() && pAction->getParent()->getParent() )
-            {
-                
-                const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
-                VERIFY_RTE( pParentAction );
-                
-                const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
-                const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
-                const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
-                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
-                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
-                const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-                const DataMember* pRingIndex = layout.getDataMember( pAction->getRingIndex() );
-                const DataMember* pObject = pAction->getMappedObject() ? 
-                    layout.getDataMember( pAction->getMappedObject() ) : nullptr;
+		const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+		const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
+		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+		
+        os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+        os << "     {\n";
+                        //stop the subtree
+                for( const concrete::Element* pChild : pAction->getChildren() )
+                {
+                    if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
+                    {
+        os << "         for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
+                                "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
+        os << "         {\n";
+        os << "             " << pChildAction->getName() << "_stopper( childIndex );\n";
+        os << "         }\n";
+                    }
+                }
+        os << "         " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+        os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
+        os << "         if( " << Printer( pFiberData, "_gid" ) << ".joinable() )\n";
+        os << "             " << Printer( pFiberData, "_gid" ) << ".detach();\n";
+        os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+        os << "     }\n";
+		
+        os << "}\n";
+        os << "\n";
+	}
+	void generateExecutableActionStopper( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+	{
+		////stopper
+        os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
+        os << "{\n";
+        os << "     " << EG_INSTANCE << " _parent_id = _gid / " << pAction->getLocalDomainSize() << ";\n";
+        
+		const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
+		VERIFY_RTE( pParentAction );
+		
+		const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
+		const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
+		const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+		const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
+		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+		const DataMember* pRingIndex = layout.getDataMember( pAction->getRingIndex() );
+		const DataMember* pObject = pAction->getMappedObject() ? 
+			layout.getDataMember( pAction->getMappedObject() ) : nullptr;
                 
         os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
@@ -384,40 +419,26 @@ namespace eg
                     
                 }
         os << "     }\n";
-            }
-            else
-            {
-                const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
-                const DataMember* pStateData = layout.getDataMember( pAction->getState() );
-                const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
-                const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-                
-        os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
-        os << "     {\n";
-                        //stop the subtree
-                for( const concrete::Element* pChild : pAction->getChildren() )
-                {
-                    if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
-                    {
-        os << "         for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
-                                "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
-        os << "         {\n";
-        os << "             " << pChildAction->getName() << "_stopper( childIndex );\n";
-        os << "         }\n";
-                    }
-                }
-        os << "         " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-        os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
-        os << "         if( " << Printer( pFiberData, "_gid" ) << ".joinable() )\n";
-        os << "             " << Printer( pFiberData, "_gid" ) << ".detach();\n";
-        os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
-        os << "     }\n";
-            }
         
         os << "}\n";
         os << "\n";
-        }
-        
+	}
+
+    void generateActionInstanceFunctions( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+    {
+        if( pAction->getStopCycle() && pAction->getState() && pAction->getFiber() )
+        {
+            if( pAction->getAction()->isMainExecutable() )
+            {
+				generateMainActionStarter( os, layout, pAction );
+				generateMainActionStopper( os, layout, pAction );
+            }
+			else if( pAction->getAction()->isExecutable() )
+            {
+                generateExecutableActionStarter( os, layout, pAction );
+				generateExecutableActionStopper( os, layout, pAction );
+            }
+		}
     }
 
     void generateActionInstanceFunctions( std::ostream& os, const ReadSession& program )

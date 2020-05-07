@@ -458,16 +458,6 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         }
     }
     
-    
-    std::ostringstream osPackages;
-    bool bHasPackages = false;
-    {
-        const std::vector< std::string > packages = project.getPackages();
-        std::copy( packages.begin(), packages.end(),
-            std::ostream_iterator< std::string >( osPackages, " " ) );
-        bHasPackages = !packages.empty();
-    }
-    
     //executing all commands
     std::vector< boost::filesystem::path > commands =  project.getCommands();
     for( const boost::filesystem::path& strCommand : commands )
@@ -482,9 +472,9 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         osCmd << "--name " << project.getProject().Name() << " ";
         osCmd << "--database " << project.getAnalysisFileName() << " ";
         osCmd << "--dir " << project.getIntermediateFolder().generic_string() << " ";
-        if( bHasPackages )
+        if( project.isPybindRequired() )
         {
-            osCmd << "--package " << osPackages.str() << " ";
+            osCmd << "--python ";
         }
         
         if( bLogCommands )
