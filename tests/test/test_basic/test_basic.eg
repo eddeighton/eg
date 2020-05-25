@@ -1,9 +1,10 @@
 
-action A
+action A[ 64 ]
 {
     dim int x;
+	
+	std::cout << "works!" << std::endl;
+	
 }
 
-A a;
-
-a.x();
+A();

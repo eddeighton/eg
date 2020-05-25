@@ -81,18 +81,5 @@ namespace eg
     }
     
     
-    Printer CodeGenerator::getDimension( const concrete::Dimension* pDimension, const std::string& strIndex )
-    {
-        return Printer( m_layout.getDataMember( pDimension ), strIndex.c_str() );
-    }
-    
-    std::ostream& operator<<( std::ostream& os, const Printer& printer )
-    {
-        printer.m_pDataMember->printVariableAccess( os, printer.pszIndex );
-        return os;
-    }
-    
-    
-    
     
 }

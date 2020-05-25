@@ -93,7 +93,7 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
-            pDimension->printAllocation( os, "i" );
+            eg::generateAllocation( os, pDimension, "i" );
         }
     
     os << "    }\n";
@@ -112,7 +112,7 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
-            pDimension->printDeallocation( os, "i" );
+            eg::generateDeallocation( os, pDimension, "i" );
         }
     os << "    }\n";
     }

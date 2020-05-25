@@ -190,14 +190,13 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
             os << "{\n";
             
             const eg::concrete::Action::IteratorMap& iterators = pAction->getAllocators();
-            os << "    " << eg::EG_ITERATOR_TYPE << " iter;\n";
+            os << "    " << eg::EG_RING_BUFFER_ALLOCATOR_TYPE << " iter;\n";
             for( eg::concrete::Action::IteratorMap::const_iterator 
                 i = iterators.begin(),
                 iEnd = iterators.end(); i!=iEnd; ++i )
             {
                 const eg::concrete::Dimension_Generated* pIterator = i->second;
-                os << "    iter = " << eg::EG_ITERATOR_TYPE << "( " << 
-                    eg::Printer( layout.getDataMember( pIterator ), "instance" ) << ".load() );\n";
+                os << "    iter = " << eg::Printer( layout.getDataMember( pIterator ), "instance" ) << ";\n";
                 os << "    if( iter.full || ( iter.head != iter.tail ) ) return false;\n";
             }
             os << "    return true;\n";
@@ -357,7 +356,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
     os << "            case " << pDimension->getIndex() << ":\n";
-    os << "                 " << eg::Printer( pDataMember, "reference.instance" ) << " = pybind11::cast< "; pDimension->printType( os ); os << " >( args[ 0 ] );\n";
+    os << "                 " << eg::Printer( pDataMember, "reference.instance" ) << " = pybind11::cast< "; generateDataMemberType( os, pDataMember ); os << " >( args[ 0 ] );\n";
     os << "                 break;\n";
             }
         }
@@ -381,7 +380,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
 			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                {\n";
-    os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                    " << getStaticType( pAction->getAction() ) << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
     if( false && pAction->getAction()->hasDefinition() )
@@ -429,14 +428,14 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
 			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                {\n";
-    os << "                    " << pAction->getAction()->getStaticType() << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                    " << getStaticType( pAction->getAction() ) << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
             if( false && pAction->getAction()->hasDefinition() )
             {
     const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
     
-    os << "                        std::function< void() > functor = std::bind( &" << pAction->getAction()->getStaticType() << "::operator(), ref";
+    os << "                        std::function< void() > functor = std::bind( &" << getStaticType( pAction->getAction() ) << "::operator(), ref";
     int iIndex = 0;
     for( const std::string& strParamType : parameters )
     {

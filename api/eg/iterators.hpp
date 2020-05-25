@@ -29,7 +29,7 @@
 namespace eg
 {
 
-    union Iterator
+    union RingBufferAllocator
     {
         std::uint64_t data;
         struct
@@ -40,11 +40,11 @@ namespace eg
             std::uint32_t protection : 1;
         };
      
-        Iterator()
+        RingBufferAllocator()
             :   data( 0UL ) 
         {
         }
-        Iterator( std::uint64_t value ) 
+        RingBufferAllocator( std::uint64_t value ) 
             :   data( value ) 
         { 
         }

@@ -54,7 +54,7 @@ namespace eg
     static const char* EG_RESULT_TYPE = "eg::result_type";
     static const char* EG_FIBER_TYPE = "boost::fibers::fiber";
     static const char* EG_TYPE_PATH_CANNON_TYPE = "eg::CanonicaliseTypePath";
-    static const char* EG_ITERATOR_TYPE = "eg::Iterator";
+    static const char* EG_RING_BUFFER_ALLOCATOR_TYPE = "eg::RingBufferAllocator";
     static const char* EG_REFERENCE_TYPE = "eg::reference";
     static const char* EG_IS_CONVERTIBLE_TYPE = "eg::is_convertible";
     static const char* EG_EVENT_TYPE = "eg::Event";
@@ -64,6 +64,7 @@ namespace eg
     //static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::pooled_fixedsize_stack( EG_FIBER_STACK_SIZE )";
     static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE )";
 	static const char* EG_TRAITS_SIZE = "Size";
+	static const char* EG_ALLOCATOR_TYPE = "std::uint64_t";
     static const char* pszLine = 
     "//////////////////////////////////////////////////////////////////////////////////\n";
     
@@ -80,11 +81,15 @@ namespace eg
     void generateIncludeHeader( std::ostream& os, const interface::Root* pRoot, 
         const std::vector< boost::filesystem::path >& hostIncludesSystem, 
         const std::vector< boost::filesystem::path >& hostIncludesUser );
+        
+    std::string getStaticType( const interface::Element* pElement );
     
     void generateInterface( std::ostream& os, 
         const interface::Root* pRoot, 
         const Identifiers* pIdentifiers, 
         std::size_t szFiberStackSize );
+        
+        
 
     class TranslationUnit;
     void generateOperationSource( std::ostream& os, 
@@ -116,58 +121,15 @@ namespace eg
     };
     
     std::ostream& operator<<( std::ostream& os, const Printer& printer );
-
+    
+    void generateDataMemberType( std::ostream& os, const DataMember* pDataMember );
+    
+    void generateAllocation( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
+    void generateDeallocation( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
+	
     class Layout;
-    class CodeGenerator
-    {
-        static const int INDENT = 4;
-    public:
-        CodeGenerator( const Layout& layout, int iIndent, const std::string& strFailureType ) 
-            :   m_layout( layout ), 
-                m_strFailureType( strFailureType )
-        {
-            for( int i = 0; i != iIndent; ++i )
-                pushIndent();
-        }
-        
-        using VariableExprMap = std::map< const Variable*, std::string >;
-        
-        inline void setVarExpr( const Variable* pVariable, const std::string& str )
-        {
-            VariableExprMap::const_iterator iFind = m_variables.find( pVariable );
-            VERIFY_RTE( iFind == m_variables.end() );
-            m_variables.insert( std::make_pair( pVariable, str ) );
-        }
-        inline const std::string& getVarExpr( const Variable* pVariable ) const
-        {
-            VariableExprMap::const_iterator iFind = m_variables.find( pVariable );
-            VERIFY_RTE( iFind != m_variables.end() );
-            return iFind->second;
-        }
-        
-        const std::string& getIndent() const { return m_strIndent; }
-        void pushIndent() 
-        { 
-            for( int i = 0; i != INDENT; ++i )
-                m_strIndent.push_back( ' ' );
-        }
-        void popIndent()
-        {
-            for( int i = 0; i != INDENT; ++i )
-                m_strIndent.pop_back();
-        }
-        
-        Printer getDimension( const concrete::Dimension* pDimension, const std::string& strIndex );
-        
-        std::string getFailureReturnType() const { return m_strFailureType; }
-        
-        const Layout& getLayout() const { return m_layout; }
-    private:
-        VariableExprMap m_variables;
-        std::string m_strIndent;
-        const Layout& m_layout;
-        std::string m_strFailureType;
-    };
+	void generateInstructions( std::ostream& os, const RootInstruction* pRootInstruction, const Layout& layout );
+
 }
 
 #endif //CODE_GEN_18_04_2019

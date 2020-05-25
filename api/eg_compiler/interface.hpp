@@ -157,7 +157,6 @@ namespace interface
         const std::string& getIdentifier() const;
         const std::vector< Element* >& getChildren() const { return m_children; }
         std::string getFriendlyName() const;
-        std::string getStaticType() const;
     protected:
         input::Element* m_pElement;
         Element* m_pParent;
@@ -203,13 +202,11 @@ namespace interface
         virtual void store( Storer& storer ) const;
         virtual bool update( const Element* pElement );
     public:
-        //const input::Dimension* getInputDimension() const { return m_pDimension; }
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
         std::size_t getSize() const { VERIFY_RTE_MSG( m_size != SIZE_NOT_SET, "Size not calculated for: " << getType() ); return m_size; }
         const std::vector< Action* >& getActionTypes() const { return m_actionTypes; }
         static bool isHomogenous( const std::vector< const Dimension* >& dimensions );
-        //std::string getStaticType() const;
     private:
         input::Dimension* m_pDimension = nullptr;
         std::vector< Action* > m_actionTypes;

@@ -89,7 +89,7 @@ std::pair< Input::Iter, Input::Iter > Input::getEvents()
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
-            pDimension->printAllocation( os, "i" );
+            generateAllocation( os, pDimension, "i" );
         }
     
     os << "    }\n";
@@ -108,7 +108,7 @@ std::pair< Input::Iter, Input::Iter > Input::getEvents()
     os << "    {\n";
         for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
         {
-            pDimension->printDeallocation( os, "i" );
+            generateDeallocation( os, pDimension, "i" );
         }
     os << "    }\n";
     }

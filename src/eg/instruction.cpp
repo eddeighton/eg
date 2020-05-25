@@ -18,7 +18,6 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "eg_compiler/instruction.hpp"
-#include "eg_compiler/codegen/codegen.hpp"
 
 namespace eg
 {
@@ -515,16 +514,6 @@ namespace eg
         serialiser.store( storer, m_pContext );
         storer.store( m_iMaxRanges );
     }
-    void RootInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        generator.setVarExpr( m_pContext, "context" );
-        
-        ASSERT( m_children.size() == 1U );
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
-    }
     void RootInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
         ASSERT( m_children.size() == 1U );
@@ -548,29 +537,6 @@ namespace eg
         Instruction::store( serialiser, storer );
         serialiser.store( storer, m_pFrom );
         serialiser.store( storer, m_pTo );
-    }
-    void ParentDerivationInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        std::ostringstream osExpr;
-        {
-            const concrete::Action* pType = m_pFrom->getConcreteType();
-            if( pType->getLocalDomainSize() > 1U )
-            {
-                osExpr << "( " << generator.getVarExpr( m_pFrom ) << " )";
-                osExpr << " / " << pType->getLocalDomainSize();
-            }
-            else
-            {
-                osExpr << generator.getVarExpr( m_pFrom );
-            }
-        }
-        generator.setVarExpr( m_pTo, osExpr.str() );
-        
-        ASSERT( m_children.size() == 1U );
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
     }
     void ParentDerivationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -597,15 +563,6 @@ namespace eg
         serialiser.store( storer, m_pFrom );
         serialiser.store( storer, m_pTo );
     }
-    void ChildDerivationInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        generator.setVarExpr( m_pTo, generator.getVarExpr( m_pFrom ) );
-        ASSERT( m_children.size() == 1U );
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
-    }
     void ChildDerivationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
         ASSERT( m_children.size() == 1U );
@@ -629,15 +586,6 @@ namespace eg
         Instruction::store( serialiser, storer );
         serialiser.store( storer, m_pFrom );
         serialiser.store( storer, m_pTo );
-    }
-    void EnumDerivationInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        //generator.setVarExpr( m_pTo, generator.getVarExpr( m_pFrom ) );
-        ASSERT( m_children.size() == 1U );
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
     }
     void EnumDerivationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -669,212 +617,7 @@ namespace eg
     {
         m_iMaxRanges = iMaxRanges;
     }
-    void EnumerationInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        ASSERT( !m_returnTypes.empty() );
-        
-        std::vector< const Operation* > operations;
-        getOperations( operations );
-        
-        const concrete::Action* pEnumerationAction = m_pContext->getConcreteType();
-        
-        if( m_iMaxRanges == 1U )
-        {
-            ASSERT( operations.size() == 1U );
-            const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( operations.front() );
-            ASSERT( pRangeOp );
-            const concrete::Action* pTarget = pRangeOp->getTarget();
-            std::size_t szDomainMultiplier = 1U;
-            
-            const char* pszIteratorType = nullptr;
-            {
-                switch( pRangeOp->getRangeType() )
-                {
-                    case RangeOperation::eRaw:      pszIteratorType = EG_REFERENCE_RAW_ITERATOR_TYPE; break;
-                    case RangeOperation::eRange:    pszIteratorType = EG_REFERENCE_ITERATOR_TYPE; break;
-                    default: THROW_RTE( "Unknown range type" );
-                }
-                ASSERT( pszIteratorType );
-            }
-            
-            const concrete::Action* pIter = pTarget;
-            for( ; pIter != pEnumerationAction; 
-                pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
-            {
-                ASSERT( pIter );
-                szDomainMultiplier *= pIter->getLocalDomainSize();
-            }
-            ASSERT( pIter == pEnumerationAction );
-            
-            os << generator.getIndent() << "const " << EG_INSTANCE << " iBegin = " <<
-                generator.getVarExpr( m_pContext ) << " * " << szDomainMultiplier << ";\n";
-            os << generator.getIndent() << "const " << EG_INSTANCE << " iEnd = ( " <<
-                generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier << ";\n";
-                
-            if( m_returnTypes.size() == 1U )
-            {
-                const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
-                ASSERT( pReturnType );
-                
-                std::ostringstream osIterType;
-                {
-                    osIterType << pszIteratorType << "< " << pReturnType->getStaticType() << " >";
-                }
-                os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
-                os << generator.getIndent() << "++begin;\n";
-                os << generator.getIndent() << osIterType.str() << " end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
-                os << generator.getIndent() << "return " << EG_RANGE_TYPE << "< " << osIterType.str() << " >( begin, end );\n";
-            }
-            else
-            {
-                std::ostringstream osType;
-                {
-                    osType << EG_VARIANT_TYPE << "< ";
-                    for( const interface::Element* pElement : m_returnTypes )
-                    {
-                        const interface::Action* pReturnType = 
-                            dynamic_cast< const interface::Action* >( pElement );
-                        ASSERT( pReturnType );
-                        if( pElement != *m_returnTypes.begin())
-                            osType << ", ";
-                        osType << pReturnType->getStaticType();
-                    }
-                    osType << " >";
-                }
-                std::ostringstream osIterType;
-                {
-                    osIterType << pszIteratorType << "< " << osType.str() << " >";
-                }
-                os << generator.getIndent() << osIterType.str() << " begin( iBegin - 1, iEnd, " << pTarget->getIndex() << " ); //" << pTarget->getFriendlyName() << "\n";
-                os << generator.getIndent() << "++begin;\n";
-                os << generator.getIndent() << osIterType.str() << " end( iEnd, iEnd, " << pTarget->getIndex() << " );\n";
-                os << generator.getIndent() << "return " << EG_RANGE_TYPE << "< " << osIterType.str() << " >( begin, end );\n";
-            }
-        }
-        else
-        {
-            const char* pszIteratorType = nullptr;
-            ASSERT( !operations.empty() );
-            if( !operations.empty() )
-            {
-                const RangeOperation* pFirstRangeOp = dynamic_cast< const RangeOperation* >( 
-                    dynamic_cast< const RangeOperation* >( operations.front() ) );
-                ASSERT( pFirstRangeOp );
-                switch( pFirstRangeOp->getRangeType() )
-                {
-                    case RangeOperation::eRaw:      pszIteratorType = EG_REFERENCE_RAW_ITERATOR_TYPE; break;
-                    case RangeOperation::eRange:    pszIteratorType = EG_REFERENCE_ITERATOR_TYPE; break;
-                    default: THROW_RTE( "Unknown range type" );
-                }
-                ASSERT( pszIteratorType );
-            }
-            
-            std::ostringstream osReturnType;
-            std::ostringstream osIterType;
-            if( m_returnTypes.size() == 1U )
-            {
-                const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( m_returnTypes.front() );
-                ASSERT( pReturnType );
-                osReturnType << pReturnType->getStaticType();
-                osIterType << pszIteratorType << "< " << osReturnType.str() << " >";
-            }
-            else
-            {
-                osReturnType << EG_VARIANT_TYPE << "< ";
-                for( const interface::Element* pElement : m_returnTypes )
-                {
-                    const interface::Action* pReturnType = 
-                        dynamic_cast< const interface::Action* >( pElement );
-                    ASSERT( pReturnType );
-                    if( pElement != *m_returnTypes.begin())
-                        osReturnType << ", ";
-                    osReturnType << pReturnType->getStaticType();
-                }
-                osReturnType << " >";
-                osIterType << pszIteratorType << "< " << osReturnType.str() << " >";
-            }
-            
-            os << generator.getIndent() << "using IterType = " << osIterType.str() << ";\n";
-            os << generator.getIndent() << "using MultiIterType = " << EG_MULTI_ITERATOR_TYPE << "< IterType, " << m_iMaxRanges << " >;\n";
-            
-            //begin iterators
-            os << generator.getIndent() << "MultiIterType::IteratorArray iterators_begin = \n";
-            os << generator.getIndent() << "{\n";
-            
-            for( const Operation* pOperation : operations )
-            {
-                const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( pOperation );
-                ASSERT( pRangeOp );
-                const concrete::Action* pTarget = pRangeOp->getTarget();
-                std::size_t szDomainMultiplier = 1U;
-                
-                const concrete::Action* pIter = pTarget;
-                for( ; pIter != pEnumerationAction; 
-                    pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
-                {
-                    ASSERT( pIter );
-                    szDomainMultiplier *= pIter->getLocalDomainSize();
-                }
-                ASSERT( pIter == pEnumerationAction );
-                
-                os << generator.getIndent() << "    IterType( " << 
-                    "( " << generator.getVarExpr( m_pContext ) << " * " << szDomainMultiplier << " ) - 1U" <<
-                    ", ( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
-                    ", static_cast< eg::TypeID >( " << pTarget->getIndex() << " ) ), //" << pTarget->getFriendlyName() << "\n";
-            }
-            
-            //add addition empty ranges up to m_iMaxRanges
-            for( std::size_t sz = operations.size(); sz != m_iMaxRanges; ++sz )
-            {
-                os << generator.getIndent() << "    IterType( 0, 0, 0 ) ),\n";
-            }
-            
-            os << generator.getIndent() << "};\n";
-            
-            std::size_t szIndex = 0U;
-            for( const Operation* pOperation : operations )
-            {
-                os << generator.getIndent() << "++iterators_begin[ " << szIndex++ << " ];\n";
-            }
-            
-            //end iterators
-            os << generator.getIndent() << "MultiIterType::IteratorArray iterators_end = \n";
-            os << generator.getIndent() << "{\n";
-            
-            for( const Operation* pOperation : operations )
-            {
-                const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( pOperation );
-                ASSERT( pRangeOp );
-                const concrete::Action* pTarget = pRangeOp->getTarget();
-                std::size_t szDomainMultiplier = 1U;
-                
-                const concrete::Action* pIter = pTarget;
-                for( ; pIter != pEnumerationAction; 
-                    pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
-                {
-                    ASSERT( pIter );
-                    szDomainMultiplier *= pIter->getLocalDomainSize();
-                }
-                ASSERT( pIter == pEnumerationAction );
-                
-                os << generator.getIndent() << "    IterType( " << 
-                    "( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
-                    ", ( " << generator.getVarExpr( m_pContext ) << " + 1 ) * " << szDomainMultiplier <<
-                    ", static_cast< eg::TypeID >( " << pTarget->getIndex() << " ) ), //" << pTarget->getFriendlyName() << "\n";
-            }
-            
-            //add addition empty ranges up to m_iMaxRanges
-            for( std::size_t sz = operations.size(); sz != m_iMaxRanges; ++sz )
-            {
-                os << generator.getIndent() << "    IterType( 0, 0, 0 ) ),\n";
-            }
-            
-            os << generator.getIndent() << "};\n";
-            
-            os << generator.getIndent() << "return " << EG_RANGE_TYPE << 
-                "< MultiIterType >( MultiIterType( iterators_begin ), MultiIterType( iterators_end ) );\n";
-        }
-    }
+    
     
     void EnumerationInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -977,18 +720,6 @@ namespace eg
         serialiser.store( storer, m_pReference );
         storer.storeObjectRef( m_pDimension );
     }
-    void DimensionReferenceReadInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        std::ostringstream osReadRef;
-        osReadRef << generator.getDimension( m_pDimension, generator.getVarExpr( m_pInstance ) );
-        generator.setVarExpr( m_pReference, osReadRef.str() );
-        
-        ASSERT( m_children.size() == 1U );
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
-    }
     void DimensionReferenceReadInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
         const reference& actionRef = evaluator.getVarValue( m_pInstance );
@@ -1013,20 +744,6 @@ namespace eg
         serialiser.store( storer, m_pFrom );
         serialiser.store( storer, m_pInstance );
     }
-    void MonomorphicReferenceInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        std::ostringstream osExpr;
-        {
-            osExpr << generator.getVarExpr( m_pFrom ) << ".data.instance";
-        }
-        generator.setVarExpr( m_pInstance, osExpr.str() );
-        
-        ASSERT( m_children.size() == 1U );
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
-    }
     void MonomorphicReferenceInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
         const reference& ref = evaluator.getVarValue( m_pFrom );
@@ -1044,19 +761,6 @@ namespace eg
     {
         Instruction::store( serialiser, storer );
         serialiser.store( storer, m_pFrom );
-    }
-    void PolymorphicReferenceBranchInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "switch( " << generator.getVarExpr( m_pFrom ) << ".data.type )\n";
-        os << generator.getIndent() << "{\n";
-        generator.pushIndent();
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
-        os << generator.getIndent() << "default: throw std::runtime_error( \"runtime type error\" );\n";
-        generator.popIndent();
-        os << generator.getIndent() << "}\n";
     }
     void PolymorphicReferenceBranchInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1093,26 +797,6 @@ namespace eg
         Instruction::store( serialiser, storer );
         serialiser.store( storer, m_pReference );
         serialiser.store( storer, m_pTo );
-    }
-    void PolymorphicCaseInstruction::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        std::ostringstream osExpr;
-        {
-            osExpr << generator.getVarExpr( m_pReference ) << ".data.instance";
-        }
-        generator.setVarExpr( m_pTo, osExpr.str() );
-        
-        const concrete::Action* pType = m_pTo->getConcreteType();
-        os << generator.getIndent() << "case " << pType->getIndex() << ": //" << pType->getFriendlyName() << "\n";
-        os << generator.getIndent() << "{\n";
-        generator.pushIndent();
-        for( const Instruction* pChild : m_children )
-        {
-            pChild->generate( generator, os );
-        }
-        generator.popIndent();
-        os << generator.getIndent() << "}\n";
-        os << generator.getIndent() << "break;\n";
     }
     void PolymorphicCaseInstruction::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1151,22 +835,6 @@ namespace eg
     {
         abstractTypes.push_back( m_pInterface );
     }
-    void CallOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        const interface::Action* pStaticType = m_pTarget->getAction();
-        
-        os << generator.getIndent() << pStaticType->getStaticType() << " ref = " << m_pTarget->getName() << 
-            "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
-        os << generator.getIndent() << "if( ref )\n";
-        os << generator.getIndent() << "{\n";
-        if( pStaticType->hasDefinition() )
-        {
-        os << generator.getIndent() << "    ref( args... );\n";
-        }
-        os << generator.getIndent() << "    " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
-        os << generator.getIndent() << "}\n";
-        os << generator.getIndent() << "return ref;\n";
-    }
     void CallOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doCall( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
@@ -1189,58 +857,6 @@ namespace eg
     void StartOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
-    }
-    void StartOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        const interface::Action* pStaticType = m_pTarget->getAction();
-        
-        os << generator.getIndent() << pStaticType->getStaticType() << " ref = " << m_pTarget->getName() << 
-            "_starter( " << generator.getVarExpr( m_pInstance ) << " );\n";
-            
-        if( pStaticType->hasDefinition() )
-        {
-            const DataMember* pFiberData = generator.getLayout().getDataMember( m_pTarget->getFiber() );
-                
-            os << generator.getIndent() << "if( ref )\n";
-            os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << " = " << EG_FIBER_TYPE << "\n";
-            os << generator.getIndent() << "    (\n";
-            os << generator.getIndent() << "        std::allocator_arg,\n";
-            os << generator.getIndent() << "        " << EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
-            os << generator.getIndent() << "        [ = ]()\n";
-            os << generator.getIndent() << "        {\n";
-            os << generator.getIndent() << "            try\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "                ref( args... );\n"; 
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            catch( std::exception& e )\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "                ERR( e.what() );\n";
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            catch( eg::termination_exception )\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            catch( ... )\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "                ERR( \"Unknown exception occured in " << pStaticType->getFriendlyName() << "\" );\n";
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
-            os << generator.getIndent() << "        }\n";
-            os << generator.getIndent() << "    );\n";
-            os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << 
-                ".properties< eg::fiber_props >().setReference( ref.data );\n";
-            os << generator.getIndent() << "}\n";
-        }
-        else
-        {
-            //just do the same as the call - immediately stop the action if it was started
-            os << generator.getIndent() << "if( ref )\n";
-            os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    " << m_pTarget->getName() << "_stopper( ref.data.instance );\n";
-            os << generator.getIndent() << "}\n";
-        }
-           
-        os << generator.getIndent() << "return ref;\n"; 
     }
     void StartOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1265,11 +881,6 @@ namespace eg
     {
         abstractTypes.push_back( m_pInterface );
     }
-    void StopOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "return " << m_pTarget->getName() << 
-            "_stopper( " << generator.getVarExpr( m_pInstance ) << " );\n";
-    }
     void StopOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doStop( evaluator.getVarValue( m_pInstance ) );
@@ -1293,15 +904,6 @@ namespace eg
     {
         abstractTypes.push_back( m_pInterface );
     }
-    void PauseOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "if( " << 
-            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) <<
-                " == " << getActionState( action_running ) << " )\n";
-        os << generator.getIndent() << 
-            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) << 
-                " = " << getActionState( action_paused ) << ";\n";
-    }
     void PauseOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doPause( evaluator.getVarValue( m_pInstance ) );
@@ -1324,15 +926,6 @@ namespace eg
     void ResumeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
-    }
-    void ResumeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "if( " << 
-            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) <<
-                " == " << getActionState( action_paused ) << " )\n";
-        os << generator.getIndent() << "    " <<
-            generator.getDimension( m_pTarget->getState(), generator.getVarExpr( m_pInstance ) ) << 
-                " = " << getActionState( action_running ) << ";\n";
     }
     void ResumeOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1358,22 +951,6 @@ namespace eg
     {
         abstractTypes.push_back( m_pInterface );
     }
-    void DoneOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        const concrete::Action::IteratorMap& iterators = m_pTarget->getAllocators();
-        os << generator.getIndent() << EG_ITERATOR_TYPE << " iter;\n";
-        for( concrete::Action::IteratorMap::const_iterator 
-            i = iterators.begin(),
-            iEnd = iterators.end(); i!=iEnd; ++i )
-        {
-            const concrete::Dimension_Generated* pIterator = i->second;
-            os << generator.getIndent() << "iter = " << EG_ITERATOR_TYPE << "( " << 
-                generator.getDimension( pIterator, generator.getVarExpr( m_pInstance ) ) << ".load() );\n";
-            os << generator.getIndent() << "if( iter.full || ( iter.head != iter.tail ) ) return false;\n";
-        }
-        
-        os << generator.getIndent() << "return true;\n";
-    }
     void DoneOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doDone( evaluator.getVarValue( m_pInstance ) );
@@ -1396,12 +973,6 @@ namespace eg
     void WaitActionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
-    }
-    void WaitActionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "return " <<
-            generator.getDimension( m_pTarget->getReference(), generator.getVarExpr( m_pInstance ) ) << ";\n";
-        
     }
     void WaitActionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1426,11 +997,6 @@ namespace eg
     {
         abstractTypes.push_back( m_pInterface );
     }
-    void WaitDimensionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "return " << 
-            generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << ";\n";
-    }
     void WaitDimensionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doWaitDimension( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
@@ -1453,12 +1019,6 @@ namespace eg
     void GetActionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
-    }
-    void GetActionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "return " <<
-            generator.getDimension( m_pTarget->getReference(), generator.getVarExpr( m_pInstance ) ) << ";\n";
-        
     }
     void GetActionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1483,11 +1043,6 @@ namespace eg
     {
         abstractTypes.push_back( m_pInterface );
     }
-    void GetDimensionOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "return " << 
-            generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << ";\n";
-    }
     void GetDimensionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doGetDimension( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
@@ -1511,11 +1066,6 @@ namespace eg
     {
         abstractTypes.push_back( m_pInterface );
     }
-    void ReadOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << "return " << 
-            generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << ";\n";
-    }
     void ReadOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
         evaluator.doRead( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
@@ -1538,11 +1088,6 @@ namespace eg
     void WriteOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
-    }
-    void WriteOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
-        os << generator.getIndent() << 
-            generator.getDimension( m_pTarget, generator.getVarExpr( m_pInstance ) ) << " = value;\n";
     }
     void WriteOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1568,9 +1113,6 @@ namespace eg
     void RangeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
-    }
-    void RangeOperation::generate( CodeGenerator& generator, std::ostream& os ) const
-    {
     }
     void RangeOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {

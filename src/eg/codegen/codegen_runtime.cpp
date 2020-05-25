@@ -148,13 +148,13 @@ namespace eg
                     
         /////starter
         {
-        pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
+        os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
         os << "{\n";
         os << "    //claim next free index\n";
-        os << "    " << EG_ITERATOR_TYPE << " iter, expected;\n";
+        os << "    " << EG_RING_BUFFER_ALLOCATOR_TYPE << " iter, expected;\n";
         os << "    while( true )\n";
         os << "    {\n";
-        os << "         iter = " << EG_ITERATOR_TYPE << "( " << Printer( pIteratorData, "_parent_id" ) << ".load() );\n";
+        os << "         iter = " << Printer( pIteratorData, "_parent_id" ) << ";\n";
         os << "         if( iter.protection )\n";
         os << "             continue;\n";
         os << "         else if( iter.full )\n";
@@ -178,24 +178,23 @@ namespace eg
         //need to calculate the index based on local domain size
         std::ostringstream osNextIndex;
         osNextIndex << "_parent_id * " << pAction->getLocalDomainSize() << " + relativeNextCellIndex";
-        os << "         //attempt to set the atomic\n";
-        os << "         if( " << Printer( pIteratorData, "_parent_id" ) << ".compare_exchange_weak( expected.data, iter.data ) )\n";
+		os << "         " << Printer( pIteratorData, "_parent_id" ) << " = iter.data;\n";
         os << "         {\n";
         os << "             const " << EG_INSTANCE << " nextRingIndex = " << osNextIndex.str().c_str() << ";\n";
         os << "             const " << EG_INSTANCE << " nextInstance = " << Printer( pAllocatorData, "nextRingIndex" ) << ";\n";
         os << "             //successfully claimed index so get the actual instance from the ring buffer\n";
         os << "             const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-        os << "             "; pAction->printType( os ); os << "& reference = " << 
+        os << "             " << getStaticType( pAction->getAction() ) << "& reference = " << 
                             Printer( pReferenceData, "nextInstance" ) << ";\n";
         os << "             reference.data.timestamp = startCycle;\n";
         os << "             " << Printer( pStateData, "nextInstance" ) << " = " << getActionState( action_running ) << ";\n";
         os << "             " << Printer( pRingIndex, "nextInstance" ) << " = nextRingIndex;\n";
         os << "             events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
                 //if there is an object mapping then start it
-                if( pObject )
-                {
-                    pObject->printStart( os, "nextInstance" );
-                }
+                //if( pObject )
+                //{
+                //    pObject->printStart( os, "nextInstance" );
+                //}
         os << "             return reference;\n";
         os << "         }\n";
         //os << "         //test if the stop cycle is less than or equal to current cyclen\n";
@@ -211,7 +210,7 @@ namespace eg
         std::ostringstream osError;
         osError << "Failed to allocate " << pAction->getFriendlyName();
         os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
-        os << "    "; pAction->printType( os ); os << " nullInstance;\n";
+        os << "    " << getStaticType( pAction->getAction() ) << " nullInstance;\n";
         os << "    return nullInstance;\n";
         os << "}\n";
         os << "\n";
@@ -226,10 +225,10 @@ namespace eg
 		const DataMember* pFiberData = layout.getDataMember( pAction->getFiber() );
 		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
 				
-        pAction->printType( os ); os << " " << pAction->getName() << "_starter( std::vector< std::function< void() > >& functions )\n";
+        os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( std::vector< std::function< void() > >& functions )\n";
         os << "{\n";
         os << "    const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-        os << "    "; pAction->printType( os ); os << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
+        os << "    " << getStaticType( pAction->getAction() ) << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
         os << "    reference.data.timestamp = startCycle;\n";
         os << "    " << Printer( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
         os << "    events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
@@ -347,10 +346,10 @@ namespace eg
         os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
                 
-        os << "         " << EG_ITERATOR_TYPE << " iter, expected;\n";
+        os << "         " << EG_RING_BUFFER_ALLOCATOR_TYPE << " iter, expected;\n";
         os << "         while( true )\n";
         os << "         {\n";
-        os << "              iter = " << EG_ITERATOR_TYPE << "( " << Printer( pIteratorData, "_parent_id" ) << ".load() );\n";
+        os << "              iter = " << Printer( pIteratorData, "_parent_id" ) << ";\n";
         os << "              if( iter.protection )\n";
         os << "                  continue;\n";
         os << "              expected = iter;\n";
@@ -370,8 +369,7 @@ namespace eg
         os << "              {\n";
         os << "                  ++iter.tail;\n";
         os << "              }\n";
-        os << "              //attempt to set the atomic\n";
-        os << "              if( " << Printer( pIteratorData, "_parent_id" ) << ".compare_exchange_weak( expected.data, iter.data ) )\n";
+		os << "              " << Printer( pIteratorData, "_parent_id" ) << " = iter.data;\n";
         os << "              {\n";
         os << "                  //successfully freed index\n";
         os << "                  const " << EG_INSTANCE << " ringIndex = " << Printer( pRingIndex, "_gid" ) << ";\n";
@@ -387,7 +385,7 @@ namespace eg
         os << "                      //turn off the protection bit\n";
         os << "                      expected = iter;\n";
         os << "                      iter.protection = 0;\n";
-        os << "                      while( " << Printer( pIteratorData, "_parent_id" ) << ".compare_exchange_weak( expected.data, iter.data ) );\n";
+        os << "                      " << Printer( pIteratorData, "_parent_id" ) << " = iter.data;\n";
         os << "                  }\n";
         os << "                  break;\n";
         os << "              }\n";
@@ -413,11 +411,11 @@ namespace eg
         os << "             " << Printer( pFiberData, "_gid" ) << ".detach();\n";
         os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
                 //if there is an object mapping then start it
-                if( pObject )
-                {
-                    pObject->printStop( os, "_gid" );
-                    
-                }
+                //if( pObject )
+                //{
+                //    pObject->printStop( os, "_gid" );
+                //    
+                //}
         os << "     }\n";
         
         os << "}\n";
@@ -455,7 +453,7 @@ namespace eg
         {
             if( pAction->getParent() )
             {
-                //pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
+                //os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
                 os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
             }
         }

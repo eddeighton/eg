@@ -19,7 +19,6 @@
 
 
 #include "eg_compiler/interface.hpp"
-#include "eg_compiler/codegen/codegen.hpp"
 
 namespace eg
 {
@@ -318,20 +317,6 @@ namespace interface
             os << pElement->getIdentifier();
         }
         
-        return os.str();
-    }
-    
-    std::string Element::getStaticType() const
-    {
-        std::ostringstream os;
-        std::vector< const ::eg::interface::Element* > path = 
-            ::eg::interface::getPath( this );
-        for( const interface::Element* pNodeIter : path )
-        {
-            if( pNodeIter != *path.begin())
-                os << "::";
-            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
-        }
         return os.str();
     }
     

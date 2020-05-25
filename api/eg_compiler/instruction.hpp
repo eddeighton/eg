@@ -272,7 +272,6 @@ protected:
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 class Operation;
-class CodeGenerator;
 
 class Instruction : public ASTElement
 {
@@ -294,6 +293,8 @@ protected:
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     
 public:
+    const Vector& getChildren() const { return m_children; }
+
     enum Elimination
     {
         eSuccess,
@@ -305,7 +306,6 @@ public:
     void getOperations( std::vector< const Operation* >& operations ) const;
     virtual int setReturnTypes( const std::vector< const interface::Element* >& targets );
     virtual void setMaxRanges( int iMaxRanges );
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const = 0;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const = 0;
 protected:
     Vector m_children;
@@ -329,7 +329,6 @@ public:
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void setMaxRanges( int iMaxRanges );
     
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
     
     const ContextVariable* getContextVariable() const { return m_pContext; }
@@ -353,10 +352,12 @@ public:
     
     virtual ASTElementType getType() const { return eParentDerivationInstruction; }
     
+    const InstanceVariable* getFrom() const { return m_pFrom; }
+    const InstanceVariable* getTo() const { return m_pTo; }
+    
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 private:
     InstanceVariable* m_pFrom = nullptr;
@@ -375,11 +376,12 @@ public:
     }
     
     virtual ASTElementType getType() const { return eChildDerivationInstruction; }
+    const InstanceVariable* getFrom() const { return m_pFrom; }
+    const InstanceVariable* getTo() const { return m_pTo; }
     
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 private:
     InstanceVariable* m_pFrom = nullptr;
@@ -398,11 +400,12 @@ public:
     }
     
     virtual ASTElementType getType() const { return eEnumDerivationInstruction; }
+    const InstanceVariable* getFrom() const { return m_pFrom; }
+    const InstanceVariable* getTo() const { return m_pTo; }
     
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 private:
     InstanceVariable* m_pFrom = nullptr;
@@ -421,11 +424,13 @@ public:
     }
     
     virtual ASTElementType getType() const { return eEnumerationInstruction; }
+    InstanceVariable* getContext() const { return m_pContext; }
+    const std::vector< const interface::Element* >& getReturnTypes() const { return m_returnTypes; }
+    int getMaxRanges() const { return m_iMaxRanges; }
     
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
     virtual int setReturnTypes( const std::vector< const interface::Element* >& targets );
     virtual void setMaxRanges( int iMaxRanges );
@@ -443,7 +448,6 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const { THROW_RTE( "Unreachable" ); }
     virtual void evaluate( RuntimeEvaluator& evaluator ) const { THROW_RTE( "Unreachable" ); }
 };
 
@@ -455,7 +459,6 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const { THROW_RTE( "Unreachable" ); }
     virtual void evaluate( RuntimeEvaluator& evaluator ) const { THROW_RTE( "Unreachable" ); }
 };
 
@@ -467,7 +470,6 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const { THROW_RTE( "Unreachable" ); }
     virtual void evaluate( RuntimeEvaluator& evaluator ) const { THROW_RTE( "Unreachable" ); }
 };
 
@@ -484,10 +486,14 @@ public:
         
     }
     virtual ASTElementType getType() const { return eDimensionReferenceReadInstruction; }
+    
+    const InstanceVariable* getInstance() const { return m_pInstance; }
+    const DimensionReferenceVariable* getReference() const { return m_pReference; }
+    const concrete::Dimension* getDimension() const { return m_pDimension; }
+    
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
     
     InstanceVariable* m_pInstance = nullptr;
@@ -506,10 +512,11 @@ public:
         
     }
     virtual ASTElementType getType() const { return eMonoReferenceInstruction; }
+    ReferenceVariable* getFrom() const { return m_pFrom; }
+    InstanceVariable* getInstance() const { return m_pInstance; }
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
     
     ReferenceVariable* m_pFrom = nullptr;
@@ -528,10 +535,10 @@ public:
     }
     
     virtual ASTElementType getType() const { return ePolyReferenceInstruction; }
+    ReferenceVariable* getFrom() const { return m_pFrom; }
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 private:
     ReferenceVariable* m_pFrom = nullptr;
@@ -547,10 +554,11 @@ public:
     {
     }
     virtual ASTElementType getType() const { return ePolyCaseInstruction; }
+    ReferenceVariable* getFrom() const { return m_pReference; }
+    InstanceVariable* getTo() const { return m_pTo; }
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     const InstanceVariable* getTarget() const { return m_pTo; }
@@ -583,9 +591,9 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
     const interface::Action* getInterfaceType() const { return m_pInterface; }
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
@@ -609,9 +617,9 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
     const interface::Action* getInterfaceType() const { return m_pInterface; }
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
@@ -635,8 +643,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
@@ -658,8 +668,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
@@ -681,8 +693,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
@@ -704,8 +718,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
@@ -728,8 +744,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
@@ -751,8 +769,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Dimension_User* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Dimension* m_pInterface = nullptr;
@@ -774,8 +794,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Action* m_pInterface = nullptr;
@@ -797,8 +819,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Dimension_User* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Dimension* m_pInterface = nullptr;
@@ -820,8 +844,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Dimension_User* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Dimension* m_pInterface = nullptr;
@@ -843,8 +869,10 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Dimension_User* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Dimension* m_pInterface = nullptr;
@@ -874,7 +902,6 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
     virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
-    virtual void generate( CodeGenerator& generator, std::ostream& os ) const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     const InstanceVariable* getInstance() const { return m_pInstance; }

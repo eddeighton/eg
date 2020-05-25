@@ -34,6 +34,22 @@
 
 namespace eg
 {
+    
+    
+    std::string getStaticType( const interface::Element* pElement )
+    {
+        std::ostringstream os;
+        std::vector< const ::eg::interface::Element* > path = 
+            ::eg::interface::getPath( pElement );
+        for( const interface::Element* pNodeIter : path )
+        {
+            if( pNodeIter != *path.begin())
+                os << "::";
+            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >";
+        }
+        return os.str();
+    }
+    
 
     void generateForwardDeclarations( std::ostream& os, const Identifiers* pIdentifiers )
     {

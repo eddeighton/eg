@@ -59,7 +59,7 @@ namespace eg
             for( const DataMember* pDimension : pBuffer->getDimensions() )
             {
                 os << "    ";
-                pDimension->print( os );
+                generateDataMemberType( os, pDimension );
                 os << " " << pDimension->getName() << ";\n";
                 szBufferSize += pDimension->getInstanceDimension()->getDataSize();
             }

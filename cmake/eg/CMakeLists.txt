@@ -98,6 +98,8 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/codegen/codegen_generics.cpp
     ${EG_SRC_DIR}/eg/codegen/codegen_structures.cpp
     ${EG_SRC_DIR}/eg/codegen/codegen_implementation.cpp
+    ${EG_SRC_DIR}/eg/codegen/codegen_instructions.cpp
+    ${EG_SRC_DIR}/eg/codegen/codegen_concrete.cpp
     )
     
 add_library( eglib 

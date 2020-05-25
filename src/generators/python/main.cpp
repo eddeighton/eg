@@ -57,7 +57,7 @@ int main( int argc, const char* argv[] )
         if( pAction->getAction()->isExecutable() && !pAction->getAction()->isMainExecutable() )
         {
 			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
-    os << "extern "; pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
+    os << "extern " << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( " << eg::EG_INSTANCE << " _gid );\n";
         }
         if( pAction->getAction()->isExecutable() )
         {

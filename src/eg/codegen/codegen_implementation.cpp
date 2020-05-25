@@ -51,13 +51,13 @@ namespace eg
                     os << ", ";
                 else
                     bFirst = false;
-                os << pTarget->getStaticType();
+                os << getStaticType( pTarget );
             }
             os << " >";
         }
         else if( !returnTypes.empty() )
         {
-            os << returnTypes.front()->getStaticType();
+            os << getStaticType( returnTypes.front() );
         }
         else
         {
@@ -80,7 +80,7 @@ namespace eg
                 {
                     ASSERT( !returnTypes.empty() );
                     ASSERT( invocation.isDimensionReturnTypeHomogeneous() );
-                    os << returnTypes.front()->getStaticType() << "::Read";
+                    os << getStaticType( returnTypes.front() ) << "::Read";
                 }
                 else if( invocation.getOperation() == id_Imp_Params )
                 {
@@ -99,7 +99,7 @@ namespace eg
                 if( invocation.isReturnTypeDimensions() )
                 {
                     ASSERT( invocation.isDimensionReturnTypeHomogeneous() );
-                    os << returnTypes.front()->getStaticType() << "::Read";
+                    os << getStaticType( returnTypes.front() ) << "::Read";
                 }
                 else
                 {
@@ -110,7 +110,7 @@ namespace eg
                 if( invocation.isReturnTypeDimensions() )
                 {
                     ASSERT( invocation.isDimensionReturnTypeHomogeneous() );
-                    os << returnTypes.front()->getStaticType() << "::Get";
+                    os << getStaticType( returnTypes.front() ) << "::Get";
                 }
                 else
                 {
@@ -125,7 +125,7 @@ namespace eg
                 {
                     if( returnTypes.size() == 1 )
                     {
-                        os << returnTypes.front()->getStaticType() << "::EGRangeType";
+                        os << getStaticType( returnTypes.front() ) << "::EGRangeType";
                     }
                     else
                     {
@@ -139,7 +139,7 @@ namespace eg
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
-                                osType << pReturnType->getStaticType();
+                                osType << getStaticType( pReturnType );
                             }
                             osType << " >";
                         }
@@ -155,7 +155,7 @@ namespace eg
                     if( returnTypes.size() == 1 )
                     {
                         os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
-                            EG_REFERENCE_ITERATOR_TYPE << "< " << returnTypes.front()->getStaticType() << " >, " 
+                            EG_REFERENCE_ITERATOR_TYPE << "< " << getStaticType( returnTypes.front() ) << " >, " 
                                 << invocation.getRoot()->getMaxRanges() << "U > >";
                     }
                     else
@@ -170,7 +170,7 @@ namespace eg
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
-                                osType << pReturnType->getStaticType();
+                                osType << getStaticType( pReturnType );
                             }
                             osType << " >";
                         }
@@ -187,7 +187,7 @@ namespace eg
                     {
                         os << EG_RANGE_TYPE << "< " << 
                             EG_REFERENCE_RAW_ITERATOR_TYPE << "< " << 
-                                returnTypes.front()->getStaticType() << " > >";
+                                getStaticType( returnTypes.front() ) << " > >";
                     }
                     else
                     {
@@ -201,7 +201,7 @@ namespace eg
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
-                                osType << pReturnType->getStaticType();
+                                osType << getStaticType( pReturnType );
                             }
                             osType << " >";
                         }
@@ -217,7 +217,7 @@ namespace eg
                     if( returnTypes.size() == 1 )
                     {
                         os << EG_RANGE_TYPE << "< " << EG_MULTI_ITERATOR_TYPE << "< " << 
-                            EG_REFERENCE_RAW_ITERATOR_TYPE << "< " << returnTypes.front()->getStaticType() << " >, " 
+                            EG_REFERENCE_RAW_ITERATOR_TYPE << "< " << getStaticType( returnTypes.front() ) << " >, " 
                                 << invocation.getRoot()->getMaxRanges() << "U > >";
                     }
                     else
@@ -232,7 +232,7 @@ namespace eg
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
-                                osType << pReturnType->getStaticType();
+                                osType << getStaticType( pReturnType );
                             }
                             osType << " >";
                         }
@@ -265,7 +265,7 @@ namespace eg
                 }
                 else if( invocation.getOperation() == id_Imp_Params )
                 {
-                    os << returnTypes.front()->getStaticType() << "::Write value";
+                    os << getStaticType( returnTypes.front() ) << "::Write value";
                 }
                 break;
             case id_Start      : 
@@ -328,7 +328,7 @@ namespace eg
             {
                 ASSERT( id < static_cast< TypeID >( objects.size() ) );
                 const interface::Element* pElement = dynamic_cast< const interface::Element* >( objects[ id ] );
-                os << pElement->getStaticType();
+                os << getStaticType( pElement );
             }
         }
         os << " >";
@@ -423,8 +423,7 @@ namespace eg
         
         os << "    {\n";
         
-        CodeGenerator codeGenerator( layout, 2, "eg::Event()" );
-        invocation.getRoot()->generate( codeGenerator, os );
+		generateInstructions( os, invocation.getRoot(), layout );
         
         os << "    }\n";
         os << "};\n";
@@ -433,7 +432,7 @@ namespace eg
     
     void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
     {
-        pAction->printType( os ); os << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
+        os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
         os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
     }
     
