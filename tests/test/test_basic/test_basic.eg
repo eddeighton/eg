@@ -1,16 +1,64 @@
 
 include( <iostream> );
-	
-action A[ 64 ]
+
+abstract Robot[ 2 ]
 {
-    dim int x;
-    dim int y;
-	std::cout << "Hello World from A x is: " << x() << " y is: " << y() << std::endl;
+	dim int state;
+	dim int x;
+	dim int y;
+	
+	export void getOptions( std::vector< int >& options )
+	{
+		std::cout << "called getOptions" << "\n";
+		
+		options.push_back( x() );
+		options.push_back( y() );
+	}
+	export void printOptions()
+	{
+		std::cout << "called printOptions" << "\n";
+		
+		std::vector< int > options;
+		getOptions( options );
+		for( int i : options )
+		{
+			std::cout << i << "\n";
+		}
+	}
+	
+	action Move[ 5 ]
+	{
+		x( x() + 1 );
+		y( y() + 1 );
+	}
 }
 
-A().x( 1 ).y( 2 );
-A().x( 3 ).y( 4 );
+action SuperRobot : Robot
+{
+	int iState = state();
+	state( iState + 1 );
+	
+	Robot base = *this;
+	
+	switch( iState )
+	{
+		case 0:
+			(&base)->printOptions();
+			Move();
+			return eg::wait();
+		case 1:
+			(&base)->printOptions();
+			Move();
+			return eg::wait();
+		case 2:
+			(&base)->printOptions();
+			Move();
+			return eg::wait();
+		default:
+			base.printOptions();
+			Move();
+	}
+	std::cout << "done" << std::endl;
+}
 
-A a = A();
-
-a.A();
+SuperRobot();

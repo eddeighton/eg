@@ -87,18 +87,20 @@ namespace
                 m_ready.pop_front();
                 
                 const ReturnReason returnReason =
-                    action.op( ResumeReason{ ResumeReason::eStart } );
+                    action.op( ResumeReason() );
                 
-                switch( returnReason.m_type )
+                switch( returnReason.reason )
                 {
-                    case ReturnReason::eComplete :
-                        break;
-                    case ReturnReason::eWait     :
+                    case eReason_Wait:
                         m_waiting.push_back( action );
                         break;
-                    case ReturnReason::eSleep    :
+                    case eReason_Sleep:
                         m_sleeping.push_back( action );
                         break;
+                    case eReason_Terminated:
+                        break;
+                    default:
+                        throw std::runtime_error( "Unknown return reason" );
                 }
             }
         }

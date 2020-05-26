@@ -1,5 +1,5 @@
 
-
+include( <iostream> );
 
 include( test_generic.hpp );
 
@@ -24,6 +24,14 @@ x( 123 );
 
 generic::testInvoke( root.Get() );
 generic::printThings( root.Get() );
+
+std::cout << calculate( 123, 321 ) << std::endl;
+
+export int calculate( int x, int y )
+{
+	Thing.Start();
+	return x * y + x * X();
+}
 
 dim generic::GenericThing< Thing > genericThing;
 

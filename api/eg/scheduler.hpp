@@ -24,7 +24,9 @@
 #include "common.hpp"
 #include "event.hpp"
 
-//#include <chrono>
+#include <chrono>
+#include <optional>
+#include <vector>
 #include <functional>
 
 //using namespace std::chrono_literals;
@@ -35,33 +37,144 @@ eg::TimeStamp getStopCycle( eg::TypeID typeID, eg::Instance instance );
 
 namespace eg
 {
-    
-    class ResumeReason
+    enum Resumption
     {
-    public:
-        enum Type
-        {
-            eStart,
-            eWait,
-            eSleep
-        };
-        
-        Type m_type;
+        eResumption_Start,
+        eResumption_Wait,
+        eResumption_Sleep,
+        eResumption_Wait_Event,
+        eResumption_Sleep_Event,
+        eResumption_Sleep_Timeout
     };
     
-    class ReturnReason
+    struct ResumeReason
     {
-    public:
-        enum Type
-        {
-            eComplete,
-            eWait,
-            eSleep
-        };
+        Resumption resumption;
         
-        Type m_type;
+        ResumeReason()
+            :   resumption( eResumption_Start )
+        {
+            
+        }
+        
+        ResumeReason( Resumption _resumption )
+            :   resumption( _resumption )
+        {
+            
+        }
+        
     };
     
+    enum Reason
+    {
+        eReason_Wait,
+        eReason_Sleep,
+        eReason_Terminated
+    };
+    
+    struct ReturnReason
+    {
+        Reason reason;
+        std::vector< Event > events;
+        std::optional< std::chrono::steady_clock::time_point > timeout;
+        
+        ReturnReason()
+            :   reason( eReason_Terminated )
+        {
+            
+        }
+        
+        ReturnReason( Reason _reason )
+            :   reason( _reason )
+        {
+            
+        }
+        
+        ReturnReason( Reason _reason, const Event& event )
+            :   reason( _reason ),
+                events( 1, event )
+        {
+        }
+        
+        ReturnReason( Reason _reason, std::initializer_list< Event > _events )
+            :   reason( _reason ),
+                events( _events )
+        {
+            
+        }
+        
+        ReturnReason( const std::chrono::steady_clock::time_point& _timeout )
+            :   reason( eReason_Sleep ),
+                timeout( _timeout )
+        {
+            
+        }
+        
+    };
+    
+    
+    ////////////////////////////////////////////////////////////////////////////
+    //wait functions
+    inline ReturnReason wait()
+    {
+        return ReturnReason( eReason_Wait );
+    }
+    
+    inline ReturnReason wait( const Event& event )
+    {
+        return ReturnReason( eReason_Wait, event.data );
+    }
+    
+    inline ReturnReason wait( std::initializer_list< Event > events )
+    {
+        return ReturnReason( eReason_Wait, events );
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////
+    //sleep functions
+    inline ReturnReason sleep()
+    {
+        return ReturnReason( eReason_Sleep );
+    }
+    
+    inline ReturnReason sleep( const Event& event )
+    {
+        return ReturnReason( eReason_Sleep, event );
+    }
+    
+    inline ReturnReason sleep( std::initializer_list< Event > events )
+    {
+        return ReturnReason( eReason_Sleep, events );
+    }
+    
+    template< typename Clock, typename Duration >
+    inline ReturnReason sleep( std::chrono::time_point< Clock, Duration > const& sleep_time )
+    {
+        return ReturnReason( sleep_time );
+    }
+    
+    template< typename Rep, typename Period >
+    inline ReturnReason sleep( std::chrono::duration< Rep, Period > const& timeout_duration )
+    {
+        return ReturnReason( std::chrono::steady_clock::now() + timeout_duration );
+    }
+    
+    inline ReturnReason sleep( float fDuration )
+    {
+        auto floatDuration      = std::chrono::duration< float, std::ratio< 1 > >( fDuration );
+        auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
+        return sleep( intMilliseconds );
+    }
+
+    inline ReturnReason sleep( double dbDuration )
+    {
+        auto doubleDuration      = std::chrono::duration< double, std::ratio< 1 > >( dbDuration );
+        auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( doubleDuration );
+        return sleep( intMilliseconds );
+    }
+        
+    ////////////////////////////////////////////////////////////////////////////
+    //the scheduler interface
     class Scheduler
     {
     public:

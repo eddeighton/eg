@@ -245,7 +245,7 @@ namespace eg
                     }
                 }
                 
-                os << strIndent << "return eg::ReturnReason{ eg::ReturnReason::eComplete };\n";
+                os << strIndent << "return eg::ReturnReason();\n";
 
                 strIndent.pop_back();
                 strIndent.pop_back();
