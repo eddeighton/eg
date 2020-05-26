@@ -21,9 +21,12 @@
 #include <map>
 #include <thread>
 #include <functional>
+#include <chrono>
 
 namespace
 {
+    using namespace std::chrono_literals;
+
     class ResourceManager
     {
         struct ResourceTimeStamp

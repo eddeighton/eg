@@ -71,6 +71,25 @@ namespace eg
         id_Raw                      ,                                       //id_Raw          (-2147483638)
         HIGHEST_OPERATION_TYPE //HIGHEST_OPERATION_TYPE (-2147483637)
     };
+    
+    enum ExplicitOperationID : TypeID
+    {
+        id_exp_Read                     ,
+        id_exp_Write                    ,
+        id_exp_Call                     ,
+        id_exp_Start                    ,
+        id_exp_Stop                     ,
+        id_exp_Pause                    ,
+        id_exp_Resume                   ,
+        id_exp_WaitAction               ,
+        id_exp_WaitDimension            ,
+        id_exp_GetAction                ,
+        id_exp_GetDimension             ,
+        id_exp_Done                     ,
+        id_exp_Range                    ,
+        id_exp_Raw                      ,
+        HIGHEST_EXPLICIT_OPERATION_TYPE 
+    };
 
     static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();
     

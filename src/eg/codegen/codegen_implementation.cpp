@@ -84,7 +84,8 @@ namespace eg
                 }
                 else if( invocation.getOperation() == id_Imp_Params )
                 {
-                    os << "void";
+                    //os << "void";
+                    printActionType( os, returnTypes );
                 }
                 break;
             case id_Start      : 
@@ -248,43 +249,6 @@ namespace eg
         }
     }
     
-    void printParameters( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
-    {
-        const InvocationSolution::Context& returnTypes = invocation.getReturnTypes();
-        ASSERT( !returnTypes.empty() );
-        switch( invocation.getOperation() )
-        {
-            case id_Imp_NoParams   :
-            case id_Imp_Params  :
-                if( !invocation.isReturnTypeDimensions() )
-                {
-                    
-                }
-                else if( invocation.getOperation() == id_Imp_NoParams )
-                {
-                }
-                else if( invocation.getOperation() == id_Imp_Params )
-                {
-                    os << getStaticType( returnTypes.front() ) << "::Write value";
-                }
-                break;
-            case id_Start      : 
-                break;
-            case id_Stop       : 
-            case id_Pause      : 
-            case id_Resume     : 
-            case id_Wait       : 
-            case id_Get        :
-            case id_Done       :
-            case id_Range      : 
-            case id_Raw        : 
-                break;
-            default:
-                THROW_RTE( "Unknown operation type" );
-                break;
-        }
-    }
-    
     void printContextType( std::ostream& os, const IndexedObject::Array& objects, const InvocationSolution& invocation )
     {
         printActionType( os, invocation.getContext() );
@@ -385,40 +349,32 @@ namespace eg
         os << "    inline "; printReturnType( os, objects, invocation ); os << " operator()( "; printContextType( os, objects, invocation ); os << " context"; 
         
         //invocation parameters
-        switch( invocation.getOperation() )
+        switch( invocation.getExplicitOperation() )
         {
-            case id_Imp_NoParams   :
-            case id_Imp_Params  :
-                if( !invocation.isReturnTypeDimensions() )
-                {
-                    os << ", Args... args )\n";
-                }
-                else if( invocation.getOperation() == id_Imp_NoParams )
-                {
-                    os << " )\n";
-                }
-                else if( invocation.getOperation() == id_Imp_Params )
-                {
-                    os << ", "; printParameters( os, objects, invocation ); os << " )\n";
-                }
-                break;
-                
-            case id_Start      : 
-                os << ", Args... args )\n";
-                break;
-            case id_Stop       : 
-            case id_Pause      : 
-            case id_Resume     : 
-            case id_Wait       : 
-            case id_Get        :
-            case id_Done       :
-            case id_Range      : 
-            case id_Raw        :   
+            case id_exp_Read           :
                 os << " )\n";
                 break;
-            case TOTAL_OPERATION_TYPES : 
+            case id_exp_Write          :
+                os << ", " << getStaticType( invocation.getParameterTypes().front() ) << "::Write value )\n";
+                break;
+            case id_exp_Call           :
+            case id_exp_Start          :
+                os << ", Args... args )\n";
+                break;
+            case id_exp_Stop           :
+            case id_exp_Pause          :
+            case id_exp_Resume         :
+            case id_exp_WaitAction     :
+            case id_exp_WaitDimension  :
+            case id_exp_GetAction      :
+            case id_exp_GetDimension   :
+            case id_exp_Done           :
+            case id_exp_Range          :
+            case id_exp_Raw            :
+                os << " )\n";
+                break;
             default:
-                THROW_RTE( "Unknown operation type" );
+                THROW_RTE( "Unknown explicit operation type" );
         }
         
         os << "    {\n";

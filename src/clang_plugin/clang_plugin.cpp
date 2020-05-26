@@ -417,7 +417,35 @@ namespace eg
                         }
                         else if( operationTypeID == id_Imp_Params )
                         {
-                            resultType = clang::getVoidType( g_pASTContext );
+                            //resultType = clang::getVoidType( g_pASTContext );
+                            
+                            if( std::optional< clang::QualType > resultOpt = 
+                                    buildActionReturnType( returnTypes, pDeclContext, loc ) )
+                            {
+                                resultType = resultOpt.value();
+                            }
+                            
+                            /*if( pSolution->isReturnTypeDimensions() )
+                            {
+                                ASSERT( returnTypes.size() == 1 );
+                                const interface::Element* pTarget = returnTypes.front();
+                                clang::DeclContext* pDeclContextIter = pDeclContext;
+                                const std::vector< const interface::Element* > path = getPath( pTarget );
+                                for( const interface::Element* pElementElement : path )
+                                {
+                                    clang::getType( g_pASTContext, g_pSema, 
+                                        getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                        pDeclContextIter, loc, false );
+                                    if( !pDeclContextIter ) break;
+                                }
+                                if( pDeclContextIter )
+                                    resultType = clang::getTypeTrait( g_pASTContext, g_pSema, pDeclContextIter, loc, "Get" );
+                            }
+                            else
+                            {
+                            }*/
+                            
+                        
                         }
                         else
                         {

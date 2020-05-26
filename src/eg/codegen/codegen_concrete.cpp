@@ -84,23 +84,6 @@ namespace eg
             case concrete::Dimension_Generated::eActionState        :
                 os << EG_ACTION_STATE;
                 break;
-            case concrete::Dimension_Generated::eActionFiber        :
-                os << EG_FIBER_TYPE;
-                break;
-            case concrete::Dimension_Generated::eActionObject       :
-                //use the type traits in the interface
-                {
-                    const concrete::Action* pDimensionAction = pDimension->getAction();
-                    VERIFY_RTE( pDimensionAction );
-                    const interface::Action* pAction = pDimensionAction->getAction();
-                    
-                    os << EG_OBJECT_TRAITS << "< ";
-                    
-                    os << pAction->getBaseType();
-                    
-                    os << " >::PtrType";
-                }
-                break;
             case concrete::Dimension_Generated::eActionReference    :
                 {
                     const concrete::Action* pDimensionAction = pDimension->getAction();
@@ -148,27 +131,6 @@ namespace eg
             case concrete::Dimension_Generated::eActionState       :
                 {
                     os << strIndent << printer << " = " << getActionState( action_stopped ) << ";\n";
-                }
-                break;
-            case concrete::Dimension_Generated::eActionFiber       : 
-                break;
-            case concrete::Dimension_Generated::eActionObject          : 
-                //use the type traits in the interface
-                {
-                    const concrete::Action* pDimensionAction = pDimension->getAction();
-                    VERIFY_RTE( pDimensionAction );
-                    const interface::Action* pAction = pDimensionAction->getAction();
-                    os << strIndent << printer << " = " << EG_OBJECT_TRAITS << "< " << pAction->getBaseType();
-                    /*if( m_pDependency )
-                    {
-                        os << " >::Allocate( ";
-                        printer.printDependencyVar( os, strIndex );
-                        os << " );\n";
-                    }
-                    else*/
-                    {
-                        os << " >::Allocate();\n";
-                    }
                 }
                 break;
             case concrete::Dimension_Generated::eActionReference       :
@@ -231,91 +193,7 @@ namespace eg
             os << ");";
         }
 	}
-        
-    void Dimension_Generated::printStart( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
-    {
-        static const std::string strIndent = "             ";
-        
-        switch( m_type )
-        {
-            //case eDimensionTimestamp    :
-            case eActionStopCycle       :
-            case eActionState           :
-            case eActionFiber           : 
-                break;
-            case eActionObject          : 
-                //use the type traits in the interface
-                {
-                    VERIFY_RTE( m_pAction );
-                    const interface::Action* pAction = m_pAction->getAction();
-                    os << strIndent << EG_OBJECT_TRAITS << "< ";
-                    os << pAction->getBaseType();
-                    if( m_pDependency )
-                    {
-                        os << " >::Start( "; 
-                        printer.printDependencyVar( os, strIndex ); 
-                        os << ", "; 
-                        printer.printVariableAccess( os, strIndex ); 
-                        os << " );\n";
-                    }
-                    else
-                    {
-                        os << " >::Start( "; 
-                        printer.printVariableAccess( os, strIndex ); 
-                        os << " );\n";
-                    }
-                }
-                break;
-            case eActionReference       : break;
-            case eActionAllocatorData   : break;
-            case eActionAllocatorHead   : break;
-            case eRingIndex             : break;
-            default:
-                THROW_RTE( "Unknown generated dimension type" );
-        }
-    }
-    void Dimension_Generated::printStop( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
-    {
-        static const std::string strIndent = "         ";
-        switch( m_type )
-        {
-            //case eDimensionTimestamp    :
-            case eActionStopCycle       :
-            case eActionState           :
-            case eActionFiber           : 
-                break;
-            case eActionObject          : 
-                //use the type traits in the interface
-                {
-                    VERIFY_RTE( m_pAction );
-                    const interface::Action* pAction = m_pAction->getAction();
-                    os << strIndent << EG_OBJECT_TRAITS << "< ";
-                    os << pAction->getBaseType();
-                    if( m_pDependency )
-                    {
-                        os << " >::Stop( ";
-                        printer.printDependencyVar( os, strIndex ); 
-                        os << ", "; 
-                        printer.printVariableAccess( os, strIndex ); 
-                        os << " );\n";
-                    }
-                    else
-                    {
-                        os << " >::Stop( ";
-                        printer.printVariableAccess( os, strIndex ); 
-                        os << " );\n";
-                    }
-                }
-                break;
-            case eActionReference       : break;
-            case eActionAllocatorData   : break;
-            case eActionAllocatorHead   : break;
-            case eRingIndex             : break;
-            default:
-                THROW_RTE( "Unknown generated dimension type" );
-        }
-    }
-    
+            
 	void Dimension_Generated::printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
 	{
         static const std::string strIndent = "        ";
@@ -332,22 +210,6 @@ namespace eg
                 break;
             case eActionState        :
                 os << EG_ACTION_STATE;
-                break;
-            case eActionFiber        :
-                os << EG_FIBER_TYPE;
-                break;
-            case eActionObject       :
-                //use the type traits in the interface
-                {
-                    VERIFY_RTE( m_pAction );
-                    const interface::Action* pAction = m_pAction->getAction();
-                    
-                    os << EG_OBJECT_TRAITS << "< ";
-                    
-                    os << pAction->getBaseType();
-                    
-                    os << " >::PtrType";
-                }
                 break;
             case eActionReference    :
                 {
@@ -389,22 +251,6 @@ namespace eg
                 break;
             case eActionState        :
                 os << EG_ACTION_STATE;
-                break;
-            case eActionFiber        :
-                os << EG_FIBER_TYPE;
-                break;
-            case eActionObject       :
-                //use the type traits in the interface
-                {
-                    VERIFY_RTE( m_pAction );
-                    const interface::Action* pAction = m_pAction->getAction();
-                    
-                    os << EG_OBJECT_TRAITS << "< ";
-                    
-                    os << pAction->getBaseType();
-                    
-                    os << " >::PtrType";
-                }
                 break;
             case eActionReference    :
                 {

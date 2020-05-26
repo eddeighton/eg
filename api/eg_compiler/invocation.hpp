@@ -71,7 +71,8 @@ namespace eg
         InvocationSolution( const IndexedObject& object )
             :   IndexedObject( object ),
                 m_bDimensions( false ),
-                m_bHomogeneousDimensions( false )
+                m_bHomogeneousDimensions( false ),
+                m_explicitOperation( HIGHEST_EXPLICIT_OPERATION_TYPE )
         {
         }
         InvocationSolution( const IndexedObject& object, const InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath )
@@ -79,7 +80,8 @@ namespace eg
                 m_invocationID( invocationID ),
                 m_implicitTypePath( implicitTypePath ),
                 m_bDimensions( false ),
-                m_bHomogeneousDimensions( false )
+                m_bHomogeneousDimensions( false ),
+                m_explicitOperation( HIGHEST_EXPLICIT_OPERATION_TYPE )
         {
         }
         
@@ -110,11 +112,13 @@ namespace eg
     public:
         const InvocationID& getID() const { return m_invocationID; }
         OperationID getOperation() const { return std::get< OperationID >( m_invocationID ); }
+        ExplicitOperationID getExplicitOperation() const { return m_explicitOperation; }
         const TypeIDVector& getImplicitTypePath() const { return m_implicitTypePath; }
         const ElementPairVector& getContextElements() const { return m_context; }
         const ElementPairVectorVector& getTypePathElements() const { return m_typePath; }
         const Context& getContext() const { return std::get< Context >( m_invocationID ); }
         const Context& getReturnTypes() const { return m_returnTypes; }
+        const Context& getParameterTypes() const { return m_parameterTypes; }
         bool isReturnTypeDimensions() const { return m_bDimensions; }
         bool isDimensionReturnTypeHomogeneous() const { return m_bHomogeneousDimensions; }
         const RootInstruction* getRoot() const { return m_pRoot; }
@@ -130,8 +134,10 @@ namespace eg
         ElementPairVectorVector m_typePath;
         
         Context m_returnTypes;
+        Context m_parameterTypes;
         bool m_bDimensions;
         bool m_bHomogeneousDimensions;
+        ExplicitOperationID m_explicitOperation;
         
         RootInstruction* m_pRoot = nullptr;
     };

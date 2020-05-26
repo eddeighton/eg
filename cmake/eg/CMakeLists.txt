@@ -28,6 +28,7 @@ set( EG_LIBRARY
 	${EG_API_DIR}/eg/resource.hpp
 	${EG_API_DIR}/eg/result_type.hpp
 	${EG_API_DIR}/eg/scheduler.hpp
+	${EG_API_DIR}/eg/basic_scheduler.cpp
 	${EG_API_DIR}/eg/type_path.hpp
 	${EG_API_DIR}/eg/variant.hpp
 	)

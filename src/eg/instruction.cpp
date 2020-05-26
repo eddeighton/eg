@@ -831,9 +831,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void CallOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void CallOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void CallOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID CallOperation::getExplicitOperationType() const
+    {
+        return id_exp_Call;
     }
     void CallOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -854,9 +861,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void StartOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void StartOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void StartOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID StartOperation::getExplicitOperationType() const
+    {
+        return id_exp_Start;
     }
     void StartOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -877,9 +891,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void StopOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void StopOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void StopOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID StopOperation::getExplicitOperationType() const
+    {
+        return id_exp_Stop;
     }
     void StopOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -900,9 +921,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void PauseOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void PauseOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void PauseOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID PauseOperation::getExplicitOperationType() const
+    {
+        return id_exp_Pause;
     }
     void PauseOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -923,9 +951,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void ResumeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void ResumeOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void ResumeOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID ResumeOperation::getExplicitOperationType() const
+    {
+        return id_exp_Resume;
     }
     void ResumeOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -947,9 +982,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void DoneOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void DoneOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void DoneOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID DoneOperation::getExplicitOperationType() const
+    {
+        return id_exp_Done;
     }
     void DoneOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -970,9 +1012,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void WaitActionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void WaitActionOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void WaitActionOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID WaitActionOperation::getExplicitOperationType() const
+    {
+        return id_exp_WaitAction;
     }
     void WaitActionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -993,9 +1042,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void WaitDimensionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void WaitDimensionOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void WaitDimensionOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID WaitDimensionOperation::getExplicitOperationType() const
+    {
+        return id_exp_WaitDimension;
     }
     void WaitDimensionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1016,9 +1072,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void GetActionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void GetActionOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void GetActionOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID GetActionOperation::getExplicitOperationType() const
+    {
+        return id_exp_GetAction;
     }
     void GetActionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1039,9 +1102,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void GetDimensionOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void GetDimensionOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void GetDimensionOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID GetDimensionOperation::getExplicitOperationType() const
+    {
+        return id_exp_GetDimension;
     }
     void GetDimensionOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1062,9 +1132,16 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void ReadOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void ReadOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void ReadOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID ReadOperation::getExplicitOperationType() const
+    {
+        return id_exp_Read;
     }
     void ReadOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1085,9 +1162,17 @@ namespace eg
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
     }
-    void WriteOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void WriteOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pInstance->getConcreteType()->getAction() );
+    }
+    void WriteOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    ExplicitOperationID WriteOperation::getExplicitOperationType() const
+    {
+        return id_exp_Write;
     }
     void WriteOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
@@ -1110,9 +1195,23 @@ namespace eg
         storer.storeObjectRef( m_pTarget );
         storer.store( m_rangeType );
     }
-    void RangeOperation::getTargetAbstractTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    void RangeOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
         abstractTypes.push_back( m_pInterface );
+    }
+    void RangeOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+    }
+    ExplicitOperationID RangeOperation::getExplicitOperationType() const
+    {
+        switch( m_rangeType )
+        {
+            case eRaw:                return id_exp_Raw;
+            case eRange:              return id_exp_Range;
+            default:
+            case TOTAL_RANGE_TYPES:   THROW_RTE( "Invalid range type" );
+        }
+        
     }
     void RangeOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {

@@ -443,23 +443,23 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     }
     os << ");\n";
     
-    os << "                        getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber\n";
-    os << "                        (\n";
-    os << "                            std::allocator_arg,\n";
-    os << "                            " << eg::EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
-    os << "                            [ functor, ref ]()\n";
-    os << "                            {\n";
-    os << "                                try\n";
-    os << "                                {\n";
-    os << "                                    functor();\n";
-    os << "                                }\n";
-    os << "                                catch( eg::termination_exception )\n";
-    os << "                                {\n";
-    os << "                                }\n";
-    os << "                                " << pAction->getName() << "_stopper( ref.data.instance );\n";
-    os << "                            }\n";
-    os << "                        );\n";
-    os << "                        getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );\n";
+    //os << "                        getFiber( ref.data.type, ref.data.instance ) = boost::fibers::fiber\n";
+    //os << "                        (\n";
+    //os << "                            std::allocator_arg,\n";
+    //os << "                            " << eg::EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
+    //os << "                            [ functor, ref ]()\n";
+    //os << "                            {\n";
+    //os << "                                try\n";
+    //os << "                                {\n";
+    //os << "                                    functor();\n";
+    //os << "                                }\n";
+    //os << "                                catch( eg::termination_exception )\n";
+    //os << "                                {\n";
+    //os << "                                }\n";
+    //os << "                                " << pAction->getName() << "_stopper( ref.data.instance );\n";
+    //os << "                            }\n";
+    //os << "                        );\n";
+    //os << "                        getFiber( ref.data.type, ref.data.instance ).properties< eg::fiber_props >().setReference( ref.data );\n";
             }
             else
             {

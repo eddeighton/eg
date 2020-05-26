@@ -426,7 +426,7 @@ namespace eg
         os << generator.getIndent() << "{\n";
         if( pStaticType->hasDefinition() )
         {
-        os << generator.getIndent() << "    ref( args... );\n";
+        os << generator.getIndent() << "    ::eg::Scheduler::call( ref, args... );\n";
         }
         os << generator.getIndent() << "    " << ins.getConcreteType()->getName() << "_stopper( ref.data.instance );\n";
         os << generator.getIndent() << "}\n";
@@ -441,36 +441,9 @@ namespace eg
             
         if( pStaticType->hasDefinition() )
         {
-            const DataMember* pFiberData = generator.getLayout().getDataMember( ins.getConcreteType()->getFiber() );
-                
             os << generator.getIndent() << "if( ref )\n";
             os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << " = " << EG_FIBER_TYPE << "\n";
-            os << generator.getIndent() << "    (\n";
-            os << generator.getIndent() << "        std::allocator_arg,\n";
-            os << generator.getIndent() << "        " << EG_DEFAULT_FIBER_STACK_TYPE << ",\n";
-            os << generator.getIndent() << "        [ = ]()\n";
-            os << generator.getIndent() << "        {\n";
-            os << generator.getIndent() << "            try\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "                ref( args... );\n"; 
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            catch( std::exception& e )\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "                ERR( e.what() );\n";
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            catch( eg::termination_exception )\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            catch( ... )\n";
-            os << generator.getIndent() << "            {\n";
-            os << generator.getIndent() << "                ERR( \"Unknown exception occured in " << pStaticType->getFriendlyName() << "\" );\n";
-            os << generator.getIndent() << "            }\n";
-            os << generator.getIndent() << "            " << ins.getConcreteType()->getName() << "_stopper( ref.data.instance );\n";
-            os << generator.getIndent() << "        }\n";
-            os << generator.getIndent() << "    );\n";
-            os << generator.getIndent() << "    " << Printer( pFiberData, "ref.data.instance" ) << 
-                ".properties< eg::fiber_props >().setReference( ref.data );\n";
+            os << generator.getIndent() << "    ::eg::Scheduler::start( ref, args... );\n";
             os << generator.getIndent() << "}\n";
         }
         else
@@ -554,7 +527,12 @@ namespace eg
     {
         os << generator.getIndent() << 
             generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
+        
+        const concrete::Action* pReturnType = ins.getInstance()->getConcreteType();
+        os << generator.getIndent() << "return " << 
+            generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
+    
     void generate( const RangeOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
     }
@@ -564,11 +542,6 @@ namespace eg
     {
         switch( ins.getType() )
         {
-            //case eInstanceVariable:                   generate( dynamic_cast<   const InstanceVariable                        &   >( ins ) , generator, os ); break;
-            //case eReferenceVariable:                  generate( dynamic_cast<   const ReferenceVariable                       &   >( ins ) , generator, os ); break;
-            //case eDimensionVariable:                  generate( dynamic_cast<   const DimensionReferenceVariable              &   >( ins ) , generator, os ); break;
-            //case eContextVariable:                    generate( dynamic_cast<   const ContextVariable                         &   >( ins ) , generator, os ); break;
-            
             case eParentDerivationInstruction:        generate( dynamic_cast<   const ParentDerivationInstruction             &   >( ins ) , generator, os ); break;
             case eChildDerivationInstruction:         generate( dynamic_cast<   const ChildDerivationInstruction              &   >( ins ) , generator, os ); break;
             case eEnumDerivationInstruction:          generate( dynamic_cast<   const EnumDerivationInstruction               &   >( ins ) , generator, os ); break;

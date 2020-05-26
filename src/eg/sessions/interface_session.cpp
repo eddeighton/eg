@@ -197,20 +197,6 @@ namespace eg
                 pChildInstance->m_pState->m_pAction  = pChildInstance;
                 pChildInstance->m_children.push_back( pChildInstance->m_pState );
                 
-                pChildInstance->m_pFiber             = construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pFiber->m_type     = concrete::Dimension_Generated::eActionFiber;
-                pChildInstance->m_pFiber->m_pAction  = pChildInstance;
-                pChildInstance->m_children.push_back( pChildInstance->m_pFiber );
-                
-                //does the action have an object mapping?
-                if( !pChildAction->getBaseType().empty() )
-                {
-                    pChildInstance->m_pMappedObject                 = construct< concrete::Dimension_Generated >();
-                    pChildInstance->m_pMappedObject->m_type         = concrete::Dimension_Generated::eActionObject;
-                    pChildInstance->m_pMappedObject->m_pAction      = pChildInstance;
-                    pChildInstance->m_children.push_back( pChildInstance->m_pMappedObject );
-                }
-                
                 pChildInstance->m_pReference                    = construct< concrete::Dimension_Generated >();
                 pChildInstance->m_pReference->m_type            = concrete::Dimension_Generated::eActionReference;
                 pChildInstance->m_pReference->m_pAction         = pChildInstance;
@@ -330,7 +316,7 @@ namespace eg
         return pRoot;
     }
     
-    
+    /*
     void InterfaceSession::dependencyAnalysis_recurse( concrete::Action* pAction )
     {
         const interface::Action* pNodeAction = pAction->getAction();
@@ -370,13 +356,7 @@ namespace eg
                 dependencyAnalysis_recurse( pChildAction );
             }
         }
-    }
-    
-    void InterfaceSession::dependencyAnalysis()
-    {
-        concrete::Action* pRoot = root< concrete::Action >( getAppendingObjects() );  
-        dependencyAnalysis_recurse( pRoot );
-    }
+    }*/
     
     
 	bool getInterfaceActionCoordinatorHostname( const interface::Action* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )

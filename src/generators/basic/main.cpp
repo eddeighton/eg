@@ -30,9 +30,6 @@
 
 #include <iostream>
 
-extern void generate_dynamic_interface( std::ostream& os, const eg::ReadSession& session );
-extern void generate_python( std::ostream& os, const eg::ReadSession& session );
-
 int main( int argc, const char* argv[] )
 {
     const eg::CmdLine cmdLine = eg::handleCommandLine( argc, argv );
@@ -48,31 +45,7 @@ int main( int argc, const char* argv[] )
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
     
     os << "#include \"structures.hpp\"\n";
-    
-    //detect if we want scripting package support
-    if( cmdLine.bRunPythonScriptsInMainAction )
-    {
-    const char pszPythonScripts[] = R"(
-extern std::vector< std::function< void() > > loadPythonScripts( const std::vector< std::string >& scripts, const std::string& strDatabaseFile );
-std::vector< std::function< void() > > loadScripts( const std::vector< std::string >& scripts, const std::string& strDatabase )
-{
-    return loadPythonScripts( scripts, strDatabase );
-}
-    )";
-    os << pszPythonScripts;
-    }
-    else
-    {
-    const char pszPythonScripts[] = R"(
-std::vector< std::function< void() > > loadScripts( const std::vector< std::string >& scripts, const std::string& strDatabase )
-{
-    std::vector< std::function< void() > > doNothing;
-    return doNothing;
-}
-    )";
-    os << pszPythonScripts;
-    }
-    
+        
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
@@ -121,7 +94,7 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
     
     os << "\n";
     os << "//Action functions\n";
-    os << "extern __eg_root< void > root_starter( std::vector< std::function< void() > >& );\n";
+    os << "extern __eg_root< void > root_starter();\n";
     os << "extern void root_stopper( eg::Instance _gid );\n";
     os << "\n";
     
@@ -129,94 +102,34 @@ std::vector< std::function< void() > > loadScripts( const std::vector< std::stri
     
 int main( int argc, const char* argv[] )
 {
-    std::string strDatabaseFile;
-    std::vector< std::string > scripts;
     int iMilliseconds = 0;
-    {
-        bool bDebug = false;
-        namespace po = boost::program_options;
-        po::variables_map vm;
-        try
-        {
-            po::options_description desc("Allowed options");
-            desc.add_options()
-                ("help", "produce help message")
-                
-                //options
-                ("debug",       po::value< bool >( &bDebug )->implicit_value( true ), 
-                    "Wait at startup to allow attaching a debugger" )
-                ("database",    po::value< std::string >( &strDatabaseFile ), "Program Database" )
-                ("script",      po::value< std::vector< std::string > >( &scripts ), "Scripts" )
-                ("rate",        po::value< int >( &iMilliseconds ), "Simulation rate in milliseconds" )
-            ;
-
-            po::positional_options_description p;
-            p.add( "script", -1 );
-
-            po::store( po::command_line_parser( argc, argv).
-                        options( desc ).
-                        positional( p ).run(),
-                        vm );
-            po::notify(vm);
-
-            if (vm.count("help"))
-            {
-                std::cout << desc << "\n";
-                return 1;
-            }
-        }
-        catch( std::exception& )
-        {
-            std::cout << "Invalid input. Type '--help' for options\n";
-            return 1;
-        }
-        //wait for input 
-        if( bDebug )
-        {
-			std::cout << "Waiting for input..." << std::endl;
-#ifdef _DEBUG
-            Common::debug_break();
-#else
-            char c;
-            std::cin >> c;
-#endif 
-        }
-    }
-    
     
     try
     {
-        const float sleepDuration_sec = 
-            std::chrono::duration< float, std::ratio< 1 > >(
-                std::chrono::milliseconds( iMilliseconds ) ).count();
+        //const float sleepDuration_sec = 
+        //    std::chrono::duration< float, std::ratio< 1 > >(
+        //        std::chrono::milliseconds( iMilliseconds ) ).count();
         
         //allocate everything
         allocate_buffers();
         
-        //be sure to initialise the clock before the scheduler
-        boost::fibers::use_scheduling_algorithm< eg::eg_algorithm >();
-    
-        //start the root
-        std::vector< std::function< void() > > scriptFunctions = 
-            loadScripts( scripts, strDatabaseFile );
-        
-        root_starter( scriptFunctions );
-        
-        boost::this_fiber::properties< eg::fiber_props >().setTimeKeeper();
+        eg::Scheduler::start( root_starter() );
         
         float cycleStart = clock::ct();
-        while( boost::this_fiber::properties< eg::fiber_props >().shouldContinue() )
+        while( eg::Scheduler::active() )
         {
-            const float elapsed = clock::ct() - cycleStart;
-            if( elapsed < sleepDuration_sec )
-            {
-                auto floatDuration      = std::chrono::duration< float, std::ratio< 1 > >( sleepDuration_sec - elapsed );
-                auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
-                std::this_thread::sleep_for( intMilliseconds );
-            }
-            eg::wait();
+            //const float elapsed = clock::ct() - cycleStart;
+            //if( elapsed < sleepDuration_sec )
+            //{
+            //    auto floatDuration      = std::chrono::duration< float, std::ratio< 1 > >( sleepDuration_sec - elapsed );
+            //    auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
+            //    std::this_thread::sleep_for( intMilliseconds );
+            //}
+            
+            eg::Scheduler::cycle();
             
             clock::next();
+            
             cycleStart = clock::ct();
         }
         
@@ -224,8 +137,8 @@ int main( int argc, const char* argv[] )
     }
     catch( std::exception& e )
     {
-        std::cerr << "Error: " << e.what() << std::endl;
         deallocate_buffers();
+        return 1;
     }
     
     return 0;

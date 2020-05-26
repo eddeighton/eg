@@ -159,11 +159,13 @@ namespace eg
             {
                 if( pParams )
                 {
-                    os << strIndent << "void operator()(" << pParams->getStr() << ") const;\n";
+                    os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << EG_RESUME_REASON_TYPE << 
+                        " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const;\n";
                 }
                 else
                 {
-                    os << strIndent << "void operator()() const;\n";
+                    os << strIndent << EG_RETURN_REASON_TYPE << " operator()( " << EG_RESUME_REASON_TYPE << 
+                        " " << EG_RESUME_REASON_PARAM << " ) const;\n";
                 }
             }
 
@@ -447,8 +449,6 @@ namespace eg
     void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize )
     {
         generateIncludeGuard( os, "INTERFACE" );
-
-        os << "\n\n#define EG_FIBER_STACK_SIZE ( " << szFiberStackSize << " )\n\n";
 
         generateForwardDeclarations( os, pIdentifiers );
 

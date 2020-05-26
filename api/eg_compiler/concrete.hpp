@@ -205,8 +205,6 @@ namespace concrete
         {
             eActionStopCycle,
             eActionState,
-            eActionFiber,
-            eActionObject,
             eActionReference,
             eActionAllocatorData,
             eActionAllocatorHead,
@@ -267,8 +265,6 @@ namespace concrete
         
         const Dimension_Generated* getStopCycle    () const { return m_pStopCycle     ; } //timestamp when stopped
         const Dimension_Generated* getState        () const { return m_pState         ; }
-        const Dimension_Generated* getFiber        () const { return m_pFiber         ; }
-        const Dimension_Generated* getMappedObject () const { return m_pMappedObject  ; }
         const Dimension_Generated* getReference    () const { return m_pReference     ; }
         const Dimension_Generated* getAllocatorData() const { return m_pAllocatorData ; }
         const Dimension_Generated* getRingIndex    () const { return m_pRingIndex     ; }
@@ -295,8 +291,6 @@ namespace concrete
         
         Dimension_Generated* m_pStopCycle     = nullptr;
         Dimension_Generated* m_pState         = nullptr;
-        Dimension_Generated* m_pFiber         = nullptr;
-        Dimension_Generated* m_pMappedObject  = nullptr;
         Dimension_Generated* m_pReference     = nullptr;
         Dimension_Generated* m_pAllocatorData = nullptr;
         Dimension_Generated* m_pRingIndex     = nullptr;

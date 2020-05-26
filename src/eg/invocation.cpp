@@ -111,8 +111,10 @@ namespace eg
         }
         
         loader.loadObjectVector( m_returnTypes );
+        loader.loadObjectVector( m_parameterTypes );
         loader.load( m_bDimensions );
         loader.load( m_bHomogeneousDimensions );
+        loader.load( m_explicitOperation );
         
         {
             ASSERT( !m_pRoot );
@@ -156,8 +158,10 @@ namespace eg
         }
         
         storer.storeObjectVector( m_returnTypes );
+        storer.storeObjectVector( m_parameterTypes );
         storer.store( m_bDimensions );
         storer.store( m_bHomogeneousDimensions );
+        storer.store( m_explicitOperation );
         
         {
             ASSERT( m_pRoot );
@@ -810,9 +814,11 @@ namespace eg
         
         for( const Operation* pOperation : operations )
         {
-            pOperation->getTargetAbstractTypes( m_returnTypes );
+            pOperation->getReturnTypes( m_returnTypes );
+            pOperation->getParameterTypes( m_parameterTypes );
         }
         m_returnTypes = uniquify_without_reorder( m_returnTypes );
+        m_parameterTypes = uniquify_without_reorder( m_parameterTypes );
         ASSERT( std::set< const interface::Element* >( m_returnTypes.begin(), m_returnTypes.end() ).size() == m_returnTypes.size() );
         if( isOperationEnumeration( getOperation() ) )
         {
@@ -907,7 +913,7 @@ namespace eg
                     Context returnTypes;
                     for( const Operation* pOperation : operations )
                     {
-                        pOperation->getTargetAbstractTypes( returnTypes );
+                        pOperation->getReturnTypes( returnTypes );
                     }
                     
                     //temp calculate if dimension return types
@@ -924,6 +930,7 @@ namespace eg
                     
                     //if starter then accept explicit concrete action type over deriving
                     if( dimensions.empty() )
+                    //if( ( m_explicitOperation == id_exp_Call ) || ( m_explicitOperation == id_exp_Start ) )
                     {
                         //determine if there are target elements that are concrete 
                         //and have a corresponding concrete type
@@ -1007,6 +1014,25 @@ namespace eg
                     }
                 }
                 break;
+        }
+        
+        //set the explicit operation type
+        {
+            std::vector< const Operation* > operations;
+            m_pRoot->getOperations( operations );
+            for( const Operation* pOperation : operations )
+            {
+                const ExplicitOperationID opType = pOperation->getExplicitOperationType();
+                if( m_explicitOperation == HIGHEST_EXPLICIT_OPERATION_TYPE )
+                {
+                    m_explicitOperation = opType;
+                }
+                else if( opType != m_explicitOperation )
+                {
+                    //error
+                    THROW_INVOCATION_EXCEPTION( "Conflicting operation types: " << m_invocationID );
+                }
+            }
         }
     }
     

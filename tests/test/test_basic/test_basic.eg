@@ -1,10 +1,16 @@
 
+include( <iostream> );
+	
 action A[ 64 ]
 {
     dim int x;
-	
-	std::cout << "works!" << std::endl;
-	
+    dim int y;
+	std::cout << "Hello World from A x is: " << x() << " y is: " << y() << std::endl;
 }
 
-A();
+A().x( 1 ).y( 2 );
+A().x( 3 ).y( 4 );
+
+A a = A();
+
+a.A();

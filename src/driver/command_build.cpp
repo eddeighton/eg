@@ -303,7 +303,6 @@ void build_parser_session( const Environment& environment, const Project& projec
             //perform the analysis
             pInterfaceSession->linkAnalysis();
             pInterfaceSession->instanceAnalysis();
-            pInterfaceSession->dependencyAnalysis();
             
             pInterfaceSession->translationUnitAnalysis( project.getProjectDir(), 
                 [ &project ]( const std::string& strName )

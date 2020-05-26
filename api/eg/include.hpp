@@ -33,6 +33,6 @@
 #include "iterators.hpp"
 #include "scheduler.hpp"
 #include "macros.hpp"
-#include "resource.hpp"
+//#include "resource.hpp"
 
 #endif //EG_STANDARD_STUFF

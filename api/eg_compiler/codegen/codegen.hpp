@@ -52,7 +52,6 @@ namespace eg
     static const char* EG_MULTI_ITERATOR_TYPE = "__eg_MultiIterator";
     static const char* EG_RANGE_TYPE = "__eg_Range";
     static const char* EG_RESULT_TYPE = "eg::result_type";
-    static const char* EG_FIBER_TYPE = "boost::fibers::fiber";
     static const char* EG_TYPE_PATH_CANNON_TYPE = "eg::CanonicaliseTypePath";
     static const char* EG_RING_BUFFER_ALLOCATOR_TYPE = "eg::RingBufferAllocator";
     static const char* EG_REFERENCE_TYPE = "eg::reference";
@@ -60,11 +59,13 @@ namespace eg
     static const char* EG_EVENT_TYPE = "eg::Event";
     static const char* EG_EVENT_LOG_EVENT_TYPE = "eg::_event";
     static const char* EG_EVENT_ITERATOR = "eg::event_iterator";
-    static const char* EG_DEPENDENCY_PROVIDER_TYPE = "eg::DependencyProvider";
-    //static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::pooled_fixedsize_stack( EG_FIBER_STACK_SIZE )";
-    static const char* EG_DEFAULT_FIBER_STACK_TYPE = "boost::fibers::fixedsize_stack( EG_FIBER_STACK_SIZE )";
 	static const char* EG_TRAITS_SIZE = "Size";
 	static const char* EG_ALLOCATOR_TYPE = "std::uint64_t";
+    static const char* EG_RESUME_REASON_TYPE = "eg::ResumeReason";
+    static const char* EG_RESUME_REASON_PARAM = "reason";
+    static const char* EG_RETURN_REASON_TYPE = "eg::ReturnReason";
+    
+    
     static const char* pszLine = 
     "//////////////////////////////////////////////////////////////////////////////////\n";
     

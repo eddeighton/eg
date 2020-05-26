@@ -175,12 +175,6 @@ namespace concrete
                 return 4;
             case eActionState        :
                 return 4;
-            case eActionFiber        :
-                return 4;
-            case eActionObject       :
-                //use the type traits in the interface
-                //TODO - need to report this in link analysis
-                return 4;
             case eActionReference    :
                 return 12;
             case eActionAllocatorData:
@@ -202,8 +196,6 @@ namespace concrete
         loader.load( m_totalDomainSize );
         m_pStopCycle        = loader.loadObjectRef< Dimension_Generated >();
         m_pState            = loader.loadObjectRef< Dimension_Generated >();
-        m_pFiber            = loader.loadObjectRef< Dimension_Generated >();
-        m_pMappedObject     = loader.loadObjectRef< Dimension_Generated >();
         m_pReference        = loader.loadObjectRef< Dimension_Generated >();
         m_pAllocatorData    = loader.loadObjectRef< Dimension_Generated >();
         m_pRingIndex        = loader.loadObjectRef< Dimension_Generated >();
@@ -219,8 +211,6 @@ namespace concrete
         storer.store( m_totalDomainSize );
         storer.storeObjectRef( m_pStopCycle     );
         storer.storeObjectRef( m_pState         );
-        storer.storeObjectRef( m_pFiber         );
-        storer.storeObjectRef( m_pMappedObject  );
         storer.storeObjectRef( m_pReference     );
         storer.storeObjectRef( m_pAllocatorData );
         storer.storeObjectRef( m_pRingIndex     );

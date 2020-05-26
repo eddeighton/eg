@@ -150,18 +150,6 @@ namespace eg
                                     pDimensionInstance->name = pBuffer->variable + "_state";
                                 }
                                 break;
-                            case concrete::Dimension_Generated::eActionFiber :
-                                {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_fiber";
-                                }
-                                break;
-                            case concrete::Dimension_Generated::eActionObject    :
-                                {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_object";
-                                }
-                                break;
                             case concrete::Dimension_Generated::eActionReference    :
                                 {
                                     pDimensionInstance = construct< DataMember >();

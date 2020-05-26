@@ -44,9 +44,7 @@ namespace eg
         
         void linkAnalysis();
         concrete::Action* instanceAnalysis();
-        void dependencyAnalysis();
         void translationUnitAnalysis( const boost::filesystem::path& rootFolder, TUFileIDIfExistsFPtr pTUFileIDIfExists );
-        //void checkTranslationUnits( const boost::filesystem::path& rootFolder );
         
         //allow saving the interface session to new file
         void store() const { AppendingSession::store(); }
@@ -81,7 +79,6 @@ namespace eg
                 ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances );
         void constructInstance( concrete::Action* pInstance );
         void constructAllocator( concrete::Action* pInstance );
-        void dependencyAnalysis_recurse( concrete::Action* pAction );
 		
         using TranslationUnitMap = std::map< TranslationUnit::CoordinatorHostnameDefinitionFile, TranslationUnit::ActionSet >;
         void translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap );

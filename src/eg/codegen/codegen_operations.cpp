@@ -215,7 +215,7 @@ namespace eg
                 }
 
                 //just generate an explicit template specialisation
-                os << strIndent << "void ";
+                os << strIndent << EG_RETURN_REASON_TYPE << " ";
                 {
                     for( const interface::Element* pNodeIter : path )
                     {
@@ -223,11 +223,11 @@ namespace eg
                     }
                     if( const input::Opaque* pParams = pElement->getParams() )
                     {
-                        os << "operator()(" << pParams->getStr() << ") const\n";
+                        os << "operator()(" << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const\n";
                     }
                     else
                     {
-                        os << "operator()() const\n";
+                        os << "operator()( " << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << " ) const\n";
                     }
                 }
 
@@ -244,6 +244,8 @@ namespace eg
                         os << strIndent << pOpaque->getStr() << "\n";
                     }
                 }
+                
+                os << strIndent << "return eg::ReturnReason{ eg::ReturnReason::eComplete };\n";
 
                 strIndent.pop_back();
                 strIndent.pop_back();

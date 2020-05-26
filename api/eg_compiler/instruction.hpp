@@ -573,7 +573,9 @@ protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
 public:
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const = 0;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const = 0;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const = 0;
+    virtual ExplicitOperationID getExplicitOperationType() const = 0;
 };
 
 class CallOperation : public Operation
@@ -590,7 +592,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -616,7 +620,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -642,7 +648,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -667,7 +675,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -692,7 +702,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -717,7 +729,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -743,7 +757,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -768,7 +784,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -793,7 +811,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -818,7 +838,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -843,7 +865,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -868,7 +892,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
@@ -901,7 +927,9 @@ public:
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
     virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
-    virtual void getTargetAbstractTypes( std::vector< const interface::Element* >& abstracTypes ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     const InstanceVariable* getInstance() const { return m_pInstance; }
