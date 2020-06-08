@@ -422,14 +422,21 @@ namespace eg
         
         os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
             "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
-        os << generator.getIndent() << "if( ref )\n";
-        os << generator.getIndent() << "{\n";
         if( pStaticType->hasDefinition() )
         {
-        os << generator.getIndent() << "    ::eg::Scheduler::call( ref, args... );\n";
+			os << generator.getIndent() << "if( ref )\n";
+			os << generator.getIndent() << "{\n";
+			os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper " << ", args... );\n";
+			os << generator.getIndent() << "}\n";
         }
-        os << generator.getIndent() << "    " << ins.getConcreteType()->getName() << "_stopper( ref.data.instance );\n";
-        os << generator.getIndent() << "}\n";
+        else
+        {
+            //immediately stop the action to generate event
+            os << generator.getIndent() << "if( ref )\n";
+            os << generator.getIndent() << "{\n";
+            os << generator.getIndent() << "    " << ins.getConcreteType()->getName() << "_stopper( ref.data.instance );\n";
+            os << generator.getIndent() << "}\n";
+        }
         os << generator.getIndent() << "return ref;\n";
     }
     void generate( const StartOperation& ins, CodeGenerator& generator, std::ostream& os )
@@ -443,7 +450,7 @@ namespace eg
         {
             os << generator.getIndent() << "if( ref )\n";
             os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    ::eg::Scheduler::start( ref, args... );\n";
+            os << generator.getIndent() << "    ::eg::Scheduler::start( ref, &" << ins.getConcreteType()->getName() << "_stopper " << ", args... );\n";
             os << generator.getIndent() << "}\n";
         }
         else

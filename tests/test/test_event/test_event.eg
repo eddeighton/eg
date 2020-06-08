@@ -1,54 +1,49 @@
 
-action A[ 4 ]
+
+
+include( <iostream> );
+
+action A[ 8 ]( int iCycles )
 {
-    eg::sleep( 10ms );
-}
-action B
-{
-    eg::sleep();
-}
-
-A a = A.Start();
-
-eg::sleep( a );
-
-//sleep for a millisecond
-eg::sleep( 1ms );
-
-TEST( true );//got here
-
-action Test
-{
-    
-    eg::sleep
-    (
-        [ this ]( Event e )
-        {
-            //use invocation within a lambda no problemo
-            return B.Get() == e;
-        }
-    );
-    eg::sleep( 20ms );
-    
-    TEST( true );//got here
+	dim int counter;
+	
+	counter( counter() + 1 );
+	if( counter() < iCycles )
+		return eg::wait();
+		
+	std::cout << "A completed after: " << iCycles << std::endl;
 }
 
-B.Start();
-Test t = Test.Start();
 
-a = A.Start();
+dim int state;
+state( state() + 1 );
 
-int counter = 0;
+switch( state() )
+{
+	case 1:
+	{
+		return eg::wait_all( { A( 100 ), A( 200 ) } );
+	}
+	case 2:
+	{
+		std::cout << "Wait all completed: " << clock::cycle() << std::endl;
+		return eg::wait_any( { A( 100 ), A( 200 ) } );
+	}
+	case 3:
+	{
+		std::cout << "Wait any completed: " << clock::cycle() << std::endl;
+		return eg::sleep_all( { A( 100 ), A( 200 ) } );
+	}
+	case 4:
+	{
+		std::cout << "Sleep all completed: " << clock::cycle() << std::endl;
+		return eg::sleep_any( { A( 100 ), A( 200 ) } );
+	}
+	case 5:
+	{
+		std::cout << "Sleep any completed: " << clock::cycle() << std::endl;
+	}
+}
 
-//sleep until both t and a have stopped
-eg::sleep( 
-    [ t, a, &counter ]( Event e )
-    {
-        if( e == t ) ++counter;
-        if( e == a ) ++counter;
-        return counter == 2;
-    } );
 
-
-
-TEST( true );//got here
+//wait for a to finish

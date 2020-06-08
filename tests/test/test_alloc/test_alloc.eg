@@ -9,10 +9,47 @@ action A[ 4 ]( int iValue )
 
 //A a = A( 123 ); //sync call to A - A has stopped once it returns.
 //a.i() //reads i on reference
-TEST( A( 1 ).i() == 1 );
-TEST( A( 2 ).i() == 2 );
-TEST( A( 3 ).i() == 3 );
-TEST( A( 4 ).i() == 4 );
+
+dim int iState;
+dim A a;
+
+iState( iState() + 1 );
+
+switch( iState() )
+{
+	case 1:
+	{
+		a( A( 1 ) );
+		return eg::wait();
+	}
+		
+	case 2:
+	{
+		TEST( a.i() == 1 );
+		a( A( 2 ) );
+		return eg::wait();
+	}
+
+	case 3:
+	{
+		TEST( a.i() == 2 );
+		a( A( 3 ) );
+		return eg::wait();
+	}
+	
+	case 4:
+	{
+		TEST( a.i() == 3 );
+		a( A( 4 ) );
+		return eg::wait();
+	}
+
+	case 5:
+	{
+		TEST( a.i() == 4 );
+	}
+
+}
 
 //attempting to allocate onces more within cycle should fail
 

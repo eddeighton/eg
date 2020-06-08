@@ -1,26 +1,48 @@
 
-TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+dim int state;
 
-eg::wait();
+state( state() + 1 );
+switch( state() )
+{
+	case 1:
+	{
+		TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+		return eg::wait();
+	}
 
-TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+	case 2:
+	{
+		TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+		return eg::wait();
+	}
 
-eg::wait();
+	case 3:
+	{
+		TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+		return eg::sleep();
+	}
 
-TEST_MSG( clock::cycle() == 1, "Cycle should be 1: " << clock::cycle() );
+	case 4:
+	{
+		TEST_MSG( clock::cycle() == 2, "Cycle should be 2: " << clock::cycle() );
+		return eg::wait();
+	}
 
-eg::sleep();
+	case 5:
+	{
+		TEST_MSG( clock::cycle() == 2, "Cycle should be 2: " << clock::cycle() );
+		return eg::sleep();
+	}
 
-TEST_MSG( clock::cycle() == 2, "Cycle should be 2: " << clock::cycle() );
+	case 6:
+	{
+		TEST_MSG( clock::cycle() == 3, "Cycle should be 3: " << clock::cycle() );
+		return eg::wait();
+	}
 
-eg::wait();
+	case 7:
+	{
+		TEST_MSG( clock::cycle() == 3, "Cycle should be 3: " << clock::cycle() );
+	}
 
-TEST_MSG( clock::cycle() == 2, "Cycle should be 2: " << clock::cycle() );
-
-eg::sleep();
-
-TEST_MSG( clock::cycle() == 3, "Cycle should be 3: " << clock::cycle() );
-
-eg::wait();
-
-TEST_MSG( clock::cycle() == 3, "Cycle should be 3: " << clock::cycle() );
+}

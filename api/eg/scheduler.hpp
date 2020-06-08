@@ -29,7 +29,7 @@
 #include <vector>
 #include <functional>
 
-//using namespace std::chrono_literals;
+using namespace std::chrono_literals;
 
 eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
 eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );
@@ -68,7 +68,12 @@ namespace eg
     enum Reason
     {
         eReason_Wait,
+        eReason_Wait_All,
+        eReason_Wait_Any,
         eReason_Sleep,
+        eReason_Sleep_All,
+        eReason_Sleep_Any,
+        eReason_Timeout,
         eReason_Terminated
     };
     
@@ -104,7 +109,7 @@ namespace eg
         }
         
         ReturnReason( const std::chrono::steady_clock::time_point& _timeout )
-            :   reason( eReason_Sleep ),
+            :   reason( eReason_Timeout ),
                 timeout( _timeout )
         {
             
@@ -122,12 +127,17 @@ namespace eg
     
     inline ReturnReason wait( const Event& event )
     {
-        return ReturnReason( eReason_Wait, event.data );
+        return ReturnReason( eReason_Wait_All, event.data );
     }
     
-    inline ReturnReason wait( std::initializer_list< Event > events )
+    inline ReturnReason wait_all( std::initializer_list< Event > events )
     {
-        return ReturnReason( eReason_Wait, events );
+        return ReturnReason( eReason_Wait_All, events );
+    }
+    
+    inline ReturnReason wait_any( std::initializer_list< Event > events )
+    {
+        return ReturnReason( eReason_Wait_Any, events );
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -139,12 +149,17 @@ namespace eg
     
     inline ReturnReason sleep( const Event& event )
     {
-        return ReturnReason( eReason_Sleep, event );
+        return ReturnReason( eReason_Sleep_All, event );
     }
     
-    inline ReturnReason sleep( std::initializer_list< Event > events )
+    inline ReturnReason sleep_all( std::initializer_list< Event > events )
     {
-        return ReturnReason( eReason_Sleep, events );
+        return ReturnReason( eReason_Sleep_All, events );
+    }
+    
+    inline ReturnReason sleep_any( std::initializer_list< Event > events )
+    {
+        return ReturnReason( eReason_Sleep_Any, events );
     }
     
     template< typename Clock, typename Duration >
@@ -178,25 +193,26 @@ namespace eg
     class Scheduler
     {
     public:
+		typedef void (*StopperFunctionPtr)( eg::Instance );
         using ActionOperator = std::function< ReturnReason( ResumeReason ) >;
         
-        static void start_ref( const reference& ref, ActionOperator action );
-        static void call_ref( const reference& ref, ActionOperator action );
+        static void start_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
+        static void call_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
         static void stop_ref( const reference& ref );
         static void pause_ref( const reference& ref );
         static void unpause_ref( const reference& ref );
         
         template< typename T, typename... Args >
-        static void start( const T& staticRef, Args... args )
+        static void start( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
         {
             using namespace std::placeholders;
-            start_ref( staticRef.data, std::bind( &T::operator(), staticRef, args..., _1 ) );
+            start_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, _1, args... ) );
         }
         template< typename T, typename... Args >
-        static void call( const T& staticRef, Args... args )
+        static void call( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
         {
             using namespace std::placeholders;
-            call_ref( staticRef.data, std::bind( &T::operator(), staticRef, args..., _1 ) );
+            call_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, _1, args... ) );
         }
         template< typename T >
         static void stop( const T& staticRef )

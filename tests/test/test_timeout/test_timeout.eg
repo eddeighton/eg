@@ -1,0 +1,15 @@
+
+include( <iostream> );
+
+dim int counter;
+
+if( counter() < 5 )
+{
+	LOG( "Starting timeout" );
+	std::cout << "Tick" << std::endl;
+	counter( counter() + 1 );
+	return eg::sleep( 1s );
+}
+
+LOG( "Done" );
+TEST( true );

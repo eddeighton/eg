@@ -1,27 +1,44 @@
 
 action A
 {
-    eg::wait();
+	dim int state;
+	state( state() + 1 );
+	switch( state() )
+	{
+		case 1:
+		{
+			return eg::wait();
+		}
+	}
 }
 
 action B
 {
 }
 
-TEST( Done() );
 
-A.Start();
+dim int state;
+state( state() + 1 );
+switch( state() )
+{
+	case 1:
+	{
+		TEST( Done() );
+		A.Start();
+		TEST( !Done() ); //initially a has not run at all
+		return eg::wait();
+	}
+	case 2:
+	{
+		TEST( !Done() ); //now a has waited
+		return eg::wait();
+	}
+	case 3:
+	{
+		TEST( Done() ); //now a has stopped
+		B.Start();
+		TEST( Done() ); //because B is abstract it stopped immediately
+	}
+}
 
-TEST( !Done() ); //initially a has not run at all
 
-eg::wait();
-
-TEST( !Done() ); //now a has waited
-
-eg::wait();
-
-TEST( Done() ); //now a has stopped
-
-B.Start();
-
-TEST( Done() ); //because B is abstract it stopped immediately

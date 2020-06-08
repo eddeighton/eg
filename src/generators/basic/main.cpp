@@ -45,6 +45,10 @@ int main( int argc, const char* argv[] )
     const eg::IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
     
     os << "#include \"structures.hpp\"\n";
+	
+os << "#ifdef DEBUG\n";
+os << "		#include <iostream>\n";
+os << "#endif\n";
         
     os << "\n//buffers\n";
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
@@ -106,6 +110,14 @@ int main( int argc, const char* argv[] )
     
     try
     {
+		
+#ifdef DEBUG
+		{
+			char c;
+			std::cin >> c;
+		}
+#endif
+
         //const float sleepDuration_sec = 
         //    std::chrono::duration< float, std::ratio< 1 > >(
         //        std::chrono::milliseconds( iMilliseconds ) ).count();
@@ -113,7 +125,7 @@ int main( int argc, const char* argv[] )
         //allocate everything
         allocate_buffers();
         
-        eg::Scheduler::start( root_starter() );
+        eg::Scheduler::start( root_starter(), &root_stopper );
         
         float cycleStart = clock::ct();
         while( eg::Scheduler::active() )
