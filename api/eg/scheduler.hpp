@@ -28,8 +28,10 @@
 #include <optional>
 #include <vector>
 #include <functional>
+#include <string>
 
 using namespace std::chrono_literals;
+using namespace std::string_literals;
 
 eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
 eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );

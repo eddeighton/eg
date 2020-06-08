@@ -46,6 +46,11 @@ bool events::get( eg::event_iterator& iterator, Event& event )
     return false;
 }
 
+bool events::get( eg::event_iterator& iterator, RawEvent& event )
+{
+    return g_eventLogServer->read( iterator, event.type, event.timestamp, event.value, event.size );
+}
+
 void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
 {
     g_eventLogServer->write( type, strlen( type ), timestamp, value, size );

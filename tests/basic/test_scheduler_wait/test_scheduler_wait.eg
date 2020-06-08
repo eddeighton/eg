@@ -1,0 +1,24 @@
+
+
+dim int state;
+state( state() + 1 );
+
+switch( state() )
+{
+	case 1:
+	{
+		LOG( "waiting" );
+		return eg::wait();
+	}
+	case 2:
+	{
+		LOG( "done" );
+		break;
+	}
+}
+
+eg::event_iterator iter = events::getIterator();
+RawEvent ev;
+TEST( events::get( iter, ev ) && ( ev.type == "start"s ) );
+TEST( events::get( iter, ev ) && ( ev.type == "log"s ) && ( (const char*)ev.value == "waiting"s ) );
+TEST( events::get( iter, ev ) && ( ev.type == "log"s ) && ( (const char*)ev.value == "done"s ) );

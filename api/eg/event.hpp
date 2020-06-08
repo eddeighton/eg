@@ -88,10 +88,19 @@ namespace eg
 
 using Event = eg::Event;
 
+struct RawEvent
+{
+    const char* type;
+    eg::TimeStamp timestamp;
+    const void* value;
+    std::size_t size;
+};
+
 struct events
 {
     static eg::event_iterator getIterator();
     static bool get( eg::event_iterator& iterator, Event& event );
+    static bool get( eg::event_iterator& iterator, RawEvent& event );
     static void put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size );
     static bool update(); //just updates the shared memory iterator but also returns if new events
 };

@@ -42,7 +42,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
     {
         commandOptions.add_options()
             ("dir",     po::value< std::string >( &strDirectory ), "Project directory")
-            ("host",    po::value< std::string >( &strHost ), "Host type: test, basic, cinder" )
+            ("host",    po::value< std::string >( &strHost )->default_value( "${ROOT}/basic" ), "Host type" )
             ("package", po::value< std::vector< std::string > >( &packages ), "Packages" )
         ;
     }
@@ -82,7 +82,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
             }
         }
         //create main.py
-        {
+        /*{
             std::ostringstream osFile;
             osFile << strName << Environment::PYTHON_FILE_EXTENSION.string();
             const boost::filesystem::path mainPythonScript = 
@@ -92,7 +92,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                 std::unique_ptr< boost::filesystem::ofstream > pFileStream =
                     createNewFileStream( mainPythonScript );
             }
-        }
+        }*/
         
         egxml::EG newEG;
         {
@@ -109,7 +109,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "release" );
-                        build.CompilerFlags( "-DWIN32_LEAN_AND_MEAN -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -DBOOST_ALL_NO_LIB -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
                         build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
                     }
                     pProject->Build().push_back( build );
@@ -119,7 +119,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "quick" );
-                        build.CompilerFlags( "-DWIN32_LEAN_AND_MEAN -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -DBOOST_ALL_NO_LIB -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
                         build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
                     }
                     pProject->Build().push_back( build );
@@ -129,7 +129,7 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "debug" );
-                        build.CompilerFlags( "-DWIN32_LEAN_AND_MEAN -g -D_MT -D_DLL -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
+                        build.CompilerFlags( "-g -DDEBUG -D_MT -D_DLL -DNOMINMAX -DBOOST_ALL_NO_LIB -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
                         build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
                     }
                     pProject->Build().push_back( build );
@@ -139,29 +139,8 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                 {
                     pRun->Name( "default" );
                     pRun->Command( "${PROJECT}/program.exe" );
-                    pRun->Argument().push_back( "--database ${PROJECT}/build/database.db" );
-                    
-                    {
-                        std::ostringstream osCmd;
-                        osCmd << "--script ${PROJECT}/" << strName << ".py";
-                        pRun->Argument().push_back( osCmd.str() );
-                    }
                 }
                 pProject->Run().push_back( pRun );
-                
-                egxml::Defaults defaults;
-                {
-                    egxml::Fibers fibers;
-                    {
-                        egxml::Stack stack;
-                        {
-                            stack.Size( 16384 );
-                        }
-                        fibers.Stack( stack );
-                    }
-                    defaults.Fibers( fibers );
-                }
-                pProject->Defaults( defaults );
             }
             newEG.Project( pProject );
         }
