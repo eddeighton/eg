@@ -1,0 +1,30 @@
+
+
+dim int state;
+state( state() + 1 );
+
+switch( state() )
+{
+	case 1:
+	{
+		LOG( "sleeping1:" << clock::cycle() );
+		return eg::sleep();
+	}
+	case 2:
+	{
+		LOG( "sleeping2:" << clock::cycle() );
+		return eg::sleep();
+	}
+	case 3:
+	{
+		LOG( "done:" << clock::cycle() );
+		return eg::sleep();
+	}
+}
+
+eg::event_iterator iter = events::getIterator();
+RawEvent ev;
+TEST( events::get( iter, ev ) && ( ev.type == "start"s ) );
+TEST( events::get( iter, ev ) && ( ev.type == "log"s ) && ( (const char*)ev.value == "sleeping1:1"s ) );
+TEST( events::get( iter, ev ) && ( ev.type == "log"s ) && ( (const char*)ev.value == "sleeping2:2"s ) );
+TEST( events::get( iter, ev ) && ( ev.type == "log"s ) && ( (const char*)ev.value == "done:3"s ) );
