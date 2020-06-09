@@ -51,28 +51,6 @@ namespace eg
         IndexedFile::store( filePath, IndexedObject::MASTER_FILE, files, pFile->getObjects() );
     }
 
-    void InterfaceSession::linkAnalysis()
-    {
-        //calculate inheritance
-        {
-            std::vector< interface::Action* > actions = many< interface::Action >( getMaster() );
-            for( interface::Action* pAction : actions )
-            {
-                for( interface::Action* pBase : pAction->m_baseActions )
-                {
-                    if( pAction->isLink() )
-                    {
-                        pBase->m_linkers.push_back( pBase );
-                    }
-                    else
-                    {
-                        pBase->m_inheriters.push_back( pBase );
-                    }
-                }
-            }
-        }
-    }
-
     
     void collateChildren( const interface::Action* pAction, 
             std::vector< const interface::Action* >& actions, 
@@ -121,16 +99,25 @@ namespace eg
         concrete::Inheritance_Node* pInheritanceNode  
             = constructInheritanceNode( pConcreteAction, pParent, pAbstractAction );
         
-        for( const interface::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
-        {
-            constructInheritanceTree( pConcreteAction, pInheritanceNode, pBaseAbstractAction );
-        }
+		if( !pAbstractAction->isLink() )
+		{
+			for( const interface::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
+			{
+				if( pBaseAbstractAction->isLink() )
+				{
+					THROW_RTE( "Invalid use of link type in inheritance list for: " << pAbstractAction->getIdentifier() );
+				}
+				constructInheritanceTree( pConcreteAction, pInheritanceNode, pBaseAbstractAction );
+			}
+		}
         
         return pInheritanceNode;
     }
     
     void InterfaceSession::constructInheritanceTree( concrete::Action* pConcreteAction )
     {
+		//every concrete Action has an inheritance node tree describing how it inherits abstract interface types
+		//each inheritance node has the same m_pRootConcreteAction which is pConcreteAction here.
         pConcreteAction->m_inheritance = constructInheritanceTree( pConcreteAction, nullptr, pConcreteAction->getAction() );
     }
     
@@ -163,6 +150,7 @@ namespace eg
     void InterfaceSession::collateOverrides( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode,
             ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances )
     {
+		//get all the member actions and dimensions for the concrete Action we are processing
         std::vector< const interface::Action* > actions;
         std::vector< const interface::Dimension* > dimensions;
         collateChildren( pInheritanceNode->m_pAction, actions, dimensions );
@@ -246,6 +234,7 @@ namespace eg
             }
         }
         
+		//recurse over the inheritance node tree for the type to inherit and override their members into the concrete type
         for( concrete::Inheritance_Node* pChildInheritance : pInheritanceNode->m_children )
         {
             collateOverrides( pInstance, pChildInheritance, actionInstances, dimensionInstances );
@@ -315,7 +304,107 @@ namespace eg
         
         return pRoot;
     }
+	
+	struct ActionSets
+	{
+		using ActionSet = std::set< interface::Action*, CompareNodeIdentity< interface::Action > >;
+		using ActionSetPtr = std::shared_ptr< ActionSet >;
+		using ActionSetVector = std::vector< ActionSetPtr >;
+		
+		ActionSetPtr find( interface::Action* pAction )
+		{
+			ActionSetPtr pActionSet;
+			for( ActionSetPtr pSet : m_sets )
+			{
+				if( pSet->count( pAction ) )
+				{
+					pActionSet = pSet;
+					break;
+				}
+			}
+			return pActionSet;
+		}
+		
+		void addAction( interface::Action* pAction )
+		{
+			VERIFY_RTE( !pAction->isLink() );
+			
+			ActionSetPtr pActionSet = find( pAction );
+			if( !pActionSet )
+			{
+				for( interface::Action* pBase : pAction->getBaseActions() )
+				{
+					pActionSet = find( pBase );
+					if( pActionSet )
+						break;
+				}
+			}
+			
+			if( !pActionSet )
+			{
+				pActionSet = std::make_shared< ActionSet >();
+			}
+			
+			pActionSet->insert( pAction );
+			pActionSet->insert( 
+				pAction->getBaseActions().begin(), 
+				pAction->getBaseActions().end() );
+		}
+		
+		ActionSetVector m_sets;
+	};
     
+    void InterfaceSession::linkAnalysis()
+    {
+		//calculate the link groups
+		ActionSets actionSets;
+		
+		std::vector< interface::Action* > actions = many< interface::Action >( getMaster() );
+		for( interface::Action* pAction : actions )
+		{
+			if( !pAction->isLink() )
+			{
+				actionSets.addAction( pAction );
+			}
+		}
+		
+		using LinkGroup = std::pair< std::string, ActionSets::ActionSetPtr >;
+		using LinkGroupMap = std::multimap< LinkGroup, interface::Action* >;
+		
+		LinkGroupMap linkGroups;
+		
+		for( interface::Action* pAction : actions )
+		{
+			if( pAction->isLink() )
+			{
+				VERIFY_RTE_MSG( pAction->m_baseActions.size() == 1U, 
+					"Link does not have singular link target type: " << pAction->getIdentifier() );
+				
+				interface::Action* pBase = pAction->m_baseActions.front();
+				
+				ActionSets::ActionSetPtr pSet = actionSets.find( pBase );
+				
+				linkGroups.insert( std::make_pair( std::make_pair( pAction->getIdentifier(), pSet ), pAction ) );
+			}
+		}
+		
+		//determine link group set of concrete types and add link dimension reference for link group.
+		
+		
+		
+		//? Generate required data to describe how to perform name res and derivation?
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+    }
     /*
     void InterfaceSession::dependencyAnalysis_recurse( concrete::Action* pAction )
     {

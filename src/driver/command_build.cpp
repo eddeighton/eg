@@ -301,8 +301,8 @@ void build_parser_session( const Environment& environment, const Project& projec
                 = std::make_unique< eg::InterfaceSession >( project.getParserDBFileName() );
                 
             //perform the analysis
-            pInterfaceSession->linkAnalysis();
             pInterfaceSession->instanceAnalysis();
+            pInterfaceSession->linkAnalysis();
             
             pInterfaceSession->translationUnitAnalysis( project.getProjectDir(), 
                 [ &project ]( const std::string& strName )

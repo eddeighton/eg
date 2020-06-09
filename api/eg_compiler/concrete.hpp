@@ -81,13 +81,11 @@ namespace concrete
         const std::vector< Action* > getActions() const { return m_actions; }
         const std::vector< Dimension* >& getDimensions() const { return m_dimensions; }
         
-        //const interface::Element* chooseMostDerived( const interface::Element* pFirst, const interface::Element* pSecond ) const;
-        
     private:
-        Action* m_pRootConcreteAction;
-        const ::eg::interface::Action* m_pAction;
+        Action* m_pRootConcreteAction; //the actual concrete action this inheritance node tree is entirely for
+        const ::eg::interface::Action* m_pAction; //the abstract action this node is for
         Inheritance_Node* m_pParent = nullptr;
-        Inheritance_Node_Vector m_children;
+        Inheritance_Node_Vector m_children; //the nested nodes that describe how this node inherits other abstract actions
         std::vector< Action* > m_actions;
         std::vector< Dimension* > m_dimensions;
     };

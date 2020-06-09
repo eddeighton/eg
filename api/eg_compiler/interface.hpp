@@ -322,8 +322,8 @@ namespace interface
         std::string m_strDependency;
         std::vector< std::string > m_parameterTypes;
         
-        std::vector< Action* > m_inheriters;
-        std::vector< Action* > m_linkers;
+        //std::vector< Action* > m_inheriters;
+        //std::vector< Action* > m_linkers;
     };
         
     class Root : public Action

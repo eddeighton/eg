@@ -1,0 +1,30 @@
+
+
+action A[ 2 ]
+{
+	dim int i;
+	dim E::TestLink ref;
+	
+	action Test
+	{
+		LOG( "Test Called" );
+	}
+}
+
+action E
+{
+
+	link TestLink : A
+	{
+		dim int m;
+		
+		LOG( "Testlink run m: " << m() );
+	}
+
+}
+
+E::TestLink t = E().TestLink().m( 123 );
+
+
+eg::event_iterator iter = events::getIterator();
+RawEvent ev;

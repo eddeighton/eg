@@ -582,8 +582,8 @@ namespace interface
         loader.load( m_strBaseType );
         loader.load( m_strDependency );
         loader.load( m_parameterTypes );
-        loader.loadObjectVector( m_inheriters );
-        loader.loadObjectVector( m_linkers );
+        //loader.loadObjectVector( m_inheriters );
+        //loader.loadObjectVector( m_linkers );
     }
     
     void Action::store( Storer& storer ) const
@@ -595,8 +595,8 @@ namespace interface
         storer.store( m_strBaseType );
         storer.store( m_strDependency );
         storer.store( m_parameterTypes );
-        storer.storeObjectVector( m_inheriters );
-        storer.storeObjectVector( m_linkers );
+        //storer.storeObjectVector( m_inheriters );
+        //storer.storeObjectVector( m_linkers );
     }
     bool Action::update( const Element* pElement )
     {
