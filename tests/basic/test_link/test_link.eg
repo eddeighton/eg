@@ -1,30 +1,43 @@
 
 
-action A[ 2 ]
+action A
 {
-	dim int i;
-	dim E::TestLink ref;
+}
+
+action B : A
+{
 	
-	action Test
-	{
-		LOG( "Test Called" );
-	}
+}
+
+action C : B
+{
+	
 }
 
 action E
 {
-
 	link TestLink : A
 	{
-		dim int m;
-		
-		LOG( "Testlink run m: " << m() );
 	}
-
 }
 
-E::TestLink t = E().TestLink().m( 123 );
+action F
+{
+	link TestLink : A
+	{
+	}
+	
+	link TestLink2 : B
+	{
+	}
+}
 
+action G
+{
+	link TestLink3 : F
+	{
+	}
+}
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

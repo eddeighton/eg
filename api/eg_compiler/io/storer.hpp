@@ -117,6 +117,20 @@ namespace eg
             }
         }
         
+        template< class T1, class T2 >
+        inline void storeKeyObjectMap( const std::map< T1, T2* >& objects )
+        {
+            std::size_t szSize = objects.size();
+            store( szSize );
+            for( std::map< T1, T2* >::const_iterator 
+                i = objects.begin(), 
+                iEnd = objects.end(); i!=iEnd; ++i )
+            {
+                store( i->first );
+                storeObjectRef( i->second );
+            }
+        }
+        
         template< class T1, class T2, class TPred >
         inline void storeObjectMap( const std::multimap< T1*, T2*, TPred >& objects )
         {

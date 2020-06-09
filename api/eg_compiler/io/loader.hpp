@@ -137,6 +137,20 @@ namespace eg
             }
         }
         
+        template< class T1, class T2 >
+        inline void loadKeyObjectMap( std::map< T1, T2* >& objects )
+        {
+            std::size_t szSize = 0;
+            load( szSize );
+            for( std::size_t sz = 0; sz != szSize; ++sz )
+            {
+                T1 strKey;
+				load< T1 >( strKey );
+                const T2* pObject2 = loadObjectRef< T2 >();
+                objects.insert( std::make_pair( strKey, pObject2 ) );
+            }
+        }
+        
         template< class T1, class T2, class TPred >
         inline void loadObjectMap( std::multimap< T1*, T2*, TPred >& objects )
         {

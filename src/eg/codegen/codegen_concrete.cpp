@@ -101,6 +101,9 @@ namespace eg
             case concrete::Dimension_Generated::eRingIndex:
                 os << EG_INSTANCE;
                 break;
+			case concrete::Dimension_Generated::eLinkReference:
+                os << EG_REFERENCE_TYPE;
+                break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -142,9 +145,10 @@ namespace eg
                         "( " << EG_REFERENCE_TYPE << " { i, " << pDimensionAction->getIndex() << ", 0 } );\n";
                 }
                 break;
-            case concrete::Dimension_Generated::eActionAllocatorData   : os << strIndent << printer << " = i;\n";   break;
-            case concrete::Dimension_Generated::eActionAllocatorHead   : os << strIndent << printer << " = 0UL;\n"; break;
-            case concrete::Dimension_Generated::eRingIndex             : os << strIndent << printer << " = i;\n";   break;
+            case concrete::Dimension_Generated::eActionAllocatorData   : os << strIndent << printer << " = i;\n";   		break;
+            case concrete::Dimension_Generated::eActionAllocatorHead   : os << strIndent << printer << " = 0UL;\n"; 		break;
+            case concrete::Dimension_Generated::eRingIndex             : os << strIndent << printer << " = i;\n";   		break;
+			case concrete::Dimension_Generated::eLinkReference         : os << strIndent << printer << " = { 0, 0, 0 };\n"; break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -227,6 +231,7 @@ namespace eg
             case eRingIndex:
                 os << EG_INSTANCE;
                 break;
+			case concrete::eLinkReference: 
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }

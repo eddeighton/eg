@@ -39,6 +39,10 @@ namespace eg
     {
         return *one< DerivationAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
     }
+    const LinkAnalysis& ImplementationSession::getLinkAnalysis() const
+    {
+        return *one< LinkAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+    }
         
     const Layout& ImplementationSession::getLayout() const
     {
@@ -108,7 +112,7 @@ namespace eg
             std::size_t szOffset = 0U;
             for( const concrete::Dimension* pDimension : dimensions )
             {
-                DataMember* pDimensionInstance = nullptr; 
+                DataMember* pDataMember = nullptr; 
                 const std::size_t szDimensionOffset = szOffset;
                 szOffset += pDimension->getDataSize();
                 
@@ -116,8 +120,8 @@ namespace eg
                     if( const concrete::Dimension_User* pUserDim = 
                         dynamic_cast< const concrete::Dimension_User* >( pDimension ) )
                     {
-                        pDimensionInstance = construct< DataMember >();
-                        pDimensionInstance->name = generateName( 'm', pUserDim, pAction );
+                        pDataMember = construct< DataMember >();
+                        pDataMember->name = generateName( 'm', pUserDim, pAction );
                     }
                     else if( const concrete::Dimension_Generated* pGenDim =
                         dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) )
@@ -127,12 +131,12 @@ namespace eg
                             //no need for this at the moment while no multi threading...
                             //case concrete::Dimension_Generated::eDimensionTimestamp:
                             //    {
-                            //        pDimensionInstance = construct< DataMember >();
+                            //        pDataMember = construct< DataMember >();
                             //        
                             //        const concrete::Dimension_User* pUserDim = pGenDim->getUserDimension();
                             //        VERIFY_RTE( pUserDim );
                             //        
-                            //        pDimensionInstance->name = 
+                            //        pDataMember->name = 
                             //            generateName( 'g', pUserDim, pAction ) + "_timestamp";
                             //        
                             //    }
@@ -140,47 +144,60 @@ namespace eg
                                 
                             case concrete::Dimension_Generated::eActionStopCycle :
                                 {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_cycle";
+                                    pDataMember = construct< DataMember >();
+                                    pDataMember->name = pBuffer->variable + "_cycle";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionState    :
                                 {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_state";
+                                    pDataMember = construct< DataMember >();
+                                    pDataMember->name = pBuffer->variable + "_state";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionReference    :
                                 {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_reference";
+                                    pDataMember = construct< DataMember >();
+                                    pDataMember->name = pBuffer->variable + "_reference";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionAllocatorData    :
                                 {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_ring";
+                                    pDataMember = construct< DataMember >();
+                                    pDataMember->name = pBuffer->variable + "_ring";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionAllocatorHead    :
                                 {
-                                    pDimensionInstance = construct< DataMember >();
+                                    pDataMember = construct< DataMember >();
                                     
                                     const concrete::Dimension_Generated* pDimGen = 
                                         dynamic_cast< const concrete::Dimension_Generated* >( pDimension );
                                         
                                     const concrete::Action* pAllocatedAction = pDimGen->getAction();
                                     
-                                    pDimensionInstance->name = pBuffer->variable + 
+                                    pDataMember->name = pBuffer->variable + 
                                         pAllocatedAction->getAbstractElement()->getIdentifier() + "_ring_iter";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eRingIndex:
                                 {
-                                    pDimensionInstance = construct< DataMember >();
-                                    pDimensionInstance->name = pBuffer->variable + "_ring_index";
+                                    pDataMember = construct< DataMember >();
+                                    pDataMember->name = pBuffer->variable + "_ring_index";
                                 }
                                 break;
+							case concrete::Dimension_Generated::eLinkReference:
+								{
+                                    const concrete::Dimension_Generated* pDimGen = 
+                                        dynamic_cast< const concrete::Dimension_Generated* >( pDimension );
+									const LinkGroup* pLinkGroup = pDimGen->getLinkGroup();
+									VERIFY_RTE( pLinkGroup );
+									VERIFY_RTE( !pLinkGroup->getLinkName().empty() );
+                                    pDataMember = construct< DataMember >();
+									std::ostringstream osVarName;
+									osVarName << pBuffer->variable << "_link_" << pLinkGroup->getLinkName();
+                                    pDataMember->name = osVarName.str();
+								}
+                                break;					
                             default:
                                 THROW_RTE( "Unknown generated dimension type" );
                                 break;
@@ -191,13 +208,13 @@ namespace eg
                         THROW_RTE( "Unknown dimension type" );
                     }
                 }
-                if( pDimensionInstance )
+                if( pDataMember )
                 {
-                    pDimensionInstance->m_pBuffer       = pBuffer;
-                    pDimensionInstance->m_pDimension    = pDimension;
-                    pDimensionInstance->offset          = szDimensionOffset;
-                    pBuffer->m_dimensions.push_back( pDimensionInstance );
-                    dimensionMap.insert( std::make_pair( pDimension, pDimensionInstance ) );
+                    pDataMember->m_pBuffer       = pBuffer;
+                    pDataMember->m_pDimension    = pDimension;
+                    pDataMember->offset          = szDimensionOffset;
+                    pBuffer->m_dimensions.push_back( pDataMember );
+                    dimensionMap.insert( std::make_pair( pDimension, pDataMember ) );
                 }
             }
             pBuffer->stride = szOffset;
@@ -273,6 +290,10 @@ namespace eg
     const DerivationAnalysis& ReadSession::getDerivationAnalysis() const
     {
         return *one< DerivationAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+    }
+    const LinkAnalysis& ReadSession::getLinkAnalysis() const
+    {
+        return *one< LinkAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
     }
     const Identifiers& ReadSession::getIdentifiers() const
     {

@@ -26,6 +26,7 @@
 #include "eg_compiler/interface.hpp"
 #include "eg_compiler/concrete.hpp"
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/link.hpp"
 #include "eg_compiler/translation_unit.hpp"
 
 #include <map>
@@ -86,6 +87,7 @@ namespace eg
     private:
         DerivationAnalysis* m_pDerivationAnalysis;
         TranslationUnitAnalysis* m_pTranslationUnitAnalysis;
+		LinkAnalysis* m_pLinkAnalysis;
     };
 
 }

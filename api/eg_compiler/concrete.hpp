@@ -29,6 +29,7 @@ namespace eg
 {
     class InterfaceSession;
     class ObjectFactoryImpl;
+	class LinkGroup;
     
 namespace concrete
 {
@@ -206,7 +207,8 @@ namespace concrete
             eActionReference,
             eActionAllocatorData,
             eActionAllocatorHead,
-            eRingIndex
+            eRingIndex,
+			eLinkReference
         };
         
     protected:
@@ -228,12 +230,14 @@ namespace concrete
         Action* getAction() const { return m_pAction; }
         std::size_t getDependencyDomain() const { return dependencyDomain; }
         Dimension_Generated* getDependency() const { return m_pDependency; }
+		LinkGroup* getLinkGroup() const { return m_pLinkGroup; }
     private:
         DimensionType m_type;
         Dimension_User* m_pUserDimension = nullptr;
         Action* m_pAction = nullptr;
         Dimension_Generated* m_pDependency = nullptr;
         std::size_t dependencyDomain = 1U;
+		LinkGroup* m_pLinkGroup = nullptr;
     };
     
     /////////////////////////////////////////////////////////////////////////////////////
@@ -256,6 +260,7 @@ namespace concrete
         
     public:
         using IteratorMap = std::map< const Action*, const Dimension_Generated*, CompareIndexedObjects >;
+		using LinkMap = std::map< std::string, const Dimension_Generated* >;
         
         const ::eg::interface::Action* getAction() const { return dynamic_cast< const ::eg::interface::Action* >( m_pElement ); }
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
@@ -274,6 +279,12 @@ namespace concrete
             return iFind->second;
         }
         const IteratorMap& getAllocators() const { return m_allocators; }
+		const Dimension_Generated* getLink( const std::string& strLinkName ) const
+		{
+            LinkMap::const_iterator iFind = m_links.find( strLinkName );
+            VERIFY_RTE( iFind != m_links.end() );
+            return iFind->second;
+		}
     
         virtual int getDataSize() const;
         virtual int getLocalDomainSize() const;
@@ -292,9 +303,8 @@ namespace concrete
         Dimension_Generated* m_pReference     = nullptr;
         Dimension_Generated* m_pAllocatorData = nullptr;
         Dimension_Generated* m_pRingIndex     = nullptr;
-        
         IteratorMap m_allocators;
-        Action* m_pDependencyProvider = nullptr;
+		LinkMap m_links;
     };
 
 

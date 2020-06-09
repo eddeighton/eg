@@ -104,6 +104,8 @@ namespace eg
         
         eIdentifiers,
         eDerivationAnalysis,
+        eLinkGroup,
+        eLinkAnalysis,
         eTranslationUnit,
         eTranslationUnitAnalysis,
         eInvocationSolution,

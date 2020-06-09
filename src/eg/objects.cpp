@@ -22,11 +22,11 @@
 #include "eg_compiler/input.hpp"
 #include "eg_compiler/interface.hpp"
 #include "eg_compiler/concrete.hpp"
-#include "eg_compiler/derivation.hpp"
 #include "eg_compiler/translation_unit.hpp"
 #include "eg_compiler/layout.hpp"
 #include "eg_compiler/identifiers.hpp"
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/link.hpp"
 #include "eg_compiler/invocation.hpp"
 #include "eg_compiler/instruction.hpp"
 
@@ -62,6 +62,8 @@ namespace eg
                                                                                             
             case eIdentifiers                : pObject = new Identifiers                    ( object );  break;
             case eDerivationAnalysis         : pObject = new DerivationAnalysis             ( object );  break;
+            case eLinkGroup                  : pObject = new LinkGroup             	        ( object );  break;
+            case eLinkAnalysis               : pObject = new LinkAnalysis             	    ( object );  break;
             case eTranslationUnit            : pObject = new TranslationUnit                ( object );  break;
             case eTranslationUnitAnalysis    : pObject = new TranslationUnitAnalysis        ( object );  break;
             case eInvocationSolution         : pObject = new InvocationSolution             ( object );  break;

@@ -24,6 +24,7 @@
 #include "session.hpp"
 #include "eg_compiler/concrete.hpp"
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/link.hpp"
 #include "eg_compiler/layout.hpp"
 #include "eg_compiler/identifiers.hpp"
 #include "eg_compiler/invocation.hpp"
@@ -39,6 +40,7 @@ namespace eg
         const interface::Root* getTreeRoot() const;
         const concrete::Action* getInstanceRoot() const;
         const DerivationAnalysis& getDerivationAnalysis() const;
+        const LinkAnalysis& getLinkAnalysis() const;
         const Layout& getLayout() const;
 		const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
         
@@ -59,6 +61,7 @@ namespace eg
         const interface::Root* getTreeRoot() const;
         const concrete::Action* getInstanceRoot() const;
         const DerivationAnalysis& getDerivationAnalysis() const;
+        const LinkAnalysis& getLinkAnalysis() const;
         const Identifiers& getIdentifiers() const;
         const Layout& getLayout() const;
 		const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;

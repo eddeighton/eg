@@ -38,6 +38,10 @@ namespace eg
         m_pTranslationUnitAnalysis = oneOpt< TranslationUnitAnalysis >( getMaster() );
         if( !m_pTranslationUnitAnalysis )
             m_pTranslationUnitAnalysis = construct< TranslationUnitAnalysis >();
+        
+        m_pLinkAnalysis = oneOpt< LinkAnalysis >( getMaster() );
+        if( !m_pLinkAnalysis )
+            m_pLinkAnalysis = construct< LinkAnalysis >();
     }
     
     
@@ -120,15 +124,6 @@ namespace eg
 		//each inheritance node has the same m_pRootConcreteAction which is pConcreteAction here.
         pConcreteAction->m_inheritance = constructInheritanceTree( pConcreteAction, nullptr, pConcreteAction->getAction() );
     }
-    
-    template< typename T >
-    struct CompareNodeIdentity
-    {
-        bool operator()( const T* pLeft, const T* pRight ) const
-        {
-            return pLeft->getIdentifier() < pRight->getIdentifier();
-        }
-    };
     
     using ActionOverrideMap = 
         std::map< interface::Action*, concrete::Action*, CompareNodeIdentity< interface::Action > >;
@@ -218,15 +213,6 @@ namespace eg
                 
                 dimensionInstances.insert( std::make_pair( pChildDimension, pChildInstance ) );
                 
-				/*
-                pChildInstance->m_pTimestamp = 
-                    construct< concrete::Dimension_Generated >();
-                pChildInstance->m_pTimestamp->m_type = concrete::Dimension_Generated::eDimensionTimestamp;
-                pChildInstance->m_pTimestamp->m_pUserDimension = pChildInstance;
-    
-                pInstance->m_children.push_back( pChildInstance->m_pTimestamp );
-				*/
-
             }
             else
             {
@@ -304,149 +290,31 @@ namespace eg
         
         return pRoot;
     }
-	
-	struct ActionSets
-	{
-		using ActionSet = std::set< interface::Action*, CompareNodeIdentity< interface::Action > >;
-		using ActionSetPtr = std::shared_ptr< ActionSet >;
-		using ActionSetVector = std::vector< ActionSetPtr >;
-		
-		ActionSetPtr find( interface::Action* pAction )
-		{
-			ActionSetPtr pActionSet;
-			for( ActionSetPtr pSet : m_sets )
-			{
-				if( pSet->count( pAction ) )
-				{
-					pActionSet = pSet;
-					break;
-				}
-			}
-			return pActionSet;
-		}
-		
-		void addAction( interface::Action* pAction )
-		{
-			VERIFY_RTE( !pAction->isLink() );
-			
-			ActionSetPtr pActionSet = find( pAction );
-			if( !pActionSet )
-			{
-				for( interface::Action* pBase : pAction->getBaseActions() )
-				{
-					pActionSet = find( pBase );
-					if( pActionSet )
-						break;
-				}
-			}
-			
-			if( !pActionSet )
-			{
-				pActionSet = std::make_shared< ActionSet >();
-			}
-			
-			pActionSet->insert( pAction );
-			pActionSet->insert( 
-				pAction->getBaseActions().begin(), 
-				pAction->getBaseActions().end() );
-		}
-		
-		ActionSetVector m_sets;
-	};
     
     void InterfaceSession::linkAnalysis()
     {
 		//calculate the link groups
-		ActionSets actionSets;
+		std::vector< interface::Action* > actions = 
+			many< interface::Action >( getMaster() );
 		
-		std::vector< interface::Action* > actions = many< interface::Action >( getMaster() );
-		for( interface::Action* pAction : actions )
+		m_pLinkAnalysis->calculateSets( actions );
+		
+		m_pLinkAnalysis->calculateGroups( actions, *m_pDerivationAnalysis, *this );
+		
+		//generate link dimensions in target concrete types
+		const LinkGroup::Vector& groups = m_pLinkAnalysis->getLinkGroups();
+		for( LinkGroup* pLinkGroup : groups )
 		{
-			if( !pAction->isLink() )
+			for( concrete::Action* pTarget : pLinkGroup->getTargets() )
 			{
-				actionSets.addAction( pAction );
+				concrete::Dimension_Generated* pLinkDimension = construct< concrete::Dimension_Generated >();
+				pLinkDimension->m_type        = concrete::Dimension_Generated::eLinkReference;
+                pLinkDimension->m_pLinkGroup  = pLinkGroup;
+				pTarget->m_links.insert( std::make_pair( pLinkGroup->getLinkName(), pLinkDimension ) );
+                pTarget->m_children.push_back( pLinkDimension );
 			}
 		}
-		
-		using LinkGroup = std::pair< std::string, ActionSets::ActionSetPtr >;
-		using LinkGroupMap = std::multimap< LinkGroup, interface::Action* >;
-		
-		LinkGroupMap linkGroups;
-		
-		for( interface::Action* pAction : actions )
-		{
-			if( pAction->isLink() )
-			{
-				VERIFY_RTE_MSG( pAction->m_baseActions.size() == 1U, 
-					"Link does not have singular link target type: " << pAction->getIdentifier() );
-				
-				interface::Action* pBase = pAction->m_baseActions.front();
-				
-				ActionSets::ActionSetPtr pSet = actionSets.find( pBase );
-				
-				linkGroups.insert( std::make_pair( std::make_pair( pAction->getIdentifier(), pSet ), pAction ) );
-			}
-		}
-		
-		//determine link group set of concrete types and add link dimension reference for link group.
-		
-		
-		
-		//? Generate required data to describe how to perform name res and derivation?
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
     }
-    /*
-    void InterfaceSession::dependencyAnalysis_recurse( concrete::Action* pAction )
-    {
-        const interface::Action* pNodeAction = pAction->getAction();
-        
-        if( !pNodeAction->m_strDependency.empty() && pNodeAction->m_strDependency != "void" )
-        {
-            //solve dependency - just search for the type
-            pAction->m_pDependencyProvider = nullptr;
-            std::size_t szDomain = pAction->getLocalDomainSize();
-            concrete::Action* pParent = dynamic_cast< concrete::Action* >( pAction->m_pParent );
-            for( ; pParent; pParent = dynamic_cast< concrete::Action* >( pParent->m_pParent ) )
-            {
-                const interface::Action* pParentNodeAction = pParent->getAction();
-                if( pParentNodeAction->m_strBaseType == pNodeAction->m_strDependency )
-                {
-                    pAction->m_pDependencyProvider = pParent;
-                    break;
-                }
-                else
-                {
-                    szDomain = szDomain * pParent->getLocalDomainSize();
-                }
-            }
-            VERIFY_RTE_MSG( pAction->m_pDependencyProvider, "Failed to locate dependency provider for: " << pNodeAction->m_strDependency );
-            VERIFY_RTE( pAction->m_pMappedObject );
-            VERIFY_RTE( pAction->m_pDependencyProvider->m_pMappedObject );
-            pAction->m_pMappedObject->m_pDependency = pAction->m_pDependencyProvider->m_pMappedObject;
-            pAction->m_pMappedObject->dependencyDomain = szDomain;
-            
-            
-        }
-        
-        for( concrete::Element* pChild : pAction->m_children )
-        {
-            if( concrete::Action* pChildAction = dynamic_cast< concrete::Action* >( pChild ) )
-            {
-                dependencyAnalysis_recurse( pChildAction );
-            }
-        }
-    }*/
-    
     
 	bool getInterfaceActionCoordinatorHostname( const interface::Action* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )
 	{

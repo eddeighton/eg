@@ -19,6 +19,7 @@
 
 
 #include "eg_compiler/concrete.hpp"
+#include "eg_compiler/link.hpp"
 
 namespace eg
 {
@@ -150,6 +151,7 @@ namespace concrete
         m_pAction = loader.loadObjectRef< Action >();
         loader.load( dependencyDomain );
         m_pDependency = loader.loadObjectRef< Dimension_Generated >();
+        m_pLinkGroup = loader.loadObjectRef< LinkGroup >();
     }
     
     void Dimension_Generated::store( Storer& storer ) const
@@ -160,6 +162,7 @@ namespace concrete
         storer.storeObjectRef( m_pAction );
         storer.store( dependencyDomain );
         storer.storeObjectRef( m_pDependency );
+        storer.storeObjectRef( m_pLinkGroup );
     }
     
     void Dimension_Generated::print( std::ostream& os, std::string& strIndent ) const
@@ -183,6 +186,8 @@ namespace concrete
                 return 8;
             case eRingIndex:
                 return 4;
+            case eLinkReference:
+                return 12;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -200,7 +205,7 @@ namespace concrete
         m_pAllocatorData    = loader.loadObjectRef< Dimension_Generated >();
         m_pRingIndex        = loader.loadObjectRef< Dimension_Generated >();
         loader.loadObjectMap( m_allocators );
-        m_pDependencyProvider    = loader.loadObjectRef< Action >();
+        loader.loadKeyObjectMap( m_links );
     }
     
     void Action::store( Storer& storer ) const
@@ -215,7 +220,7 @@ namespace concrete
         storer.storeObjectRef( m_pAllocatorData );
         storer.storeObjectRef( m_pRingIndex     );
         storer.storeObjectMap( m_allocators );
-        storer.storeObjectRef( m_pDependencyProvider );
+        storer.storeKeyObjectMap( m_links );
     }
 
     void Action::print( std::ostream& os, std::string& strIndent ) const
