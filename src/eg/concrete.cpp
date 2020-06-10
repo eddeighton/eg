@@ -107,13 +107,13 @@ namespace concrete
     void Dimension_User::load( Loader& loader )
     {
         Dimension::load( loader );
-        //m_pTimestamp = loader.loadObjectRef< Dimension_Generated >();
+        m_pLinkGroup = loader.loadObjectRef< LinkGroup >();
     }
     
     void Dimension_User::store( Storer& storer ) const
     {
         Dimension::store( storer );
-        //storer.storeObjectRef( m_pTimestamp );
+        storer.storeObjectRef( m_pLinkGroup );
     }
     
     void Dimension_User::print( std::ostream& os, std::string& strIndent ) const
@@ -142,6 +142,13 @@ namespace concrete
         }
     }
     
+	//bool Dimension_User::isLinkBaseDimension() const
+	//{
+    //    const Action* pParentAction = dynamic_cast< const Action* >( m_pParent );
+	//	VERIFY_RTE( pParentAction );
+	//	return pParentAction->getAction()->isLink() && 
+	//		getDimension()->getIdentifier() == EG_LINK_DIMENSION;
+	//}
     
     void Dimension_Generated::load( Loader& loader )
     {

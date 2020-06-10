@@ -79,6 +79,7 @@ namespace eg
                     case eGetDimensionOperation:                pNewElement = new GetDimensionOperation; break;
                     case eReadOperation:                        pNewElement = new ReadOperation; break;
                     case eWriteOperation:                       pNewElement = new WriteOperation; break;
+                    case eWriteLinkOperation:                   pNewElement = new WriteLinkOperation; break;
                     case eRangeOperation:                       pNewElement = new RangeOperation; break;
                     default:
                         break;
@@ -473,6 +474,7 @@ namespace eg
                 case eGetDimensionOperation              :
                 case eReadOperation                      :
                 case eWriteOperation                     :
+                case eWriteLinkOperation                 :
                 case eRangeOperation                     :
                     operations.push_back( dynamic_cast< const Operation* >( pChild ) );
                     break;
@@ -1147,7 +1149,16 @@ namespace eg
     {
         evaluator.doRead( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
     }
-    
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    WriteOperation::WriteOperation( InstanceVariable* pInstance, 
+				const interface::Dimension* pInterface, const concrete::Dimension_User* pTarget )
+        :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
+            m_pTarget( pTarget )
+    {
+		
+    }
     void WriteOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Operation::load( serialiser, loader );
@@ -1178,7 +1189,60 @@ namespace eg
     {
         evaluator.doWrite( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
     }
-    
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    WriteLinkOperation::WriteLinkOperation( InstanceVariable* pInstance, 
+				const interface::Dimension* pInterface, 
+				const concrete::Dimension_User* pTarget,
+				DimensionReferenceVariable* pReferenceVariable,
+                const LinkGroup* pLinkGroup )
+        :   m_pInstance( pInstance ),
+            m_pInterface( pInterface ),
+            m_pTarget( pTarget ),
+			m_pReferenceVariable( pReferenceVariable ),
+            m_pLinkGroup( pLinkGroup )
+    {
+		
+    }
+    void WriteLinkOperation::load( ASTSerialiser& serialiser, Loader& loader )
+    {
+        Operation::load( serialiser, loader );
+        serialiser.load( loader, m_pInstance );
+        serialiser.load( loader, m_pReferenceVariable );
+        m_pInterface 		= loader.loadObjectRef< interface::Dimension >();
+        m_pTarget 			= loader.loadObjectRef< concrete::Dimension_User >();
+        m_pLinkGroup        = loader.loadObjectRef< LinkGroup >();
+    }
+    void WriteLinkOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
+    {
+        Operation::store( serialiser, storer );
+        serialiser.store( storer, m_pInstance );
+        serialiser.store( storer, m_pReferenceVariable );
+        storer.storeObjectRef( m_pInterface );
+        storer.storeObjectRef( m_pTarget );
+        storer.storeObjectRef( m_pLinkGroup );
+    }
+    void WriteLinkOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pInstance->getConcreteType()->getAction() );
+    }
+    void WriteLinkOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
+    {
+        abstractTypes.push_back( m_pInterface );
+    }
+    ExplicitOperationID WriteLinkOperation::getExplicitOperationType() const
+    {
+        return id_exp_Write;
+    }
+    void WriteLinkOperation::evaluate( RuntimeEvaluator& evaluator ) const
+    {
+		THROW_RTE( "TODO" );
+        //evaluator.doWrite( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
+        //evaluator.doLink( evaluator.getVarValue( m_pLinkInstance ), 
+		//	m_pLinkReference->getIndex(), evaluator.getVarValue( m_pInstance ) );
+    }
+    ////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
     void RangeOperation::load( ASTSerialiser& serialiser, Loader& loader )
     {
         Operation::load( serialiser, loader );

@@ -33,6 +33,7 @@
 namespace eg
 {
     static const char* FILE_EXTENSION = ".eg";
+	static const char* EG_LINK_DIMENSION = "base";
     
     using TypeIDVector        = std::vector< TypeID >;
     using TypeIDVectorVector  = std::vector< TypeIDVector >;

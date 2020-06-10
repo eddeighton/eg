@@ -103,25 +103,25 @@ namespace eg
         concrete::Inheritance_Node* pInheritanceNode  
             = constructInheritanceNode( pConcreteAction, pParent, pAbstractAction );
         
-		if( !pAbstractAction->isLink() )
-		{
-			for( const interface::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
-			{
-				if( pBaseAbstractAction->isLink() )
-				{
-					THROW_RTE( "Invalid use of link type in inheritance list for: " << pAbstractAction->getIdentifier() );
-				}
-				constructInheritanceTree( pConcreteAction, pInheritanceNode, pBaseAbstractAction );
-			}
-		}
+        if( !pAbstractAction->isLink() )
+        {
+            for( const interface::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
+            {
+                if( pBaseAbstractAction->isLink() )
+                {
+                    THROW_RTE( "Invalid use of link type in inheritance list for: " << pAbstractAction->getIdentifier() );
+                }
+                constructInheritanceTree( pConcreteAction, pInheritanceNode, pBaseAbstractAction );
+            }
+        }
         
         return pInheritanceNode;
     }
     
     void InterfaceSession::constructInheritanceTree( concrete::Action* pConcreteAction )
     {
-		//every concrete Action has an inheritance node tree describing how it inherits abstract interface types
-		//each inheritance node has the same m_pRootConcreteAction which is pConcreteAction here.
+        //every concrete Action has an inheritance node tree describing how it inherits abstract interface types
+        //each inheritance node has the same m_pRootConcreteAction which is pConcreteAction here.
         pConcreteAction->m_inheritance = constructInheritanceTree( pConcreteAction, nullptr, pConcreteAction->getAction() );
     }
     
@@ -145,7 +145,7 @@ namespace eg
     void InterfaceSession::collateOverrides( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode,
             ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances )
     {
-		//get all the member actions and dimensions for the concrete Action we are processing
+        //get all the member actions and dimensions for the concrete Action we are processing
         std::vector< const interface::Action* > actions;
         std::vector< const interface::Dimension* > dimensions;
         collateChildren( pInheritanceNode->m_pAction, actions, dimensions );
@@ -220,7 +220,7 @@ namespace eg
             }
         }
         
-		//recurse over the inheritance node tree for the type to inherit and override their members into the concrete type
+        //recurse over the inheritance node tree for the type to inherit and override their members into the concrete type
         for( concrete::Inheritance_Node* pChildInheritance : pInheritanceNode->m_children )
         {
             collateOverrides( pInstance, pChildInheritance, actionInstances, dimensionInstances );
@@ -293,84 +293,111 @@ namespace eg
     
     void InterfaceSession::linkAnalysis()
     {
-		//calculate the link groups
-		std::vector< interface::Action* > actions = 
-			many< interface::Action >( getMaster() );
-		
-		m_pLinkAnalysis->calculateSets( actions );
-		
-		m_pLinkAnalysis->calculateGroups( actions, *m_pDerivationAnalysis, *this );
-		
-		//generate link dimensions in target concrete types
-		const LinkGroup::Vector& groups = m_pLinkAnalysis->getLinkGroups();
-		for( LinkGroup* pLinkGroup : groups )
-		{
-			for( concrete::Action* pTarget : pLinkGroup->getTargets() )
-			{
-				concrete::Dimension_Generated* pLinkDimension = construct< concrete::Dimension_Generated >();
-				pLinkDimension->m_type        = concrete::Dimension_Generated::eLinkReference;
+        //calculate the link groups
+        std::vector< interface::Action* > actions = 
+            many< interface::Action >( getMaster() );
+        
+        m_pLinkAnalysis->calculateSets( actions );
+        
+        m_pLinkAnalysis->calculateGroups( actions, *m_pDerivationAnalysis, *this );
+        
+        //generate link dimensions in target concrete types
+        const LinkGroup::Vector& groups = m_pLinkAnalysis->getLinkGroups();
+        for( LinkGroup* pLinkGroup : groups )
+        {
+            for( concrete::Action* pTarget : pLinkGroup->getTargets() )
+            {
+                concrete::Dimension_Generated* pLinkDimension = construct< concrete::Dimension_Generated >();
+                pLinkDimension->m_type        = concrete::Dimension_Generated::eLinkReference;
                 pLinkDimension->m_pLinkGroup  = pLinkGroup;
-				pTarget->m_links.insert( std::make_pair( pLinkGroup->getLinkName(), pLinkDimension ) );
+                pTarget->m_links.insert( std::make_pair( pLinkGroup->getLinkName(), pLinkDimension ) );
                 pTarget->m_children.push_back( pLinkDimension );
-			}
-		}
+                pLinkGroup->m_dimensionMap.insert( std::make_pair( pTarget, pLinkDimension ) );
+            }
+            
+            for( interface::Action* pLink : pLinkGroup->getLinks() )
+            {
+                std::vector< interface::Dimension* > dimensions;
+                pLink->getDimensions( dimensions );
+                bool bFound = false;
+                for( interface::Dimension* pInterfaceDimension : dimensions )
+                {
+                    if( pInterfaceDimension->getIdentifier() == EG_LINK_DIMENSION )
+                    {
+                        VERIFY_RTE( !bFound );
+                        bFound = true;
+                        std::vector< const concrete::Element* > instances;
+                        m_pDerivationAnalysis->getInstances( pInterfaceDimension, instances, false );
+                        
+                        for( const concrete::Element* pElement : instances )
+                        {
+                            const concrete::Dimension_User* pUserDim =
+                                dynamic_cast< const concrete::Dimension_User* >( pElement );
+                            VERIFY_RTE( pUserDim );
+                            const_cast< concrete::Dimension_User* >( pUserDim )->m_pLinkGroup = pLinkGroup;
+                        }
+                    }
+                }
+                VERIFY_RTE( bFound );
+            }
+        }
     }
     
-	bool getInterfaceActionCoordinatorHostname( const interface::Action* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )
-	{
-		const interface::Action* pIter = pInterfaceAction;
-		
-		pCoordinator = nullptr;
-		pHostname = nullptr;
-		
-		while( pIter && !( pCoordinator && pHostname ) )
-		{
-			if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pIter ) )
-			{
-				switch( pRoot->getRootType() )
-				{
-					case eInterfaceRoot  :
-					case eFileRoot       :
-					case eFile           :
-					case eMegaRoot       :  break;
-					case eCoordinator    :	pCoordinator 	= pRoot; break;
-					case eHostName       :  pHostname 		= pRoot; break;
-					case eProjectName    :
-					case eSubFolder      :
-					case TOTAL_ROOT_TYPES:
-						break;
-				}
-			}
-			
-			pIter = dynamic_cast< const interface::Action* >( pIter->getParent() );
-		}
-		return pCoordinator && pHostname;
-	}
+    bool getInterfaceActionCoordinatorHostname( const interface::Action* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )
+    {
+        const interface::Action* pIter = pInterfaceAction;
+        
+        pCoordinator = nullptr;
+        pHostname = nullptr;
+        
+        while( pIter && !( pCoordinator && pHostname ) )
+        {
+            if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pIter ) )
+            {
+                switch( pRoot->getRootType() )
+                {
+                    case eInterfaceRoot  :
+                    case eFileRoot       :
+                    case eFile           :
+                    case eMegaRoot       :  break;
+                    case eCoordinator    :  pCoordinator    = pRoot; break;
+                    case eHostName       :  pHostname       = pRoot; break;
+                    case eProjectName    :
+                    case eSubFolder      :
+                    case TOTAL_ROOT_TYPES:
+                        break;
+                }
+            }
+            
+            pIter = dynamic_cast< const interface::Action* >( pIter->getParent() );
+        }
+        return pCoordinator && pHostname;
+    }
     
     void InterfaceSession::translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap )
     {
         const interface::Action* pInterfaceAction = pAction->getAction();
         
-		TranslationUnit::CoordinatorHostnameDefinitionFile coordinatorHostnameDefinitionFile;
-		coordinatorHostnameDefinitionFile.definitionFile = pInterfaceAction->getDefinitionFile();
-		
-		if( !getInterfaceActionCoordinatorHostname( pInterfaceAction, 
-				coordinatorHostnameDefinitionFile.pCoordinator, 
-				coordinatorHostnameDefinitionFile.pHostName ) )
-		{
-			//?
-		}
-		
-		TranslationUnitMap::iterator iFind = translationUnitMap.find( coordinatorHostnameDefinitionFile );
-		if( iFind != translationUnitMap.end() )
-		{
-			iFind->second.insert( pInterfaceAction );
-		}
-		else
-		{
-			translationUnitMap.insert( std::make_pair( coordinatorHostnameDefinitionFile, 
-				TranslationUnit::ActionSet{ pInterfaceAction } ) );
-		}
+        TranslationUnit::CoordinatorHostnameDefinitionFile coordinatorHostnameDefinitionFile;
+        coordinatorHostnameDefinitionFile.definitionFile = pInterfaceAction->getDefinitionFile();
+        
+        if( !getInterfaceActionCoordinatorHostname( pInterfaceAction, 
+                coordinatorHostnameDefinitionFile.pCoordinator, 
+                coordinatorHostnameDefinitionFile.pHostName ) )
+        {
+            //?
+        }
+        
+        TranslationUnitMap::iterator iFind = translationUnitMap.find( coordinatorHostnameDefinitionFile );
+        if( iFind != translationUnitMap.end() )
+        {
+            iFind->second.insert( pInterfaceAction );
+        }
+        else
+        {
+            translationUnitMap.insert( std::make_pair( coordinatorHostnameDefinitionFile, 
+                TranslationUnit::ActionSet{ pInterfaceAction } ) );
+        }
         
         for( concrete::Element* pChild : pAction->m_children )
         {
@@ -396,41 +423,41 @@ namespace eg
                 i = translationUnitMap.begin(),
                 iEnd = translationUnitMap.end(); i!=iEnd; ++i )
         {
-			TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
-			pTranslationUnit->m_coordinatorHostnameDefinitionFile   = i->first;
-			pTranslationUnit->m_actions         					= i->second;
-			pTranslationUnit->m_strName         					= 
-				TranslationUnit::TUNameFromEGSource( 
-					rootFolder,
-					pTranslationUnit->m_coordinatorHostnameDefinitionFile );
-					
-			//std::cout << "intermediate: " << rootFolder.string() << 
-			//	" definition file: " << ( i->first.definitionFile ? i->first.definitionFile.value() : "none" ) << 
-			//	" name: " << pTranslationUnit->m_strName << std::endl;
-				
-			pTranslationUnit->m_databaseFileID  = pTUFileIDIfExists( pTranslationUnit->m_strName );
-			
-			m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
-			
-			for( const interface::Action* pAction : pTranslationUnit->m_actions )
-			{
-				m_pTranslationUnitAnalysis->m_actionTUMap.insert( 
-					std::make_pair( pAction, pTranslationUnit ) );
-			}
-			
-			//now determine if the file actually exists and get the File ID if it does
-			if( pTranslationUnit->m_databaseFileID != IndexedObject::NO_FILE )
-			{
-				/*if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
-				{
-					THROW_RTE( "Unreachable" );
-				}*/
-				usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
-			}
-			else
-			{
-				unassignedTUs.insert( pTranslationUnit );
-			}
+            TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
+            pTranslationUnit->m_coordinatorHostnameDefinitionFile   = i->first;
+            pTranslationUnit->m_actions                             = i->second;
+            pTranslationUnit->m_strName                             = 
+                TranslationUnit::TUNameFromEGSource( 
+                    rootFolder,
+                    pTranslationUnit->m_coordinatorHostnameDefinitionFile );
+                    
+            //std::cout << "intermediate: " << rootFolder.string() << 
+            //  " definition file: " << ( i->first.definitionFile ? i->first.definitionFile.value() : "none" ) << 
+            //  " name: " << pTranslationUnit->m_strName << std::endl;
+                
+            pTranslationUnit->m_databaseFileID  = pTUFileIDIfExists( pTranslationUnit->m_strName );
+            
+            m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
+            
+            for( const interface::Action* pAction : pTranslationUnit->m_actions )
+            {
+                m_pTranslationUnitAnalysis->m_actionTUMap.insert( 
+                    std::make_pair( pAction, pTranslationUnit ) );
+            }
+            
+            //now determine if the file actually exists and get the File ID if it does
+            if( pTranslationUnit->m_databaseFileID != IndexedObject::NO_FILE )
+            {
+                /*if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
+                {
+                    THROW_RTE( "Unreachable" );
+                }*/
+                usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
+            }
+            else
+            {
+                unassignedTUs.insert( pTranslationUnit );
+            }
         }
         
         //assign FileIDs for unassigned

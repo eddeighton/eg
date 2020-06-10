@@ -162,6 +162,10 @@ namespace eg
         {
             m_hostAccessor.doRange( std::make_shared< EGRange >( range ) );
         }
+		virtual void doLink( const reference& linkeeRef, TypeID linkeeDimension, const reference& linkValue )
+		{
+            m_hostAccessor.doLink( linkeeRef, linkeeDimension, linkValue );
+		}
             
         //EGRuntime
         virtual void getIdentities( std::vector< const char* >& identities )

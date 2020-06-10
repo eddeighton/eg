@@ -39,5 +39,20 @@ action G
 	}
 }
 
+G().TestLink3().base( F() );
+
+F f = F.Get();
+F::TestLink t1 = f.TestLink();
+F::TestLink2 t2 = f.TestLink2();
+
+A a = A();
+t1.base( a );
+
+A b = B();
+t2.base( b );
+
+TEST( a == t1.base() );
+TEST( b == t2.base() );
+
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

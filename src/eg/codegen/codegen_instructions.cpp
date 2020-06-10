@@ -539,38 +539,114 @@ namespace eg
         os << generator.getIndent() << "return " << 
             generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
+	
+    void generate( const WriteLinkOperation& ins, CodeGenerator& generator, std::ostream& os )
+    {
+        //InstanceVariable* pInstance                     = ins.getInstance();
+        //const concrete::Dimension_User* pLinkDimension  = ins.getConcreteType();
+        DimensionReferenceVariable* pRefVar             = ins.getRefVar();
+        const LinkGroup* pLinkGroup                     = ins.getLinkGroup();
+		
+		//branch over the current runtime type of the reference variable
+        
+        std::ostringstream osRef;
+        osRef << generator.getVarExpr( pRefVar ) << ".data.instance";
+        
+        //reset the existing link reference for the current link
+        {
+            os << generator.getIndent() << "switch( " << generator.getVarExpr( pRefVar ) << ".data.type )\n";
+            os << generator.getIndent() << "{\n";
+            generator.pushIndent();
+            
+            for( concrete::Action* pTargetType : pLinkGroup->getTargets() )
+            {
+                //work out the generated dimension for the link group within this target type
+                LinkGroup::LinkRefMap::const_iterator iFind =
+                    pLinkGroup->getDimensionMap().find( pTargetType );
+                VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
+                const concrete::Dimension_Generated* pLinkTargetRefDimension = iFind->second;
+                os << generator.getIndent() << "case " << pTargetType->getIndex() << ": " << 
+                    generator.getDimension( pLinkTargetRefDimension, osRef.str() ) << " = { 0, 0, 0 }; break;\n";
+            }
+            
+            os << generator.getIndent() << "case 0: break;\n";
+            os << generator.getIndent() << "default: throw std::runtime_error( \"runtime type error\" );\n";
+            generator.popIndent();
+            os << generator.getIndent() << "}\n";
+        }
+        
+        os << generator.getIndent() << 
+            generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
+            
+            
+        const concrete::Action* pDimensionAction =
+            dynamic_cast< const concrete::Action* >( ins.getConcreteType()->getParent() );
+        VERIFY_RTE( pDimensionAction );
+        const concrete::Dimension_Generated* pLinkerReferenceDimension = pDimensionAction->getReference();
+        VERIFY_RTE( pLinkerReferenceDimension );
+            
+        //set the new link reference for the new link
+        {
+            os << generator.getIndent() << "switch( value.data.type )\n";
+            os << generator.getIndent() << "{\n";
+            generator.pushIndent();
+            
+            for( concrete::Action* pTargetType : pLinkGroup->getTargets() )
+            {
+                //work out the generated dimension for the link group within this target type
+                LinkGroup::LinkRefMap::const_iterator iFind =
+                    pLinkGroup->getDimensionMap().find( pTargetType );
+                VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
+                const concrete::Dimension_Generated* pLinkTargetRefDimension = iFind->second;
+                os << generator.getIndent() << "case " << pTargetType->getIndex() << ": " << 
+                    generator.getDimension( pLinkTargetRefDimension, osRef.str() ) << " = " <<
+                    generator.getDimension( pLinkerReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << 
+                    ".data; break;\n";
+            }
+            
+            os << generator.getIndent() << "case 0: break;\n";
+            os << generator.getIndent() << "default: throw std::runtime_error( \"runtime type error\" );\n";
+            generator.popIndent();
+            os << generator.getIndent() << "}\n";
+        }
+            
+        
+        const concrete::Action* pReturnType = ins.getInstance()->getConcreteType();
+        os << generator.getIndent() << "return " << 
+            generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+    }
     
     void generate( const RangeOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
     }
     
-    
     void generate( const Instruction& ins, CodeGenerator& generator, std::ostream& os )
     {
         switch( ins.getType() )
         {
-            case eParentDerivationInstruction:        generate( dynamic_cast<   const ParentDerivationInstruction             &   >( ins ) , generator, os ); break;
-            case eChildDerivationInstruction:         generate( dynamic_cast<   const ChildDerivationInstruction              &   >( ins ) , generator, os ); break;
-            case eEnumDerivationInstruction:          generate( dynamic_cast<   const EnumDerivationInstruction               &   >( ins ) , generator, os ); break;
-            case eEnumerationInstruction:             generate( dynamic_cast<   const EnumerationInstruction                  &   >( ins ) , generator, os ); break;
-            case eDimensionReferenceReadInstruction:  generate( dynamic_cast<   const DimensionReferenceReadInstruction       &   >( ins ) , generator, os ); break;
-            case eMonoReferenceInstruction:           generate( dynamic_cast<   const MonomorphicReferenceInstruction         &   >( ins ) , generator, os ); break;
-            case ePolyReferenceInstruction:           generate( dynamic_cast<   const PolymorphicReferenceBranchInstruction   &   >( ins ) , generator, os ); break;
-            case ePolyCaseInstruction:                generate( dynamic_cast<   const PolymorphicCaseInstruction              &   >( ins ) , generator, os ); break;
-            
-            case eCallOperation:                      generate( dynamic_cast<   const CallOperation                           &   >( ins ) , generator, os ); break;
-            case eStartOperation:                     generate( dynamic_cast<   const StartOperation                          &   >( ins ) , generator, os ); break;
-            case eStopOperation:                      generate( dynamic_cast<   const StopOperation                           &   >( ins ) , generator, os ); break;
-            case ePauseOperation:                     generate( dynamic_cast<   const PauseOperation                          &   >( ins ) , generator, os ); break;
-            case eResumeOperation:                    generate( dynamic_cast<   const ResumeOperation                         &   >( ins ) , generator, os ); break;
-            case eDoneOperation:                      generate( dynamic_cast<   const DoneOperation                           &   >( ins ) , generator, os ); break;
-            case eWaitActionOperation:                generate( dynamic_cast<   const WaitActionOperation                     &   >( ins ) , generator, os ); break;
-            case eWaitDimensionOperation:             generate( dynamic_cast<   const WaitDimensionOperation                  &   >( ins ) , generator, os ); break;
-            case eGetActionOperation:                 generate( dynamic_cast<   const GetActionOperation                      &   >( ins ) , generator, os ); break;
-            case eGetDimensionOperation:              generate( dynamic_cast<   const GetDimensionOperation                   &   >( ins ) , generator, os ); break;
-            case eReadOperation:                      generate( dynamic_cast<   const ReadOperation                           &   >( ins ) , generator, os ); break;
-            case eWriteOperation:                     generate( dynamic_cast<   const WriteOperation                          &   >( ins ) , generator, os ); break;
-            case eRangeOperation:                     generate( dynamic_cast<   const RangeOperation                          &   >( ins ) , generator, os ); break;
+            case eParentDerivationInstruction:       generate( dynamic_cast<  const ParentDerivationInstruction           & >( ins ) , generator, os ); break;
+            case eChildDerivationInstruction:        generate( dynamic_cast<  const ChildDerivationInstruction            & >( ins ) , generator, os ); break;
+            case eEnumDerivationInstruction:         generate( dynamic_cast<  const EnumDerivationInstruction             & >( ins ) , generator, os ); break;
+            case eEnumerationInstruction:            generate( dynamic_cast<  const EnumerationInstruction                & >( ins ) , generator, os ); break;
+            case eDimensionReferenceReadInstruction: generate( dynamic_cast<  const DimensionReferenceReadInstruction     & >( ins ) , generator, os ); break;
+            case eMonoReferenceInstruction:          generate( dynamic_cast<  const MonomorphicReferenceInstruction       & >( ins ) , generator, os ); break;
+            case ePolyReferenceInstruction:          generate( dynamic_cast<  const PolymorphicReferenceBranchInstruction & >( ins ) , generator, os ); break;
+            case ePolyCaseInstruction:               generate( dynamic_cast<  const PolymorphicCaseInstruction            & >( ins ) , generator, os ); break;
+                                                                                                                            
+            case eCallOperation:                     generate( dynamic_cast<  const CallOperation                         & >( ins ) , generator, os ); break;
+            case eStartOperation:                    generate( dynamic_cast<  const StartOperation                        & >( ins ) , generator, os ); break;
+            case eStopOperation:                     generate( dynamic_cast<  const StopOperation                         & >( ins ) , generator, os ); break;
+            case ePauseOperation:                    generate( dynamic_cast<  const PauseOperation                        & >( ins ) , generator, os ); break;
+            case eResumeOperation:                   generate( dynamic_cast<  const ResumeOperation                       & >( ins ) , generator, os ); break;
+            case eDoneOperation:                     generate( dynamic_cast<  const DoneOperation                         & >( ins ) , generator, os ); break;
+            case eWaitActionOperation:               generate( dynamic_cast<  const WaitActionOperation                   & >( ins ) , generator, os ); break;
+            case eWaitDimensionOperation:            generate( dynamic_cast<  const WaitDimensionOperation                & >( ins ) , generator, os ); break;
+            case eGetActionOperation:                generate( dynamic_cast<  const GetActionOperation                    & >( ins ) , generator, os ); break;
+            case eGetDimensionOperation:             generate( dynamic_cast<  const GetDimensionOperation                 & >( ins ) , generator, os ); break;
+            case eReadOperation:                     generate( dynamic_cast<  const ReadOperation                         & >( ins ) , generator, os ); break;
+            case eWriteOperation:                    generate( dynamic_cast<  const WriteOperation                        & >( ins ) , generator, os ); break;
+            case eWriteLinkOperation:                generate( dynamic_cast<  const WriteLinkOperation                    & >( ins ) , generator, os ); break;
+            case eRangeOperation:                    generate( dynamic_cast<  const RangeOperation                        & >( ins ) , generator, os ); break;
                               
             default:
             case eRootInstruction:                      

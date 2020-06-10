@@ -162,6 +162,7 @@ namespace eg
 		loader.load( m_name );
 		loader.loadObjectVector( m_links );
 		loader.loadObjectVector( m_concreteTargets );
+        loader.loadObjectMap( m_dimensionMap );
 	}
 	
 	void LinkGroup::store( Storer& storer ) const
@@ -169,6 +170,7 @@ namespace eg
 		storer.store( m_name );
 		storer.storeObjectVector( m_links );
 		storer.storeObjectVector( m_concreteTargets );
+        storer.storeObjectMap( m_dimensionMap );
 	}
 		
     void LinkAnalysis::load( Loader& loader )

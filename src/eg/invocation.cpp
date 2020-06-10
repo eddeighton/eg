@@ -280,7 +280,7 @@ namespace eg
         }
         
         void buildOperation( const Name& prev, const Name& current, 
-            Instruction* pInstruction, InstanceVariable* pVariable )
+            Instruction* pInstruction, InstanceVariable* pInstanceVariable )
         {
             const concrete::Element* pElement = current.getConcrete();
             if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
@@ -293,57 +293,57 @@ namespace eg
                     case id_Imp_Params          :
                         {
                             //only derive the parent for the starter
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete()->getParent(), pInstruction, pVariable );
-                            CallOperation* pCall = new CallOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete()->getParent(), pInstruction, pInstanceVariable );
+                            CallOperation* pCall = new CallOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pCall );
                         }
                         break;
                     case id_Start                :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete()->getParent(), pInstruction, pVariable );
-                            StartOperation* pStart = new StartOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete()->getParent(), pInstruction, pInstanceVariable );
+                            StartOperation* pStart = new StartOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pStart );
                         }
                         break;
                     case id_Stop                :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                            StopOperation* pStop = new StopOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pInstanceVariable );
+                            StopOperation* pStop = new StopOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pStop );
                         }
                         break;
                     case id_Pause               :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                            PauseOperation* pPause = new PauseOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pInstanceVariable );
+                            PauseOperation* pPause = new PauseOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pPause );
                         }
                         break;
                     case id_Resume              :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                            ResumeOperation* pResume = new ResumeOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pInstanceVariable );
+                            ResumeOperation* pResume = new ResumeOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pResume );
                         }
                         break;
                     case id_Wait                 :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                            WaitActionOperation* pWaitAction = new WaitActionOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pInstanceVariable );
+                            WaitActionOperation* pWaitAction = new WaitActionOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pWaitAction );
                         }
                         break;
                     case id_Get                 :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                            GetActionOperation* pGetAction = new GetActionOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pInstanceVariable );
+                            GetActionOperation* pGetAction = new GetActionOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pGetAction );
                         }
                         break;
                     case id_Done                :
                         {
-                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
-                            DoneOperation* pDone = new DoneOperation( pVariable, pInterfaceAction, pAction );
+                            commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pInstanceVariable );
+                            DoneOperation* pDone = new DoneOperation( pInstanceVariable, pInterfaceAction, pAction );
                             pInstruction->append( pDone );
                         }
                         break;
@@ -354,7 +354,7 @@ namespace eg
             else if( const concrete::Dimension_User* pUserDimension = 
                 dynamic_cast< const concrete::Dimension_User* >( pElement ) )
             {
-                commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pVariable );
+                commonRootDerivation( prev.getConcrete(), current.getConcrete(), pInstruction, pInstanceVariable );
             
                 const interface::Dimension* pInterfaceDimension = 
                     dynamic_cast< const interface::Dimension* >( current.getInterface() );
@@ -363,25 +363,52 @@ namespace eg
                 {
                     case id_Imp_NoParams        :
                         {
-                            ReadOperation* pRead = new ReadOperation( pVariable, pInterfaceDimension, pUserDimension );
+                            ReadOperation* pRead = new ReadOperation( pInstanceVariable, pInterfaceDimension, pUserDimension );
                             pInstruction->append( pRead );
                         }
                         break;
                     case id_Imp_Params          :
                         {
-                            WriteOperation* pWrite = new WriteOperation( pVariable, pInterfaceDimension, pUserDimension );
-                            pInstruction->append( pWrite );
+							if( const LinkGroup* pLinkGroup = pUserDimension->getLinkGroup() )
+							{
+								//create a dimension reference variable for the link base dimension
+								std::vector< const concrete::Element* > types;
+								{
+									for( const concrete::Action* pType : pLinkGroup->getTargets() )
+									{
+                                        types.push_back( pType );
+									}
+								}
+								
+								DimensionReferenceVariable* pReferenceVariable = 
+									new DimensionReferenceVariable( pInstanceVariable, types );
+								{
+									DimensionReferenceReadInstruction* pDimensionRead = 
+										new DimensionReferenceReadInstruction( 
+											pInstanceVariable, pReferenceVariable, pUserDimension );
+									pInstruction->append( pDimensionRead );
+								}
+																
+								WriteLinkOperation* pWrite = new WriteLinkOperation( 
+									pInstanceVariable, pInterfaceDimension, pUserDimension, pReferenceVariable, pLinkGroup );
+								pInstruction->append( pWrite );
+							}
+							else
+							{
+								WriteOperation* pWrite = new WriteOperation( pInstanceVariable, pInterfaceDimension, pUserDimension );
+								pInstruction->append( pWrite );
+							}
                         }
                         break;
                     case id_Get                 :
                         {
-                            GetDimensionOperation* pGetAction = new GetDimensionOperation( pVariable, pInterfaceDimension, pUserDimension );
+                            GetDimensionOperation* pGetAction = new GetDimensionOperation( pInstanceVariable, pInterfaceDimension, pUserDimension );
                             pInstruction->append( pGetAction );
                         }
                         break;
                     case id_Wait                 :
                         {
-                            WaitDimensionOperation* pWaitAction = new WaitDimensionOperation( pVariable, pInterfaceDimension, pUserDimension );
+                            WaitDimensionOperation* pWaitAction = new WaitDimensionOperation( pInstanceVariable, pInterfaceDimension, pUserDimension );
                             pInstruction->append( pWaitAction );
                         }
                         break;

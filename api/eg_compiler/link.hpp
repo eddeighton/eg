@@ -53,6 +53,7 @@ namespace eg
 	{
         friend class ObjectFactoryImpl;
 		friend class LinkAnalysis;
+        friend class InterfaceSession;
     public:
         static const ObjectType Type = eLinkGroup;
     protected:
@@ -63,6 +64,10 @@ namespace eg
 		
     public:
 		using Vector = std::vector< LinkGroup* >;
+        using LinkRefMap = std::map< 
+            const concrete::Action*, 
+            const concrete::Dimension_Generated*, 
+            CompareIndexedObjects >;
 		
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
@@ -70,11 +75,13 @@ namespace eg
 		const std::string& getLinkName() const { return m_name; }
 		const std::vector< interface::Action* >& getLinks() const { return m_links; }
 		const std::vector< concrete::Action* >& getTargets() const { return m_concreteTargets; }
+        const LinkRefMap& getDimensionMap() const { return m_dimensionMap; }
 		
 	private:
 		std::string m_name;
 		std::vector< interface::Action* > m_links;
 		std::vector< concrete::Action* > m_concreteTargets;
+        LinkRefMap m_dimensionMap;
 	};
 	
     /////////////////////////////////////////////////////////////////////////////////////

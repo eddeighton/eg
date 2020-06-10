@@ -67,7 +67,7 @@ namespace eg
         virtual void doGetAction(    const reference& reference ) = 0;
         virtual void doGetDimension(    const reference& reference, TypeID dimensionType ) = 0;
         virtual void doRange( EGRangeDescriptionPtr pRange ) = 0;
-        
+        virtual void doLink( const reference& linkeeRef, TypeID linkeeDimension, const reference& linkValue ) = 0;
     };
 
     class EGRT_EXPORT EGRuntime

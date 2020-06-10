@@ -21,6 +21,7 @@
 #define INSTRUCTION_08_05_2019
 
 #include "concrete.hpp"
+#include "link.hpp"
 
 #include "eg/common.hpp"
 
@@ -50,7 +51,6 @@ class RuntimeEvaluator
 public:
     virtual ~RuntimeEvaluator(){}
     
-    
     using VariableValueMap = std::map< const Variable*, reference >;
     
     void initialise()
@@ -72,19 +72,20 @@ public:
     }
     
     virtual reference dereferenceDimension( const reference& action, const TypeID& dimensionType ) = 0;
-    virtual void doRead(    const reference& reference, TypeID dimensionType ) = 0;
-    virtual void doWrite(   const reference& reference, TypeID dimensionType ) = 0;
-    virtual void doCall(   const reference& reference, TypeID dimensionType ) = 0;
-    virtual void doStart(   const reference& reference, TypeID dimensionType ) = 0;
-    virtual void doStop(    const reference& reference ) = 0;
-    virtual void doPause(   const reference& reference ) = 0;
-    virtual void doResume(  const reference& reference ) = 0;
-    virtual void doDone(    const reference& reference ) = 0;
-    virtual void doWaitAction(    const reference& reference ) = 0;
-    virtual void doWaitDimension(    const reference& reference, TypeID dimensionType ) = 0;
-    virtual void doGetAction(    const reference& reference ) = 0;
-    virtual void doGetDimension(    const reference& reference, TypeID dimensionType ) = 0;
+    virtual void doRead(    const reference& ref, TypeID dimensionType ) = 0;
+    virtual void doWrite(   const reference& ref, TypeID dimensionType ) = 0;
+    virtual void doCall(   const reference& ref, TypeID dimensionType ) = 0;
+    virtual void doStart(   const reference& ref, TypeID dimensionType ) = 0;
+    virtual void doStop(    const reference& ref ) = 0;
+    virtual void doPause(   const reference& ref ) = 0;
+    virtual void doResume(  const reference& ref ) = 0;
+    virtual void doDone(    const reference& ref ) = 0;
+    virtual void doWaitAction(    const reference& ref ) = 0;
+    virtual void doWaitDimension(    const reference& ref, TypeID dimensionType ) = 0;
+    virtual void doGetAction(    const reference& ref ) = 0;
+    virtual void doGetDimension(    const reference& ref, TypeID dimensionType ) = 0;
     virtual void doRange( const RangeDescription& range ) = 0;
+    virtual void doLink( const reference& linkeeRef, TypeID linkeeDimension, const reference& linkValue ) = 0;
     
 private:
     VariableValueMap m_variables;
@@ -122,6 +123,7 @@ enum ASTElementType //for serialisation
     eGetDimensionOperation,
     eReadOperation,
     eWriteOperation,
+	eWriteLinkOperation,
     eRangeOperation,
     
     TOTAL_AST_TYPES
@@ -882,12 +884,9 @@ class WriteOperation : public Operation
 {
 public:
     WriteOperation(){}
-    WriteOperation( InstanceVariable* pInstance, const interface::Dimension* pInterface, const concrete::Dimension_User* pTarget )
-        :   m_pInstance( pInstance ),
-            m_pInterface( pInterface ),
-            m_pTarget( pTarget )
-    {
-    }
+    WriteOperation( InstanceVariable* pInstance, 
+		const interface::Dimension* pInterface, 
+		const concrete::Dimension_User* pTarget );
     virtual ASTElementType getType() const { return eWriteOperation; }
 protected:
     virtual void load( ASTSerialiser& serialiser, Loader& loader );
@@ -903,7 +902,36 @@ private:
     InstanceVariable* m_pInstance = nullptr;
     const interface::Dimension* m_pInterface = nullptr;
     const concrete::Dimension_User* m_pTarget = nullptr;
+};
 
+class WriteLinkOperation : public Operation
+{
+public:
+    WriteLinkOperation(){}
+    WriteLinkOperation( InstanceVariable* pInstance, 
+		const interface::Dimension* pInterface, 
+		const concrete::Dimension_User* pTarget,
+		DimensionReferenceVariable* pReferenceVariable,
+        const LinkGroup* pLinkGroup );
+    virtual ASTElementType getType() const { return eWriteLinkOperation; }
+protected:
+    virtual void load( ASTSerialiser& serialiser, Loader& loader );
+    virtual void store( ASTSerialiser& serialiser, Storer& storer ) const;
+    virtual void getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual void getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const;
+    virtual ExplicitOperationID getExplicitOperationType() const;
+    virtual void evaluate( RuntimeEvaluator& evaluator ) const;
+public:
+    InstanceVariable* getInstance() const { return m_pInstance; }
+    const concrete::Dimension_User* getConcreteType() const { return m_pTarget; }
+    DimensionReferenceVariable* getRefVar() const { return m_pReferenceVariable; }
+    const LinkGroup* getLinkGroup() const { return m_pLinkGroup; }
+private:
+    InstanceVariable* m_pInstance = nullptr;
+    const interface::Dimension* m_pInterface = nullptr;
+    const concrete::Dimension_User* m_pTarget = nullptr;
+    DimensionReferenceVariable* m_pReferenceVariable = nullptr;
+    const LinkGroup* m_pLinkGroup = nullptr;
 };
 
 class RangeOperation : public Operation

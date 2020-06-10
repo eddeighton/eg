@@ -188,6 +188,10 @@ namespace concrete
         
         const ::eg::interface::Dimension* getDimension() const { return dynamic_cast< const ::eg::interface::Dimension* >( m_pElement ); }
         
+		const LinkGroup* getLinkGroup() const { return m_pLinkGroup; }
+		
+	private:
+		LinkGroup* m_pLinkGroup = nullptr;
     };
     
     /////////////////////////////////////////////////////////////////////////////////////

@@ -21,6 +21,7 @@
 
 #include "eg_compiler/sessions/parser_session.hpp"
 
+#include "eg_compiler/eg.hpp"
 #include "eg_compiler/input.hpp"
 #include "eg_compiler/interface.hpp"
 #include "eg_compiler/identifiers.hpp"
@@ -1300,6 +1301,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                     }
                 }
                 else*/
+				
                 if( Tok.is( clang::tok::kw_action ) )
                 {
                     ConsumeToken();
@@ -1388,6 +1390,34 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                         }
                         ConsumeToken();
                         parse_action( session, pNestedAction, egSourceFile );
+						
+						if( pNestedAction->m_inheritance.size() != 1U )
+						{
+							EG_PARSER_ERROR( "Link requires single inheritance" );
+						}
+						
+						bool bFound = false;
+						{
+							for( input::Element* pExisting : pNestedAction->m_elements )
+							{
+								if( input::Dimension* pDim = dynamic_cast< input::Dimension* >( pExisting ) )
+								{
+									if( pDim->getIdentifier() == EG_LINK_DIMENSION )
+									{
+										bFound = true;
+										break;
+									}
+								}
+							}
+						}
+						if( !bFound )
+						{
+							//add the nested link reference dimension
+							input::Dimension* pLinkDimension = session.construct< input::Dimension >();
+							pNestedAction->m_elements.push_back( pLinkDimension );
+							pLinkDimension->m_pType = pNestedAction->m_inheritance.front();
+							pLinkDimension->m_strIdentifier = EG_LINK_DIMENSION;
+						}
                     }
                     else
                     {
