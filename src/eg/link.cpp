@@ -26,21 +26,25 @@ namespace eg
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
 	
-	void LinkAnalysis::calculateSets( const std::vector< interface::Action* >& actions )
+	LinkAnalysis::ActionSetPtrSet LinkAnalysis::calculateSets( const std::vector< interface::Action* >& actions )
 	{
+		ActionSetPtrSet sets;
+		
 		for( interface::Action* pAction : actions )
 		{
 			if( !pAction->isLink() )
 			{
-				addAction( pAction );
+				addAction( sets, pAction );
 			}
 		}
+        
+        return sets;
 	}
 	
-	LinkAnalysis::ActionSetPtr LinkAnalysis::find( interface::Action* pAction )
+	LinkAnalysis::ActionSetPtr LinkAnalysis::find( const ActionSetPtrSet& sets, interface::Action* pAction )
 	{
 		ActionSetPtr pActionSet;
-		for( ActionSetPtr pSet : m_sets )
+		for( ActionSetPtr pSet : sets )
 		{
 			if( pSet->count( pAction ) )
 			{
@@ -51,21 +55,21 @@ namespace eg
 		return pActionSet;
 	}
 	
-	void LinkAnalysis::addAction( interface::Action* pAction )
+	void LinkAnalysis::addAction( ActionSetPtrSet& sets, interface::Action* pAction )
 	{
 		VERIFY_RTE( !pAction->isLink() );
 		
-		ActionSetPtr pActionSet = find( pAction );
+		ActionSetPtr pActionSet = find( sets, pAction );
 		
 		for( interface::Action* pBase : pAction->getBaseActions() )
 		{
-			if( ActionSetPtr pSet = find( pBase ) )
+			if( ActionSetPtr pSet = find( sets, pBase ) )
 			{
 				if( pActionSet )
 				{
 					//merge
 					pActionSet->insert( pSet->begin(), pSet->end() );
-					m_sets.erase( pSet );
+					sets.erase( pSet );
 				}
 				else
 				{
@@ -78,7 +82,7 @@ namespace eg
 		if( !pActionSet )
 		{
 			pActionSet = std::make_shared< ActionSet >();
-			m_sets.insert( pActionSet );
+			sets.insert( pActionSet );
 		}
 		
 		pActionSet->insert( pAction );
@@ -86,8 +90,28 @@ namespace eg
 			pAction->getBaseActions().begin(), 
 			pAction->getBaseActions().end() );
 	}
+    
+    const interface::Action* LinkGroup::getLinkTarget( const interface::Action* pLink )
+    {
+        VERIFY_RTE( pLink->isLink() );
+        
+        VERIFY_RTE_MSG( pLink->getBaseActions().size() == 1U, 
+            "Link does not have singular link target type: " << pLink->getIdentifier() );
+        
+        return pLink->getBaseActions().front();
+    }
+    interface::Action* LinkGroup::getLinkTarget( interface::Action* pLink )
+    {
+        VERIFY_RTE( pLink->isLink() );
+        
+        VERIFY_RTE_MSG( pLink->getBaseActions().size() == 1U, 
+            "Link does not have singular link target type: " << pLink->getIdentifier() );
+        
+        return pLink->getBaseActions().front();
+    }
 	
-	void LinkAnalysis::calculateGroups( const std::vector< interface::Action* >& actions, 
+	void LinkAnalysis::calculateGroups( const ActionSetPtrSet& sets,
+            const std::vector< interface::Action* >& actions, 
 			const DerivationAnalysis& derivationAnalysis, 
 			AppendingSession& session )
 	{
@@ -97,12 +121,9 @@ namespace eg
 		{
 			if( pAction->isLink() )
 			{
-				VERIFY_RTE_MSG( pAction->getBaseActions().size() == 1U, 
-					"Link does not have singular link target type: " << pAction->getIdentifier() );
+				interface::Action* pBase = LinkGroup::getLinkTarget( pAction );
 				
-				interface::Action* pBase = pAction->getBaseActions().front();
-				
-				ActionSetPtr pSet = find( pBase );
+				ActionSetPtr pSet = find( sets, pBase );
 				VERIFY_RTE( pSet );
 				
 				groupMap.insert( std::make_pair( std::make_pair( pAction->getIdentifier(), pSet ), pAction ) );

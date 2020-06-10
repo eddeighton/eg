@@ -45,16 +45,22 @@ namespace eg
         const std::vector< const concrete::Action* >& instances;
         const std::vector< const concrete::Inheritance_Node* >& iNodes;
         const Layout& layout;
+        const LinkAnalysis& linkAnalysis;
+        const DerivationAnalysis& derivationAnalysis;
         std::string strIndent;
 
         SpecialMemberFunctionVisitor( std::ostream& os,
             const std::vector< const concrete::Action* >& instances,
             const std::vector< const concrete::Inheritance_Node* >& iNodes,
-            const Layout& layout )
+            const Layout& layout,
+            const LinkAnalysis& linkAnalysis,
+            const DerivationAnalysis& derivationAnalysis )
         :   os( os ),
             instances( instances ),
             iNodes( iNodes ),
-            layout( layout )
+            layout( layout ),
+            linkAnalysis( linkAnalysis ),
+            derivationAnalysis( derivationAnalysis )
         {
 
         }
@@ -152,27 +158,11 @@ namespace eg
             std::string strActionInterfaceType = getInterfaceType( pNode->getIdentifier() );
 
             const interface::Action* pNodeAction = dynamic_cast< const interface::Action* >( pNode );
-
-            std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
-            std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
-            {
-                for( const concrete::Inheritance_Node* pINode : iNodes )
-                {
-                    if( pINode->getAbstractAction() == pNodeAction )
-                    {
-                        for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
-                        {
-                            staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
-                            dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
-                        }
-                        pINode->getStaticDerived( staticCompatibleTypes );
-                        pINode->getDynamicDerived( dynamicCompatibleTypes );
-                    }
-                }
-            }
-
+            const DerivationAnalysis::Compatibility& compatibility = 
+                derivationAnalysis.getCompatibility( pNodeAction );
+                
             //conversion traits
-            for( const interface::Action* pCompatible : staticCompatibleTypes )
+            for( const interface::Action* pCompatible : compatibility.staticLinkCompatibleTypes )
             {
                 std::ostringstream osCompatibleTypeName;
                 {
@@ -197,11 +187,11 @@ namespace eg
             os << "inline " << osTypeName.str() << "::" << strActionInterfaceType << "( const TFrom& from )\n";
             os << "{\n";
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
-            if( !dynamicCompatibleTypes.empty() )
+            if( !compatibility.dynamicCompatibleTypes.empty() )
             {
             os << "  switch( from.data.type )\n";
             os << "  {\n";
-            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
             {
             os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             }
@@ -224,11 +214,11 @@ namespace eg
             os << "inline " << osTypeNameAsType.str() << "& " << osTypeName.str() << "::operator=( const TFrom& from )\n";
             os << "{\n";
             os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
-            if( !dynamicCompatibleTypes.empty() )
+            if( !compatibility.dynamicCompatibleTypes.empty() )
             {
             os << "  switch( from.data.type )\n";
             os << "  {\n";
-            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
             {
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             }
@@ -247,16 +237,16 @@ namespace eg
             os << "}\n";
 
             //getTimestamp
-            if( !dynamicCompatibleTypes.empty() )
+            if( !compatibility.dynamicCompatibleTypes.empty() )
             {
             os << "template<>\n";
             os << "inline " << EG_TIME_STAMP << " getTimestamp< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
             os << "{\n";
-            if( dynamicCompatibleTypes.size() > 1 )
+            if( compatibility.dynamicCompatibleTypes.size() > 1 )
             {
             os << "    switch( type )\n";
             os << "    {\n";
-            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
             {
                 const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
@@ -265,9 +255,9 @@ namespace eg
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
             os << "    }\n";
             }
-            else //if( dynamicCompatibleTypes.size() == 1 )
+            else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
             {
-                const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
+                const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
                 const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
             os << "    return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
             }
@@ -276,16 +266,16 @@ namespace eg
             }
 
             //getStopCycle
-            if( !dynamicCompatibleTypes.empty() )
+            if( !compatibility.dynamicCompatibleTypes.empty() )
             {
             os << "template<>\n";
             os << "inline " << EG_TIME_STAMP << " getStopCycle< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
             os << "{\n";
-            if( dynamicCompatibleTypes.size() > 1 )
+            if( compatibility.dynamicCompatibleTypes.size() > 1 )
             {
             os << "    switch( type )\n";
             os << "    {\n";
-            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
             {
                 const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
@@ -294,9 +284,9 @@ namespace eg
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
             os << "    }\n";
             }
-            else //if( dynamicCompatibleTypes.size() == 1 )
+            else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
             {
-                const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
+                const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
                 const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
             os << "    return " << Printer( pReference, "instance" ) << ";\n";
             }
@@ -305,16 +295,16 @@ namespace eg
             }
 
             //getState
-            if( !dynamicCompatibleTypes.empty() )
+            if( !compatibility.dynamicCompatibleTypes.empty() )
             {
             os << "template<>\n";
             os << "inline " << EG_ACTION_STATE << " getState< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
             os << "{\n";
-            if( dynamicCompatibleTypes.size() > 1 )
+            if( compatibility.dynamicCompatibleTypes.size() > 1 )
             {
             os << "    switch( type )\n";
             os << "    {\n";
-            for( const concrete::Action* pCompatible : dynamicCompatibleTypes )
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
             {
                 const DataMember* pState = layout.getDataMember( pCompatible->getState() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
@@ -323,9 +313,9 @@ namespace eg
             os << "      default: return " << EG_INVALID_STATE << ";\n";
             os << "    }\n";
             }
-            else //if( dynamicCompatibleTypes.size() == 1 )
+            else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
             {
-                const concrete::Action* pCompatible = *dynamicCompatibleTypes.begin();
+                const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
                 const DataMember* pState = layout.getDataMember( pCompatible->getState() );
             os << "    return " << Printer( pState, "instance" ) << ";\n";
             }
@@ -505,7 +495,8 @@ namespace eg
     {
         const Layout& layout = program.getLayout();
         const interface::Root* pRoot = program.getTreeRoot();
-
+        const LinkAnalysis& linkAnalysis = program.getLinkAnalysis();
+        const DerivationAnalysis& derivationAnalysis = program.getDerivationAnalysis();
 
         //generate the invoke definitions
 
@@ -537,7 +528,6 @@ namespace eg
                 {
                     variantTypes.insert( returnTypes );
 
-                    //std::set< const interface::Action*, CompareIndexedObjects > staticCompatibleTypes;
                     std::set< const concrete::Action*, CompareIndexedObjects > dynamicCompatibleTypes;
                     {
                         for( const concrete::Inheritance_Node* pINode : iNodes )
@@ -547,10 +537,8 @@ namespace eg
                             {
                                 for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
                                 {
-                                    //staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
                                     dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
                                 }
-                                //pINode->getStaticDerived( staticCompatibleTypes );
                                 pINode->getDynamicDerived( dynamicCompatibleTypes );
                             }
                         }
@@ -620,7 +608,7 @@ namespace eg
         }
 
         {
-            SpecialMemberFunctionVisitor visitor( os, actions, iNodes, layout );
+            SpecialMemberFunctionVisitor visitor( os, actions, iNodes, layout, linkAnalysis, derivationAnalysis );
             pRoot->pushpop( visitor );
         }
         {

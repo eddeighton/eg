@@ -288,18 +288,31 @@ namespace eg
         constructInstance( pRoot );
         constructAllocator( pRoot );
         
+        {
+            std::vector< const interface::Action* > interfaceActions = 
+                many_cst< const interface::Action >( 
+                    getObjects( eg::IndexedObject::MASTER_FILE ) );
+                    
+            std::vector< const concrete::Inheritance_Node* > iNodes = 
+                many_cst< const concrete::Inheritance_Node >( 
+                    getObjects( eg::IndexedObject::MASTER_FILE ) );
+            
+            m_pDerivationAnalysis->analyseCompatibility( interfaceActions, iNodes );
+        }
+        
         return pRoot;
     }
     
     void InterfaceSession::linkAnalysis()
     {
         //calculate the link groups
-        std::vector< interface::Action* > actions = 
-            many< interface::Action >( getMaster() );
-        
-        m_pLinkAnalysis->calculateSets( actions );
-        
-        m_pLinkAnalysis->calculateGroups( actions, *m_pDerivationAnalysis, *this );
+        {
+            std::vector< interface::Action* > actions = 
+                many< interface::Action >( getMaster() );
+            LinkAnalysis::ActionSetPtrSet linkSets;
+            linkSets = m_pLinkAnalysis->calculateSets( actions );
+            m_pLinkAnalysis->calculateGroups( linkSets, actions, *m_pDerivationAnalysis, *this );
+        }
         
         //generate link dimensions in target concrete types
         const LinkGroup::Vector& groups = m_pLinkAnalysis->getLinkGroups();
@@ -340,6 +353,14 @@ namespace eg
                 }
                 VERIFY_RTE( bFound );
             }
+        }
+        
+        //final steps in derivation analysis
+        {
+            std::vector< const interface::Action* > interfaceActions = 
+                many_cst< const interface::Action >( 
+                    getObjects( eg::IndexedObject::MASTER_FILE ) );
+            m_pDerivationAnalysis->analyseLinkCompatibility( interfaceActions, groups );
         }
     }
     

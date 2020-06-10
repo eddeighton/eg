@@ -76,6 +76,9 @@ namespace eg
 		const std::vector< interface::Action* >& getLinks() const { return m_links; }
 		const std::vector< concrete::Action* >& getTargets() const { return m_concreteTargets; }
         const LinkRefMap& getDimensionMap() const { return m_dimensionMap; }
+        
+        static const interface::Action* getLinkTarget( const interface::Action* pLink );
+        static interface::Action* getLinkTarget( interface::Action* pLink );
 		
 	private:
 		std::string m_name;
@@ -102,14 +105,15 @@ namespace eg
 		using ActionSetPtr = std::shared_ptr< ActionSet >;
 		using ActionSetPtrSet = std::set< ActionSetPtr >;
 		
-		void calculateSets( const std::vector< interface::Action* >& actions );
-		ActionSetPtr find( interface::Action* pAction );
-		void addAction( interface::Action* pAction );
+		ActionSetPtrSet calculateSets( const std::vector< interface::Action* >& actions );
+		ActionSetPtr find( const ActionSetPtrSet& sets, interface::Action* pAction );
+		void addAction( ActionSetPtrSet& sets, interface::Action* pAction );
         
 		using LinkSet = std::pair< std::string, ActionSetPtr >;
 		using LinkGroupMap = std::multimap< LinkSet, interface::Action* >;
 		
-		void calculateGroups( const std::vector< interface::Action* >& actions, 
+		void calculateGroups( const ActionSetPtrSet& sets,
+            const std::vector< interface::Action* >& actions, 
 			const DerivationAnalysis& derivationAnalysis, 
 			AppendingSession& session );
 		
@@ -120,8 +124,6 @@ namespace eg
         virtual void store( Storer& storer ) const;
 		
 	private:
-		ActionSetPtrSet m_sets;
-		
 		LinkGroup::Vector m_groups;
     };
     

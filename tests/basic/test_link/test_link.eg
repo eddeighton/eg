@@ -2,57 +2,44 @@
 
 action A
 {
+	
 }
 
 action B : A
 {
-	
 }
 
 action C : B
 {
-	
+
 }
 
-action E
+action D : A
 {
-	link TestLink : A
-	{
-	}
 }
 
-action F
+
+link Test : B
 {
-	link TestLink : A
-	{
-	}
-	
-	link TestLink2 : B
-	{
-	}
+
 }
 
-action G
-{
-	link TestLink3 : F
-	{
-	}
-}
+B b = B();
+C c = C();
+D d = D();
 
-G().TestLink3().base( F() );
+Test t1 = Test();
+t1.base( b );
+t1.base( c );
+//t1.base( d );
 
-F f = F.Get();
-F::TestLink t1 = f.TestLink();
-F::TestLink2 t2 = f.TestLink2();
+Test t2 = b;
+Test t3 = c;
+//Test t4 = d;
 
-A a = A();
-t1.base( a );
-
-A b = B();
-t2.base( b );
-
-TEST( a == t1.base() );
-TEST( b == t2.base() );
+B bt1 = t1;
+C ct1 = t1;
+//D dt1 = t1;
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

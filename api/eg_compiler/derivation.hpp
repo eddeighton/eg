@@ -60,6 +60,7 @@ namespace eg
         return result;
     }
 
+    class LinkGroup;
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     class DerivationAnalysis : public IndexedObject
@@ -75,6 +76,27 @@ namespace eg
         }
         
     public:
+        struct Compatibility
+        {
+            using StaticCompatibilitySet = std::set< const interface::Action*, CompareIndexedObjects >;
+            using DynamicCompatibilitySet = std::set< const concrete::Action*, CompareIndexedObjects >;
+            StaticCompatibilitySet staticCompatibleTypes;
+            StaticCompatibilitySet staticLinkCompatibleTypes;
+            DynamicCompatibilitySet dynamicCompatibleTypes;
+        };
+        
+        using CompatibilityMap = std::map< const interface::Action*, Compatibility, CompareIndexedObjects >;
+        CompatibilityMap m_compatibility;
+        
+        void analyseCompatibility( 
+            const std::vector< const interface::Action* >& interfaceActions,
+            const std::vector< const concrete::Inheritance_Node* >& iNodes );
+            
+        void analyseLinkCompatibility( 
+            const std::vector< const interface::Action* >& interfaceActions,
+            const std::vector< LinkGroup* >& links );
+            
+        const Compatibility& getCompatibility( const interface::Action* pAction ) const;
     
         using InstanceMap = std::multimap< const interface::Element*, const concrete::Element*, CompareIndexedObjects >;
         InstanceMap m_instanceMap;
@@ -82,37 +104,11 @@ namespace eg
         using InheritanceNodeMap = std::multimap< const interface::Action*, const concrete::Inheritance_Node*, CompareIndexedObjects >;
         InheritanceNodeMap m_inheritanceMap;
         
-        void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const
-        {
-            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pElement );
-            if( bDeriving && pAction )
-            {
-                InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
-                InheritanceNodeMap::const_iterator iUpper = m_inheritanceMap.upper_bound( pAction );
-                for( ; iLower != iUpper; ++iLower )
-                    instances.push_back( iLower->second->getRootConcreteAction() );
-            }
-            else
-            {
-                InstanceMap::const_iterator iLower = m_instanceMap.lower_bound( pElement );
-                InstanceMap::const_iterator iUpper = m_instanceMap.upper_bound( pElement );
-                for( ; iLower != iUpper; ++iLower )
-                    instances.push_back( iLower->second );
-            }
-        }
-        /*
-        void getInheritanceNodes( const interface::Action* pAction, std::vector< const concrete::Inheritance_Node* >& inheritanceNodes ) const
-        {
-            InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
-            InheritanceNodeMap::const_iterator iUpper = m_inheritanceMap.upper_bound( pAction );
-            for( ; iLower != iUpper; ++iLower )
-                inheritanceNodes.push_back( iLower->second );
-        }*/
+        void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const;
         
-        using InstancePair = std::pair< const concrete::Element*, const concrete::Element* >;
-        using CommonRootMap = std::map< InstancePair, const concrete::Element* >;
-        CommonRootMap m_commonRoots;
-        
+        //using InstancePair = std::pair< const concrete::Element*, const concrete::Element* >;
+        //using CommonRootMap = std::map< InstancePair, const concrete::Element* >;
+        //CommonRootMap m_commonRoots;
         
     public:
         virtual void load( Loader& loader );

@@ -20,11 +20,107 @@
 
 
 #include "eg_compiler/derivation.hpp"
+#include "eg_compiler/link.hpp"
 
 namespace eg
 {
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
+    
+    void DerivationAnalysis::analyseCompatibility( 
+            const std::vector< const interface::Action* >& interfaceActions,
+            const std::vector< const concrete::Inheritance_Node* >& inheritanceNodes )
+    {
+        for( const interface::Action* pInterfaceAction : interfaceActions )
+        {
+            Compatibility compatibility;
+            for( const concrete::Inheritance_Node* pINode : inheritanceNodes )
+            {
+                if( pINode->getAbstractAction() == pInterfaceAction )
+                {
+                    for( const concrete::Inheritance_Node* pINodeIter = pINode; pINodeIter; pINodeIter = pINodeIter->getParent() )
+                    {
+                        compatibility.staticCompatibleTypes.insert( pINodeIter->getAbstractAction() );
+                        compatibility.dynamicCompatibleTypes.insert( pINodeIter->getRootConcreteAction() );
+                    }
+                    pINode->getStaticDerived( compatibility.staticCompatibleTypes );
+                    pINode->getDynamicDerived( compatibility.dynamicCompatibleTypes );
+                }
+            }
+            m_compatibility.insert( std::make_pair( pInterfaceAction, compatibility ) );
+        }
+    }
+    
+    void DerivationAnalysis::analyseLinkCompatibility( 
+            const std::vector< const interface::Action* >& interfaceActions,
+            const LinkGroup::Vector& linkGroups )
+    {
+        //copy the staticCompatibleTypes to staticLinkCompatibleTypes
+        for( CompatibilityMap::iterator i = m_compatibility.begin(),
+            iEnd = m_compatibility.end(); i!=iEnd; ++i )
+        {
+            Compatibility& compatibility = i->second;
+            compatibility.staticLinkCompatibleTypes.insert( 
+                compatibility.staticCompatibleTypes.begin(),
+                compatibility.staticCompatibleTypes.end() );
+        }
+        
+        for( const LinkGroup* pLinkGroup : linkGroups )
+        {
+            const std::vector< interface::Action* >& links = pLinkGroup->getLinks();
+            
+            for( interface::Action* pLink : links )
+            {
+                interface::Action* pLinkTarget = LinkGroup::getLinkTarget( pLink );
+                
+                CompatibilityMap::const_iterator iFindCst = m_compatibility.find( pLinkTarget );
+                VERIFY_RTE( iFindCst != m_compatibility.end() );
+                const Compatibility& linkTargetCompatibility = iFindCst->second;
+                
+                {
+                    CompatibilityMap::iterator iFind = m_compatibility.find( pLink );
+                    VERIFY_RTE( iFind != m_compatibility.end() );
+                    iFind->second.staticLinkCompatibleTypes.insert( 
+                        linkTargetCompatibility.staticCompatibleTypes.begin(),
+                        linkTargetCompatibility.staticCompatibleTypes.end() );
+                }
+                
+                for( const interface::Action* pCompatibleType : linkTargetCompatibility.staticCompatibleTypes )
+                {
+                    CompatibilityMap::iterator iFind = m_compatibility.find( pCompatibleType );
+                    VERIFY_RTE( iFind != m_compatibility.end() );
+                    iFind->second.staticLinkCompatibleTypes.insert( pLink );
+                }
+            }
+        }
+    }
+    
+    const DerivationAnalysis::Compatibility& DerivationAnalysis::getCompatibility( const interface::Action* pAction ) const
+    {
+        CompatibilityMap::const_iterator iFind = m_compatibility.find( pAction );
+        VERIFY_RTE( iFind != m_compatibility.end() );
+        return iFind->second;
+    }
+    
+    void DerivationAnalysis::getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const
+    {
+        const interface::Action* pAction = dynamic_cast< const interface::Action* >( pElement );
+        if( bDeriving && pAction )
+        {
+            InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
+            InheritanceNodeMap::const_iterator iUpper = m_inheritanceMap.upper_bound( pAction );
+            for( ; iLower != iUpper; ++iLower )
+                instances.push_back( iLower->second->getRootConcreteAction() );
+        }
+        else
+        {
+            InstanceMap::const_iterator iLower = m_instanceMap.lower_bound( pElement );
+            InstanceMap::const_iterator iUpper = m_instanceMap.upper_bound( pElement );
+            for( ; iLower != iUpper; ++iLower )
+                instances.push_back( iLower->second );
+        }
+    }
+    
     void DerivationAnalysis::load( Loader& loader )
     {
         {
@@ -45,6 +141,20 @@ namespace eg
                 const interface::Action*             pAction          = loader.loadObjectRef< const interface::Action >();
                 const concrete::Inheritance_Node*   pInheritanceNode = loader.loadObjectRef< const concrete::Inheritance_Node >();
                 m_inheritanceMap.insert( std::make_pair( pAction, pInheritanceNode ) );
+            }
+        }
+        
+        {
+            std::size_t szSize = 0;
+            loader.load( szSize );
+            for( std::size_t sz = 0; sz != szSize; ++sz )
+            {
+                const interface::Action* pAction = loader.loadObjectRef< const interface::Action >();
+                Compatibility compatibility;
+                loader.loadObjectSet( compatibility.staticCompatibleTypes );
+                loader.loadObjectSet( compatibility.staticLinkCompatibleTypes );
+                loader.loadObjectSet( compatibility.dynamicCompatibleTypes );
+                m_compatibility.insert( std::make_pair( pAction, compatibility ) );
             }
         }
     }
@@ -71,6 +181,19 @@ namespace eg
             {
                 storer.storeObjectRef( i->first );
                 storer.storeObjectRef( i->second );
+            }
+        }
+        {
+            const std::size_t szSize = m_compatibility.size();
+            storer.store( szSize );
+            for( CompatibilityMap::const_iterator 
+                i = m_compatibility.begin(),
+                iEnd = m_compatibility.end(); i!=iEnd; ++i )
+            {
+                storer.storeObjectRef( i->first );
+                storer.storeObjectSet( i->second.staticCompatibleTypes );
+                storer.storeObjectSet( i->second.staticLinkCompatibleTypes );
+                storer.storeObjectSet( i->second.dynamicCompatibleTypes );
             }
         }
     }
