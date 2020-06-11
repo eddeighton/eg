@@ -55,6 +55,51 @@ namespace eg
             const std::vector< const interface::Action* >& interfaceActions,
             const LinkGroup::Vector& linkGroups )
     {
+        for( const LinkGroup* pLinkGroup : linkGroups )
+        {
+            const std::vector< interface::Action* >& links = pLinkGroup->getLinks();
+            
+            for( interface::Action* pLink : links )
+            {
+                CompatibilityMap::const_iterator iFindCst = m_compatibility.find( pLink );
+                VERIFY_RTE( iFindCst != m_compatibility.end() );
+                const Compatibility& linkCompatibility = iFindCst->second;
+                
+                interface::Action* pLinkTarget = LinkGroup::getLinkTarget( pLink );
+                
+                CompatibilityMap::const_iterator iFindCst2 = m_compatibility.find( pLinkTarget );
+                VERIFY_RTE( iFindCst2 != m_compatibility.end() );
+                const Compatibility& linkTargetCompatibility = iFindCst2->second;
+                
+                //for the link itself just copy the compatibility of the link target
+                //the link will already include itself and CANNOT be derived from or linked itself
+                {
+                    CompatibilityMap::iterator iFind = m_compatibility.find( pLink );
+                    VERIFY_RTE( iFind != m_compatibility.end() );
+                    iFind->second.staticLinkCompatibleTypes.insert( 
+                        linkTargetCompatibility.staticCompatibleTypes.begin(),
+                        linkTargetCompatibility.staticCompatibleTypes.end() );
+                        
+                    iFind->second.dynamicCompatibleToLinkTypes.insert( 
+                        linkTargetCompatibility.dynamicCompatibleTypes.begin(),
+                        linkTargetCompatibility.dynamicCompatibleTypes.end() );
+                }
+                
+                for( const interface::Action* pCompatibleType : linkTargetCompatibility.staticCompatibleTypes )
+                {
+                    CompatibilityMap::iterator iFind = m_compatibility.find( pCompatibleType );
+                    VERIFY_RTE( iFind != m_compatibility.end() );
+                    iFind->second.staticLinkCompatibleTypes.insert( pLink );
+                    
+                    //if a type can be converted to from a link - then the dynamicCompatibleFromLinkTypes
+                    //for the type ARE the dynamicCompatibleTypes for the link
+                    iFind->second.dynamicCompatibleFromLinkTypes.insert( 
+                        linkCompatibility.dynamicCompatibleTypes.begin(),
+                        linkCompatibility.dynamicCompatibleTypes.end()  );
+                }
+            }
+        }
+        
         //copy the staticCompatibleTypes to staticLinkCompatibleTypes
         for( CompatibilityMap::iterator i = m_compatibility.begin(),
             iEnd = m_compatibility.end(); i!=iEnd; ++i )
@@ -63,35 +108,6 @@ namespace eg
             compatibility.staticLinkCompatibleTypes.insert( 
                 compatibility.staticCompatibleTypes.begin(),
                 compatibility.staticCompatibleTypes.end() );
-        }
-        
-        for( const LinkGroup* pLinkGroup : linkGroups )
-        {
-            const std::vector< interface::Action* >& links = pLinkGroup->getLinks();
-            
-            for( interface::Action* pLink : links )
-            {
-                interface::Action* pLinkTarget = LinkGroup::getLinkTarget( pLink );
-                
-                CompatibilityMap::const_iterator iFindCst = m_compatibility.find( pLinkTarget );
-                VERIFY_RTE( iFindCst != m_compatibility.end() );
-                const Compatibility& linkTargetCompatibility = iFindCst->second;
-                
-                {
-                    CompatibilityMap::iterator iFind = m_compatibility.find( pLink );
-                    VERIFY_RTE( iFind != m_compatibility.end() );
-                    iFind->second.staticLinkCompatibleTypes.insert( 
-                        linkTargetCompatibility.staticCompatibleTypes.begin(),
-                        linkTargetCompatibility.staticCompatibleTypes.end() );
-                }
-                
-                for( const interface::Action* pCompatibleType : linkTargetCompatibility.staticCompatibleTypes )
-                {
-                    CompatibilityMap::iterator iFind = m_compatibility.find( pCompatibleType );
-                    VERIFY_RTE( iFind != m_compatibility.end() );
-                    iFind->second.staticLinkCompatibleTypes.insert( pLink );
-                }
-            }
         }
     }
     
@@ -154,6 +170,8 @@ namespace eg
                 loader.loadObjectSet( compatibility.staticCompatibleTypes );
                 loader.loadObjectSet( compatibility.staticLinkCompatibleTypes );
                 loader.loadObjectSet( compatibility.dynamicCompatibleTypes );
+                loader.loadObjectSet( compatibility.dynamicCompatibleFromLinkTypes );
+                loader.loadObjectSet( compatibility.dynamicCompatibleToLinkTypes );
                 m_compatibility.insert( std::make_pair( pAction, compatibility ) );
             }
         }
@@ -194,6 +212,8 @@ namespace eg
                 storer.storeObjectSet( i->second.staticCompatibleTypes );
                 storer.storeObjectSet( i->second.staticLinkCompatibleTypes );
                 storer.storeObjectSet( i->second.dynamicCompatibleTypes );
+                storer.storeObjectSet( i->second.dynamicCompatibleFromLinkTypes );
+                storer.storeObjectSet( i->second.dynamicCompatibleToLinkTypes );
             }
         }
     }

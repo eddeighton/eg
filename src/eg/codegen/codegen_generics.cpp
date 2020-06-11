@@ -85,6 +85,97 @@ namespace eg
         {
             push( (input::Action*) pElement, pNode );
         }
+        
+        
+        void generateConversion( std::ostream& os, 
+            const Layout& layout, 
+            const DerivationAnalysis::Compatibility& compatibility, 
+            const std::string& strVoidType, 
+            const LinkGroup* pLinkGroup )
+        {
+            os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << strVoidType << " >::value, \"Incompatible eg type conversion\" );\n";
+            if( !compatibility.dynamicCompatibleTypes.empty() )
+            {
+            os << "  switch( from.data.type )\n";
+            os << "  {\n";
+            
+            //handle conversion FROM links
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleFromLinkTypes )
+            {
+            os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
+                
+                {
+                    const concrete::Dimension_User* pInterfaceDimension = pCompatible->getLinkBaseDimension();
+                    const DataMember* pReference = layout.getDataMember( pInterfaceDimension );
+                    
+                    os << "         switch( " << Printer( pReference, "from.data.instance" ) << ".data.type )\n";
+                    os << "         {\n";
+                                
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
+            {
+                    os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
+            }       
+                    os << "                 data = " << Printer( pReference, "from.data.instance" ) << ".data;\n";
+                    os << "                 break;\n";
+                    os << "             default:\n";
+                    os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
+                    os << "                break;\n";
+                    os << "         }\n";
+                }
+            
+            os << "         break;\n";
+            }
+            
+            //handle conversions TO links
+            if( !compatibility.dynamicCompatibleToLinkTypes.empty() )
+            {
+                for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleToLinkTypes )
+                {
+                    os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
+                
+            LinkGroup::LinkRefMap::const_iterator iFind =
+                pLinkGroup->getDimensionMap().find( pCompatible );
+            VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
+            const concrete::Dimension_Generated* pBackRef = iFind->second;
+            const DataMember* pReference = layout.getDataMember( pBackRef );
+            
+                    os << "         switch( " << Printer( pReference, "from.data.instance" ) << ".type )\n";
+                    os << "         {\n";
+                                
+                
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
+            {
+                    os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
+            }       
+                    os << "                 data = " << Printer( pReference, "from.data.instance" ) << ";\n";
+                    os << "                 break;\n";
+                    os << "             default:\n";
+                    os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
+                    os << "                break;\n";
+                    os << "         }\n";
+                
+                
+                os << "         break;\n";
+                }
+            }
+            
+            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
+            {
+            os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
+            }
+            os << "         data = from.data;\n";
+            os << "         break;\n";
+            os << "     default:\n";
+            os << "         data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
+            os << "         break;\n";
+            os << "  }\n";
+            }
+            else
+            {
+            os << "    data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
+            }
+        }
+        
         void push ( const input::Action*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
@@ -160,6 +251,8 @@ namespace eg
             const interface::Action* pNodeAction = dynamic_cast< const interface::Action* >( pNode );
             const DerivationAnalysis::Compatibility& compatibility = 
                 derivationAnalysis.getCompatibility( pNodeAction );
+            const LinkGroup* pLinkGroup = 
+                linkAnalysis.getLinkGroup( pNodeAction );
                 
             //conversion traits
             for( const interface::Action* pCompatible : compatibility.staticLinkCompatibleTypes )
@@ -180,32 +273,14 @@ namespace eg
             os << "    static constexpr const bool value = true;\n";
             os << "};\n";
             }
+            
 
             //conversion constructor
             os << osTemplateArgLists.str();
             os << "template< typename TFrom >\n";
             os << "inline " << osTypeName.str() << "::" << strActionInterfaceType << "( const TFrom& from )\n";
             os << "{\n";
-            os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
-            if( !compatibility.dynamicCompatibleTypes.empty() )
-            {
-            os << "  switch( from.data.type )\n";
-            os << "  {\n";
-            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
-            {
-            os << "     case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            }
-            os << "         data = from.data;\n";
-            os << "         break;\n";
-            os << "     default:\n";
-            os << "         data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
-            os << "         break;\n";
-            os << "  }\n";
-            }
-            else
-            {
-            os << "    data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
-            }
+            generateConversion( os, layout, compatibility, osTypeVoid.str(), pLinkGroup );
             os << "}\n";
 
             //assignment operator
@@ -213,26 +288,7 @@ namespace eg
             os << "template< typename TFrom >\n";
             os << "inline " << osTypeNameAsType.str() << "& " << osTypeName.str() << "::operator=( const TFrom& from )\n";
             os << "{\n";
-            os << "  static_assert( " << EG_IS_CONVERTIBLE_TYPE << "< TFrom, " << osTypeVoid.str() << " >::value, \"Incompatible eg type conversion\" );\n";
-            if( !compatibility.dynamicCompatibleTypes.empty() )
-            {
-            os << "  switch( from.data.type )\n";
-            os << "  {\n";
-            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
-            {
-            os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            }
-            os << "         data = from.data;\n";
-            os << "         break;\n";
-            os << "     default:\n";
-            os << "         data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
-            os << "         break;\n";
-            os << "  }\n";
-            }
-            else
-            {
-            os << "    data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
-            }
+            generateConversion( os, layout, compatibility, osTypeVoid.str(), pLinkGroup );
             os << "  return *this;\n";
             os << "}\n";
 

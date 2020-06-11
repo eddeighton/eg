@@ -19,6 +19,7 @@
 
 
 #include "eg_compiler/interface.hpp"
+#include "eg_compiler/eg.hpp"
 
 namespace eg
 {
@@ -750,6 +751,38 @@ namespace interface
 		return false;
 	}
 			
+    const interface::Dimension* Action::getLinkBaseDimension() const
+    {
+        const interface::Dimension* pDimension = nullptr;
+        
+        for( Element* pElement : m_children )
+        {
+            switch( pElement->getType() )
+            {
+                case eAbstractDimension :  
+                    {
+                        Dimension* pDim = dynamic_cast< Dimension* >( pElement );
+                        if( pDim->getIdentifier() == EG_LINK_DIMENSION )
+                        {
+                            VERIFY_RTE( pDimension == nullptr );
+                            pDimension = pDim;
+                        }
+                    }
+                    break;
+                case eAbstractInclude   :  break;
+                case eAbstractUsing     :  break;
+                case eAbstractExport    :  break;
+                case eAbstractRoot      :  break;
+                case eAbstractAction    :  break;
+                case eAbstractOpaque    :  break;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break;
+            }
+        }
+        
+        return pDimension;
+    }
     
     Root::Root( const IndexedObject& indexedObject )
         :   Action( indexedObject ),

@@ -1,45 +1,73 @@
 
 
-action A
-{
-	
+action A[ 16 ]
+{	
+	action Log[ 16 ]
+	{
+		LOG( "A::Log" );
+	}
 }
 
-action B : A
-{
-}
-
-action C : B
-{
-
-}
-
-action D : A
+action B[ 16 ] : A
 {
 }
 
+action C[ 16 ] : B
+{
+}
 
-link Test : B
+action D[ 16 ] : A
+{
+}
+
+link Test[ 16 ] : B
 {
 
 }
 
+A a = A();
 B b = B();
 C c = C();
 D d = D();
 
-Test t1 = Test();
-t1.base( b );
-t1.base( c );
-//t1.base( d );
 
-Test t2 = b;
-Test t3 = c;
-//Test t4 = d;
+{
+	Test t = Test().base( c );
+	if( C convertFromLink = t )
+	{
+		convertFromLink.Log();
+	}
+	
+}
 
-B bt1 = t1;
-C ct1 = t1;
-//D dt1 = t1;
+{
+	Test t = Test();
+	if( C convertFromLink = t )
+	{
+		convertFromLink.Log();
+	}
+}
+
+{	
+	Test t = Test().base( b );
+	
+	if( Test t2 = b )
+	{
+		LOG( "works1" );
+	}
+	if( Test t2 = c )
+	{
+		LOG( "works2" );
+	}
+	if( Test t2 = a )
+	{
+		LOG( "shouldnt" );
+	}
+
+}
+
+
+
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

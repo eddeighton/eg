@@ -83,6 +83,8 @@ namespace eg
             StaticCompatibilitySet staticCompatibleTypes;
             StaticCompatibilitySet staticLinkCompatibleTypes;
             DynamicCompatibilitySet dynamicCompatibleTypes;
+            DynamicCompatibilitySet dynamicCompatibleFromLinkTypes;
+            DynamicCompatibilitySet dynamicCompatibleToLinkTypes;
         };
         
         using CompatibilityMap = std::map< const interface::Action*, Compatibility, CompareIndexedObjects >;
@@ -105,11 +107,7 @@ namespace eg
         InheritanceNodeMap m_inheritanceMap;
         
         void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const;
-        
-        //using InstancePair = std::pair< const concrete::Element*, const concrete::Element* >;
-        //using CommonRootMap = std::map< InstancePair, const concrete::Element* >;
-        //CommonRootMap m_commonRoots;
-        
+                
     public:
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;

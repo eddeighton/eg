@@ -177,6 +177,17 @@ namespace eg
 			m_groups.push_back( pGroup );
 		}
 	}
+    
+    const LinkGroup* LinkAnalysis::getLinkGroup( const interface::Action* pLink ) const
+    {
+        for( const LinkGroup* pLinkGroup : m_groups )
+        {
+            const std::vector< interface::Action* >& links = pLinkGroup->getLinks();
+            if( std::find( links.begin(), links.end(), pLink ) != links.end() )
+                return pLinkGroup;
+        }
+        return nullptr;
+    }
 		
 	void LinkGroup::load( Loader& loader )
 	{

@@ -330,28 +330,19 @@ namespace eg
             
             for( interface::Action* pLink : pLinkGroup->getLinks() )
             {
-                std::vector< interface::Dimension* > dimensions;
-                pLink->getDimensions( dimensions );
-                bool bFound = false;
-                for( interface::Dimension* pInterfaceDimension : dimensions )
+                const interface::Dimension* pInterfaceDimension = pLink->getLinkBaseDimension();
+                VERIFY_RTE( pInterfaceDimension );
+                    
+                std::vector< const concrete::Element* > instances;
+                m_pDerivationAnalysis->getInstances( pInterfaceDimension, instances, false );
+                
+                for( const concrete::Element* pElement : instances )
                 {
-                    if( pInterfaceDimension->getIdentifier() == EG_LINK_DIMENSION )
-                    {
-                        VERIFY_RTE( !bFound );
-                        bFound = true;
-                        std::vector< const concrete::Element* > instances;
-                        m_pDerivationAnalysis->getInstances( pInterfaceDimension, instances, false );
-                        
-                        for( const concrete::Element* pElement : instances )
-                        {
-                            const concrete::Dimension_User* pUserDim =
-                                dynamic_cast< const concrete::Dimension_User* >( pElement );
-                            VERIFY_RTE( pUserDim );
-                            const_cast< concrete::Dimension_User* >( pUserDim )->m_pLinkGroup = pLinkGroup;
-                        }
-                    }
+                    const concrete::Dimension_User* pUserDim =
+                        dynamic_cast< const concrete::Dimension_User* >( pElement );
+                    VERIFY_RTE( pUserDim );
+                    const_cast< concrete::Dimension_User* >( pUserDim )->m_pLinkGroup = pLinkGroup;
                 }
-                VERIFY_RTE( bFound );
             }
         }
         

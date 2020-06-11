@@ -290,6 +290,37 @@ namespace concrete
         }
         return m_totalDomainSize;
     }
+    
+    const Dimension_User* Action::getLinkBaseDimension() const
+    {
+        const Dimension_User* pDimension = nullptr;
+        
+        for( Element* pElement : m_children )
+        {
+            switch( pElement->getType() )
+            {
+                
+                case eConcreteAction:
+                case eConcreteDimensionGenerated:
+                    break;
+                case eConcreteDimensionUser :  
+                    {
+                        Dimension_User* pDim = dynamic_cast< Dimension_User* >( pElement );
+                        if( pDim->getDimension()->getIdentifier() == EG_LINK_DIMENSION )
+                        {
+                            VERIFY_RTE( pDimension == nullptr );
+                            pDimension = pDim;
+                        }
+                    }
+                    break;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break;
+            }
+        }
+        
+        return pDimension;
+    }
 
 } //namespace concrete
 } //namespace eg

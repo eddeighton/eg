@@ -312,6 +312,8 @@ namespace interface
 		virtual bool isExecutable() const;
 		virtual bool isMainExecutable() const;
         
+        const interface::Dimension* getLinkBaseDimension() const;
+        
     protected:
         input::Action* m_pAction = nullptr;
         std::optional< boost::filesystem::path > m_definitionFile;
@@ -321,9 +323,6 @@ namespace interface
         std::string m_strBaseType;
         std::string m_strDependency;
         std::vector< std::string > m_parameterTypes;
-        
-        //std::vector< Action* > m_inheriters;
-        //std::vector< Action* > m_linkers;
     };
         
     class Root : public Action

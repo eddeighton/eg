@@ -118,6 +118,8 @@ namespace eg
 			AppendingSession& session );
 		
 		const LinkGroup::Vector& getLinkGroups() const { return m_groups; }
+        
+        const LinkGroup* getLinkGroup( const interface::Action* pLink ) const; 
 		
     public:
         virtual void load( Loader& loader );

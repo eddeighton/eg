@@ -289,6 +289,7 @@ namespace concrete
             VERIFY_RTE( iFind != m_links.end() );
             return iFind->second;
 		}
+        const Dimension_User* getLinkBaseDimension() const;
     
         virtual int getDataSize() const;
         virtual int getLocalDomainSize() const;
