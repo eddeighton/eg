@@ -25,49 +25,62 @@ link Test[ 16 ] : B
 
 }
 
-A a = A();
-B b = B();
-C c = C();
-D d = D();
-
-
+action TestIt
 {
-	Test t = Test().base( c );
-	if( C convertFromLink = t )
+	A a = A();
+	B b = B();
+	C c = C();
+	D d = D();
+
 	{
-		convertFromLink.Log();
+		Test t = Test().base( c );
+		if( C convertFromLink = t )
+		{
+			convertFromLink.Log();
+		}
+		
 	}
-	
+
+	{
+		Test t = Test();
+		if( C convertFromLink = t )
+		{
+			convertFromLink.Log();
+		}
+	}
+
+	{	
+		Test t = Test().base( b );
+		
+		if( Test t2 = b )
+		{
+			LOG( "works1" );
+		}
+		if( Test t2 = c )
+		{
+			LOG( "works2" );
+		}
+		if( Test t2 = a )
+		{
+			LOG( "shouldnt" );
+		}
+	}
 }
 
+
+dim int state;
+state( state() + 1 );
+if( state() == 1 ) 
 {
-	Test t = Test();
-	if( C convertFromLink = t )
-	{
-		convertFromLink.Log();
-	}
+	TestIt();
+	return eg::sleep();
 }
-
-{	
-	Test t = Test().base( b );
-	
-	if( Test t2 = b )
-	{
-		LOG( "works1" );
-	}
-	if( Test t2 = c )
-	{
-		LOG( "works2" );
-	}
-	if( Test t2 = a )
-	{
-		LOG( "shouldnt" );
-	}
-
-}
-
-
-
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "works1"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "works2"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::Log"s );
