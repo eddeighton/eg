@@ -285,8 +285,8 @@ namespace eg
             const concrete::Element* pElement = current.getConcrete();
             if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
             {
-                const interface::Action* pInterfaceAction = 
-                    dynamic_cast< const interface::Action* >( current.getInterface() );
+                const interface::Context* pInterfaceAction = 
+                    dynamic_cast< const interface::Context* >( current.getInterface() );
                 switch( m_solution.getOperation() )
                 {
                     case id_Imp_NoParams        :
@@ -673,8 +673,8 @@ namespace eg
             const concrete::Element* pElement = current.getConcrete();
             if( const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement ) )
             {
-                const interface::Action* pInterfaceAction = 
-                    dynamic_cast< const interface::Action* >( current.getInterface() );
+                const interface::Context* pInterfaceAction = 
+                    dynamic_cast< const interface::Context* >( current.getInterface() );
                 switch( m_solution.getOperation() )
                 {
                     case id_Raw               :
@@ -854,14 +854,14 @@ namespace eg
         }
         
         std::vector< const interface::Dimension* > dimensions;
-        std::vector< const interface::Action* > actions;
+        std::vector< const interface::Context* > actions;
         for( const interface::Element* pReturnType : m_returnTypes )
         {
             if( const interface::Dimension* pDimension = dynamic_cast< const interface::Dimension* >( pReturnType ) )
             {
                 dimensions.push_back( pDimension );
             }
-            else if( const interface::Action* pAction = dynamic_cast< const interface::Action* >( pReturnType ) )
+            else if( const interface::Context* pAction = dynamic_cast< const interface::Context* >( pReturnType ) )
             {
                 actions.push_back( pAction );
             }
@@ -966,14 +966,14 @@ namespace eg
                         ElementPairVector concreteTargets;
                         for( const ElementPair& element : last )
                         {
-                            const interface::Action* pInterfaceAction = 
-                                dynamic_cast< const interface::Action* >( element.first );
-                            ASSERT( pInterfaceAction );
-                            if( !pInterfaceAction->isAbstract() )
+                            const interface::Context* pInterfaceContext = 
+                                dynamic_cast< const interface::Context* >( element.first );
+                            ASSERT( pInterfaceContext );
+                            
                             {
                                 const concrete::Action* pConcreteAction = 
                                     dynamic_cast< const concrete::Action* >( element.second );
-                                if( pConcreteAction->getAction() == pInterfaceAction )
+                                if( pConcreteAction->getContext() == pInterfaceContext )
                                     concreteTargets.push_back( element );
                             }
                         }
@@ -1156,7 +1156,7 @@ namespace eg
             const concrete::Action* pContextAction = 
                 dynamic_cast< const concrete::Action* >( objects[ runtimeContextType ] );
             ASSERT( pContextAction );
-            context.push_back( pContextAction->getAction() );
+            context.push_back( pContextAction->getContext() );
         }
     
         OperationID operationType = HIGHEST_OPERATION_TYPE;
@@ -1202,8 +1202,8 @@ namespace eg
         return InvocationSolution::InvocationID( context, typePath, operationType );
     }
     
-    const interface::Action* chooseMostDerived( const interface::Action* pConcreteAction,
-        const interface::Action* pFirst, const interface::Action* pSecond )
+    const interface::Context* chooseMostDerived( const interface::Context* pConcreteAction,
+        const interface::Context* pFirst, const interface::Context* pSecond )
     {
         ASSERT( pFirst != pSecond );
         
@@ -1213,10 +1213,10 @@ namespace eg
             return pSecond;
         else
         {
-            const interface::Action* pResult = nullptr;
-            for( const interface::Action* pBase : pConcreteAction->getBaseActions() )
+            const interface::Context* pResult = nullptr;
+            for( const interface::Context* pBase : pConcreteAction->getBaseContexts() )
             {
-                if( const interface::Action* p = chooseMostDerived( pBase, pFirst, pSecond ) )
+                if( const interface::Context* p = chooseMostDerived( pBase, pFirst, pSecond ) )
                 {
                     ASSERT( !pResult );
                     pResult = p;
@@ -1253,12 +1253,12 @@ namespace eg
                         //because dimensions do not use inheritance
                         ASSERT( pConcreteAction );
                         
-                        const interface::Action* pFirst = 
-                            dynamic_cast< const interface::Action* >( i->first );
-                        const interface::Action* pSecond = 
-                            dynamic_cast< const interface::Action* >( pInterfaceElement );
+                        const interface::Context* pFirst = 
+                            dynamic_cast< const interface::Context* >( i->first );
+                        const interface::Context* pSecond = 
+                            dynamic_cast< const interface::Context* >( pInterfaceElement );
                         
-                        i->first = chooseMostDerived( pConcreteAction->getAction(), pFirst, pSecond );
+                        i->first = chooseMostDerived( pConcreteAction->getContext(), pFirst, pSecond );
                         ASSERT( i->first );
                         
                         bFound = true;
@@ -1276,10 +1276,10 @@ namespace eg
     }
     
     InvocationSolution::ElementPairVector InvocationSolution::getElementVector( const DerivationAnalysis& analysis, 
-        const std::vector< interface::Action* >& interfaceElements, bool bIncludeInherited )
+        const std::vector< interface::Context* >& interfaceElements, bool bIncludeInherited )
     {
         std::vector< const interface::Element* > elements;
-        for( interface::Action* pAction : interfaceElements )
+        for( interface::Context* pAction : interfaceElements )
             elements.push_back( pAction );
         return getElementVector( analysis, elements, bIncludeInherited );
     }

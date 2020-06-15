@@ -83,7 +83,7 @@ namespace eg
         }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
-            push( (input::Action*) pElement, pNode );
+            push( (input::Context*) pElement, pNode );
         }
         
         
@@ -176,7 +176,7 @@ namespace eg
             }
         }
         
-        void push ( const input::Action*    pElement, const interface::Element* pNode )
+        void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
             std::vector< const interface::Element* > path = getPath( pNode );
@@ -248,14 +248,15 @@ namespace eg
 
             std::string strActionInterfaceType = getInterfaceType( pNode->getIdentifier() );
 
-            const interface::Action* pNodeAction = dynamic_cast< const interface::Action* >( pNode );
+            const interface::Context* pNodeAction = dynamic_cast< const interface::Context* >( pNode );
             const DerivationAnalysis::Compatibility& compatibility = 
                 derivationAnalysis.getCompatibility( pNodeAction );
-            const LinkGroup* pLinkGroup = 
-                linkAnalysis.getLinkGroup( pNodeAction );
+            const LinkGroup* pLinkGroup = nullptr;
+            if( const interface::Link* pLink = dynamic_cast< const interface::Link* >( pNodeAction ) )
+                pLinkGroup = linkAnalysis.getLinkGroup( pLink );
                 
             //conversion traits
-            for( const interface::Action* pCompatible : compatibility.staticLinkCompatibleTypes )
+            for( const interface::Context* pCompatible : compatibility.staticLinkCompatibleTypes )
             {
                 std::ostringstream osCompatibleTypeName;
                 {
@@ -398,7 +399,7 @@ namespace eg
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
-        void pop ( const input::Action*    pElement, const interface::Element* pNode )
+        void pop ( const input::Context*   pElement, const interface::Element* pNode )
         {
         }
     };
@@ -430,11 +431,11 @@ namespace eg
         }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
-            push( (input::Action*) pElement, pNode );
+            push( (input::Context*) pElement, pNode );
         }
-        void push ( const input::Action*    pElement, const interface::Element* pNode )
+        void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
-            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
             VERIFY_RTE( pAction );
 
             //TODO ELIMINATION: only generate ::invoke member function definitions for the set of contexts the translation unit
@@ -537,7 +538,7 @@ namespace eg
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
-        void pop ( const input::Action*    pElement, const interface::Element* pNode )
+        void pop ( const input::Context*    pElement, const interface::Element* pNode )
         {
         }
     };

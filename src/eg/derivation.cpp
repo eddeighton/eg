@@ -28,10 +28,10 @@ namespace eg
     /////////////////////////////////////////////////////////////////////////////////////
     
     void DerivationAnalysis::analyseCompatibility( 
-            const std::vector< const interface::Action* >& interfaceActions,
+            const std::vector< const interface::Context* >& interfaceActions,
             const std::vector< const concrete::Inheritance_Node* >& inheritanceNodes )
     {
-        for( const interface::Action* pInterfaceAction : interfaceActions )
+        for( const interface::Context* pInterfaceAction : interfaceActions )
         {
             Compatibility compatibility;
             for( const concrete::Inheritance_Node* pINode : inheritanceNodes )
@@ -52,20 +52,20 @@ namespace eg
     }
     
     void DerivationAnalysis::analyseLinkCompatibility( 
-            const std::vector< const interface::Action* >& interfaceActions,
+            const std::vector< const interface::Context* >& interfaceActions,
             const LinkGroup::Vector& linkGroups )
     {
         for( const LinkGroup* pLinkGroup : linkGroups )
         {
-            const std::vector< interface::Action* >& links = pLinkGroup->getLinks();
+            const std::vector< interface::Link* >& links = pLinkGroup->getLinks();
             
-            for( interface::Action* pLink : links )
+            for( interface::Link* pLink : links )
             {
                 CompatibilityMap::const_iterator iFindCst = m_compatibility.find( pLink );
                 VERIFY_RTE( iFindCst != m_compatibility.end() );
                 const Compatibility& linkCompatibility = iFindCst->second;
                 
-                interface::Action* pLinkTarget = LinkGroup::getLinkTarget( pLink );
+                interface::Context* pLinkTarget = LinkGroup::getLinkTarget( pLink );
                 
                 CompatibilityMap::const_iterator iFindCst2 = m_compatibility.find( pLinkTarget );
                 VERIFY_RTE( iFindCst2 != m_compatibility.end() );
@@ -85,7 +85,7 @@ namespace eg
                         linkTargetCompatibility.dynamicCompatibleTypes.end() );
                 }
                 
-                for( const interface::Action* pCompatibleType : linkTargetCompatibility.staticCompatibleTypes )
+                for( const interface::Context* pCompatibleType : linkTargetCompatibility.staticCompatibleTypes )
                 {
                     CompatibilityMap::iterator iFind = m_compatibility.find( pCompatibleType );
                     VERIFY_RTE( iFind != m_compatibility.end() );
@@ -111,7 +111,7 @@ namespace eg
         }
     }
     
-    const DerivationAnalysis::Compatibility& DerivationAnalysis::getCompatibility( const interface::Action* pAction ) const
+    const DerivationAnalysis::Compatibility& DerivationAnalysis::getCompatibility( const interface::Context* pAction ) const
     {
         CompatibilityMap::const_iterator iFind = m_compatibility.find( pAction );
         VERIFY_RTE( iFind != m_compatibility.end() );
@@ -120,7 +120,7 @@ namespace eg
     
     void DerivationAnalysis::getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const
     {
-        const interface::Action* pAction = dynamic_cast< const interface::Action* >( pElement );
+        const interface::Context* pAction = dynamic_cast< const interface::Context* >( pElement );
         if( bDeriving && pAction )
         {
             InheritanceNodeMap::const_iterator iLower = m_inheritanceMap.lower_bound( pAction );
@@ -154,7 +154,7 @@ namespace eg
             loader.load( szSize );
             for( std::size_t sz = 0; sz != szSize; ++sz )
             {
-                const interface::Action*             pAction          = loader.loadObjectRef< const interface::Action >();
+                const interface::Context*             pAction          = loader.loadObjectRef< const interface::Context >();
                 const concrete::Inheritance_Node*   pInheritanceNode = loader.loadObjectRef< const concrete::Inheritance_Node >();
                 m_inheritanceMap.insert( std::make_pair( pAction, pInheritanceNode ) );
             }
@@ -165,7 +165,7 @@ namespace eg
             loader.load( szSize );
             for( std::size_t sz = 0; sz != szSize; ++sz )
             {
-                const interface::Action* pAction = loader.loadObjectRef< const interface::Action >();
+                const interface::Context* pAction = loader.loadObjectRef< const interface::Context >();
                 Compatibility compatibility;
                 loader.loadObjectSet( compatibility.staticCompatibleTypes );
                 loader.loadObjectSet( compatibility.staticLinkCompatibleTypes );

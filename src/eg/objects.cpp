@@ -43,7 +43,7 @@ namespace eg
             case eInputInclude               : pObject = new input::Include                 ( object );  break;
             case eInputUsing                 : pObject = new input::Using                   ( object );  break;
             case eInputExport                : pObject = new input::Export                  ( object );  break;
-            case eInputAction                : pObject = new input::Action                  ( object );  break;
+            case eInputContext               : pObject = new input::Context                 ( object );  break;
             case eInputRoot                  : pObject = new input::Root                    ( object );  break;
                                                                                            
             case eAbstractOpaque             : pObject = new interface::Opaque              ( object );  break;
@@ -51,7 +51,12 @@ namespace eg
             case eAbstractInclude            : pObject = new interface::Include             ( object );  break;
             case eAbstractUsing              : pObject = new interface::Using               ( object );  break;
             case eAbstractExport             : pObject = new interface::Export              ( object );  break;
+            case eAbstractAbstract           : pObject = new interface::Abstract            ( object );  break;
+            case eAbstractEvent              : pObject = new interface::Event               ( object );  break;
+            case eAbstractFunction           : pObject = new interface::Function            ( object );  break;
             case eAbstractAction             : pObject = new interface::Action              ( object );  break;
+            case eAbstractObject             : pObject = new interface::Object              ( object );  break;
+            case eAbstractLink               : pObject = new interface::Link                ( object );  break;
             case eAbstractRoot               : pObject = new interface::Root                ( object );  break;
                                 
             case eInheritanceNode            : pObject = new concrete::Inheritance_Node     ( object );  break;

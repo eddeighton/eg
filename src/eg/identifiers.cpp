@@ -35,11 +35,20 @@ namespace eg
         for( IndexedObject* pObject : objects )
         {
             switch( pObject->getType() )
-            {
-                //case eNodeLink      :  
-                case eAbstractDimension : 
-                case eAbstractRoot      :  
-                case eAbstractAction    :  
+            {   
+                case eAbstractOpaque    :
+                case eAbstractInclude   :
+                case eAbstractUsing     :
+                case eAbstractExport    :
+                    break;
+                case eAbstractDimension :
+                case eAbstractAbstract  :
+                case eAbstractEvent     :
+                case eAbstractFunction  :
+                case eAbstractAction    :
+                case eAbstractObject    :
+                case eAbstractLink      :
+                case eAbstractRoot      :
                     {
                         const interface::Element* pElement = dynamic_cast< const interface::Element* >( pObject );
                         VERIFY_RTE( pElement );
@@ -47,6 +56,36 @@ namespace eg
                             std::make_pair( pElement->getIdentifier(), pElement ) );
                     }
                     break;
+                
+                case eInputOpaque:
+                case eInputDimension:
+                case eInputInclude:
+                case eInputUsing:
+                case eInputExport:
+                
+                case eInputContext:
+                case eInputRoot:
+                
+                case eInheritanceNode:
+                
+                case eConcreteAction:
+                case eConcreteDimensionUser:
+                case eConcreteDimensionGenerated:
+                
+                case eIdentifiers:
+                case eDerivationAnalysis:
+                case eLinkGroup:
+                case eLinkAnalysis:
+                case eTranslationUnit:
+                case eTranslationUnitAnalysis:
+                case eInvocationSolution:
+                
+                case eDataMember:
+                case eBuffer:
+                case eLayout:
+                    break;
+                default:
+                    THROW_RTE( "Unknown abstract type" );
             }
         }
         

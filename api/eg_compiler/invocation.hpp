@@ -100,7 +100,7 @@ namespace eg
             const std::vector< const interface::Element* >& interfaceElements, bool bIncludeInherited );
             
         static ElementPairVector getElementVector( const DerivationAnalysis& analysis, 
-            const std::vector< interface::Action* >& interfaceElements, bool bIncludeInherited );
+            const std::vector< interface::Context* >& interfaceElements, bool bIncludeInherited );
             
     private:
         void build( const DerivationAnalysis& analysis, const NameResolution& resolution );

@@ -54,7 +54,7 @@ namespace eg
         }
         
     public:
-        using ActionSet = std::set< const interface::Action*, CompareIndexedObjects >; 
+        using ActionSet = std::set< const interface::Context*, CompareIndexedObjects >; 
 		
 		struct CoordinatorHostnameDefinitionFile
 		{
@@ -127,7 +127,7 @@ namespace eg
         IndexedObject::FileID getDatabaseFileID() const { return m_databaseFileID; }
         const ActionSet& getActions() const { return m_actions; }
         
-        bool isAction( const interface::Action* pAction ) const
+        bool isAction( const interface::Context* pAction ) const
         {
             return m_actions.count( pAction ) > 0U;
         }
@@ -156,12 +156,12 @@ namespace eg
         }
     public:
         using TranslationUnits = std::vector< TranslationUnit* >;
-		using ActionTUMap = std::map< const interface::Action*, const TranslationUnit*, CompareIndexedObjects >;
+		using ActionTUMap = std::map< const interface::Context*, const TranslationUnit*, CompareIndexedObjects >;
     private:
         TranslationUnits m_translationUnits;
         ActionTUMap m_actionTUMap;
     public:
-		const TranslationUnit* getActionTU( const interface::Action* pAction ) const;
+		const TranslationUnit* getActionTU( const interface::Context* pAction ) const;
 		
         const TranslationUnits& getTranslationUnits() const { return m_translationUnits; }
     public:

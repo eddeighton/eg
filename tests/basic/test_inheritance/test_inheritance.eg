@@ -1,0 +1,106 @@
+
+action A[ 2 ]
+{
+    LOG( "A" );
+    
+    action C[ 3 ]
+    {
+        LOG( "A::C" );
+        
+        action F
+        {
+            LOG( "A::C::F" );
+        }
+    }
+    
+    action D[ 3 ]
+    {
+        LOG( "A::D" );
+        
+        action G
+        {
+            LOG( "A::D::G" );
+        }
+    }
+}
+
+action B[ 2 ] : A
+{
+    LOG( "B" );
+    
+    action C[ 3 ] : A::C
+    {
+        LOG( "B::C" );
+    }
+    
+}
+
+action E[ 2 ] : B
+{
+    LOG( "E" );
+    
+    action D[ 3 ] : A::D
+    {
+        LOG( "E::D" );
+    }
+}
+    
+
+
+dim int state;
+state( state() + 1 );
+if( state() == 1 ) 
+{
+
+    A a = A(); //A
+    
+    a.C().F(); //A::C, A::C::F
+    a.D().G(); //A::D, A::D::G
+
+    A b = B(); //B
+    
+    b.C().F(); //B::C, A::C::F
+    b.D().G(); //A::D, A::D::G
+    
+    A e = E(); //E
+    e.C().F(); //B::C, A::C::F
+    e.D().G(); //E::D, A::D::G
+
+	
+	return eg::sleep();
+}
+
+
+
+eg::event_iterator iter = events::getIterator();
+RawEvent ev;
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::C"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::C::F"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::D"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::D::G"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "B"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "B::C"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::C::F"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::D"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::D::G"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "E"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "B::C"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::C::F"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "E::D"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "A::D::G"s );

@@ -51,7 +51,7 @@ namespace interface
     public:
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        virtual bool update( const Element* pElement );
+        //virtual bool update( const Element* pElement );
 
         template< class T >
         class Collector
@@ -94,7 +94,7 @@ namespace interface
                     case eInputUsing     : visitor( dynamic_cast< const input::Using* >(      m_pElement ) ); break;
                     case eInputExport    : visitor( dynamic_cast< const input::Export* >(     m_pElement ) ); break;
                     case eInputRoot      : visitor( dynamic_cast< const input::Root* >(       m_pElement ) ); break;
-                    case eInputAction    : visitor( dynamic_cast< const input::Action* >(     m_pElement ) ); break;
+                    case eInputContext   : visitor( dynamic_cast< const input::Context* >(    m_pElement ) ); break;
                         break;
                     default:
                         THROW_RTE( "Unsupported type" );
@@ -120,7 +120,7 @@ namespace interface
                     case eInputUsing     : visitor.push( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
                     case eInputExport    : visitor.push( dynamic_cast< const input::Export* >(     m_pElement ), this ); break;
                     case eInputRoot      : visitor.push( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
-                    case eInputAction    : visitor.push( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
+                    case eInputContext   : visitor.push( dynamic_cast< const input::Context* >(    m_pElement ), this ); break;
                         break;
                     default:
                         THROW_RTE( "Unsupported type" );
@@ -141,7 +141,7 @@ namespace interface
                     case eInputUsing     : visitor.pop( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
                     case eInputExport    : visitor.pop( dynamic_cast< const input::Export* >(     m_pElement ), this ); break;
                     case eInputRoot      : visitor.pop( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
-                    case eInputAction    : visitor.pop( dynamic_cast< const input::Action* >(     m_pElement ), this ); break;
+                    case eInputContext   : visitor.pop( dynamic_cast< const input::Context* >(    m_pElement ), this ); break;
                         break;
                     default:
                         THROW_RTE( "Unsupported type" );
@@ -185,7 +185,7 @@ namespace interface
         input::Opaque* m_pOpaque = nullptr;
     };
     
-    class Action;
+    class Context;
     
     class Dimension : public Element
     {
@@ -200,16 +200,16 @@ namespace interface
         Dimension( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        virtual bool update( const Element* pElement );
+        //virtual bool update( const Element* pElement );
     public:
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
         std::size_t getSize() const { VERIFY_RTE_MSG( m_size != SIZE_NOT_SET, "Size not calculated for: " << getType() ); return m_size; }
-        const std::vector< Action* >& getActionTypes() const { return m_actionTypes; }
+        const std::vector< Context* >& getContextTypes() const { return m_contextTypes; }
         static bool isHomogenous( const std::vector< const Dimension* >& dimensions );
     private:
         input::Dimension* m_pDimension = nullptr;
-        std::vector< Action* > m_actionTypes;
+        std::vector< Context* > m_contextTypes;
         std::string m_canonicalType;
         std::size_t m_size = SIZE_NOT_SET;
     };
@@ -225,7 +225,7 @@ namespace interface
         Using( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        virtual bool update( const Element* pElement );
+        //virtual bool update( const Element* pElement );
     public:
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
@@ -245,7 +245,7 @@ namespace interface
         Export( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        virtual bool update( const Element* pElement );
+        //virtual bool update( const Element* pElement );
     public:
         const std::string& getReturnType() const;
         const std::string& getParameters() const;
@@ -264,14 +264,100 @@ namespace interface
         Include( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        virtual bool update( const Element* pElement );
+        //virtual bool update( const Element* pElement );
     public:
     
     private:
         input::Include* m_pInclude = nullptr;
     };
+    
+    class Context : public Element
+    {
+        friend class ObjectFactoryImpl;
+        friend class ::eg::InterfaceSession;
+        friend class ::clang::AbstractMutator;
+    public:        
+        void getDimensions( std::vector< Dimension* >& dimensions ) const;
+        void getUsings( std::vector< Using* >& usings ) const;
+        void getExports( std::vector< Export* >& exports ) const;
+        std::size_t getInputBaseCount() const;
+        const std::vector< Context* >& getBaseContexts() const { return m_baseContexts; }
+        const std::vector< std::string >& getParameters() const { return m_parameterTypes; }
+        void getChildContexts( std::vector< Context* >& actions ) const;
+        bool isIndirectlyAbstract() const;
+        std::size_t getSize() const { return m_size; }
+        const char* getContextType() const { return m_pContext->getContextType(); }
+        
+        std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
+        bool hasDefinition() const { return m_definitionFile.has_value(); }
+        void setDefinitionFile( std::optional< boost::filesystem::path > definitionFileOpt ) { m_definitionFile = definitionFileOpt; }
+        
+        virtual void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
+        virtual bool isAbstract() const;
+		virtual bool isExecutable() const;
+		virtual bool isMainExecutable() const;
+        const interface::Dimension* getLinkBaseDimension() const;
+        
+    protected:
+        Context( const IndexedObject& indexedObject );
+        Context( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        
+        input::Context* m_pContext = nullptr;
+        std::vector< Context* > m_baseContexts;
+        std::vector< std::string > m_parameterTypes;
+        std::size_t m_size = 1U;
+        std::optional< boost::filesystem::path > m_definitionFile;
+        mutable std::optional< bool > m_bIndirectlyAbstract; //optimisation only
+    };
+    
+    class Abstract : public Context
+    {
+        friend class ObjectFactoryImpl;
+        friend class ::eg::InterfaceSession;
+        friend class ::clang::AbstractMutator;
+    public:
+        static const ObjectType Type = eAbstractAbstract;
+    protected:
+        Abstract( const IndexedObject& indexedObject );
+        Abstract( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        virtual bool isAbstract() const;
+    };
+    
+    class Event : public Context
+    {
+        friend class ObjectFactoryImpl;
+        friend class ::eg::InterfaceSession;
+        friend class ::clang::AbstractMutator;
+    public:
+        static const ObjectType Type = eAbstractEvent;
+    protected:
+        Event( const IndexedObject& indexedObject );
+        Event( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        
+    };
+    
+    class Function : public Context
+    {
+        friend class ObjectFactoryImpl;
+        friend class ::eg::InterfaceSession;
+        friend class ::clang::AbstractMutator;
+    public:
+        static const ObjectType Type = eAbstractFunction;
+    protected:
+        Function( const IndexedObject& indexedObject );
+        Function( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        
+    };
 
-    class Action : public Element
+    class Action : public Context
     {
         friend class ObjectFactoryImpl;
         friend class ::eg::InterfaceSession;
@@ -283,49 +369,43 @@ namespace interface
         Action( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        virtual bool update( const Element* pElement );
+        //virtual bool update( const Element* pElement );
 
     public:
-        virtual void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
+
+    };
+    
+    class Object : public Context
+    {
+        friend class ObjectFactoryImpl;
+        friend class ::eg::InterfaceSession;
+        friend class ::clang::AbstractMutator;
     public:
-        void getDimensions( std::vector< Dimension* >& dimensions ) const;
-        void getUsings( std::vector< Using* >& usings ) const;
-        void getExports( std::vector< Export* >& exports ) const;
-        std::size_t getBaseCount() const;
-        const std::vector< Action* >& getBaseActions() const { return m_baseActions; }
-        const std::string& getBaseType() const { return m_strBaseType; }
-        const std::vector< std::string >& getParameters() const { return m_parameterTypes; }
-        void getChildActions( std::vector< Action* >& actions ) const;
-        bool isAbstract() const;
-        bool isLink() const;
-        bool isIndirectlyAbstract() const;
-        bool isSingular() const;
-        std::size_t getSize() const { return m_size; }
-        std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
-        bool hasDefinition() const { return m_definitionFile.has_value(); }
-        
-        void setDefinitionFile( std::optional< boost::filesystem::path > definitionFileOpt )
-        {
-            m_definitionFile = definitionFileOpt;
-        }
-		
-		virtual bool isExecutable() const;
-		virtual bool isMainExecutable() const;
-        
-        const interface::Dimension* getLinkBaseDimension() const;
-        
+        static const ObjectType Type = eAbstractObject;
     protected:
-        input::Action* m_pAction = nullptr;
-        std::optional< boost::filesystem::path > m_definitionFile;
-        std::size_t m_size = 1U;
-        mutable std::optional< bool > m_bIndirectlyAbstract;
-        std::vector< Action* > m_baseActions;
-        std::string m_strBaseType;
-        std::string m_strDependency;
-        std::vector< std::string > m_parameterTypes;
+        Object( const IndexedObject& indexedObject );
+        Object( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        
+    };
+    
+    class Link : public Context
+    {
+        friend class ObjectFactoryImpl;
+        friend class ::eg::InterfaceSession;
+        friend class ::clang::AbstractMutator;
+    public:
+        static const ObjectType Type = eAbstractLink;
+    protected:
+        Link( const IndexedObject& indexedObject );
+        Link( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        virtual void load( Loader& loader );
+        virtual void store( Storer& storer ) const;
+        
     };
         
-    class Root : public Action
+    class Root : public Object
     {
         friend class ::eg::ObjectFactoryImpl;
     public:
@@ -336,7 +416,7 @@ namespace interface
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
     public:
-        virtual bool update( const Element* pElement );
+        //virtual bool update( const Element* pElement );
         
 		RootType getRootType() const { return m_rootType; }
 		

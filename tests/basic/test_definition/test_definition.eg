@@ -1,0 +1,24 @@
+
+
+object Test
+{
+    LOG( "Test called" );
+}
+
+link TestLink : Test;
+
+dim int state;
+state( state() + 1 );
+if( state() == 1 ) 
+{
+    Test.Start();
+    TestLink().base( Test.Get() );
+    
+	return eg::sleep();
+}
+
+
+eg::event_iterator iter = events::getIterator();
+RawEvent ev;
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "Test called"s );

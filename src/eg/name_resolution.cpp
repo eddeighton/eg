@@ -55,7 +55,7 @@ namespace eg
                             bContinue = true;
                             
                             InvocationSolution::ElementPairVector elements =
-                                InvocationSolution::getElementVector( m_analysis, pUserDim->getActionTypes(), true );
+                                InvocationSolution::getElementVector( m_analysis, pUserDim->getContextTypes(), true );
                             
                             for( const InvocationSolution::ElementPair& element : elements )
                                 add( iNodeID, element, false, false );

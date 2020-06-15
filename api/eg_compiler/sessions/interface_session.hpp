@@ -65,14 +65,14 @@ namespace eg
             }
         };
         using ActionOverrideMap = 
-            std::map< const interface::Action*, concrete::Action*, CompareNodeIdentity< const interface::Action > >;
+            std::map< const interface::Context*, concrete::Action*, CompareNodeIdentity< const interface::Context > >;
         using DimensionOverrideMap = 
             std::map< const interface::Dimension*, concrete::Dimension*, CompareNodeIdentity< const interface::Dimension > >;
             
         concrete::Inheritance_Node* constructInheritanceNode( concrete::Action* pRootInstance, 
-            concrete::Inheritance_Node* pParent, const interface::Action* pAction );
+            concrete::Inheritance_Node* pParent, const interface::Context* pAction );
         concrete::Inheritance_Node* constructInheritanceTree( concrete::Action* pInstance, 
-            concrete::Inheritance_Node* pInheritanceNode, const interface::Action* pAction );
+            concrete::Inheritance_Node* pInheritanceNode, const interface::Context* pAction );
         void constructInheritanceTree( concrete::Action* pInstance );
         
         void calculateInstanceActionName( concrete::Action* pAction );

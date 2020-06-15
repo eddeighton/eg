@@ -794,39 +794,27 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         }
         
         
-        //begin of actual parsing routines for eg grammar
-        void parse_opaque_until_identifier_semi( ParserSession& session, input::Opaque* pOpaque )
+        
+        ////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+        //high level parsing utility functions
+        
+        void parse_identifier( std::string& strIdentifier )
         {
-            clang::SourceLocation startLoc = Tok.getLocation();
-            clang::SourceLocation endLoc   = Tok.getEndLoc();
-            
-            clang::Token next = NextToken();
-            while( !next.is( clang::tok::semi ) )
-            {
-                endLoc = Tok.getEndLoc();
-                ConsumeToken();
-                next = NextToken();
-            }
-            
-            VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
-        }
-
-        void parse_dimension( ParserSession& session, input::Dimension* pDimension )
-        {
-            pDimension->m_pType = session.construct< input::Opaque >();
-            parse_opaque_until_identifier_semi( session, pDimension->m_pType );
-            
             if( Tok.is( clang::tok::identifier ) )
             {
                 clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                pDimension->m_strIdentifier = pIdentifier->getName();
+                strIdentifier = pIdentifier->getName();
                 ConsumeToken();
             }
             else
             {
                 EG_PARSER_ERROR( "Expected identifier" );
             }
-            
+        }
+        
+        void parse_semicolon()
+        {
             if( !TryConsumeToken( clang::tok::semi ) )
             {
                 //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
@@ -834,14 +822,202 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             }
         }
         
-        void parse_include( ParserSession& session, input::Include* pInclude )
+        void parse_argumentList( ParserSession& session, input::Opaque*& pArguments )
         {
-            if( Tok.is( clang::tok::identifier ) )
+            if( Tok.is( clang::tok::l_paren ) )
             {
-                clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                pInclude->m_strIdentifier = pIdentifier->getName();
+                BalancedDelimiterTracker T( *this, clang::tok::l_paren );
+                T.consumeOpen();
+                
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeAnyToken();
+                
+                while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                }
+                
+                {
+                    pArguments = session.construct< input::Opaque >();
+                    if( !getSourceText( startLoc, endLoc, pArguments->m_str ) )
+                    {
+                        EG_PARSER_ERROR( "Error parsing argument list" );
+                    }
+                }
+                
+                T.consumeClose();
+            }
+        }
+        
+        void parse_comment()
+        {
+            while( Tok.is( clang::tok::comment ) )
+            {
                 ConsumeToken();
             }
+        }
+        
+            
+        void parse_returnType( ParserSession& session, input::Opaque*& pReturnType )
+        {
+            if( Tok.is( clang::tok::colon ) )
+            {
+                ConsumeAnyToken();
+                
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeAnyToken();
+                
+                while( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                }
+                
+                {
+                    pReturnType = session.construct< input::Opaque >();
+                    if( !getSourceText( startLoc, endLoc, pReturnType->m_str ) )
+                    {
+                        EG_PARSER_ERROR( "Error parsing return type" );
+                    }
+                }
+            }
+        }
+        
+        void parse_inheritance( ParserSession& session, std::vector< input::Opaque* >& inheritance )
+        {
+            if( Tok.is( clang::tok::colon ) )
+            {
+                bool bFoundComma = true;
+                while( bFoundComma )
+                {
+                    ConsumeAnyToken();
+                    bFoundComma = false;
+                    
+                    clang::SourceLocation startLoc = Tok.getLocation();
+                    clang::SourceLocation endLoc   = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                    
+                    while( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
+                    {
+                        endLoc = Tok.getEndLoc();
+                        ConsumeAnyToken();
+                    }
+                    
+                    {
+                        input::Opaque* pInheritance = session.construct< input::Opaque >();
+                        if( !getSourceText( startLoc, endLoc, pInheritance->m_str ) )
+                        {
+                            EG_PARSER_ERROR( "Error parsing inheritance" );
+                        }
+                        inheritance.push_back( pInheritance );
+                    }
+                    
+                    if( Tok.is( clang::tok::comma ) )
+                        bFoundComma = true;
+                }
+            }
+        }
+        
+        void parse_body( ParserSession& session, input::Opaque*& pBody )
+        {
+            if( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                
+                braceStack.push_back( BraceCount );
+            
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeAnyToken();
+                
+                while( !isEofOrEom() && !( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                }
+                
+                pBody = session.construct< input::Opaque >();
+                if( !getSourceText( startLoc, endLoc, pBody->m_str ) )
+                {
+                    EG_PARSER_ERROR( "Error parsing body" );
+                }
+
+                if( !BraceCount == braceStack.back() )
+                {
+                    EG_PARSER_ERROR( "Brace count mismatch" );
+                }
+                braceStack.pop_back();
+                
+                T.consumeClose();
+            }
+        }
+        
+        void parse_size( ParserSession& session, input::Opaque*& pSize )
+        {
+            //parse optional size specifier
+            if( Tok.is( clang::tok::l_square ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_square );
+                T.consumeOpen();
+                
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeAnyToken();
+                
+                while( !isEofOrEom() && !Tok.is( clang::tok::r_square ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeAnyToken();
+                }
+                
+                {
+                    pSize = session.construct< input::Opaque >();
+                    if( !getSourceText( startLoc, endLoc, pSize->m_str ) )
+                    {
+                        EG_PARSER_ERROR( "Error parsing size" );
+                    }
+                }
+                
+                T.consumeClose();
+            }
+        }
+        
+        
+        
+        //begin of actual parsing routines for eg grammar
+
+        void parse_dimension( ParserSession& session, input::Dimension* pDimension )
+        {
+            //dim type identifier;
+            {
+                pDimension->m_pType = session.construct< input::Opaque >();
+                
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                
+                clang::Token next = NextToken();
+                while( !next.is( clang::tok::semi ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeToken();
+                    next = NextToken();
+                }
+                
+                VERIFY_RTE( getSourceText( startLoc, endLoc, pDimension->m_pType->m_str ) );
+            }
+            
+            parse_identifier( pDimension->m_strIdentifier );
+            parse_semicolon();
+        }
+        
+        void parse_include( ParserSession& session, input::Include* pInclude )
+        {
+            //include name( file );
+            parse_identifier( pInclude->m_strIdentifier );
 
             BalancedDelimiterTracker T( *this, clang::tok::l_paren );
 
@@ -883,30 +1059,13 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 
             T.consumeClose();
 
-            if( !TryConsumeToken( clang::tok::semi ) )
-            {
-                //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
-                EG_PARSER_ERROR( "expected semicolon" );
-            }
+            parse_semicolon();
         }
         
         void parse_using( ParserSession& session, input::Using* pUsing )
         {
-            if( Tok.is( clang::tok::kw_using ) )
-            {
-                ConsumeToken();
-            }
-            
-            if( Tok.is( clang::tok::identifier ) )
-            {
-                clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                pUsing->m_strIdentifier = pIdentifier->getName();
-                ConsumeToken();
-            }
-            else
-            {
-                EG_PARSER_ERROR( "Expected identifier" );
-            }
+            //using T = expression;
+            parse_identifier( pUsing->m_strIdentifier );
             
             if( Tok.is( clang::tok::equal ) )
             {
@@ -929,7 +1088,10 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 }
                 
                 pUsing->m_pType = session.construct< input::Opaque >();
-                VERIFY_RTE( getSourceText( startLoc, endLoc, pUsing->m_pType->m_str ) );
+                if( !getSourceText( startLoc, endLoc, pUsing->m_pType->m_str ) )
+                {
+                    EG_PARSER_ERROR( "Error parsing using statement" );
+                }
             }
             
             if( !TryConsumeToken( clang::tok::semi ) )
@@ -941,182 +1103,40 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         
         void parse_export( ParserSession& session, input::Export* pExport )
         {
-            //export returnType name( parameter list )
+            //export name( parameter list ) : returnType
             //{
             //  impl;
             //}
             
-            if( Tok.is( clang::tok::kw_export ) )
-            {
-                ConsumeAnyToken();
-            }
-            
-            //return type - parse opaque UNTIL identifier lparen
-            {
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc   = Tok.getEndLoc();
-                
-                clang::Token next = NextToken();
-                while( !next.is( clang::tok::l_paren ) )
-                {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeToken();
-                    next = NextToken();
-                }
-                
-                pExport->m_pReturnType = session.construct< input::Opaque >();
-                VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pReturnType->m_str ) );
-                
-            }
-            
             //identifier
-            if( Tok.is( clang::tok::identifier ) )
-            {
-                clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                pExport->m_strIdentifier = pIdentifier->getName();
-                ConsumeToken();
-            }
-            else
-            {
-                EG_PARSER_ERROR( "Expected identifier" );
-            }
-            
-            
+            parse_identifier( pExport->m_strIdentifier );
             
             //parse optional argument list
-            if( Tok.is( clang::tok::l_paren ) )
-            {
-                pExport->m_pParameters = session.construct< input::Opaque >();
-                        
-                BalancedDelimiterTracker T( *this, clang::tok::l_paren );
-                T.consumeOpen();
-                
-                if( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
-                {
-                    clang::SourceLocation startLoc = Tok.getLocation();
-                    clang::SourceLocation endLoc   = Tok.getEndLoc();
-                    ConsumeAnyToken();
-                    
-                    while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
-                    {
-                        endLoc = Tok.getEndLoc();
-                        ConsumeAnyToken();
-                    }
-                    VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pParameters->m_str ) );
-                }
-                
-                //SkipUntil( clang::tok::r_paren, StopBeforeMatch );
-                T.consumeClose();
-            }
-            else
-            {
-                EG_PARSER_ERROR( "Expected parameter list" );
-            }
+            parse_argumentList( session, pExport->m_pParameters );
             
-            //maybe a comment?
-            while( Tok.is( clang::tok::comment ) )
-            {
-                ConsumeToken();
-            }
+            //return type 
+            parse_returnType( session, pExport->m_pReturnType );
+            
+            parse_comment();
             
             //now get the body
-            if( Tok.is( clang::tok::l_brace ) )
+            parse_body( session, pExport->m_pBody );
+            
+            if( !pExport->m_pBody )
             {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                
-                braceStack.push_back( BraceCount );
-            
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc   = Tok.getEndLoc();
-                ConsumeAnyToken();
-                
-                while( !isEofOrEom() && !( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) ) )
-                {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeAnyToken();
-                }
-                
-                pExport->m_pBody = session.construct< input::Opaque >();
-                VERIFY_RTE( getSourceText( startLoc, endLoc, pExport->m_pBody->m_str ) );
-
-                VERIFY_RTE( BraceCount == braceStack.back() );
-                braceStack.pop_back();
-                
-                T.consumeClose();
+                EG_PARSER_ERROR( "Expected body for export" );
             }
-            else
-            {
-                EG_PARSER_ERROR( "Expected body" );
-            }
-            
-            
         }
         
-        /*
-        bool try_consume_template( clang::SourceLocation& endLoc )
+        input::Context* constructContext( ParserSession& session, input::Context* pParentAction )
         {
-            endLoc = Tok.getEndLoc();
-            if( TryConsumeToken( clang::tok::less ) )
-            {
-                int iArrowCounter = 1;
-
-                while( !isEofOrEom() )
-                {
-                    endLoc = Tok.getEndLoc();
-                    if( Tok.is( clang::tok::less ) )
-                    {
-                        ConsumeToken();
-                        ++iArrowCounter;
-                    }
-                    else if( Tok.is( clang::tok::greater ) )
-                    {
-                        ConsumeToken();
-                        --iArrowCounter;
-                    }
-                    else
-                    {
-                        ConsumeToken();
-                    }
-                    if( 0 == iArrowCounter )
-                    {
-                        break;
-                    }
-                }
-                VERIFY_RTE( iArrowCounter == 0 );
-                return true;
-            }
-            return false;
-        }*/
-
-        /*
-        void parse_template( ParserSession& session, input::Action* pAction  )
-        {
-            if( Tok.is( clang::tok::kw_template ) )
-            {
-                ConsumeToken();
-                pAction->m_bIsTemplate = true;
-                clang::SourceLocation endLoc;
-                if( !try_consume_template( endLoc ) )
-                {
-                    //error
-                    //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
-                    EG_PARSER_ERROR( "template arrow missing" );
-                }
-            }
-        }*/
-        
-        input::Action* constructAction( ParserSession& session, input::Action* pParentAction )
-        {
-            input::Action* pNewAction = session.construct< input::Action >();
-            pNewAction->m_pBody = session.construct< input::Opaque >();
-            pNewAction->m_elements.push_back( pNewAction->m_pBody );
-            pNewAction->m_pBody->m_bSemantic = false;
+            input::Context* pNewAction = session.construct< input::Context >();
             pParentAction->m_elements.push_back( pNewAction );
             return pNewAction;
         }
 
-        void parse_action( ParserSession& session, input::Action* pAction, const boost::filesystem::path& egSourceFile )
+        void parse_context( ParserSession& session, input::Context* pContext, 
+            const boost::filesystem::path& egSourceFile, input::Context::ContextType contextType )
         {
             while( Tok.is( clang::tok::coloncolon ) )
             {
@@ -1126,13 +1146,13 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 {
                     clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
 
-                    input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
-                    if( !pNestedAction )
+                    input::Context* pNestedContext = pContext->findContext( pIdentifier->getName() );
+                    if( !pNestedContext )
                     {
-                        pNestedAction = constructAction( session, pAction );
-                        pNestedAction->m_strIdentifier = pIdentifier->getName();
+                        pNestedContext = constructContext( session, pContext );
+                        pNestedContext->m_strIdentifier = pIdentifier->getName();
                     }
-                    pAction = pNestedAction;
+                    pContext = pNestedContext;
                     ConsumeToken();
                 }
                 else
@@ -1141,119 +1161,65 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 }
             }
             
-            while( Tok.is( clang::tok::comment ) )
-            {
-                ConsumeToken();
-            }
-
-            //parse optional size specifier
-            if( Tok.is( clang::tok::l_square ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_square );
-                T.consumeOpen();
-                
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc   = Tok.getEndLoc();
-                ConsumeAnyToken();
-                
-                while( !isEofOrEom() && !Tok.is( clang::tok::r_square ) )
-                {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeAnyToken();
-                }
-                
-                {
-                    input::Opaque* pOpaque = session.construct< input::Opaque >();
-                    VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
-                    pAction->m_pSize = pOpaque;
-                }
-                
-                //SkipUntil( clang::tok::r_square, StopBeforeMatch );
-                T.consumeClose();
-            }
+            //set the context type
+            pContext->m_contextType = contextType;
             
-            while( Tok.is( clang::tok::comment ) )
-            {
-                ConsumeToken();
-            }
-
+            parse_comment();
+            
             //parse optional argument list
-            if( Tok.is( clang::tok::l_paren ) )
             {
-                BalancedDelimiterTracker T( *this, clang::tok::l_paren );
-                T.consumeOpen();
-                
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc   = Tok.getEndLoc();
-                ConsumeAnyToken();
-                
-                while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                input::Opaque* pParameters = nullptr;
+                parse_argumentList( session, pParameters );
+                if( pContext->m_pParams && pParameters )
                 {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeAnyToken();
+                    EG_PARSER_ERROR( "Parameters multiply defined" );
                 }
-                
+                else if( pParameters )
                 {
-                    input::Opaque* pOpaque = session.construct< input::Opaque >();
-                    VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
-                    pAction->m_pParams = pOpaque;
+                    pContext->m_pParams = pParameters;
                 }
-                
-                //SkipUntil( clang::tok::r_paren, StopBeforeMatch );
-                T.consumeClose();
             }
             
-            while( Tok.is( clang::tok::comment ) )
+            parse_comment();
+                                
+            //parse optional size specifier
             {
-                ConsumeToken();
+                input::Opaque* pSize = nullptr;
+                parse_size( session, pSize );
+                if( pContext->m_pSize && pSize )
+                {
+                    EG_PARSER_ERROR( "Size multiply defined" );
+                }
+                else if( pSize )
+                {
+                    pContext->m_pSize = pSize;
+                }
             }
+            
+            parse_comment();
             
             //parse optional inheritance list
-            if( Tok.is( clang::tok::colon ) )
             {
-                bool bFoundComma = true;
-                while( bFoundComma )
+                std::vector< input::Opaque* > inheritance;
+                parse_inheritance( session, inheritance );
+                if( !pContext->m_inheritance.empty() && !inheritance.empty() )
                 {
-                    ConsumeAnyToken();
-                    bFoundComma = false;
-                    
-                    clang::SourceLocation startLoc = Tok.getLocation();
-                    clang::SourceLocation endLoc   = Tok.getEndLoc();
-                    ConsumeAnyToken();
-                    
-                    while( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
-                    {
-                        //if( !try_consume_template( endLoc ) )
-                        {
-                            endLoc = Tok.getEndLoc();
-                            ConsumeAnyToken();
-                        }
-                    }
-                    
-                    {
-                        input::Opaque* pOpaque = session.construct< input::Opaque >();
-                        VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
-                        pAction->m_inheritance.push_back( pOpaque );
-                    }
-                    
-                    if( Tok.is( clang::tok::comma ) )
-                        bFoundComma = true;
-                
+                    EG_PARSER_ERROR( "Inheritance or return type multiply defined" );
+                }
+                else if( !inheritance.empty() )
+                {
+                    pContext->m_inheritance = inheritance;
                 }
             }
             
-            while( Tok.is( clang::tok::comment ) )
-            {
-                ConsumeToken();
-            }
+            parse_comment();
 
+            //parse the body
             if( Tok.is( clang::tok::l_brace ) )
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
-
-                parse_action_body( session, pAction, egSourceFile );
-
+                parse_context_body( session, pContext, egSourceFile );
                 T.consumeClose();
             }
             else if( Tok.is( clang::tok::semi ) )
@@ -1265,9 +1231,56 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 EG_PARSER_ERROR( "Expected semicolon" );
             }
 
+            switch( contextType )
+            {
+                case input::Context::eAbstract :
+                case input::Context::eEvent    :
+                case input::Context::eFunction :
+                case input::Context::eAction   :
+                    break;
+                case input::Context::eLink     :
+                    add_link_base( session, pContext );
+                    break;
+                case input::Context::eObject   :
+                    break;
+                default:
+                    EG_PARSER_ERROR( "Unknown context type" );
+                    
+            }
+        }
+        
+        void add_link_base( ParserSession& session, input::Context* pContext )
+        {
+            if( pContext->m_inheritance.size() != 1U )
+            {
+                EG_PARSER_ERROR( "Link requires single inheritance" );
+            }
+            
+            bool bFound = false;
+            {
+                for( input::Element* pExisting : pContext->m_elements )
+                {
+                    if( input::Dimension* pDim = dynamic_cast< input::Dimension* >( pExisting ) )
+                    {
+                        if( pDim->getIdentifier() == EG_LINK_DIMENSION )
+                        {
+                            bFound = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if( !bFound )
+            {
+                //add the nested link reference dimension
+                input::Dimension* pLinkDimension = session.construct< input::Dimension >();
+                pContext->m_elements.push_back( pLinkDimension );
+                pLinkDimension->m_pType = pContext->m_inheritance.front();
+                pLinkDimension->m_strIdentifier = EG_LINK_DIMENSION;
+            }
         }
 
-        void parse_action_body( ParserSession& session, input::Action* pAction, const boost::filesystem::path& egSourceFile )
+        void parse_context_body( ParserSession& session, input::Context* pContext, const boost::filesystem::path& egSourceFile )
         {
             bool bActionDefinition = false;
             
@@ -1275,181 +1288,80 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 
             while( !isEofOrEom() )
             {
-                /*if( Tok.is( clang::tok::kw_template ) )
-                {
-                    input::Action* pNestedAction = constructAction( session, pAction );
-                    parse_template( session, pNestedAction );
-                    if( Tok.is( clang::tok::kw_action ) )
-                    {
-                        ConsumeToken();
-
-                        if( Tok.is( clang::tok::identifier ) )
-                        {
-                            clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                            pNestedAction->m_strIdentifier = pIdentifier->getName();
-                            ConsumeToken();
-                        }
-                        else
-                        {
-                            EG_PARSER_ERROR( "Expected identifier" );
-                        }
-                        parse_action( session, pNestedAction, egSourceFile );
-                    }
-                    else
-                    {
-                        EG_PARSER_ERROR( "Missing action" );
-                    }
-                }
-                else*/
-				
-                if( Tok.is( clang::tok::kw_action ) )
-                {
-                    ConsumeToken();
-
-                    if( Tok.is( clang::tok::identifier ) )
-                    {
-                        clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                        input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
-                        if( !pNestedAction )
-                        {
-                            pNestedAction = constructAction( session, pAction );
-                            pNestedAction->m_strIdentifier = pIdentifier->getName();
-                        }
-                        ConsumeToken();
-                        parse_action( session, pNestedAction, egSourceFile );
-                    }
-                    else
-                    {
-                        EG_PARSER_ERROR( "Expected identifier" );
-                    }
-                }
-                else if( Tok.is( clang::tok::kw_abstract ) )
-                {
-                    ConsumeToken();
-                    //consume optional action keyword
-                    bool bIsLink = false;
-                    if( Tok.is( clang::tok::kw_link ) )
-                    {
-                        ConsumeToken();
-                        bIsLink = true;
-                    }
-                    
-                    //if( Tok.is( clang::tok::kw_action ) )
-                    //{
-                    //    ConsumeToken();
-                    //}
-
-                    if( Tok.is( clang::tok::identifier ) )
-                    {
-                        clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                        input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
-                        if( !pNestedAction )
-                        {
-                            pNestedAction = constructAction( session, pAction );
-                            pNestedAction->m_strIdentifier = pIdentifier->getName();
-                            pNestedAction->m_bLink = bIsLink;
-                            pNestedAction->m_bAbstract = true;
-                        }
-                        else
-                        {
-                            VERIFY_RTE_MSG( pNestedAction->m_bAbstract, "Action inconsistently declared abstract" );
-                        }
-                        ConsumeToken();
-                        parse_action( session, pNestedAction, egSourceFile );
-                    }
-                    else
-                    {
-                        EG_PARSER_ERROR( "Expected identifier" );
-                    }
-                }
+                input::Context::ContextType contextType = 
+                    input::Context::eUnknown;
+                if( Tok.is( clang::tok::kw_abstract ) )
+                    contextType = input::Context::eAbstract;
+                else if( Tok.is( clang::tok::kw_event ) )
+                    contextType = input::Context::eEvent;
+                else if( Tok.is( clang::tok::kw_function ) )
+                    contextType = input::Context::eFunction;
+                else if( Tok.is( clang::tok::kw_action ) )
+                    contextType = input::Context::eAction;
                 else if( Tok.is( clang::tok::kw_link ) )
+                    contextType = input::Context::eLink;
+                else if( Tok.is( clang::tok::kw_object ) )
+                    contextType = input::Context::eObject;
+                
+                if( input::Context::eUnknown != contextType )
                 {
-                    ConsumeToken();
-                    //consume optional action keyword
-                    bool bIsAbstract = false;
-                    //if( Tok.is( clang::tok::kw_abstract ) )
-                    //{
-                    //    ConsumeToken();
-                    //    bIsAbstract = true;
-                    //}
+                    switch( contextType )
+                    {
+                        case input::Context::eAbstract :
+                        case input::Context::eEvent    :
+                        case input::Context::eFunction :
+                        case input::Context::eAction   :
+                        case input::Context::eLink     :
+                        case input::Context::eObject   :
+                            {
+                                ConsumeToken();
 
-                    if( Tok.is( clang::tok::identifier ) )
-                    {
-                        clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                        input::Action* pNestedAction = pAction->findAction( pIdentifier->getName() );
-                        if( !pNestedAction )
-                        {
-                            pNestedAction = constructAction( session, pAction );
-                            pNestedAction->m_strIdentifier = pIdentifier->getName();
-                            pNestedAction->m_bLink = true;
-                            pNestedAction->m_bAbstract = bIsAbstract;
-                        }
-                        else
-                        {
-                            VERIFY_RTE_MSG( pNestedAction->m_bAbstract, "Action inconsistently declared abstract" );
-                        }
-                        ConsumeToken();
-                        parse_action( session, pNestedAction, egSourceFile );
-						
-						if( pNestedAction->m_inheritance.size() != 1U )
-						{
-							EG_PARSER_ERROR( "Link requires single inheritance" );
-						}
-						
-						bool bFound = false;
-						{
-							for( input::Element* pExisting : pNestedAction->m_elements )
-							{
-								if( input::Dimension* pDim = dynamic_cast< input::Dimension* >( pExisting ) )
-								{
-									if( pDim->getIdentifier() == EG_LINK_DIMENSION )
-									{
-										bFound = true;
-										break;
-									}
-								}
-							}
-						}
-						if( !bFound )
-						{
-							//add the nested link reference dimension
-							input::Dimension* pLinkDimension = session.construct< input::Dimension >();
-							pNestedAction->m_elements.push_back( pLinkDimension );
-							pLinkDimension->m_pType = pNestedAction->m_inheritance.front();
-							pLinkDimension->m_strIdentifier = EG_LINK_DIMENSION;
-						}
-                    }
-                    else
-                    {
-                        EG_PARSER_ERROR( "Expected identifier" );
+                                if( Tok.is( clang::tok::identifier ) )
+                                {
+                                    clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
+                                    input::Context* pNestedContext = pContext->findContext( pIdentifier->getName() );
+                                    if( !pNestedContext )
+                                    {
+                                        pNestedContext = constructContext( session, pContext );
+                                        pNestedContext->m_strIdentifier = pIdentifier->getName();
+                                    }
+                                    ConsumeToken();
+                                    parse_context( session, pNestedContext, egSourceFile, contextType );
+                                }
+                                else
+                                {
+                                    EG_PARSER_ERROR( "Expected identifier" );
+                                }
+                            }
+                            break;
                     }
                 }
                 else if( Tok.is( clang::tok::kw_dim ) )
                 {
                     ConsumeToken();
                     input::Dimension* pDimension = session.construct< input::Dimension >();
-                    pAction->m_elements.push_back( pDimension );
+                    pContext->m_elements.push_back( pDimension );
                     parse_dimension( session, pDimension );
                 }
                 else if( Tok.is( clang::tok::kw_include ) )
                 {
                     ConsumeToken();
                     input::Include* pInclude = session.construct< input::Include >();
-                    pAction->m_elements.push_back( pInclude );
+                    pContext->m_elements.push_back( pInclude );
                     parse_include( session, pInclude );
                 }
                 else if( Tok.is( clang::tok::kw_using ) )
                 {
                     ConsumeToken();
                     input::Using* pUsing = session.construct< input::Using >();
-                    pAction->m_elements.push_back( pUsing );
+                    pContext->m_elements.push_back( pUsing );
                     parse_using( session, pUsing );
                 }
                 else if( Tok.is( clang::tok::kw_export ) )
                 {
                     ConsumeToken();
                     input::Export* pExport = session.construct< input::Export >();
-                    pAction->m_elements.push_back( pExport );
+                    pContext->m_elements.push_back( pExport );
                     parse_export( session, pExport );
                 }
                 else if( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) )
@@ -1467,13 +1379,15 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                             !Tok.isOneOf
                             ( 
                                 clang::tok::kw_action, 
+                                clang::tok::kw_object, 
+                                clang::tok::kw_function,
+                                clang::tok::kw_event, 
                                 clang::tok::kw_abstract, 
                                 clang::tok::kw_dim, 
                                 clang::tok::kw_link, 
                                 clang::tok::kw_include,
                                 clang::tok::kw_using,
-                                clang::tok::kw_export,
-                                clang::tok::kw_template 
+                                clang::tok::kw_export
                              ) && 
                         !( ( BraceCount == braceStack.back() ) && Tok.is( clang::tok::r_brace ) )
                         )
@@ -1493,9 +1407,19 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                         
                         if( !strBodyPart.empty() )
                         {
+                            if( pContext->m_pBody )
+                            {
+                                EG_PARSER_ERROR( "Action already has body" );
+                            }
+                            if( !pContext->m_pBody )
+                            {
+                                pContext->m_pBody = session.construct< input::Opaque >();
+                                pContext->m_elements.push_back( pContext->m_pBody );
+                            }
+                            
                             std::ostringstream os;
-                            os << pAction->m_pBody->m_str << "\n" << strBodyPart;
-                            pAction->m_pBody->m_str = os.str();
+                            os << pContext->m_pBody->m_str << "\n" << strBodyPart;
+                            pContext->m_pBody->m_str = os.str();
                         }
                     }
                 }
@@ -1506,29 +1430,25 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             
             if( bActionDefinition )
             {
-                if( pAction->m_definitionFile )
+                if( pContext->m_definitionFile )
                 {
-                    if( pAction->m_definitionFile == egSourceFile )
+                    if( pContext->m_definitionFile == egSourceFile )
                     {
-                        THROW_RTE( "Action: " << pAction->getIdentifier() << " multiply defined in: " << egSourceFile );
+                        THROW_RTE( "Action: " << pContext->getIdentifier() << " multiply defined in: " << egSourceFile );
                     }
                     else
                     {
-                        THROW_RTE( "Action: " << pAction->getIdentifier() << " multiply defined in: " <<
-                           pAction->m_definitionFile.value() << " and " << egSourceFile );
+                        THROW_RTE( "Action: " << pContext->getIdentifier() << " multiply defined in: " <<
+                           pContext->m_definitionFile.value() << " and " << egSourceFile );
                     }
                 }
-                if( pAction->isAbstract() )
-                {
-                    THROW_RTE( "Action: " << pAction->getIdentifier() << " is abstract but has definition: " << egSourceFile );
-                }
-                pAction->m_definitionFile = egSourceFile;
+                pContext->m_definitionFile = egSourceFile;
             }
         }
 		
 		void parse_file( ParserSession& session, input::Root* pRoot, const boost::filesystem::path& egSourceFile )
 		{
-			parse_action_body( session, pRoot, egSourceFile );
+			parse_context_body( session, pRoot, egSourceFile );
 		}
     };
 
@@ -1702,9 +1622,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 				{
 					pNestedRoot = construct< input::Root >();
 					{
-						pNestedRoot->m_pBody = construct< input::Opaque >();
+						/*pNestedRoot->m_pBody = construct< input::Opaque >();
 						pNestedRoot->m_elements.push_back( pNestedRoot->m_pBody );
-						pNestedRoot->m_pBody->m_bSemantic = false;
+						pNestedRoot->m_pBody->m_bSemantic = false;*/
 						pNestedRoot->m_strIdentifier = j->string();
 						switch( iFolderDepth )
 						{
@@ -1739,9 +1659,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 	{
 		input::Root* pMegaStructureRoot = construct< input::Root >();
 		{
-			pMegaStructureRoot->m_pBody = construct< input::Opaque >();
+			/*pMegaStructureRoot->m_pBody = construct< input::Opaque >();
 			pMegaStructureRoot->m_elements.push_back( pMegaStructureRoot->m_pBody );
-			pMegaStructureRoot->m_pBody->m_bSemantic = false;
+			pMegaStructureRoot->m_pBody->m_bSemantic = false;*/
 			pMegaStructureRoot->m_rootType = eMegaRoot;
 		}
 			
@@ -1772,9 +1692,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     {
 		input::Root* pRoot = construct< input::Root >();
 		{
-			pRoot->m_pBody = construct< input::Opaque >();
+			/*pRoot->m_pBody = construct< input::Opaque >();
 			pRoot->m_elements.push_back( pRoot->m_pBody );
-			pRoot->m_pBody->m_bSemantic = false;
+			pRoot->m_pBody->m_bSemantic = false;*/
 			pRoot->m_rootType = eFileRoot;
 		}
 		
@@ -1800,9 +1720,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             {
 				input::Root* pIncludeRoot = construct< input::Root >();
 				{
-					pIncludeRoot->m_pBody = construct< input::Opaque >();
+					/*pIncludeRoot->m_pBody = construct< input::Opaque >();
 					pIncludeRoot->m_elements.push_back( pIncludeRoot->m_pBody );
-					pIncludeRoot->m_pBody->m_bSemantic = false;
+					pIncludeRoot->m_pBody->m_bSemantic = false;*/
 					pIncludeRoot->m_includePath = includePath;
 					pIncludeRoot->m_rootType = eFile;
 				}
@@ -1835,8 +1755,28 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             case eInputInclude:        pNewNode = session.construct< interface::Include >(   pParent, pElement ); break;
             case eInputUsing:          pNewNode = session.construct< interface::Using >(     pParent, pElement ); break;
             case eInputExport:         pNewNode = session.construct< interface::Export >(    pParent, pElement ); break;
-            case eInputAction:         pNewNode = session.construct< interface::Action >(    pParent, pElement ); break;
-            case eInputRoot:           pNewNode = session.construct< interface::Root >(      pParent, pElement ); break;
+            case eInputContext:
+            {
+                input::Context* pContext = dynamic_cast< input::Context* >( pElement );
+                VERIFY_RTE( pContext );
+                switch( pContext->m_contextType )
+                {
+                    case input::Context::eAbstract : pNewNode = session.construct< interface::Abstract > ( pParent, pElement ); break;
+                    case input::Context::eEvent    : pNewNode = session.construct< interface::Event >    ( pParent, pElement ); break;
+                    case input::Context::eFunction : pNewNode = session.construct< interface::Function > ( pParent, pElement ); break;
+                    case input::Context::eAction   : pNewNode = session.construct< interface::Action >   ( pParent, pElement ); break;
+                    case input::Context::eLink     : pNewNode = session.construct< interface::Link >     ( pParent, pElement ); break;
+                    case input::Context::eObject   : pNewNode = session.construct< interface::Object >   ( pParent, pElement ); break;
+                    case input::Context::eUnknown  : 
+                    default:
+                    {
+                        THROW_RTE( "Undefined context type" );
+                    }
+                }
+                break;
+            }
+            case eInputRoot:           
+                pNewNode = session.construct< interface::Root >(      pParent, pElement ); break;
             default:
                 THROW_RTE( "Unsupported type" );
                 break;
@@ -1875,13 +1815,13 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                     //do nothing
                 }
                 break;
-            case eInputAction    :
+            case eInputContext   :
             case eInputRoot      :
                 {
-                    input::Action* pAction = dynamic_cast< input::Action* >( pElement );
-                    VERIFY_RTE( pAction );
+                    input::Context* pContext = dynamic_cast< input::Context* >( pElement );
+                    VERIFY_RTE( pContext );
                     
-                    for( input::Element* pChildElement : pAction->getElements() )
+                    for( input::Element* pChildElement : pContext->getElements() )
                     {
                         if( input::Include* pInclude = dynamic_cast< input::Include* >( pChildElement ) )
                         {
@@ -1910,7 +1850,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                 addChild( *this, pParentNode, pChildElement );
                             }
                         }
-                        else if( input::Action* pElementAction = dynamic_cast< input::Action* >( pChildElement ) )
+                        else if( input::Context* pElementAction = dynamic_cast< input::Context* >( pChildElement ) )
                         {
                             interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
                             if( bInIncludeTree )
@@ -1919,9 +1859,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                 if( pElementAction->getDefinitionFile() )
                                 {
 									if( includeDefinitionFile )
-										( (interface::Action*)pChild )->setDefinitionFile( includeDefinitionFile );
+										( (interface::Context*)pChild )->setDefinitionFile( includeDefinitionFile );
 									else
-										( (interface::Action*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile() );
+										( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile() );
                                 }
 								buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true );
                             }
@@ -1930,7 +1870,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                 //if the action is defined then use its definition file for any include sub trees
                                 if( pElementAction->getDefinitionFile() )
                                 {
-                                    ( (interface::Action*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile().value() );
+                                    ( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile().value() );
                                     buildTree( fileMap, pChild, pChildElement, pElementAction->getDefinitionFile().value(), false );
                                 }
                                 else
@@ -1988,7 +1928,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         
         VERIFY_RTE( pInputMainRoot );
         interface::Element* pInterfaceRoot = addChild( *this, pMasterRoot, pInputMainRoot );
-        ( (interface::Action*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile() );
+        ( (interface::Context*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile() );
         
         buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile(), false );
                 
@@ -2015,7 +1955,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     bool IncrementalParserSession::update( const ParserSession& parse )
     {
         interface::Root* pOldRoot = eg::root< eg::interface::Root >( getMaster() );
-        return pOldRoot->update( parse.getTreeRoot() );
+        return true;//pOldRoot->update( parse.getTreeRoot() );
     }
     
 } //namespace eg

@@ -85,7 +85,8 @@ namespace eg
         eInputInclude,
         eInputUsing,
         eInputExport,
-        eInputAction,
+        
+        eInputContext,
         eInputRoot,
 
         eAbstractOpaque,
@@ -93,7 +94,13 @@ namespace eg
         eAbstractInclude,
         eAbstractUsing,
         eAbstractExport,
+        
+        eAbstractAbstract,
+        eAbstractEvent,
+        eAbstractFunction,
         eAbstractAction,
+        eAbstractObject,
+        eAbstractLink,
         eAbstractRoot,
         
         eInheritanceNode,

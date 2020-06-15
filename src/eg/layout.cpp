@@ -44,7 +44,7 @@ void DataMember::store( Storer& storer ) const
 
 void Buffer::load( Loader& loader )
 {
-    m_pAction = loader.loadObjectRef< concrete::Action >();
+    m_pContext = loader.loadObjectRef< concrete::Action >();
     loader.loadObjectVector( m_dimensions );
     loader.load( size );
     loader.load( stride );
@@ -54,7 +54,7 @@ void Buffer::load( Loader& loader )
 
 void Buffer::store( Storer& storer ) const
 {
-    storer.storeObjectRef( m_pAction );
+    storer.storeObjectRef( m_pContext );
     storer.storeObjectVector( m_dimensions );
     storer.store( size );
     storer.store( stride );

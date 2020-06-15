@@ -56,38 +56,48 @@ namespace eg
     }
 
     
-    void collateChildren( const interface::Action* pAction, 
-            std::vector< const interface::Action* >& actions, 
+    void collateChildren( const interface::Context* pAction, 
+            std::vector< const interface::Context* >& actions, 
             std::vector< const interface::Dimension* >& dimensions )
     {
         for( const interface::Element* pObject : pAction->getChildren() )
         {
             switch( pObject->getType() )
             {
+                case eAbstractOpaque    :
+                case eAbstractInclude   :
+                case eAbstractUsing     : 
+                case eAbstractExport    :
+                    break;
                 case eAbstractDimension : 
                     dimensions.push_back( dynamic_cast< const interface::Dimension* >( pObject ) );
                     break;
+                case eAbstractAbstract  :
+                case eAbstractEvent     :
+                case eAbstractFunction  :
+                case eAbstractAction    :
+                case eAbstractObject    :
+                case eAbstractLink      :
                 case eAbstractRoot      : 
-                case eAbstractAction    :  
-                    if( const interface::Action* pChildAction = dynamic_cast< const interface::Action* >( pObject ) )
+                    if( const interface::Context* pChildAction = dynamic_cast< const interface::Context* >( pObject ) )
                     {
-                        if( !pChildAction->isAbstract() )
-                        {
-                            actions.push_back( dynamic_cast< const interface::Action* >( pObject ) );
-                        }
+                        actions.push_back( dynamic_cast< const interface::Context* >( pObject ) );
                     }
                     break;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break; 
             }
         }
     }
     
     concrete::Inheritance_Node* InterfaceSession::constructInheritanceNode( concrete::Action* pConcreteAction, 
-            concrete::Inheritance_Node* pParent, const interface::Action* pAbstractAction )
+            concrete::Inheritance_Node* pParent, const interface::Context* pAbstractAction )
     {
         concrete::Inheritance_Node* pInheritanceNode    = construct< concrete::Inheritance_Node >(); 
         pInheritanceNode->m_pRootConcreteAction         = pConcreteAction;
         pInheritanceNode->m_pParent                     = pParent;
-        pInheritanceNode->m_pAction                     = pAbstractAction;
+        pInheritanceNode->m_pContext                     = pAbstractAction;
         
         if( pParent )
             pParent->m_children.push_back( pInheritanceNode );
@@ -98,16 +108,16 @@ namespace eg
     }
     
     concrete::Inheritance_Node* InterfaceSession::constructInheritanceTree( concrete::Action* pConcreteAction,  
-                concrete::Inheritance_Node* pParent, const interface::Action* pAbstractAction )
+                concrete::Inheritance_Node* pParent, const interface::Context* pAbstractAction )
     {
         concrete::Inheritance_Node* pInheritanceNode  
             = constructInheritanceNode( pConcreteAction, pParent, pAbstractAction );
         
-        if( !pAbstractAction->isLink() )
+        if( !dynamic_cast< const interface::Link* >( pAbstractAction ) )
         {
-            for( const interface::Action* pBaseAbstractAction : pAbstractAction->m_baseActions )
+            for( const interface::Context* pBaseAbstractAction : pAbstractAction->m_baseContexts )
             {
-                if( pBaseAbstractAction->isLink() )
+                if( dynamic_cast< const interface::Link* >( pBaseAbstractAction ) )
                 {
                     THROW_RTE( "Invalid use of link type in inheritance list for: " << pAbstractAction->getIdentifier() );
                 }
@@ -122,11 +132,11 @@ namespace eg
     {
         //every concrete Action has an inheritance node tree describing how it inherits abstract interface types
         //each inheritance node has the same m_pRootConcreteAction which is pConcreteAction here.
-        pConcreteAction->m_inheritance = constructInheritanceTree( pConcreteAction, nullptr, pConcreteAction->getAction() );
+        pConcreteAction->m_inheritance = constructInheritanceTree( pConcreteAction, nullptr, pConcreteAction->getContext() );
     }
     
     using ActionOverrideMap = 
-        std::map< interface::Action*, concrete::Action*, CompareNodeIdentity< interface::Action > >;
+        std::map< interface::Context*, concrete::Action*, CompareNodeIdentity< interface::Context > >;
     using DimensionOverrideMap = 
         std::map< interface::Dimension*, concrete::Dimension*, CompareNodeIdentity< interface::Dimension > >;
         
@@ -136,9 +146,9 @@ namespace eg
         {
             concrete::Action* pParent = dynamic_cast< concrete::Action* >( pAction->m_pParent );
             if( pParent->m_strName.empty() )
-                pAction->m_strName = pAction->getAction()->getIdentifier();
+                pAction->m_strName = pAction->getContext()->getIdentifier();
             else
-                pAction->m_strName = pParent->m_strName + "_" + pAction->getAction()->getIdentifier();
+                pAction->m_strName = pParent->m_strName + "_" + pAction->getContext()->getIdentifier();
         }
     }
     
@@ -146,13 +156,13 @@ namespace eg
             ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances )
     {
         //get all the member actions and dimensions for the concrete Action we are processing
-        std::vector< const interface::Action* > actions;
+        std::vector< const interface::Context* > actions;
         std::vector< const interface::Dimension* > dimensions;
-        collateChildren( pInheritanceNode->m_pAction, actions, dimensions );
+        collateChildren( pInheritanceNode->m_pContext, actions, dimensions );
         
-        for( const interface::Action* pChildAction : actions )
+        for( const interface::Context* pChildAction : actions )
         {
-            std::map< const interface::Action*, concrete::Action* >::iterator iFind = 
+            std::map< const interface::Context*, concrete::Action* >::iterator iFind = 
                 actionInstances.find( pChildAction );
             if( iFind == actionInstances.end() )
             {
@@ -172,22 +182,22 @@ namespace eg
                 
                 pChildInstance->m_pStopCycle             = construct< concrete::Dimension_Generated >();
                 pChildInstance->m_pStopCycle->m_type     = concrete::Dimension_Generated::eActionStopCycle;
-                pChildInstance->m_pStopCycle->m_pAction  = pChildInstance;
+                pChildInstance->m_pStopCycle->m_pContext  = pChildInstance;
                 pChildInstance->m_children.push_back( pChildInstance->m_pStopCycle );
                 
                 pChildInstance->m_pState             = construct< concrete::Dimension_Generated >();
                 pChildInstance->m_pState->m_type     = concrete::Dimension_Generated::eActionState;
-                pChildInstance->m_pState->m_pAction  = pChildInstance;
+                pChildInstance->m_pState->m_pContext  = pChildInstance;
                 pChildInstance->m_children.push_back( pChildInstance->m_pState );
                 
                 pChildInstance->m_pReference                    = construct< concrete::Dimension_Generated >();
                 pChildInstance->m_pReference->m_type            = concrete::Dimension_Generated::eActionReference;
-                pChildInstance->m_pReference->m_pAction         = pChildInstance;
+                pChildInstance->m_pReference->m_pContext         = pChildInstance;
                 pChildInstance->m_children.push_back( pChildInstance->m_pReference );
                 
                 pChildInstance->m_pRingIndex                    = construct< concrete::Dimension_Generated >();
                 pChildInstance->m_pRingIndex->m_type            = concrete::Dimension_Generated::eRingIndex;
-                pChildInstance->m_pRingIndex->m_pAction         = pChildInstance;
+                pChildInstance->m_pRingIndex->m_pContext         = pChildInstance;
                 pChildInstance->m_children.push_back( pChildInstance->m_pRingIndex );
             }
             else
@@ -251,7 +261,7 @@ namespace eg
         {
             pInstance->m_pAllocatorData                = construct< concrete::Dimension_Generated >();
             pInstance->m_pAllocatorData->m_type        = concrete::Dimension_Generated::eActionAllocatorData;
-            pInstance->m_pAllocatorData->m_pAction     = pInstance;
+            pInstance->m_pAllocatorData->m_pContext     = pInstance;
             pInstance->m_children.push_back( pInstance->m_pAllocatorData );
         }
         
@@ -264,7 +274,7 @@ namespace eg
                 {
                     concrete::Dimension_Generated* pHead = construct< concrete::Dimension_Generated >();
                     pHead->m_type        = concrete::Dimension_Generated::eActionAllocatorHead;
-                    pHead->m_pAction     = pChildAction;
+                    pHead->m_pContext     = pChildAction;
                     pInstance->m_allocators.insert( std::make_pair( pChildAction, pHead ) );
                     pInstance->m_children.push_back( pHead );
                 }
@@ -276,7 +286,7 @@ namespace eg
     
     concrete::Action* InterfaceSession::instanceAnalysis()
     {
-        const interface::Action* pActionRoot = root< const interface::Action >( getAppendingObjects() );
+        const interface::Context* pActionRoot = root< const interface::Context >( getAppendingObjects() );
         
         concrete::Action* pRoot = construct< concrete::Action >();
         pRoot->m_pElement = pActionRoot;
@@ -289,8 +299,8 @@ namespace eg
         constructAllocator( pRoot );
         
         {
-            std::vector< const interface::Action* > interfaceActions = 
-                many_cst< const interface::Action >( 
+            std::vector< const interface::Context* > interfaceActions = 
+                many_cst< const interface::Context >( 
                     getObjects( eg::IndexedObject::MASTER_FILE ) );
                     
             std::vector< const concrete::Inheritance_Node* > iNodes = 
@@ -307,8 +317,8 @@ namespace eg
     {
         //calculate the link groups
         {
-            std::vector< interface::Action* > actions = 
-                many< interface::Action >( getMaster() );
+            std::vector< interface::Context* > actions = 
+                many< interface::Context >( getMaster() );
             LinkAnalysis::ActionSetPtrSet linkSets;
             linkSets = m_pLinkAnalysis->calculateSets( actions );
             m_pLinkAnalysis->calculateGroups( linkSets, actions, *m_pDerivationAnalysis, *this );
@@ -328,7 +338,7 @@ namespace eg
                 pLinkGroup->m_dimensionMap.insert( std::make_pair( pTarget, pLinkDimension ) );
             }
             
-            for( interface::Action* pLink : pLinkGroup->getLinks() )
+            for( interface::Link* pLink : pLinkGroup->getLinks() )
             {
                 const interface::Dimension* pInterfaceDimension = pLink->getLinkBaseDimension();
                 VERIFY_RTE( pInterfaceDimension );
@@ -348,16 +358,16 @@ namespace eg
         
         //final steps in derivation analysis
         {
-            std::vector< const interface::Action* > interfaceActions = 
-                many_cst< const interface::Action >( 
+            std::vector< const interface::Context* > interfaceActions = 
+                many_cst< const interface::Context >( 
                     getObjects( eg::IndexedObject::MASTER_FILE ) );
             m_pDerivationAnalysis->analyseLinkCompatibility( interfaceActions, groups );
         }
     }
     
-    bool getInterfaceActionCoordinatorHostname( const interface::Action* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )
+    bool getInterfaceActionCoordinatorHostname( const interface::Context* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )
     {
-        const interface::Action* pIter = pInterfaceAction;
+        const interface::Context* pIter = pInterfaceAction;
         
         pCoordinator = nullptr;
         pHostname = nullptr;
@@ -381,14 +391,14 @@ namespace eg
                 }
             }
             
-            pIter = dynamic_cast< const interface::Action* >( pIter->getParent() );
+            pIter = dynamic_cast< const interface::Context* >( pIter->getParent() );
         }
         return pCoordinator && pHostname;
     }
     
     void InterfaceSession::translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap )
     {
-        const interface::Action* pInterfaceAction = pAction->getAction();
+        const interface::Context* pInterfaceAction = pAction->getContext();
         
         TranslationUnit::CoordinatorHostnameDefinitionFile coordinatorHostnameDefinitionFile;
         coordinatorHostnameDefinitionFile.definitionFile = pInterfaceAction->getDefinitionFile();
@@ -451,7 +461,7 @@ namespace eg
             
             m_pTranslationUnitAnalysis->m_translationUnits.push_back( pTranslationUnit );
             
-            for( const interface::Action* pAction : pTranslationUnit->m_actions )
+            for( const interface::Context* pAction : pTranslationUnit->m_actions )
             {
                 m_pTranslationUnitAnalysis->m_actionTUMap.insert( 
                     std::make_pair( pAction, pTranslationUnit ) );

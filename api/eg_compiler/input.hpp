@@ -49,7 +49,7 @@ namespace eg
         public:
             virtual void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const { };
         };
-
+        
         class Opaque : public Element
         {
             friend class ObjectFactoryImpl;
@@ -83,8 +83,99 @@ namespace eg
             std::string m_str;
             bool m_bSemantic;
         };
+        
+        //////////////////////////////////////////////////////////////////////////////
+        //Utility classes
+        class HasIdentifier
+        {
+        public:
+            const std::string& getIdentifier() const { return m_strIdentifier; }
+            
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+            
+            std::string m_strIdentifier;
+        };
+        
+        class HasChildren
+        {
+        public:
+            const std::vector< Element* >& getElements() const { return m_elements; }
+            
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+            
+            std::vector< Element* > m_elements;
+        };
+        
+        class HasDomain
+        {
+        public:
+            const Opaque* getSize() const { return m_pSize; }
+            
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+            
+            Opaque* m_pSize = nullptr;
+        };
+        
+        class HasParameters
+        {
+        public:
+            const Opaque* getReturnType() const { return m_pReturnType; }
+            const Opaque* getParams() const { return m_pParams; }
+            
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+            
+            Opaque* m_pReturnType = nullptr;
+            Opaque* m_pParams = nullptr;
+        };
+        
+        class HasBody
+        {
+        public:
+            const Opaque* getBody() const { return m_pBody; }
+            std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
+            
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+            
+            Opaque* m_pBody = nullptr;
+            std::optional< boost::filesystem::path > m_definitionFile;
+        };
+        
+        class HasInheritance
+        {
+        public:
+            const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
+            
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+            
+            std::vector< Opaque* > m_inheritance;
+        };
+        
+        void printDeclaration( std::ostream& os, std::string& strIndent, 
+            const std::string& strInputType, 
+            const std::string& strIdentifier, 
+            const Opaque* pReturnType,
+            const Opaque* pParams,
+            const Opaque* pSize,
+            const std::vector< Opaque* >& inheritance,
+            const std::string& strAnnotation  );
+            
+        //////////////////////////////////////////////////////////////////////////////
+        //input tree
 
-        class Dimension : public Element
+
+        class Dimension : public Element, public HasIdentifier
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
@@ -94,24 +185,22 @@ namespace eg
         protected:
             Dimension( const IndexedObject& object );
         public:
-            const std::string& getIdentifier() const { return m_strIdentifier; }
             const Opaque* getType() const { return m_pType; }
         
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
-            bool equal( const Dimension& cmp ) const
+            /*bool equal( const Dimension& cmp ) const
             {
                 return Opaque::equalNullablePtrs( m_pType, cmp.m_pType );
-            }
+            }*/
                 
         private:
-            std::string m_strIdentifier;
             Opaque* m_pType;
         };
 
-        class Include : public Element
+        class Include : public Element, public HasIdentifier
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
@@ -121,7 +210,6 @@ namespace eg
         protected:
             Include( const IndexedObject& object );
         public:
-            const std::string& getIdentifier() const { return m_strIdentifier; }
             const boost::filesystem::path& getIncludeFilePath() const { return m_path; }
             bool isEGInclude() const { return m_bIsEGInclude; }
             bool isSystemInclude() const { return m_bIsSystemInclude; }
@@ -131,18 +219,17 @@ namespace eg
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             void setIncludeFilePath( const std::string& strIncludeFile );
             
-            bool equal( const Include& cmp ) const
+            /*bool equal( const Include& cmp ) const
             {
                 return m_path == cmp.m_path;
-            }
+            }*/
         private:
-            std::string m_strIdentifier;
             boost::filesystem::path m_path;
             bool m_bIsEGInclude;
             bool m_bIsSystemInclude;
         };
 
-        class Using : public Element
+        class Using : public Element, public HasIdentifier
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
@@ -152,23 +239,21 @@ namespace eg
         protected:
             Using( const IndexedObject& object );
         public:
-            const std::string& getIdentifier() const { return m_strIdentifier; }
             const Opaque* getType() const { return m_pType; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
-            bool equal( const Using& cmp ) const
+            /*bool equal( const Using& cmp ) const
             {
                 return Opaque::equalNullablePtrs( m_pType, cmp.m_pType );
-            }
+            }*/
         private:
-            std::string m_strIdentifier;
             Opaque* m_pType;
         };
 
-        class Export : public Element
+        class Export : public Element, public HasIdentifier
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
@@ -178,7 +263,6 @@ namespace eg
         protected:
             Export( const IndexedObject& object );
         public:
-            const std::string& getIdentifier() const { return m_strIdentifier; }
             const Opaque* getReturnType() const { return m_pReturnType; }
             const Opaque* getParameters() const { return m_pParameters; }
             const Opaque* getBody() const { return m_pBody; }
@@ -187,71 +271,62 @@ namespace eg
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
-            bool equal( const Export& cmp ) const
+            /*bool equal( const Export& cmp ) const
             {
                 return Opaque::equalNullablePtrs( m_pReturnType, cmp.m_pReturnType ) &&
                         Opaque::equalNullablePtrs( m_pParameters, cmp.m_pParameters ) &&
                         Opaque::equalNullablePtrs( m_pBody, cmp.m_pBody ) ;
-            }
+            }*/
         private:
-            std::string m_strIdentifier;
             Opaque* m_pReturnType;
             Opaque* m_pParameters;
             Opaque* m_pBody;
         };
-
-        class Action : public Element
+        
+        
+        class Context : public Element, public HasIdentifier, public HasChildren, public HasDomain, public HasBody, public HasParameters, public HasInheritance
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
             friend class ::eg::ParserSession;
         public:
-            static const ObjectType Type = eInputAction;
+            static const ObjectType Type = eInputContext;
         protected:
-            Action( const IndexedObject& object );
+            Context( const IndexedObject& object );
         public:
-            const std::vector< Element* >& getElements() const { return m_elements; }
-            const Opaque* getSize() const { return m_pSize; }
-            const Opaque* getParams() const { return m_pParams; }
-            const Opaque* getBody() const { return m_pBody; }
-            const std::string& getIdentifier() const { return m_strIdentifier; }
-            const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
-            bool isLink() const { return m_bLink; }
-            bool isAbstract() const { return m_bAbstract; }
-            std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
-            Action* findAction( const std::string& strIdentifier ) const;
-            void printDeclaration( std::ostream& os, std::string& strIndent, const std::string& strIdentifier, const std::string& strAnnotation  ) const;
+            
+            Context* findContext( const std::string& strIdentifier ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
-            bool equal( const Action& cmp ) const
-            {
-                return  Opaque::equalNullablePtrs( m_pSize, cmp.m_pSize ) &&
-                        Opaque::equalNullablePtrs( m_pParams, cmp.m_pParams ) && 
-                        m_definitionFile == cmp.m_definitionFile &&
-                        m_bIsTemplate == cmp.m_bIsTemplate &&
-                        m_bAbstract == cmp.m_bAbstract &&
-                        m_bLink == cmp.m_bLink &&
-                        std::equal( m_inheritance.begin(), m_inheritance.end(),
-                            cmp.m_inheritance.begin(), cmp.m_inheritance.end(),
-                            []( const Opaque* pLeft, const Opaque* pRight ) { return pLeft->getStr() == pRight->getStr(); } );
-            }
-        protected:
-            std::vector< Element* > m_elements;
-            Opaque* m_pSize;
-            Opaque* m_pParams;
-            Opaque* m_pBody;
-            std::optional< boost::filesystem::path > m_definitionFile;
-            bool m_bIsTemplate = false;
-            std::string m_strIdentifier;
-            bool m_bAbstract = false;
-            bool m_bLink = false;
-            std::vector< Opaque* > m_inheritance;
-        };
+            //bool equal( const Context& cmp ) const
+            //{
+            //    return  Opaque::equalNullablePtrs( m_pSize, cmp.m_pSize ) &&
+            //            Opaque::equalNullablePtrs( m_pParams, cmp.m_pParams ) && 
+            //            m_definitionFile == cmp.m_definitionFile &&
+            //            std::equal( m_inheritance.begin(), m_inheritance.end(),
+            //                cmp.m_inheritance.begin(), cmp.m_inheritance.end(),
+            //                []( const Opaque* pLeft, const Opaque* pRight ) { return pLeft->getStr() == pRight->getStr(); } );
+            //}
+            const char* getContextType() const;
 
-        class Root : public Action
+            enum ContextType
+            {
+                eUnknown,
+                eAbstract,
+                eEvent,
+                eFunction,
+                eAction,
+                eLink,
+                eObject
+            };
+            ContextType m_contextType = eUnknown;
+        };
+        
+
+        class Root : public Context
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
@@ -270,11 +345,11 @@ namespace eg
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
-            bool equal( const Root& cmp ) const
+            /*bool equal( const Root& cmp ) const
             {
                 return Action::equal( cmp ) && 
                     m_includePath == cmp.m_includePath;
-            }
+            }*/
         private:
             std::optional< boost::filesystem::path > m_includePath; //null if main root
 			RootType m_rootType;

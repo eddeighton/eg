@@ -95,7 +95,7 @@ namespace interface
             THROW_RTE( "Duplicate identifiers: " << pLeft->getIdentifier() );
         }
     }
-    
+    /*
     bool Element::update( const Element* pNewElement )
     {
         bool bModified = false;
@@ -175,7 +175,7 @@ namespace interface
             
         
         return bModified;
-    }
+    }*/
     
     void Element::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
     {
@@ -214,67 +214,6 @@ namespace interface
             }
         }
     }
-    void Action::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
-    {
-        if( m_pElement )
-        {
-            switch( m_pElement->getType() )
-            {
-                case eInputRoot      :
-                case eInputAction    :
-                    {
-                        input::Action* pAction = dynamic_cast< input::Action* >( m_pElement );
-                        VERIFY_RTE( pAction );
-                        {
-                            std::ostringstream osAnnotation;
-                            osAnnotation << getIndex();
-                            if( m_definitionFile )
-                            {
-                                osAnnotation << " " << m_definitionFile.value();
-                            }
-							if( const Root* pIsRoot = dynamic_cast< const Root* >( this ) )
-							{
-                                osAnnotation << " " << pIsRoot->getRootType();
-							}
-                            pAction->printDeclaration( os, strIndent, getIdentifier(), osAnnotation.str() );
-                        }
-                        
-                        std::ostringstream osNested;
-                        {
-                            strIndent.push_back( ' ' );
-                            strIndent.push_back( ' ' );
-                            for( const Element* pChildNode : m_children )
-                            {
-                                pChildNode->print( osNested, strIndent, bIncludeOpaque );
-                            }
-                            strIndent.pop_back();
-                            strIndent.pop_back();
-                        }
-                        
-                        const std::string str = osNested.str();
-                        if( !str.empty() )
-                        {
-                            os << "\n" << strIndent << "{\n" << str << strIndent << "}\n";
-                        }
-                        else
-                        {
-                            os << "\n";
-                        }
-                    }
-                    break;
-                default:
-                    THROW_RTE( "Unsupported type" );
-                    break;
-            }
-        }
-        else
-        {
-            for( const Element* pChildNode : m_children )
-            {
-                pChildNode->print( os, strIndent, bIncludeOpaque );
-            }
-        }
-    }
 
     const std::string& Element::getIdentifier() const
     {
@@ -296,7 +235,7 @@ namespace interface
                 case eInputUsing     :  return dynamic_cast< input::Using* >(      m_pElement )->getIdentifier();
                 case eInputExport    :  return dynamic_cast< input::Export* >(     m_pElement )->getIdentifier();
                 case eInputRoot      :  return dynamic_cast< input::Root* >(       m_pElement )->getIdentifier();
-                case eInputAction    :  return dynamic_cast< input::Action* >(     m_pElement )->getIdentifier();
+                case eInputContext   :  return dynamic_cast< input::Context* >(    m_pElement )->getIdentifier();
                     break;
                 case eInputOpaque    :
                 default:
@@ -369,19 +308,19 @@ namespace interface
             m_pDimension = dynamic_cast< input::Dimension* >( m_pElement );
             VERIFY_RTE( m_pDimension );
         }
-        loader.loadObjectVector( m_actionTypes );
+        loader.loadObjectVector( m_contextTypes );
         loader.load( m_canonicalType );
         loader.load( m_size );
     }
     void Dimension::store( Storer& storer ) const
     {
         Element::store( storer );
-        storer.storeObjectVector( m_actionTypes );
+        storer.storeObjectVector( m_contextTypes );
         storer.store( m_canonicalType );
         storer.store( m_size );
     }
     
-    bool Dimension::update( const Element* pElement )
+    /*bool Dimension::update( const Element* pElement )
     {
         if( const Dimension* pNewDimension = dynamic_cast< const Dimension* >( pElement ) )
         {
@@ -392,7 +331,7 @@ namespace interface
             }
         }
         return true;
-    }
+    }*/
     
     const std::string& Dimension::getType() const
     {
@@ -403,9 +342,9 @@ namespace interface
         if( dimensions.size() > 1 )
         {
             const Dimension* pFirst = dimensions.front();
-            std::set< const Action* > cmp( 
-                pFirst->m_actionTypes.begin(), 
-                pFirst->m_actionTypes.end() );
+            std::set< const Context* > cmp( 
+                pFirst->m_contextTypes.begin(), 
+                pFirst->m_contextTypes.end() );
             for( std::vector< const Dimension* >::const_iterator 
                 i       = dimensions.begin() + 1,
                 iEnd    = dimensions.end(); i!=iEnd; ++i )
@@ -414,9 +353,9 @@ namespace interface
                     return false;
                 else 
                 {
-                    std::set< const Action* > cmp2( 
-                        (*i)->m_actionTypes.begin(), 
-                        (*i)->m_actionTypes.end() );
+                    std::set< const Context* > cmp2( 
+                        (*i)->m_contextTypes.begin(), 
+                        (*i)->m_contextTypes.end() );
                     if( cmp != cmp2 )
                         return false;
                 }
@@ -452,7 +391,7 @@ namespace interface
         Element::store( storer );
         storer.store( m_canonicalType );
     }
-    bool Using::update( const Element* pElement )
+    /*bool Using::update( const Element* pElement )
     {
         if( const Using* pNewUsing = dynamic_cast< const Using* >( pElement ) )
         {
@@ -463,7 +402,7 @@ namespace interface
             }
         }
         return true;
-    }
+    }*/
     const std::string& Using::getType() const
     {
         return m_pUsing->getType()->getStr();
@@ -494,7 +433,7 @@ namespace interface
     {
         Element::store( storer );
     }
-    bool Export::update( const Element* pElement )
+    /*bool Export::update( const Element* pElement )
     {
         if( const Export* pNewExport = dynamic_cast< const Export* >( pElement ) )
         {
@@ -505,7 +444,7 @@ namespace interface
             }
         }
         return true;
-    }
+    }*/
     const std::string& Export::getReturnType() const
     {
         return m_pExport->getReturnType()->getStr();
@@ -544,7 +483,7 @@ namespace interface
     {
         Element::store( storer );
     }
-    bool Include::update( const Element* pElement )
+    /*bool Include::update( const Element* pElement )
     {
         if( const Include* pNewInclude = dynamic_cast< const Include* >( pElement ) )
         {
@@ -555,76 +494,69 @@ namespace interface
             }
         }
         return true;
-    }
+    }*/
     
     
-    Action::Action( const IndexedObject& indexedObject )
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    
+    Context::Context( const IndexedObject& indexedObject )
         :   Element( indexedObject, nullptr, nullptr )
     {
     }
-    Action::Action( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+    Context::Context( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
         :   Element( indexedObject, pParent, pElement ),
-            m_pAction( dynamic_cast< input::Action* >( pElement ) )
+            m_pContext( dynamic_cast< input::Context* >( pElement ) )
     {
-        VERIFY_RTE( m_pAction );
+        if( pElement )
+        {
+            VERIFY_RTE( m_pContext );
+        }
     }
 
-    void Action::load( Loader& loader )
+    void Context::load( Loader& loader )
     {
         Element::load( loader );
         if( m_pElement )
         {
-            m_pAction = dynamic_cast< input::Action* >( m_pElement );
-            VERIFY_RTE( m_pAction );
+            m_pContext = dynamic_cast< input::Context* >( m_pElement );
+            VERIFY_RTE( m_pContext );
         }
-        loader.loadOptional( m_definitionFile );
-        loader.load( m_size );
-        loader.loadObjectVector( m_baseActions );
-        loader.load( m_strBaseType );
-        loader.load( m_strDependency );
+        loader.loadObjectVector( m_baseContexts );
         loader.load( m_parameterTypes );
-        //loader.loadObjectVector( m_inheriters );
-        //loader.loadObjectVector( m_linkers );
+        loader.load( m_size );
+        loader.loadOptional( m_definitionFile );
+        loader.loadOptional( m_bIndirectlyAbstract );
     }
     
-    void Action::store( Storer& storer ) const
+    void Context::store( Storer& storer ) const
     {
         Element::store( storer );
-        storer.storeOptional( m_definitionFile );
-        storer.store( m_size );
-        storer.storeObjectVector( m_baseActions );
-        storer.store( m_strBaseType );
-        storer.store( m_strDependency );
+        storer.storeObjectVector( m_baseContexts );
         storer.store( m_parameterTypes );
-        //storer.storeObjectVector( m_inheriters );
-        //storer.storeObjectVector( m_linkers );
+        storer.store( m_size );
+        storer.storeOptional( m_definitionFile );
+        storer.storeOptional( m_bIndirectlyAbstract );
     }
-    bool Action::update( const Element* pElement )
-    {
-        if( const Action* pNewAction = dynamic_cast< const Action* >( pElement ) )
-        {
-            //require the opaque is equal
-            if( m_pAction->equal( *pNewAction->m_pAction ) )
-            {
-                return Element::update( pElement );
-            }
-        }
-        return true;
-    }
-    
-    void Action::getDimensions( std::vector< Dimension* >& dimensions ) const
+    void Context::getDimensions( std::vector< Dimension* >& dimensions ) const
     {
         for( Element* pElement : m_children )
         {
             switch( pElement->getType() )
             {
+                case eAbstractOpaque    :  break;
                 case eAbstractDimension :  dimensions.push_back( dynamic_cast< Dimension* >( pElement ) ); break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  break;
                 case eAbstractExport    :  break;
-                case eAbstractRoot      :  break;
+                case eAbstractAbstract  :  break;
+                case eAbstractEvent     :  break;
+                case eAbstractFunction  :  break;
                 case eAbstractAction    :  break;
-                case eAbstractOpaque    :  break;
+                case eAbstractObject    :  break;
+                case eAbstractLink      :  break;
+                case eAbstractRoot      :  break;
                 default:
                     THROW_RTE( "Unsupported type" );
                     break;
@@ -632,19 +564,24 @@ namespace interface
         }
     }
     
-    void Action::getUsings( std::vector< Using* >& usings ) const
+    void Context::getUsings( std::vector< Using* >& usings ) const
     {
         for( Element* pElement : m_children )
         {
             switch( pElement->getType() )
             {
+                case eAbstractOpaque    :  break;
                 case eAbstractDimension :  break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  usings.push_back( dynamic_cast< Using* >( pElement ) ); break;
                 case eAbstractExport    :  break;
-                case eAbstractRoot      :  break;
+                case eAbstractAbstract  :  break;
+                case eAbstractEvent     :  break;
+                case eAbstractFunction  :  break;
                 case eAbstractAction    :  break;
-                case eAbstractOpaque    :  break;
+                case eAbstractObject    :  break;
+                case eAbstractLink      :  break;
+                case eAbstractRoot      :  break;
                 default:
                     THROW_RTE( "Unsupported type" );
                     break;
@@ -652,69 +589,67 @@ namespace interface
         }
     }
     
-    void Action::getExports( std::vector< Export* >& exports ) const
+    void Context::getExports( std::vector< Export* >& exports ) const
     {
         for( Element* pElement : m_children )
         {
             switch( pElement->getType() )
             {
+                case eAbstractOpaque    :  break;
                 case eAbstractDimension :  break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  break;
                 case eAbstractExport    :  exports.push_back( dynamic_cast< Export* >( pElement ) ); break;
-                case eAbstractRoot      :  break;
+                case eAbstractAbstract  :  break;
+                case eAbstractEvent     :  break;
+                case eAbstractFunction  :  break;
                 case eAbstractAction    :  break;
-                case eAbstractOpaque    :  break;
+                case eAbstractObject    :  break;
+                case eAbstractLink      :  break;
+                case eAbstractRoot      :  break;
                 default:
                     THROW_RTE( "Unsupported type" );
                     break;
             }
         }
     }
-    
-    std::size_t Action::getBaseCount() const
+    std::size_t Context::getInputBaseCount() const
     {
-        if( m_pAction )
+        if( m_pContext )
         {
-            return m_pAction->getInheritance().size();
+            return m_pContext->getInheritance().size();
         }
         else
         {
             return 0U;
         }
     }
-        
-    void Action::getChildActions( std::vector< Action* >& actions ) const
+    void Context::getChildContexts( std::vector< Context* >& actions ) const
     {
         for( Element* pElement : m_children )
         {
             switch( pElement->getType() )
             {
+                case eAbstractOpaque    :  break;
                 case eAbstractDimension :  break;
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  break;
                 case eAbstractExport    :  break;
-                case eAbstractRoot      :  actions.push_back( dynamic_cast< Action* >( pElement ) ); break;
-                case eAbstractAction    :  actions.push_back( dynamic_cast< Action* >( pElement ) ); break;
-                case eAbstractOpaque    :  break;
+                case eAbstractAbstract  :  
+                case eAbstractEvent     :  
+                case eAbstractFunction  :  
+                case eAbstractAction    :  
+                case eAbstractObject    :  
+                case eAbstractLink      :  
+                case eAbstractRoot      :  actions.push_back( dynamic_cast< Context* >( pElement ) ); break;
+                
                 default:
                     THROW_RTE( "Unsupported type" );
                     break;
             }
         }
     }
-    
-    bool Action::isAbstract() const
-    {
-        return m_pAction ? m_pAction->isAbstract() : false;
-    }
-    
-    bool Action::isLink() const
-    {
-        return m_pAction ? m_pAction->isLink() : false;
-    }
-    
-    bool Action::isIndirectlyAbstract() const
+    bool Context::isIndirectlyAbstract() const
     {
         if( !m_bIndirectlyAbstract )
         {
@@ -722,8 +657,8 @@ namespace interface
             {
                 m_bIndirectlyAbstract = true;
             }
-            else if( const Action* pParent = 
-                dynamic_cast< const Action* >( m_pParent ) )
+            else if( const Context* pParent = 
+                dynamic_cast< const Context* >( m_pParent ) )
             {
                 m_bIndirectlyAbstract = pParent->isIndirectlyAbstract();
             }
@@ -736,22 +671,20 @@ namespace interface
         return m_bIndirectlyAbstract.value();
     }
     
-    bool Action::isSingular() const
+    bool Context::isAbstract() const
     {
-        return ( m_size == 1U ) ? true : false;
+		return false;
     }
-	
-	bool Action::isExecutable() const
+	bool Context::isExecutable() const
 	{
 		return true;
 	}
 		
-	bool Action::isMainExecutable() const
+	bool Context::isMainExecutable() const
 	{
 		return false;
 	}
-			
-    const interface::Dimension* Action::getLinkBaseDimension() const
+    const interface::Dimension* Context::getLinkBaseDimension() const
     {
         const interface::Dimension* pDimension = nullptr;
         
@@ -759,6 +692,7 @@ namespace interface
         {
             switch( pElement->getType() )
             {
+                case eAbstractOpaque    :  break;
                 case eAbstractDimension :  
                     {
                         Dimension* pDim = dynamic_cast< Dimension* >( pElement );
@@ -772,9 +706,13 @@ namespace interface
                 case eAbstractInclude   :  break;
                 case eAbstractUsing     :  break;
                 case eAbstractExport    :  break;
-                case eAbstractRoot      :  break;
+                case eAbstractAbstract  :  break;
+                case eAbstractEvent     :  break;
+                case eAbstractFunction  :  break;
                 case eAbstractAction    :  break;
-                case eAbstractOpaque    :  break;
+                case eAbstractObject    :  break;
+                case eAbstractLink      :  break;
+                case eAbstractRoot      :  break;
                 default:
                     THROW_RTE( "Unsupported type" );
                     break;
@@ -782,15 +720,227 @@ namespace interface
         }
         
         return pDimension;
+    }			
+    
+    void Context::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
+    {
+        if( m_pElement )
+        {
+            switch( m_pElement->getType() )
+            {
+                case eAbstractOpaque    :  break;
+                case eAbstractDimension :  break;
+                case eAbstractInclude   :  break;
+                case eAbstractUsing     :  break;
+                case eAbstractExport    :  break;
+                case eAbstractAbstract  :  
+                case eAbstractEvent     :  
+                case eAbstractFunction  :  
+                case eAbstractAction    :  
+                case eAbstractObject    :  
+                case eAbstractLink      :  
+                case eAbstractRoot      :  
+                
+                    {
+                        input::Context* pContext = dynamic_cast< input::Context* >( m_pElement );
+                        VERIFY_RTE( pContext );
+                        {
+                            std::ostringstream osAnnotation;
+                            osAnnotation << getIndex();
+                            if( m_definitionFile )
+                            {
+                                osAnnotation << " " << m_definitionFile.value();
+                            }
+							if( const Root* pIsRoot = dynamic_cast< const Root* >( this ) )
+							{
+                                osAnnotation << " " << pIsRoot->getRootType();
+							}
+                            
+                            input::printDeclaration( os, strIndent, pContext->getContextType(), getIdentifier(), 
+                                pContext->getReturnType(), pContext->getParams(), 
+                                pContext->getSize(), pContext->getInheritance(), osAnnotation.str() );
+                        }
+                        
+                        std::ostringstream osNested;
+                        {
+                            strIndent.push_back( ' ' );
+                            strIndent.push_back( ' ' );
+                            for( const Element* pChildNode : m_children )
+                            {
+                                pChildNode->print( osNested, strIndent, bIncludeOpaque );
+                            }
+                            strIndent.pop_back();
+                            strIndent.pop_back();
+                        }
+                        
+                        const std::string str = osNested.str();
+                        if( !str.empty() )
+                        {
+                            os << "\n" << strIndent << "{\n" << str << strIndent << "}\n";
+                        }
+                        else
+                        {
+                            os << "\n";
+                        }
+                    }
+                    break;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break;
+            }
+        }
+        else
+        {
+            for( const Element* pChildNode : m_children )
+            {
+                pChildNode->print( os, strIndent, bIncludeOpaque );
+            }
+        }
     }
     
+    /*bool Action::update( const Element* pElement )
+    {
+        if( const Action* pNewAction = dynamic_cast< const Action* >( pElement ) )
+        {
+            //require the opaque is equal
+            if( m_pContext->equal( *pNewAction->m_pContext ) )
+            {
+                return Element::update( pElement );
+            }
+        }
+        return true;
+    }*/
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    Abstract::Abstract( const IndexedObject& indexedObject )
+        :   Context( indexedObject, nullptr, nullptr )
+    {
+    }
+    Abstract::Abstract( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Context( indexedObject, pParent, pElement )
+    {
+    }
+    void Abstract::load( Loader& loader )
+    {
+        Context::load( loader );
+    }
+    void Abstract::store( Storer& storer ) const
+    {
+        Context::store( storer );
+    }
+    bool Abstract::isAbstract() const
+    {
+        return true;
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    Event::Event( const IndexedObject& indexedObject )
+        :   Context( indexedObject, nullptr, nullptr )
+    {
+    }
+    Event::Event( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Context( indexedObject, pParent, pElement )
+    {
+    }
+    void Event::load( Loader& loader )
+    {
+        Context::load( loader );
+    }
+    void Event::store( Storer& storer ) const
+    {
+        Context::store( storer );
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    Function::Function( const IndexedObject& indexedObject )
+        :   Context( indexedObject, nullptr, nullptr )
+    {
+    }
+    Function::Function( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Context( indexedObject, pParent, pElement )
+    {
+    }
+    void Function::load( Loader& loader )
+    {
+        Context::load( loader );
+    }
+    void Function::store( Storer& storer ) const
+    {
+        Context::store( storer );
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    Action::Action( const IndexedObject& indexedObject )
+        :   Context( indexedObject, nullptr, nullptr )
+    {
+    }
+    Action::Action( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Context( indexedObject, pParent, pElement )
+    {
+    }
+
+    void Action::load( Loader& loader )
+    {
+        Context::load( loader );
+    }
+    
+    void Action::store( Storer& storer ) const
+    {
+        Context::store( storer );
+    }
+    
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    Object::Object( const IndexedObject& indexedObject )
+        :   Context( indexedObject, nullptr, nullptr )
+    {
+    }
+    Object::Object( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Context( indexedObject, pParent, pElement )
+    {
+    }
+    void Object::load( Loader& loader )
+    {
+        Context::load( loader );
+    }
+    void Object::store( Storer& storer ) const
+    {
+        Context::store( storer );
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    Link::Link( const IndexedObject& indexedObject )
+        :   Context( indexedObject, nullptr, nullptr )
+    {
+    }
+    Link::Link( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
+        :   Context( indexedObject, pParent, pElement )
+    {
+    }
+    void Link::load( Loader& loader )
+    {
+        Context::load( loader );
+    }
+    void Link::store( Storer& storer ) const
+    {
+        Context::store( storer );
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
     Root::Root( const IndexedObject& indexedObject )
-        :   Action( indexedObject ),
+        :   Object( indexedObject ),
 			m_rootType( eInterfaceRoot )
     {
     }
     Root::Root( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement )
-        :   Action( indexedObject, pParent, pElement ),
+        :   Object( indexedObject, pParent, pElement ),
             m_pRoot( dynamic_cast< input::Root* >( pElement ) ),
 			m_rootType( m_pRoot->getRootType() )
     {
@@ -799,7 +949,7 @@ namespace interface
         
     void Root::load( Loader& loader )
     {
-        Action::load( loader );
+        Object::load( loader );
         if( m_pElement )
         {
             m_pRoot = dynamic_cast< input::Root* >( m_pElement );
@@ -809,10 +959,10 @@ namespace interface
     }
     void Root::store( Storer& storer ) const
     {
-        Action::store( storer );
+        Object::store( storer );
         storer.store( m_rootType );
     }
-    bool Root::update( const Element* pElement )
+    /*bool Root::update( const Element* pElement )
     {
         if( const Root* pNewRoot = dynamic_cast< const Root* >( pElement ) )
         {
@@ -830,7 +980,7 @@ namespace interface
             }
         }
         return true;
-    }
+    }*/
     
 	bool Root::isExecutable() const
 	{

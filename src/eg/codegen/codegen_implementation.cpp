@@ -135,8 +135,8 @@ namespace eg
                             osType << EG_VARIANT_TYPE << "< ";
                             for( const interface::Element* pElement : returnTypes )
                             {
-                                const interface::Action* pReturnType = 
-                                    dynamic_cast< const interface::Action* >( pElement );
+                                const interface::Context* pReturnType = 
+                                    dynamic_cast< const interface::Context* >( pElement );
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
@@ -166,8 +166,8 @@ namespace eg
                             osType << EG_VARIANT_TYPE << "< ";
                             for( const interface::Element* pElement : returnTypes )
                             {
-                                const interface::Action* pReturnType = 
-                                    dynamic_cast< const interface::Action* >( pElement );
+                                const interface::Context* pReturnType = 
+                                    dynamic_cast< const interface::Context* >( pElement );
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
@@ -197,8 +197,8 @@ namespace eg
                             osType << EG_VARIANT_TYPE << "< ";
                             for( const interface::Element* pElement : returnTypes )
                             {
-                                const interface::Action* pReturnType = 
-                                    dynamic_cast< const interface::Action* >( pElement );
+                                const interface::Context* pReturnType = 
+                                    dynamic_cast< const interface::Context* >( pElement );
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
@@ -228,8 +228,8 @@ namespace eg
                             osType << EG_VARIANT_TYPE << "< ";
                             for( const interface::Element* pElement : returnTypes )
                             {
-                                const interface::Action* pReturnType = 
-                                    dynamic_cast< const interface::Action* >( pElement );
+                                const interface::Context* pReturnType = 
+                                    dynamic_cast< const interface::Context* >( pElement );
                                 ASSERT( pReturnType );
                                 if( pElement != *returnTypes.begin())
                                     osType << ", ";
@@ -276,13 +276,20 @@ namespace eg
                 ASSERT( pElement );
                 switch( pElement->getType() )
                 {
-                    case eAbstractDimension : os << dynamic_cast< const interface::Dimension* >(  pElement )->getIdentifier(); break;
-                    case eAbstractAction    : os << dynamic_cast< const interface::Action* >(     pElement )->getIdentifier(); break;
-                    case eAbstractUsing     : os << dynamic_cast< const interface::Using* >(      pElement )->getIdentifier(); break;
-                    case eAbstractExport    :
-                    case eAbstractRoot      : 
                     case eAbstractOpaque    :
                     case eAbstractInclude   :
+                        break;
+                    case eAbstractUsing     : os << dynamic_cast< const interface::Using* >(      pElement )->getIdentifier(); break;
+                    case eAbstractExport    :
+                        break;
+                    case eAbstractDimension : os << dynamic_cast< const interface::Dimension* >(  pElement )->getIdentifier(); break;
+                    case eAbstractAbstract  :
+                    case eAbstractEvent     :
+                    case eAbstractFunction  :
+                    case eAbstractAction    :
+                    case eAbstractObject    :
+                    case eAbstractLink      :
+                    case eAbstractRoot      : os << dynamic_cast< const interface::Context* >(     pElement )->getIdentifier(); break;
                     default:
                         THROW_RTE( "Unsupported type" );
                         break;
@@ -388,7 +395,7 @@ namespace eg
     
     void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
     {
-        os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
+        os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
         os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
     }
     

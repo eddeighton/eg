@@ -102,7 +102,7 @@ namespace eg
             //create buffer
             Buffer* pBuffer = construct< Buffer >();
             buffers.push_back( pBuffer );
-            pBuffer->m_pAction = pAction;
+            pBuffer->m_pContext = pAction;
             
             std::vector< const concrete::Element* > path = concrete::getPath( pAction );
             
@@ -218,7 +218,7 @@ namespace eg
                 }
             }
             pBuffer->stride = szOffset;
-            pBuffer->size   = szSize * pAction->getAction()->getSize();
+            pBuffer->size   = szSize * pAction->getContext()->getSize();
             
         }
         
@@ -227,7 +227,7 @@ namespace eg
             if( const concrete::Action* pChildAction = 
                 dynamic_cast< const concrete::Action* >( pChild ) )
             {
-                recurseInstances( buffers, dimensionMap, szSize * pAction->getAction()->getSize(), pChildAction );
+                recurseInstances( buffers, dimensionMap, szSize * pAction->getContext()->getSize(), pChildAction );
             }
         }
         

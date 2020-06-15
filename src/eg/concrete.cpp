@@ -56,7 +56,7 @@ namespace concrete
     void Inheritance_Node::load( Loader& loader )
     {
         m_pRootConcreteAction = loader.loadObjectRef< Action >();
-        m_pAction = loader.loadObjectRef< interface::Action >();
+        m_pContext = loader.loadObjectRef< interface::Context >();
         m_pParent = loader.loadObjectRef< Inheritance_Node >();
         loader.loadObjectVector( m_children );
         loader.loadObjectVector( m_actions );
@@ -66,7 +66,7 @@ namespace concrete
     void Inheritance_Node::store( Storer& storer ) const
     {
         storer.storeObjectRef( m_pRootConcreteAction );
-        storer.storeObjectRef( m_pAction );
+        storer.storeObjectRef( m_pContext );
         storer.storeObjectRef( m_pParent );
         storer.storeObjectVector( m_children );
         storer.storeObjectVector( m_actions );
@@ -124,13 +124,13 @@ namespace concrete
     int Dimension_User::getDataSize() const
     {
         const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
-        if( pNodeDimension->getActionTypes().empty() )
+        if( pNodeDimension->getContextTypes().empty() )
         {
             return pNodeDimension->getSize();
         }
-        else if( pNodeDimension->getActionTypes().size() == 1U )
+        else if( pNodeDimension->getContextTypes().size() == 1U )
         {
-            const interface::Action* pAction = pNodeDimension->getActionTypes().front();
+            const interface::Context* pAction = pNodeDimension->getContextTypes().front();
             if( pAction->isIndirectlyAbstract() )
                 return 12;
             else
@@ -142,20 +142,12 @@ namespace concrete
         }
     }
     
-	//bool Dimension_User::isLinkBaseDimension() const
-	//{
-    //    const Action* pParentAction = dynamic_cast< const Action* >( m_pParent );
-	//	VERIFY_RTE( pParentAction );
-	//	return pParentAction->getAction()->isLink() && 
-	//		getDimension()->getIdentifier() == EG_LINK_DIMENSION;
-	//}
-    
     void Dimension_Generated::load( Loader& loader )
     {
         Dimension::load( loader );
         m_pUserDimension = loader.loadObjectRef< Dimension_User >();
         loader.load( m_type );
-        m_pAction = loader.loadObjectRef< Action >();
+        m_pContext = loader.loadObjectRef< Action >();
         loader.load( dependencyDomain );
         m_pDependency = loader.loadObjectRef< Dimension_Generated >();
         m_pLinkGroup = loader.loadObjectRef< LinkGroup >();
@@ -166,7 +158,7 @@ namespace concrete
         Dimension::store( storer );
         storer.storeObjectRef( m_pUserDimension );
         storer.store( m_type );
-        storer.storeObjectRef( m_pAction );
+        storer.storeObjectRef( m_pContext );
         storer.store( dependencyDomain );
         storer.storeObjectRef( m_pDependency );
         storer.storeObjectRef( m_pLinkGroup );
@@ -232,15 +224,9 @@ namespace concrete
 
     void Action::print( std::ostream& os, std::string& strIndent ) const
     {
-        const interface::Action* pAction = getAction();
-        if( pAction->isLink() )
-        {
-            os << strIndent << "link(" << getIndex() << ") " << pAction->getIdentifier() << "\n";
-        }
-        else
-        {
-            os << strIndent << "action(" << getIndex() << ") " << pAction->getIdentifier() << "\n";
-        }
+        const interface::Context* pContext = getContext();
+        os << strIndent << pContext->getContextType() << 
+            "(" << getIndex() << ") " << pContext->getIdentifier() << "\n";
         
         if( !m_children.empty() )
         {
@@ -269,7 +255,7 @@ namespace concrete
     }
     int Action::getLocalDomainSize() const
     {
-        const interface::Action* pAction = getAction();
+        const interface::Context* pAction = getContext();
         VERIFY_RTE( pAction );
         return pAction->getSize();
     }

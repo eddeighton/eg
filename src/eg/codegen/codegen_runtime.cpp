@@ -129,7 +129,7 @@ namespace eg
                     
         /////starter
         {
-        os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
+        os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
         os << "{\n";
         os << "    //claim next free index\n";
         os << "    " << EG_RING_BUFFER_ALLOCATOR_TYPE << " iter;\n";
@@ -165,7 +165,7 @@ namespace eg
         os << "         {\n";
         os << "             //successfully claimed valid allocation index\n";
         os << "             const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-        os << "             " << getStaticType( pAction->getAction() ) << "& reference = " << 
+        os << "             " << getStaticType( pAction->getContext() ) << "& reference = " << 
                             Printer( pReferenceData, "nextInstance" ) << ";\n";
         os << "             reference.data.timestamp = startCycle;\n";
         os << "             " << Printer( pStateData, "nextInstance" ) << " = " << getActionState( action_running ) << ";\n";
@@ -178,7 +178,7 @@ namespace eg
         std::ostringstream osError;
         osError << "Failed to allocate " << pAction->getFriendlyName();
         os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
-        os << "    " << getStaticType( pAction->getAction() ) << " nullInstance;\n";
+        os << "    " << getStaticType( pAction->getContext() ) << " nullInstance;\n";
         os << "    return nullInstance;\n";
         os << "}\n";
         os << "\n";
@@ -191,10 +191,10 @@ namespace eg
 		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
 		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
 				
-        os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter()\n";
+        os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter()\n";
         os << "{\n";
         os << "    const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-        os << "    " << getStaticType( pAction->getAction() ) << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
+        os << "    " << getStaticType( pAction->getContext() ) << "& reference = " << Printer( pReferenceData, "0" ) << ";\n";
         os << "    reference.data.timestamp = startCycle;\n";
         os << "    " << Printer( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
         os << "    events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
@@ -325,12 +325,12 @@ namespace eg
     {
         if( pAction->getStopCycle() && pAction->getState() )
         {
-            if( pAction->getAction()->isMainExecutable() )
+            if( pAction->getContext()->isMainExecutable() )
             {
 				generateMainActionStarter( os, layout, pAction );
 				generateMainActionStopper( os, layout, pAction );
             }
-			else if( pAction->getAction()->isExecutable() )
+			else if( pAction->getContext()->isExecutable() )
             {
                 generateExecutableActionStarter( os, layout, pAction );
 				generateExecutableActionStopper( os, layout, pAction );
@@ -352,12 +352,12 @@ namespace eg
         {
             if( pAction->getParent() )
             {
-                //os << getStaticType( pAction->getAction() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
+                //os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
                 os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
             }
         }
         
-        os << "//input::Action Function Implementations\n";
+        os << "//input::Context Function Implementations\n";
         for( const concrete::Action* pAction : actions )
         {
             if( pAction->getParent() )

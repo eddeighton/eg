@@ -584,7 +584,7 @@ class CallOperation : public Operation
 {
 public:
     CallOperation(){}
-    CallOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    CallOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -600,11 +600,11 @@ protected:
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
-    const interface::Action* getInterfaceType() const { return m_pInterface; }
+    const interface::Context* getInterfaceType() const { return m_pInterface; }
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -612,7 +612,7 @@ class StartOperation : public Operation
 {
 public:
     StartOperation(){}
-    StartOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    StartOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -628,11 +628,11 @@ protected:
     virtual void evaluate( RuntimeEvaluator& evaluator ) const;
 public:
     InstanceVariable* getInstance() const { return m_pInstance; }
-    const interface::Action* getInterfaceType() const { return m_pInterface; }
+    const interface::Context* getInterfaceType() const { return m_pInterface; }
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -640,7 +640,7 @@ class StopOperation : public Operation
 {
 public:
     StopOperation(){}
-    StopOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    StopOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -659,7 +659,7 @@ public:
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -667,7 +667,7 @@ class PauseOperation : public Operation
 {
 public:
     PauseOperation(){}
-    PauseOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    PauseOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -686,7 +686,7 @@ public:
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -694,7 +694,7 @@ class ResumeOperation : public Operation
 {
 public:
     ResumeOperation(){}
-    ResumeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    ResumeOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -713,7 +713,7 @@ public:
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -721,7 +721,7 @@ class DoneOperation : public Operation
 {
 public:
     DoneOperation(){}
-    DoneOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    DoneOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -740,7 +740,7 @@ public:
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 
 };
@@ -749,7 +749,7 @@ class WaitActionOperation : public Operation
 {
 public:
     WaitActionOperation(){}
-    WaitActionOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    WaitActionOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -768,7 +768,7 @@ public:
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -803,7 +803,7 @@ class GetActionOperation : public Operation
 {
 public:
     GetActionOperation(){}
-    GetActionOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget )
+    GetActionOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget )
@@ -822,7 +822,7 @@ public:
     const concrete::Action* getConcreteType() const { return m_pTarget; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
 };
 
@@ -944,7 +944,7 @@ public:
         TOTAL_RANGE_TYPES
     };
     RangeOperation(){}
-    RangeOperation( InstanceVariable* pInstance, const interface::Action* pInterface, const concrete::Action* pTarget, RangeType rangeType )
+    RangeOperation( InstanceVariable* pInstance, const interface::Context* pInterface, const concrete::Action* pTarget, RangeType rangeType )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget ),
@@ -965,7 +965,7 @@ public:
     const RangeType getRangeType() const { return m_rangeType; }
 private:
     InstanceVariable* m_pInstance = nullptr;
-    const interface::Action* m_pInterface = nullptr;
+    const interface::Context* m_pInterface = nullptr;
     const concrete::Action* m_pTarget = nullptr;
     RangeType m_rangeType;
 

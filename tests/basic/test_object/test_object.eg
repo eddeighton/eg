@@ -1,0 +1,60 @@
+
+
+abstract AbstractVehicle
+{
+	abstract AbstractTorso
+	{
+		abstract WeaponMount
+		{
+			dim int weaponMountThing;
+
+			object Weapon
+			{
+				//auto p = Vehicle.pos;
+				
+				weaponMountThing();
+				
+				action Fire
+				{	
+				}
+				action Target
+				{
+				}
+			}
+
+			object EnergyWeapon : Weapon;
+			object MassWeapon : Weapon;
+			object TacyonWeapon : Weapon;
+		}
+		
+		object Cockpit;
+		
+		object Backpack;
+		
+		object Sonar : Backpack;
+		object Jetpack : Backpack;
+		object Radar : Backpack;
+		object Shield : Backpack;
+		
+		object Arm : WeaponMount
+		{
+			link Weapon;
+		}
+	}
+
+	object Torso : AbstractTorso
+	{
+		link Cockpit;
+		link Backpack;
+		link LeftArm : Arm;
+		link RightArm : Arm;
+	}
+}
+
+
+object Vehicle : AbstractVehicle
+{
+	dim vec2 pos;
+	
+	link Torso;
+}

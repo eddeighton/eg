@@ -686,7 +686,7 @@ namespace clang
     class AbstractMutator
     {
     public:
-        static void setSize( ::eg::interface::Action& action, std::size_t szSize )
+        static void setSize( ::eg::interface::Context& action, std::size_t szSize )
         {
             action.m_size = szSize;
         }
@@ -702,29 +702,31 @@ namespace clang
         {
             using_.m_canonicalType = strType;
         }
-        static void appendActionTypes( ::eg::interface::Dimension& dimension, ::eg::interface::Action* pAction )
+        static void appendActionTypes( ::eg::interface::Dimension& dimension, ::eg::interface::Context* pAction )
         {
-            dimension.m_actionTypes.push_back( pAction );
+            dimension.m_contextTypes.push_back( pAction );
         }
-        static void setInherited( ::eg::interface::Action& action, ::eg::interface::Action* pLink )
+        static void setInherited( ::eg::interface::Context& action, ::eg::interface::Context* pLink )
         {
-            std::vector< ::eg::interface::Action* >::iterator iFind = 
-                std::find( action.m_baseActions.begin(), action.m_baseActions.end(), pLink );
-            if( iFind == action.m_baseActions.end() )
+            std::vector< ::eg::interface::Context* >::iterator iFind = 
+                std::find( action.m_baseContexts.begin(), action.m_baseContexts.end(), pLink );
+            if( iFind == action.m_baseContexts.end() )
             {
-                action.m_baseActions.push_back( pLink );
+                action.m_baseContexts.push_back( pLink );
             }
         }
-        static void setInherited( ::eg::interface::Action& action, const std::string& strType )
+        static void setInherited( ::eg::interface::Context& action, const std::string& strType )
         {
-            action.m_strBaseType = strType;
+            //action.m_strBaseType = strType;
+            THROW_RTE( "Base Type?" );
         }
-        static void setDependency( ::eg::interface::Action& action, const std::string& strType )
+        static void setDependency( ::eg::interface::Context& action, const std::string& strType )
         {
-            action.m_strDependency = strType;
+            //action.m_strDependency = strType;
+            THROW_RTE( "Dependency?" );
         }
         
-        static void setParameters( ::eg::interface::Action& action, const ArrayRef< ParmVarDecl * >& parameters )
+        static void setParameters( ::eg::interface::Context& action, const ArrayRef< ParmVarDecl * >& parameters )
         {
             for( const ParmVarDecl* pParam : parameters )
             {
@@ -735,7 +737,7 @@ namespace clang
     };
     
     bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session, 
-        eg::interface::Action* pAction, SourceLocation loc, DeclContext* pContext )
+        eg::interface::Context* pAction, SourceLocation loc, DeclContext* pContext )
     {
         ::eg::IndexedObject::Array& objects = session.getAppendingObjects();
                             
@@ -772,9 +774,9 @@ namespace clang
                 
                     if( !pApplicationOperator )
                     {
-                        std::ostringstream os;
-                        os << "Failed to locate interface member operator() for " << pAction->getFriendlyName();
-                        pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
+                        //std::ostringstream os;
+                        //os << "Failed to locate interface member operator() for " << pAction->getFriendlyName();
+                        //pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error ) << os.str();
                         return false;
                     }
                     else
@@ -825,7 +827,7 @@ namespace clang
                                 if( index > 0 && index < static_cast< ::eg::TypeID >( objects.size() ) )
                                 {
                                     ::eg::IndexedObject* pObject = objects[ index ];
-                                    if( ::eg::interface::Action* pAction = dynamic_cast< ::eg::interface::Action* >( pObject ) )
+                                    if( ::eg::interface::Context* pAction = dynamic_cast< ::eg::interface::Context* >( pObject ) )
                                     {
                                         AbstractMutator::appendActionTypes( *pDimension, pAction );
                                     }
@@ -861,7 +863,7 @@ namespace clang
                 AbstractMutator::setCanonicalType( *pUsing, typeTypeCanonical.getAsString() );
             }
             
-            const std::size_t szBaseCount = pAction->getBaseCount();
+            const std::size_t szBaseCount = pAction->getInputBaseCount();
             for( std::size_t sz = 0; sz != szBaseCount; ++sz )
             {
                 const std::string strBaseType = ::eg::getBaseTraitType( sz );
@@ -882,7 +884,7 @@ namespace clang
                         if( iLinkEGTypeID > 0 && iLinkEGTypeID < static_cast< ::eg::TypeID >( objects.size() ) )
                         {
                             ::eg::IndexedObject* pObject = objects[ iLinkEGTypeID ];
-                            if( ::eg::interface::Action* pLinkedAction = dynamic_cast< ::eg::interface::Action* >( pObject ) )
+                            if( ::eg::interface::Context* pLinkedAction = dynamic_cast< ::eg::interface::Context* >( pObject ) )
                             {
                                 AbstractMutator::setInherited( *pAction, pLinkedAction );
                             }
@@ -897,8 +899,8 @@ namespace clang
                                 const eg::TypeID negativeType = -iLinkEGTypeID;
                                 if( negativeType > 0 && negativeType < static_cast< ::eg::TypeID >( objects.size() ) )
                                 {
-                                    if( ::eg::interface::Action* pShouldBeAction = 
-                                        dynamic_cast< ::eg::interface::Action* >( objects[ negativeType ] ) )
+                                    if( ::eg::interface::Context* pShouldBeAction = 
+                                        dynamic_cast< ::eg::interface::Context* >( objects[ negativeType ] ) )
                                     {
                                         os << " should it be " << pShouldBeAction->getFriendlyName() << "?";
                                     }
@@ -929,11 +931,11 @@ namespace clang
             }
             //recurse
             {
-                std::vector< eg::interface::Action* > actions;
-                pAction->getChildActions( actions );
-                for( eg::interface::Action* pChildAction : actions )
+                std::vector< eg::interface::Context* > contexts;
+                pAction->getChildContexts( contexts );
+                for( eg::interface::Context* pChildContext : contexts )
                 {
-                    if( !interfaceAnalysis( pASTContext, pSema, session, pChildAction, result.loc, result.pContext ) )
+                    if( !interfaceAnalysis( pASTContext, pSema, session, pChildContext, result.loc, result.pContext ) )
                         return false;
                 }
             }
@@ -945,15 +947,15 @@ namespace clang
     {
         eg::interface::Root* pRoot = session.getTreeRoot();
         
-        std::vector< eg::interface::Action* > actions;
-        pRoot->getChildActions( actions );
+        std::vector< eg::interface::Context* > contexts;
+        pRoot->getChildContexts( contexts );
         
         SourceLocation loc;
-        DeclContext* pContext = pASTContext->getTranslationUnitDecl();
+        DeclContext* pDeclContext = pASTContext->getTranslationUnitDecl();
         
-        for( eg::interface::Action* pAction : actions )
+        for( eg::interface::Context* pContext : contexts )
         {
-            if( !interfaceAnalysis( pASTContext, pSema, session, pAction, loc, pContext ) )
+            if( !interfaceAnalysis( pASTContext, pSema, session, pContext, loc, pDeclContext ) )
                 return false;
         }
         return true;

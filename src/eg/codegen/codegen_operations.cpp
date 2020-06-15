@@ -66,11 +66,11 @@ namespace eg
         }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
-            push( (input::Action*) pElement, pNode );
+            push( (input::Context*) pElement, pNode );
         }
-        void push ( const input::Action*    pElement, const interface::Element* pNode )
+        void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
-            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
             VERIFY_RTE( pAction );
 
             //calculate the path to the root type
@@ -146,7 +146,7 @@ namespace eg
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
-        void pop ( const input::Action*    pElement, const interface::Element* pNode )
+        void pop ( const input::Context*    pElement, const interface::Element* pNode )
         {
         }
     };
@@ -180,11 +180,11 @@ namespace eg
         }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
-            push( (input::Action*) pElement, pNode );
+            push( (input::Context*) pElement, pNode );
         }
-        void push ( const input::Action*    pElement, const interface::Element* pNode )
+        void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
-            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
             VERIFY_RTE( pAction );
 
             if( m_translationUnit.isAction( pAction ) && pAction->getDefinitionFile() )
@@ -221,11 +221,11 @@ namespace eg
                     {
                         os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
                     }
-                    if( const input::Opaque* pParams = pElement->getParams() )
+                    /*if( const input::Opaque* pParams = pElement->getParams() )
                     {
                         os << "operator()(" << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const\n";
                     }
-                    else
+                    else*/
                     {
                         os << "operator()( " << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << " ) const\n";
                     }
@@ -270,7 +270,7 @@ namespace eg
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
-        void pop ( const input::Action*    pElement, const interface::Element* pNode )
+        void pop ( const input::Context*    pElement, const interface::Element* pNode )
         {
         }
     };

@@ -823,7 +823,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void CallOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -853,7 +853,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void StartOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -883,7 +883,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void StopOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -913,7 +913,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void PauseOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -943,7 +943,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void ResumeOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -974,7 +974,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void DoneOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -1004,7 +1004,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void WaitActionOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -1064,7 +1064,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
     }
     void GetActionOperation::store( ASTSerialiser& serialiser, Storer& storer ) const
@@ -1175,7 +1175,7 @@ namespace eg
     }
     void WriteOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pInstance->getConcreteType()->getAction() );
+        abstractTypes.push_back( m_pInstance->getConcreteType()->getContext() );
     }
     void WriteOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
@@ -1224,7 +1224,7 @@ namespace eg
     }
     void WriteLinkOperation::getReturnTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
-        abstractTypes.push_back( m_pInstance->getConcreteType()->getAction() );
+        abstractTypes.push_back( m_pInstance->getConcreteType()->getContext() );
     }
     void WriteLinkOperation::getParameterTypes( std::vector< const interface::Element* >& abstractTypes ) const
     {
@@ -1247,7 +1247,7 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        m_pInterface = loader.loadObjectRef< interface::Action >();
+        m_pInterface = loader.loadObjectRef< interface::Context >();
         m_pTarget = loader.loadObjectRef< concrete::Action >();
         loader.load( m_rangeType );
     }

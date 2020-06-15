@@ -72,13 +72,13 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
     os << "    namespace detail\n";
     os << "    {\n";
     
-    std::vector< const eg::interface::Action* > abstractActions = 
-        eg::many_cst< eg::interface::Action >( objects );
+    std::vector< const eg::interface::Context* > abstractActions = 
+        eg::many_cst< eg::interface::Context >( objects );
         
-    using ActionTypeMap = std::map< const eg::interface::Action*, std::string, eg::CompareIndexedObjects >;
+    using ActionTypeMap = std::map< const eg::interface::Context*, std::string, eg::CompareIndexedObjects >;
     ActionTypeMap actionTypeMap;
     
-    for( const eg::interface::Action* pAbstractAction : abstractActions )
+    for( const eg::interface::Context* pAbstractAction : abstractActions )
     {
         if( pAbstractAction->getParent() )
         {
@@ -142,7 +142,7 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
             i = actionTypeMap.begin(),
             iEnd = actionTypeMap.end(); i!=iEnd; ++i )
     {
-        const eg::interface::Action* pAbstractAction = i->first;
+        const eg::interface::Context* pAbstractAction = i->first;
         const std::string& strType = i->second;
     os << "        template <> struct type_caster< " << strType << " >\n";
     os << "        {\n";
@@ -172,7 +172,7 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
     
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getAction()->isExecutable() )
+        if( pAction->getContext()->isExecutable() )
         {
             os << "void " << getFuncName( pAction, "pause" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
@@ -375,17 +375,17 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getAction()->isExecutable() && !pAction->getAction()->isMainExecutable() )
+        if( pAction->getContext()->isExecutable() && !pAction->getContext()->isMainExecutable() )
         {
 			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                {\n";
-    os << "                    " << getStaticType( pAction->getAction() ) << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                    " << getStaticType( pAction->getContext() ) << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
-    if( false && pAction->getAction()->hasDefinition() )
+    if( false && pAction->getContext()->hasDefinition() )
     {
-    const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
+    const std::vector< std::string >& parameters = pAction->getContext()->getParameters();
     os << "                            ref(";
     bool bFirst = true;
     int iIndex = 0;
@@ -423,19 +423,19 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getAction()->isExecutable() && !pAction->getAction()->isMainExecutable() )
+        if( pAction->getContext()->isExecutable() && !pAction->getContext()->isMainExecutable() )
         {
 			VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                {\n";
-    os << "                    " << getStaticType( pAction->getAction() ) << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
+    os << "                    " << getStaticType( pAction->getContext() ) << " ref = " << pAction->getName() << "_starter( reference.instance );\n";
     os << "                    if( ref )\n";
     os << "                    {\n";
-            if( false && pAction->getAction()->hasDefinition() )
+            if( false && pAction->getContext()->hasDefinition() )
             {
-    const std::vector< std::string >& parameters = pAction->getAction()->getParameters();
+    const std::vector< std::string >& parameters = pAction->getContext()->getParameters();
     
-    os << "                        std::function< void() > functor = std::bind( &" << getStaticType( pAction->getAction() ) << "::operator(), ref";
+    os << "                        std::function< void() > functor = std::bind( &" << getStaticType( pAction->getContext() ) << "::operator(), ref";
     int iIndex = 0;
     for( const std::string& strParamType : parameters )
     {
@@ -484,7 +484,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getAction()->isExecutable() )
+        if( pAction->getContext()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                " << pAction->getName() << "_stopper( reference.instance );\n";
@@ -504,7 +504,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getAction()->isExecutable() )
+        if( pAction->getContext()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                " << getFuncName( pAction, "pause" ) << "( reference.instance );\n";
@@ -524,7 +524,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getAction()->isExecutable() )
+        if( pAction->getContext()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                " << getFuncName( pAction, "resume" ) << "( reference.instance );\n";
@@ -544,7 +544,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     os << "        {\n";
     for( const eg::concrete::Action* pAction : actions )
     {
-        if( pAction->getAction()->isExecutable() )
+        if( pAction->getContext()->isExecutable() )
         {
     os << "            case " << pAction->getIndex() << ":\n";
     os << "                pStack->m_result = pybind11::cast( " << getFuncName( pAction, "done" ) << "( reference.instance ) );\n";

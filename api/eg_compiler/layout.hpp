@@ -90,9 +90,9 @@ namespace eg
         std::size_t getSize() const { return size; }
         std::size_t getStride() const { return stride; }
         const std::vector< const DataMember* >& getDimensions() const { return m_dimensions; }
-        const concrete::Action* getAction() const { return m_pAction; }
+        const concrete::Action* getAction() const { return m_pContext; }
     private:
-        const concrete::Action* m_pAction = nullptr;
+        const concrete::Action* m_pContext = nullptr;
         std::vector< const DataMember* > m_dimensions;
         std::size_t size, stride;
         std::string name, variable;

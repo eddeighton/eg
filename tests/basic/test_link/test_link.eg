@@ -8,21 +8,27 @@ action A[ 16 ]
 	}
 }
 
-action B[ 16 ] : A
-{
-}
+action B[ 16 ] : A;
+action C[ 16 ] : B;
+action D[ 16 ] : A;
+link Test[ 16 ] : B;
 
-action C[ 16 ] : B
+action Interaction
 {
-}
-
-action D[ 16 ] : A
-{
-}
-
-link Test[ 16 ] : B
-{
-
+	link Left : A;
+	link Right : D;
+	
+	action Check
+	{
+		A a = Left.Get();
+		D d = Right.Get();
+		
+		if( a && d )
+		{
+			LOG( "Check passed" );
+		}
+	}
+	
 }
 
 action TestIt
@@ -73,6 +79,12 @@ state( state() + 1 );
 if( state() == 1 ) 
 {
 	TestIt();
+	
+	Interaction i = Interaction();
+	i.Left().base( C() );
+	i.Right().base( D() );
+	i.Check();
+	
 	return eg::sleep();
 }
 
@@ -82,5 +94,7 @@ while( events::get( iter, ev ) && ( ev.type != "log"s ) );
 TEST( (const char*)ev.value == "works1"s );
 while( events::get( iter, ev ) && ( ev.type != "log"s ) );
 TEST( (const char*)ev.value == "works2"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "Check passed"s );
 while( events::get( iter, ev ) && ( ev.type != "log"s ) );
 TEST( (const char*)ev.value == "A::Log"s );

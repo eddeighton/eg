@@ -58,9 +58,9 @@ namespace concrete
         using Inheritance_Node_SetCst = std::set< const Inheritance_Node*, CompareIndexedObjects >;
             
         //getStaticDerived and getDynamicDerived used by compatibility routines in code gen
-        inline void getStaticDerived( std::set< const interface::Action*, CompareIndexedObjects >& derived ) const
+        inline void getStaticDerived( std::set< const interface::Context*, CompareIndexedObjects >& derived ) const
         {
-            derived.insert( m_pAction );
+            derived.insert( m_pContext );
             for( const Inheritance_Node* p : m_children )
             {
                 p->getStaticDerived( derived );
@@ -76,7 +76,7 @@ namespace concrete
         }
         
         Action* getRootConcreteAction() const { return m_pRootConcreteAction; }
-        const ::eg::interface::Action* getAbstractAction() const { return m_pAction; }
+        const ::eg::interface::Context* getAbstractAction() const { return m_pContext; }
         Inheritance_Node* getParent() const { return m_pParent; }
         const Inheritance_Node_Vector& getChildren() const { return m_children; }
         const std::vector< Action* > getActions() const { return m_actions; }
@@ -84,7 +84,7 @@ namespace concrete
         
     private:
         Action* m_pRootConcreteAction; //the actual concrete action this inheritance node tree is entirely for
-        const ::eg::interface::Action* m_pAction; //the abstract action this node is for
+        const ::eg::interface::Context* m_pContext; //the abstract action this node is for
         Inheritance_Node* m_pParent = nullptr;
         Inheritance_Node_Vector m_children; //the nested nodes that describe how this node inherits other abstract actions
         std::vector< Action* > m_actions;
@@ -178,12 +178,12 @@ namespace concrete
     public:
         bool isEGType() const
         {
-            return !getActionTypes().empty();
+            return !getContextTypes().empty();
         }
         
-        const std::vector< ::eg::interface::Action* >& getActionTypes() const
+        const std::vector< ::eg::interface::Context* >& getContextTypes() const
         {
-            return getDimension()->getActionTypes();
+            return getDimension()->getContextTypes();
         }
         
         const ::eg::interface::Dimension* getDimension() const { return dynamic_cast< const ::eg::interface::Dimension* >( m_pElement ); }
@@ -231,14 +231,14 @@ namespace concrete
     public:
         DimensionType getDimensionType() const { return m_type; }
         const Dimension_User* getUserDimension() const { return m_pUserDimension; }
-        Action* getAction() const { return m_pAction; }
+        Action* getAction() const { return m_pContext; }
         std::size_t getDependencyDomain() const { return dependencyDomain; }
         Dimension_Generated* getDependency() const { return m_pDependency; }
 		LinkGroup* getLinkGroup() const { return m_pLinkGroup; }
     private:
         DimensionType m_type;
         Dimension_User* m_pUserDimension = nullptr;
-        Action* m_pAction = nullptr;
+        Action* m_pContext = nullptr;
         Dimension_Generated* m_pDependency = nullptr;
         std::size_t dependencyDomain = 1U;
 		LinkGroup* m_pLinkGroup = nullptr;
@@ -266,7 +266,7 @@ namespace concrete
         using IteratorMap = std::map< const Action*, const Dimension_Generated*, CompareIndexedObjects >;
 		using LinkMap = std::map< std::string, const Dimension_Generated* >;
         
-        const ::eg::interface::Action* getAction() const { return dynamic_cast< const ::eg::interface::Action* >( m_pElement ); }
+        const ::eg::interface::Context* getContext() const { return dynamic_cast< const ::eg::interface::Context* >( m_pElement ); }
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
         const std::string& getName() const { return m_strName; }
         
@@ -295,7 +295,7 @@ namespace concrete
         virtual int getLocalDomainSize() const;
         virtual int getTotalDomainSize() const;
         
-        std::string getFriendlyName() const { return getAction()->getFriendlyName(); }
+        std::string getFriendlyName() const { return getContext()->getFriendlyName(); }
         void print( std::ostream& os, std::string& strIndent ) const;
         
     private:

@@ -78,7 +78,7 @@ namespace eg
     public:
         struct Compatibility
         {
-            using StaticCompatibilitySet = std::set< const interface::Action*, CompareIndexedObjects >;
+            using StaticCompatibilitySet = std::set< const interface::Context*, CompareIndexedObjects >;
             using DynamicCompatibilitySet = std::set< const concrete::Action*, CompareIndexedObjects >;
             StaticCompatibilitySet staticCompatibleTypes;
             StaticCompatibilitySet staticLinkCompatibleTypes;
@@ -87,23 +87,23 @@ namespace eg
             DynamicCompatibilitySet dynamicCompatibleToLinkTypes;
         };
         
-        using CompatibilityMap = std::map< const interface::Action*, Compatibility, CompareIndexedObjects >;
+        using CompatibilityMap = std::map< const interface::Context*, Compatibility, CompareIndexedObjects >;
         CompatibilityMap m_compatibility;
         
         void analyseCompatibility( 
-            const std::vector< const interface::Action* >& interfaceActions,
+            const std::vector< const interface::Context* >& interfaceActions,
             const std::vector< const concrete::Inheritance_Node* >& iNodes );
             
         void analyseLinkCompatibility( 
-            const std::vector< const interface::Action* >& interfaceActions,
+            const std::vector< const interface::Context* >& interfaceActions,
             const std::vector< LinkGroup* >& links );
             
-        const Compatibility& getCompatibility( const interface::Action* pAction ) const;
+        const Compatibility& getCompatibility( const interface::Context* pAction ) const;
     
         using InstanceMap = std::multimap< const interface::Element*, const concrete::Element*, CompareIndexedObjects >;
         InstanceMap m_instanceMap;
         
-        using InheritanceNodeMap = std::multimap< const interface::Action*, const concrete::Inheritance_Node*, CompareIndexedObjects >;
+        using InheritanceNodeMap = std::multimap< const interface::Context*, const concrete::Inheritance_Node*, CompareIndexedObjects >;
         InheritanceNodeMap m_inheritanceMap;
         
         void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const;

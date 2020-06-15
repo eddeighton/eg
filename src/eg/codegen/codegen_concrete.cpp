@@ -48,22 +48,22 @@ namespace eg
     {
         const interface::Dimension* pNodeDimension = 
             dynamic_cast< const interface::Dimension* >( pDimension->getAbstractElement() );
-        if( pNodeDimension->getActionTypes().empty() )
+        if( pNodeDimension->getContextTypes().empty() )
         {
             os << pNodeDimension->getCanonicalType();
         }
-        else if( pNodeDimension->getActionTypes().size() == 1U )
+        else if( pNodeDimension->getContextTypes().size() == 1U )
         {
-            const interface::Action* pAction = pNodeDimension->getActionTypes().front();
+            const interface::Context* pAction = pNodeDimension->getContextTypes().front();
             
             os << getStaticType( pAction );
         }
         else
         {
             os << EG_VARIANT_TYPE << "< ";
-            for( const interface::Action* pAction : pNodeDimension->getActionTypes() )
+            for( const interface::Context* pAction : pNodeDimension->getContextTypes() )
             {
-                if( pAction != pNodeDimension->getActionTypes().front() )
+                if( pAction != pNodeDimension->getContextTypes().front() )
                     os << ", ";
                 os << getStaticType( pAction );
             }
@@ -88,7 +88,7 @@ namespace eg
                 {
                     const concrete::Action* pDimensionAction = pDimension->getAction();
                     VERIFY_RTE( pDimensionAction );
-                    const interface::Action* pAction = pDimensionAction->getAction();
+                    const interface::Context* pAction = pDimensionAction->getContext();
                     os << getStaticType( pAction );
                 }
                 break;
@@ -115,7 +115,7 @@ namespace eg
         
         //use the traits
         const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( pDimension->getAbstractElement() );
-        if( pNodeDimension->getActionTypes().empty() )
+        if( pNodeDimension->getContextTypes().empty() )
         {
             os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::initialise( " << printer << " );\n";
         }
@@ -140,7 +140,7 @@ namespace eg
                 {
                     const concrete::Action* pDimensionAction = pDimension->getAction();
                     VERIFY_RTE( pDimensionAction );
-                    const interface::Action* pAction = pDimensionAction->getAction();
+                    const interface::Context* pAction = pDimensionAction->getContext();
                     os << strIndent << printer << " = " << getStaticType( pAction ) << 
                         "( " << EG_REFERENCE_TYPE << " { i, " << pDimensionAction->getIndex() << ", 0 } );\n";
                 }
@@ -177,7 +177,7 @@ namespace eg
         
         //use the traits
         const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
-        if( pNodeDimension->getActionTypes().empty() )
+        if( pNodeDimension->getContextTypes().empty() )
         {
             os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::encode( buffer, ";
             printer.printVariableAccess( os, strIndex );
@@ -190,7 +190,7 @@ namespace eg
         
         //use the traits
         const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
-        if( pNodeDimension->getActionTypes().empty() )
+        if( pNodeDimension->getContextTypes().empty() )
         {
             os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::decode( buffer, ";
             printer.printVariableAccess( os, strIndex );
@@ -217,8 +217,8 @@ namespace eg
                 break;
             case eActionReference    :
                 {
-                    VERIFY_RTE( m_pAction );
-                    const interface::Action* pAction = m_pAction->getAction();
+                    VERIFY_RTE( m_pContext );
+                    const interface::Context* pAction = m_pContext->getContext();
                     os << getStaticType( pAction );
                 }
                 break;
@@ -259,8 +259,8 @@ namespace eg
                 break;
             case eActionReference    :
                 {
-                    VERIFY_RTE( m_pAction );
-                    const interface::Action* pAction = m_pAction->getAction();
+                    VERIFY_RTE( m_pContext );
+                    const interface::Context* pAction = m_pContext->getContext();
                     os << getStaticType( pAction );
                 }
                 break;
@@ -294,16 +294,16 @@ namespace eg
     
     void Action::printType( std::ostream& os ) const
     {
-        os << getStaticType( getAction() );
+        os << getStaticType( getContext() );
     }
 	void Action::printEncode( std::ostream& os, const std::string& strIndex ) const
 	{
-		const std::vector< std::string >& params = getAction()->getParameters();
+		const std::vector< std::string >& params = getContext()->getParameters();
 		//TODO - generate dimensions for parameters for defered / remote calls
 	}
 	void Action::printDecode( std::ostream& os, const std::string& strIndex ) const
 	{
-		const std::vector< std::string >& params = getAction()->getParameters();
+		const std::vector< std::string >& params = getContext()->getParameters();
 		//TODO - generate dimensions for parameters for defered / remote calls
 	}
     

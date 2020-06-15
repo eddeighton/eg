@@ -26,27 +26,27 @@ namespace eg
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
 	
-	LinkAnalysis::ActionSetPtrSet LinkAnalysis::calculateSets( const std::vector< interface::Action* >& actions )
+	LinkAnalysis::ActionSetPtrSet LinkAnalysis::calculateSets( const std::vector< interface::Context* >& contexts )
 	{
 		ActionSetPtrSet sets;
 		
-		for( interface::Action* pAction : actions )
+		for( interface::Context* pContext : contexts )
 		{
-			if( !pAction->isLink() )
+            if( !dynamic_cast< interface::Link* >( pContext ) )
 			{
-				addAction( sets, pAction );
+				addAction( sets, pContext );
 			}
 		}
         
         return sets;
 	}
 	
-	LinkAnalysis::ActionSetPtr LinkAnalysis::find( const ActionSetPtrSet& sets, interface::Action* pAction )
+	LinkAnalysis::ActionSetPtr LinkAnalysis::find( const ActionSetPtrSet& sets, interface::Context* pContext )
 	{
 		ActionSetPtr pActionSet;
 		for( ActionSetPtr pSet : sets )
 		{
-			if( pSet->count( pAction ) )
+			if( pSet->count( pContext ) )
 			{
 				pActionSet = pSet;
 				break;
@@ -55,13 +55,13 @@ namespace eg
 		return pActionSet;
 	}
 	
-	void LinkAnalysis::addAction( ActionSetPtrSet& sets, interface::Action* pAction )
+	void LinkAnalysis::addAction( ActionSetPtrSet& sets, interface::Context* pContext )
 	{
-		VERIFY_RTE( !pAction->isLink() );
+		VERIFY_RTE( !dynamic_cast< interface::Link* >( pContext ) );
 		
-		ActionSetPtr pActionSet = find( sets, pAction );
+		ActionSetPtr pActionSet = find( sets, pContext );
 		
-		for( interface::Action* pBase : pAction->getBaseActions() )
+		for( interface::Context* pBase : pContext->getBaseContexts() )
 		{
 			if( ActionSetPtr pSet = find( sets, pBase ) )
 			{
@@ -85,48 +85,42 @@ namespace eg
 			sets.insert( pActionSet );
 		}
 		
-		pActionSet->insert( pAction );
+		pActionSet->insert( pContext );
 		pActionSet->insert( 
-			pAction->getBaseActions().begin(), 
-			pAction->getBaseActions().end() );
+			pContext->getBaseContexts().begin(), 
+			pContext->getBaseContexts().end() );
 	}
     
-    const interface::Action* LinkGroup::getLinkTarget( const interface::Action* pLink )
+    const interface::Context* LinkGroup::getLinkTarget( const interface::Link* pLink )
     {
-        VERIFY_RTE( pLink->isLink() );
-        
-        VERIFY_RTE_MSG( pLink->getBaseActions().size() == 1U, 
+        VERIFY_RTE_MSG( pLink->getBaseContexts().size() == 1U, 
             "Link does not have singular link target type: " << pLink->getIdentifier() );
-        
-        return pLink->getBaseActions().front();
+        return pLink->getBaseContexts().front();
     }
-    interface::Action* LinkGroup::getLinkTarget( interface::Action* pLink )
+    interface::Context* LinkGroup::getLinkTarget( interface::Link* pLink )
     {
-        VERIFY_RTE( pLink->isLink() );
-        
-        VERIFY_RTE_MSG( pLink->getBaseActions().size() == 1U, 
+        VERIFY_RTE_MSG( pLink->getBaseContexts().size() == 1U, 
             "Link does not have singular link target type: " << pLink->getIdentifier() );
-        
-        return pLink->getBaseActions().front();
+        return pLink->getBaseContexts().front();
     }
 	
 	void LinkAnalysis::calculateGroups( const ActionSetPtrSet& sets,
-            const std::vector< interface::Action* >& actions, 
+            const std::vector< interface::Context* >& contexts, 
 			const DerivationAnalysis& derivationAnalysis, 
 			AppendingSession& session )
 	{
 		LinkGroupMap groupMap;
 		
-		for( interface::Action* pAction : actions )
+		for( interface::Context* pContext : contexts )
 		{
-			if( pAction->isLink() )
+			if( interface::Link* pLink = dynamic_cast< interface::Link* >( pContext ) )
 			{
-				interface::Action* pBase = LinkGroup::getLinkTarget( pAction );
+				interface::Context* pBase = LinkGroup::getLinkTarget( pLink );
 				
 				ActionSetPtr pSet = find( sets, pBase );
 				VERIFY_RTE( pSet );
 				
-				groupMap.insert( std::make_pair( std::make_pair( pAction->getIdentifier(), pSet ), pAction ) );
+				groupMap.insert( std::make_pair( std::make_pair( pContext->getIdentifier(), pSet ), pLink ) );
 			}
 		}
 		
@@ -149,7 +143,6 @@ namespace eg
 					groupMap.upper_bound( i->first );
 				for( ; i != iNext; ++i )
 				{
-					VERIFY_RTE( i->second->isLink() );
 					pGroup->m_links.push_back( i->second );
 				}
 			}
@@ -157,10 +150,10 @@ namespace eg
 			//get the concrete targets
 			{
 				std::vector< const concrete::Element* > concreteTargets;
-				for( interface::Action* pAction : *pSet )
+				for( interface::Context* pContext : *pSet )
 				{
-					VERIFY_RTE( !pAction->isLink() );
-					derivationAnalysis.getInstances( pAction, concreteTargets, true );
+					VERIFY_RTE( !dynamic_cast< interface::Link* >( pContext ) );
+					derivationAnalysis.getInstances( pContext, concreteTargets, true );
 				}
 								
 				concreteTargets =
@@ -168,9 +161,9 @@ namespace eg
 					
 				for( const concrete::Element* pElement : concreteTargets )
 				{
-					const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( pElement );
-					VERIFY_RTE( pAction );
-					pGroup->m_concreteTargets.push_back( const_cast< concrete::Action* >( pAction ) );
+					const concrete::Action* pContext = dynamic_cast< const concrete::Action* >( pElement );
+					VERIFY_RTE( pContext );
+					pGroup->m_concreteTargets.push_back( const_cast< concrete::Action* >( pContext ) );
 				}
 			}
 			
@@ -178,11 +171,11 @@ namespace eg
 		}
 	}
     
-    const LinkGroup* LinkAnalysis::getLinkGroup( const interface::Action* pLink ) const
+    const LinkGroup* LinkAnalysis::getLinkGroup( const interface::Link* pLink ) const
     {
         for( const LinkGroup* pLinkGroup : m_groups )
         {
-            const std::vector< interface::Action* >& links = pLinkGroup->getLinks();
+            const std::vector< interface::Link* >& links = pLinkGroup->getLinks();
             if( std::find( links.begin(), links.end(), pLink ) != links.end() )
                 return pLinkGroup;
         }

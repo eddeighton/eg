@@ -74,7 +74,7 @@ namespace eg
 
         InterfaceVisitor( std::ostream& os ) : os( os ), depth( 0 ) {}
 
-        void addActionInterface( std::ostream& os, const interface::Action* pAction, const std::string& strName, 
+        void addActionInterface( std::ostream& os, const interface::Context* pAction, const std::string& strName, 
             const input::Opaque* pParams, bool bIsIndirectlyAbstract, bool bHasOperation )
         {
             const std::string strActionInterfaceType = getInterfaceType( strName );
@@ -178,7 +178,7 @@ namespace eg
             //member variables
             os << strIndent << EG_REFERENCE_TYPE << " data;\n";
         }
-        void addActionTraits( std::ostream& os, const input::Action* pAction )
+        void addActionTraits( std::ostream& os, const input::Context* pAction )
         {
             std::size_t szCounter = 0;
             for( const input::Opaque* pOpaque : pAction->getInheritance() )
@@ -210,7 +210,7 @@ namespace eg
         }
         void push ( const input::Root* pElement, const interface::Element* pNode )
         {
-            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
             ++depth;
             const std::string& strName = pNode->getIdentifier();
             os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth <<
@@ -221,9 +221,9 @@ namespace eg
             addActionInterface( os, pAction, strName, pElement->getParams(), pAction->isIndirectlyAbstract(), pAction->hasDefinition() );
             addActionTraits( os, pElement );
         }
-        void push ( const input::Action* pElement, const interface::Element* pNode )
+        void push ( const input::Context* pElement, const interface::Element* pNode )
         {
-            const interface::Action* pAction = dynamic_cast< const interface::Action* >( pNode );
+            const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
             ++depth;
             os << strIndent << "template< typename " << EG_INTERFACE_PARAMETER_TYPE << depth <<
                 " >struct [[clang::eg_type(" << pNode->getIndex() << ")]]" << getInterfaceType( pElement->getIdentifier() ) << "\n";
@@ -271,7 +271,7 @@ namespace eg
                 os << strIndent << "using " << strName << " = " <<
                     getInterfaceType( strName ) << "< void >;\n";
         }
-        void pop ( const input::Action* pElement, const interface::Element* pNode )
+        void pop ( const input::Context* pElement, const interface::Element* pNode )
         {
             --depth;
             strIndent.pop_back();
@@ -307,9 +307,9 @@ namespace eg
         }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
-            push( (input::Action*) pElement, pNode );
+            push( (input::Context*) pElement, pNode );
         }
-        void push ( const input::Action*    pElement, const interface::Element* pNode )
+        void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
             //calculate the path to the root type
             std::vector< const interface::Element* > path = getPath( pNode );
@@ -343,7 +343,7 @@ namespace eg
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
-        void pop ( const input::Action*    pElement, const interface::Element* pNode )
+        void pop ( const input::Context*    pElement, const interface::Element* pNode )
         {
         }
     };
@@ -394,7 +394,7 @@ namespace eg
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
-        void push ( const input::Action*    pElement, const interface::Element* pNode )
+        void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
             std::vector< const interface::Element* > path = getPath( pNode );
 
@@ -441,7 +441,7 @@ namespace eg
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
-        void pop ( const input::Action*    pElement, const interface::Element* pNode )
+        void pop ( const input::Context*    pElement, const interface::Element* pNode )
         {
         }
     };

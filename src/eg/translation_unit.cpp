@@ -57,7 +57,7 @@ namespace eg
 		storer.storeObjectMap( m_actionTUMap );
     }
     
-	const TranslationUnit* TranslationUnitAnalysis::getActionTU( const interface::Action* pAction ) const
+	const TranslationUnit* TranslationUnitAnalysis::getActionTU( const interface::Context* pAction ) const
 	{
 		ActionTUMap::const_iterator iFind = m_actionTUMap.find( pAction );
 		if( iFind != m_actionTUMap.end() )

@@ -193,7 +193,7 @@ namespace eg
                 
             if( ins.getReturnTypes().size() == 1U )
             {
-                const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( ins.getReturnTypes().front() );
+                const interface::Context* pReturnType = dynamic_cast< const interface::Context* >( ins.getReturnTypes().front() );
                 ASSERT( pReturnType );
                 
                 std::ostringstream osIterType;
@@ -212,8 +212,8 @@ namespace eg
                     osType << EG_VARIANT_TYPE << "< ";
                     for( const interface::Element* pElement : ins.getReturnTypes() )
                     {
-                        const interface::Action* pReturnType = 
-                            dynamic_cast< const interface::Action* >( pElement );
+                        const interface::Context* pReturnType = 
+                            dynamic_cast< const interface::Context* >( pElement );
                         ASSERT( pReturnType );
                         if( pElement != *ins.getReturnTypes().begin())
                             osType << ", ";
@@ -253,7 +253,7 @@ namespace eg
             std::ostringstream osIterType;
             if( ins.getReturnTypes().size() == 1U )
             {
-                const interface::Action* pReturnType = dynamic_cast< const interface::Action* >( ins.getReturnTypes().front() );
+                const interface::Context* pReturnType = dynamic_cast< const interface::Context* >( ins.getReturnTypes().front() );
                 ASSERT( pReturnType );
                 osReturnType << getStaticType( pReturnType );
                 osIterType << pszIteratorType << "< " << osReturnType.str() << " >";
@@ -263,8 +263,8 @@ namespace eg
                 osReturnType << EG_VARIANT_TYPE << "< ";
                 for( const interface::Element* pElement : ins.getReturnTypes() )
                 {
-                    const interface::Action* pReturnType = 
-                        dynamic_cast< const interface::Action* >( pElement );
+                    const interface::Context* pReturnType = 
+                        dynamic_cast< const interface::Context* >( pElement );
                     ASSERT( pReturnType );
                     if( pElement != *ins.getReturnTypes().begin())
                         osReturnType << ", ";
@@ -418,7 +418,7 @@ namespace eg
     }
     void generate( const CallOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        const interface::Action* pStaticType = ins.getConcreteType()->getAction();
+        const interface::Context* pStaticType = ins.getConcreteType()->getContext();
         
         os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
             "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
@@ -441,7 +441,7 @@ namespace eg
     }
     void generate( const StartOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        const interface::Action* pStaticType = ins.getConcreteType()->getAction();
+        const interface::Context* pStaticType = ins.getConcreteType()->getContext();
         
         os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
             "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";

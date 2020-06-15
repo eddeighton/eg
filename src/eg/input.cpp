@@ -27,6 +27,115 @@ namespace eg
 {
 namespace input
 {
+    
+    
+    
+    void HasIdentifier::load( Loader& loader )
+    {
+        loader.load( m_strIdentifier );
+    }
+    
+    void HasIdentifier::store( Storer& storer ) const
+    {
+        storer.store( m_strIdentifier );
+    }
+    
+    void HasChildren::load( Loader& loader )
+    {
+        loader.loadObjectVector( m_elements );
+    }
+    
+    void HasChildren::store( Storer& storer ) const
+    {
+        storer.storeObjectVector( m_elements );
+    }
+    
+    
+    void HasDomain::load( Loader& loader )
+    {
+        m_pSize = loader.loadObjectRef< Opaque >();
+    }
+    
+    void HasDomain::store( Storer& storer ) const
+    {
+        storer.storeObjectRef( m_pSize );
+    }
+    
+    void HasParameters::load( Loader& loader )
+    {
+        m_pParams = loader.loadObjectRef< Opaque >();
+    }
+    
+    void HasParameters::store( Storer& storer ) const
+    {
+        storer.storeObjectRef( m_pParams );
+    }
+    
+    void HasBody::load( Loader& loader )
+    {
+        m_pBody = loader.loadObjectRef< Opaque >();
+        loader.loadOptional( m_definitionFile );
+    }
+    
+    void HasBody::store( Storer& storer ) const
+    {
+        storer.storeObjectRef( m_pBody );
+        storer.storeOptional( m_definitionFile );
+    }
+    
+    void HasInheritance::load( Loader& loader )
+    {
+        loader.loadObjectVector( m_inheritance );
+    }
+    
+    void HasInheritance::store( Storer& storer ) const
+    {
+        storer.storeObjectVector( m_inheritance );
+    }
+    
+    
+    
+    void printDeclaration( std::ostream& os, 
+        std::string& strIndent, 
+        const std::string& strInputType, 
+        const std::string& strIdentifier, 
+        const Opaque* pReturnType,
+        const Opaque* pParams,
+        const Opaque* pSize,
+        const std::vector< Opaque* >& inheritance,
+        const std::string& strAnnotation  )
+    {
+        os << strIndent << strInputType << " " << strIdentifier;
+        
+        if( pParams )
+        {
+            os << "( " << pParams->getStr() << " )";
+        }
+        
+        if( pSize )
+        {
+            os << "[ " << pSize->getStr() << " ]";
+        }
+        
+        if( pReturnType )
+        {
+            os << " : " << pReturnType->getStr();
+        }
+        
+        for( const Opaque* pInherited : inheritance )
+        {
+            if( pInherited == inheritance.front() )
+                os << " : " << pInherited->getStr();
+            else
+                os << ", " << pInherited->getStr();
+        }
+        
+        os << " //" << strAnnotation;
+    }
+    
+    
+    
+    
 
     Element::Element( const IndexedObject& object )
         :   IndexedObject( object )
@@ -67,13 +176,13 @@ namespace input
 
     void Dimension::load( Loader& loader )
     {
-        loader.load( m_strIdentifier );
+        HasIdentifier::load( loader );
         m_pType = loader.loadObjectRef< Opaque >();
     }
 
     void Dimension::store( Storer& storer ) const
     {
-        storer.store( m_strIdentifier );
+        HasIdentifier::store( storer );
         storer.storeObjectRef( m_pType );
     }
     
@@ -93,7 +202,7 @@ namespace input
 
     void Include::load( Loader& loader )
     {
-        loader.load( m_strIdentifier );
+        HasIdentifier::load( loader );
         loader.load( m_path );
         loader.load( m_bIsEGInclude );
         loader.load( m_bIsSystemInclude );
@@ -101,7 +210,7 @@ namespace input
 
     void Include::store( Storer& storer ) const
     {
-        storer.store( m_strIdentifier );
+        HasIdentifier::store( storer );
         storer.store( m_path );
         storer.store( m_bIsEGInclude );
         storer.store( m_bIsSystemInclude );
@@ -148,13 +257,13 @@ namespace input
 
     void Using::load( Loader& loader )
     {
-        loader.load( m_strIdentifier );
+        HasIdentifier::load( loader );
         m_pType = loader.loadObjectRef< Opaque >();
     }
 
     void Using::store( Storer& storer ) const
     {
-        storer.store( m_strIdentifier );
+        HasIdentifier::store( storer );
         storer.storeObjectRef( m_pType );
     }
     
@@ -175,7 +284,7 @@ namespace input
 
     void Export::load( Loader& loader )
     {
-        loader.load( m_strIdentifier );
+        HasIdentifier::load( loader );
         m_pReturnType = loader.loadObjectRef< Opaque >();
         m_pParameters = loader.loadObjectRef< Opaque >();
         m_pBody = loader.loadObjectRef< Opaque >();
@@ -183,7 +292,7 @@ namespace input
 
     void Export::store( Storer& storer ) const
     {
-        storer.store( m_strIdentifier );
+        HasIdentifier::store( storer );
         storer.storeObjectRef( m_pReturnType );
         storer.storeObjectRef( m_pParameters );
         storer.storeObjectRef( m_pBody );
@@ -200,105 +309,73 @@ namespace input
         os << "{ " << m_pBody->getStr() << " }\n";
     }
     
-    Action::Action( const IndexedObject& object )
-        :   Element( object ),
-            m_pSize( nullptr ),
-            m_pParams( nullptr ),
-            m_pBody( nullptr )
+    Context::Context( const IndexedObject& object )
+        :   Element( object )
     {
 
     }
 
-    void Action::load( Loader& loader )
+    void Context::load( Loader& loader )
     {
-        loader.loadObjectVector( m_elements );
-        m_pSize = loader.loadObjectRef< Opaque >();
-        m_pParams = loader.loadObjectRef< Opaque >();
-        m_pBody = loader.loadObjectRef< Opaque >();
-        loader.loadOptional( m_definitionFile );
-        loader.load( m_strIdentifier );
-        loader.load( m_bAbstract );
-        loader.load( m_bLink );
-        loader.loadObjectVector( m_inheritance );
+        HasIdentifier::load( loader );
+        HasChildren::load( loader );
+        HasDomain::load( loader );
+        HasBody::load( loader );
+        HasInheritance::load( loader );
+        HasParameters::load( loader );
+        
+        loader.load( m_contextType );
+        
     }
 
-    void Action::store( Storer& storer ) const
+    void Context::store( Storer& storer ) const
     {
-        storer.storeObjectVector( m_elements );
-        storer.storeObjectRef( m_pSize );
-        storer.storeObjectRef( m_pParams );
-        storer.storeObjectRef( m_pBody );
-        storer.storeOptional( m_definitionFile );
-        storer.store( m_strIdentifier );
-        storer.store( m_bAbstract );
-        storer.store( m_bLink );
-        storer.storeObjectVector( m_inheritance );
+        HasIdentifier::store( storer );
+        HasChildren::store( storer );
+        HasDomain::store( storer );
+        HasBody::store( storer );
+        HasInheritance::store( storer );
+        HasParameters::store( storer );
+        
+        storer.store( m_contextType );
     }
     
-    Action* Action::findAction( const std::string& strIdentifier ) const
+    Context* Context::findContext( const std::string& strIdentifier ) const
     {
         for( Element* pObject : m_elements )
         {
-            if( Action* pAction = dynamic_cast< Action* >( pObject ) )
+            if( Context* pContext = dynamic_cast< Context* >( pObject ) )
             {
-                if( pAction->m_strIdentifier == strIdentifier )
-                    return pAction;
+                if( pContext->m_strIdentifier == strIdentifier )
+                    return pContext;
             }
         }
         return nullptr;
     }
     
-    void Action::printDeclaration( std::ostream& os, std::string& strIndent, 
-        const std::string& strIdentifier, const std::string& strAnnotation ) const
+    void Context::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
-        if( m_bIsTemplate )
-        {
-            os << strIndent << "template<...>\n";
-        }
-        
-        if( m_bAbstract && m_bLink )
-        {
-            os << strIndent << "abstract link " << strIdentifier;
-        }
-        else if( m_bAbstract )
-        {
-            os << strIndent << "abstract " << strIdentifier;
-        }
-        else if( m_bLink )
-        {
-            os << strIndent << "link " << strIdentifier;
-        }
-        else
-        {
-            os << strIndent << "action " << strIdentifier;
-        }
-        
-        if( m_pSize )
-        {
-            os << "[ " << m_pSize->getStr() << " ]";
-        }
-        
-        for( const Opaque* pInherited : m_inheritance )
-        {
-            if( pInherited == m_inheritance.front() )
-                os << " : " << pInherited->getStr();
-            else
-                os << ", " << pInherited->getStr();
-        }
-        
-        os << " //" << strAnnotation;
+        printDeclaration( os, strIndent, getContextType(), m_strIdentifier, m_pReturnType, m_pParams, m_pSize, m_inheritance, strAnnotation );
     }
     
-    void Action::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
+    const char* Context::getContextType() const
     {
-        printDeclaration( os, strIndent, m_strIdentifier, strAnnotation );
+        switch( m_contextType )
+        {
+            case eEvent    :  return "event"    ;
+            case eFunction :  return "function" ;
+            case eAction   :  return "action"   ;
+            case eLink     :  return "link"     ;
+            case eObject   :  return "object"   ;
+            default:
+                THROW_RTE( "Unknown context type" );
+        }
     }
-    
     
     const std::string Root::RootTypeName = "root";
 
     Root::Root( const IndexedObject& object )
-        :   Action( object )
+        :   Context( object )
     {
         m_strIdentifier = RootTypeName;
 		m_rootType = eFile;
@@ -306,21 +383,21 @@ namespace input
     
     void Root::load( Loader& loader )
     {
-        Action::load( loader );
+        Context::load( loader );
         loader.loadOptional( m_includePath );
         loader.load( m_rootType );
     }
 
     void Root::store( Storer& storer ) const
     {
-        Action::store( storer );
+        Context::store( storer );
         storer.storeOptional( m_includePath );
         storer.store( m_rootType );
     }
     
     void Root::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
-        Action::print( os, strIndent, strAnnotation );
+        printDeclaration( os, strIndent, "root", m_strIdentifier, nullptr, nullptr, m_pSize, m_inheritance, strAnnotation );
     }
 
 } //namespace input

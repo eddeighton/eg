@@ -73,16 +73,16 @@ namespace eg
         virtual void store( Storer& storer ) const;
 		
 		const std::string& getLinkName() const { return m_name; }
-		const std::vector< interface::Action* >& getLinks() const { return m_links; }
+		const std::vector< interface::Link* >& getLinks() const { return m_links; }
 		const std::vector< concrete::Action* >& getTargets() const { return m_concreteTargets; }
         const LinkRefMap& getDimensionMap() const { return m_dimensionMap; }
         
-        static const interface::Action* getLinkTarget( const interface::Action* pLink );
-        static interface::Action* getLinkTarget( interface::Action* pLink );
+        static const interface::Context* getLinkTarget( const interface::Link* pLink );
+        static interface::Context* getLinkTarget( interface::Link* pLink );
 		
 	private:
 		std::string m_name;
-		std::vector< interface::Action* > m_links;
+		std::vector< interface::Link* > m_links;
 		std::vector< concrete::Action* > m_concreteTargets;
         LinkRefMap m_dimensionMap;
 	};
@@ -101,25 +101,25 @@ namespace eg
         }
         
     public:
-		using ActionSet = std::set< interface::Action*, CompareNodeIdentity< interface::Action > >;
+		using ActionSet = std::set< interface::Context*, CompareNodeIdentity< interface::Context > >;
 		using ActionSetPtr = std::shared_ptr< ActionSet >;
 		using ActionSetPtrSet = std::set< ActionSetPtr >;
 		
-		ActionSetPtrSet calculateSets( const std::vector< interface::Action* >& actions );
-		ActionSetPtr find( const ActionSetPtrSet& sets, interface::Action* pAction );
-		void addAction( ActionSetPtrSet& sets, interface::Action* pAction );
+		ActionSetPtrSet calculateSets( const std::vector< interface::Context* >& actions );
+		ActionSetPtr find( const ActionSetPtrSet& sets, interface::Context* pAction );
+		void addAction( ActionSetPtrSet& sets, interface::Context* pAction );
         
 		using LinkSet = std::pair< std::string, ActionSetPtr >;
-		using LinkGroupMap = std::multimap< LinkSet, interface::Action* >;
+		using LinkGroupMap = std::multimap< LinkSet, interface::Link* >;
 		
 		void calculateGroups( const ActionSetPtrSet& sets,
-            const std::vector< interface::Action* >& actions, 
+            const std::vector< interface::Context* >& actions, 
 			const DerivationAnalysis& derivationAnalysis, 
 			AppendingSession& session );
 		
 		const LinkGroup::Vector& getLinkGroups() const { return m_groups; }
         
-        const LinkGroup* getLinkGroup( const interface::Action* pLink ) const; 
+        const LinkGroup* getLinkGroup( const interface::Link* pLink ) const; 
 		
     public:
         virtual void load( Loader& loader );

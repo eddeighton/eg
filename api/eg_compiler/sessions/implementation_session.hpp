@@ -66,7 +66,7 @@ namespace eg
         const Layout& getLayout() const;
 		const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
 		
-        //const interface::Action* getAbstractAction( TypeID id ) const;
+        //const interface::Context* getAbstractAction( TypeID id ) const;
         const concrete::Action* getConcreteAction( TypeID id ) const;
         
         using Invocations = std::vector< const InvocationSolution* >;
