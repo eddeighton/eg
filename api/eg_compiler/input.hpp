@@ -284,7 +284,13 @@ namespace eg
         };
         
         
-        class Context : public Element, public HasIdentifier, public HasChildren, public HasDomain, public HasBody, public HasParameters, public HasInheritance
+        class Context : public Element, 
+                            public HasIdentifier, 
+                            public HasChildren, 
+                            public HasDomain, 
+                            public HasBody, 
+                            public HasParameters, 
+                            public HasInheritance
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;

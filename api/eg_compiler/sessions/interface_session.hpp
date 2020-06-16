@@ -76,9 +76,12 @@ namespace eg
         void constructInheritanceTree( concrete::Action* pInstance );
         
         void calculateInstanceActionName( concrete::Action* pAction );
-        void collateOverrides( concrete::Action* pInstance, concrete::Inheritance_Node* pInheritanceNode,
-                ActionOverrideMap& actionInstances, DimensionOverrideMap& dimensionInstances );
-        void constructInstance( concrete::Action* pInstance );
+        void collateOverrides( concrete::Action* pInstance, 
+                concrete::Inheritance_Node* pInheritanceNode,
+                ActionOverrideMap& actionInstances, 
+                DimensionOverrideMap& dimensionInstances, 
+                const std::vector< const interface::Object* >& objects );
+        void constructInstance( concrete::Action* pInstance, const std::vector< const interface::Object* >& objects );
         void constructAllocator( concrete::Action* pInstance );
 		
         using TranslationUnitMap = std::map< TranslationUnit::CoordinatorHostnameDefinitionFile, TranslationUnit::ActionSet >;

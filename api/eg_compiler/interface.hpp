@@ -286,7 +286,7 @@ namespace interface
         void getChildContexts( std::vector< Context* >& actions ) const;
         bool isIndirectlyAbstract() const;
         std::size_t getSize() const { return m_size; }
-        const char* getContextType() const { return m_pContext->getContextType(); }
+        const char* getContextType() const;
         
         std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
         bool hasDefinition() const { return m_definitionFile.has_value(); }

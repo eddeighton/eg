@@ -1,60 +1,44 @@
 
 
-abstract AbstractVehicle
+LOG( "Hello World" );
+
+object A
 {
-	abstract AbstractTorso
-	{
-		abstract WeaponMount
-		{
-			dim int weaponMountThing;
-
-			object Weapon
-			{
-				//auto p = Vehicle.pos;
-				
-				weaponMountThing();
-				
-				action Fire
-				{	
-				}
-				action Target
-				{
-				}
-			}
-
-			object EnergyWeapon : Weapon;
-			object MassWeapon : Weapon;
-			object TacyonWeapon : Weapon;
-		}
-		
-		object Cockpit;
-		
-		object Backpack;
-		
-		object Sonar : Backpack;
-		object Jetpack : Backpack;
-		object Radar : Backpack;
-		object Shield : Backpack;
-		
-		object Arm : WeaponMount
-		{
-			link Weapon;
-		}
-	}
-
-	object Torso : AbstractTorso
-	{
-		link Cockpit;
-		link Backpack;
-		link LeftArm : Arm;
-		link RightArm : Arm;
-	}
+    dim int x1;
 }
 
+dim int x2;
 
-object Vehicle : AbstractVehicle
+action B
 {
-	dim vec2 pos;
-	
-	link Torso;
+    dim int x5;
+        
+    object C
+    {
+        dim int x3;
+        
+        object D
+        {
+            dim int x4;
+        }
+    }
 }
+
+x2( 1 );
+
+A a = A();
+a.x1( 1 );
+
+B b = B();
+b.x5( 1 );
+
+B::C c = C();
+c.x3( 1 );
+
+B::C::D d = D();
+d.x4( 1 );
+
+
+x4();
+
+B::C c2 = B.C();

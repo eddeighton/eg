@@ -539,6 +539,13 @@ namespace interface
         storer.storeOptional( m_definitionFile );
         storer.storeOptional( m_bIndirectlyAbstract );
     }
+    const char* Context::getContextType() const 
+    { 
+        if( m_pContext )
+            return m_pContext->getContextType(); 
+        else
+            return "object";
+    }
     void Context::getDimensions( std::vector< Dimension* >& dimensions ) const
     {
         for( Element* pElement : m_children )
@@ -728,19 +735,15 @@ namespace interface
         {
             switch( m_pElement->getType() )
             {
-                case eAbstractOpaque    :  break;
-                case eAbstractDimension :  break;
-                case eAbstractInclude   :  break;
-                case eAbstractUsing     :  break;
-                case eAbstractExport    :  break;
-                case eAbstractAbstract  :  
-                case eAbstractEvent     :  
-                case eAbstractFunction  :  
-                case eAbstractAction    :  
-                case eAbstractObject    :  
-                case eAbstractLink      :  
-                case eAbstractRoot      :  
                 
+                case eInputOpaque    :
+                case eInputDimension :
+                case eInputInclude   :
+                case eInputUsing     :
+                case eInputExport    :
+                    break;
+                case eInputContext   :
+                case eInputRoot      :
                     {
                         input::Context* pContext = dynamic_cast< input::Context* >( m_pElement );
                         VERIFY_RTE( pContext );
@@ -756,9 +759,14 @@ namespace interface
                                 osAnnotation << " " << pIsRoot->getRootType();
 							}
                             
-                            input::printDeclaration( os, strIndent, pContext->getContextType(), getIdentifier(), 
-                                pContext->getReturnType(), pContext->getParams(), 
-                                pContext->getSize(), pContext->getInheritance(), osAnnotation.str() );
+                            input::printDeclaration( os, strIndent, 
+                                pContext->getContextType(), 
+                                getIdentifier(), 
+                                pContext->getReturnType(), 
+                                pContext->getParams(), 
+                                pContext->getSize(), 
+                                pContext->getInheritance(), 
+                                osAnnotation.str() );
                         }
                         
                         std::ostringstream osNested;

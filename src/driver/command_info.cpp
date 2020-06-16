@@ -44,78 +44,98 @@ void command_info( bool bHelp, const std::vector< std::string >& args )
     bool bCode = false;
     bool bAbstract = false;
     bool bConcrete = false;
+    bool bAll = false;
     
-    namespace po = boost::program_options;
-    po::options_description commandOptions(" Read Project Log");
     {
-        commandOptions.add_options()
-            ("dir",         po::value< std::string >( &strDirectory ),              "Project directory")
-            
-            ("code",       po::bool_switch( &bCode ), "Print entire program as single eg file" )
-            ("abstract",   po::bool_switch( &bAbstract ), "Print the abstract tree" )
-            ("concrete",   po::bool_switch( &bConcrete )->default_value( true ), "Print the concrete tree (default)" )
-        ;
+        namespace po = boost::program_options;
+        po::options_description commandOptions(" Read Project Log");
+        {
+            commandOptions.add_options()
+                ("dir",         po::value< std::string >( &strDirectory ),              "Project directory")
+                
+                ("code",       po::bool_switch( &bCode ), "Print entire program as single eg file" )
+                ("abstract",   po::bool_switch( &bAbstract ), "Print the abstract tree" )
+                ("concrete",   po::bool_switch( &bConcrete ), "Print the concrete tree (default)" )
+                ("all",        po::bool_switch( &bAll ), "Print all forms" )
+            ;
+        }
+        
+        po::positional_options_description p;
+        p.add( "filters", -1 );
+        
+        po::variables_map vm;
+        po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
+        po::notify( vm );
+        
+        if( bHelp )
+        {
+            std::cout << commandOptions << "\n";
+            return;
+        }
     }
     
-    po::positional_options_description p;
-    p.add( "filters", -1 );
+    if( !bCode && !bAbstract && !bConcrete )
+        bAll = true;
     
-    po::variables_map vm;
-    po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
-    po::notify( vm );
-    
-    if( bHelp )
+    if( bAll )
     {
-        std::cout << commandOptions << "\n";
+        bCode       = true;
+        bAbstract   = true;
+        bConcrete   = true;
     }
-    else
-    {
-        const boost::filesystem::path projectDirectory = 
-            boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( strDirectory ) );
+    
+    const boost::filesystem::path projectDirectory = 
+        boost::filesystem::edsCannonicalise(
+            boost::filesystem::absolute( strDirectory ) );
 
-        if( !boost::filesystem::exists( projectDirectory ) )
-        {
-            THROW_RTE( "Specified directory does not exist: " << projectDirectory.generic_string() );
-        }
-        else if( !boost::filesystem::is_directory( projectDirectory ) )
-        {
-            THROW_RTE( "Specified path is not a directory: " << projectDirectory.generic_string() );
-        }
-        
-        const boost::filesystem::path projectFile = projectDirectory / Environment::EG_FILE_EXTENSION;
-        
-        if( !boost::filesystem::exists( projectFile ) )
-        {
-            THROW_RTE( "Could not locate " << Environment::EG_FILE_EXTENSION << " file in directory: " << projectDirectory.generic_string() );
-        }
-        
-        XMLManager::XMLDocPtr pDocument = XMLManager::load( projectFile );
-        
-        Environment environment( projectDirectory );
-        
-        Project project( projectDirectory, environment, pDocument->Project() );
-        
-        eg::ReadSession session( project.getAnalysisFileName() );
-        
-        if( bCode )
-        {
-            const eg::interface::Root* pInterfaceRoot = session.getTreeRoot();
-            std::string strIndent;
-            pInterfaceRoot->print( std::cout, strIndent, true );
-        }
-        else if( bAbstract )
-        {
-            const eg::interface::Root* pInterfaceRoot = session.getTreeRoot();
-            std::string strIndent;
-            pInterfaceRoot->print( std::cout, strIndent, false );
-        }
-        else if( bConcrete )
-        {
-            const eg::concrete::Action* pConcreteRoot = session.getInstanceRoot();
-            std::string strIndent;
-            pConcreteRoot->print( std::cout, strIndent );
-        }
-        
+    if( !boost::filesystem::exists( projectDirectory ) )
+    {
+        THROW_RTE( "Specified directory does not exist: " << projectDirectory.generic_string() );
+    }
+    else if( !boost::filesystem::is_directory( projectDirectory ) )
+    {
+        THROW_RTE( "Specified path is not a directory: " << projectDirectory.generic_string() );
+    }
+    
+    const boost::filesystem::path projectFile = projectDirectory / Environment::EG_FILE_EXTENSION;
+    
+    if( !boost::filesystem::exists( projectFile ) )
+    {
+        THROW_RTE( "Could not locate " << Environment::EG_FILE_EXTENSION << " file in directory: " << projectDirectory.generic_string() );
+    }
+    
+    XMLManager::XMLDocPtr pDocument = XMLManager::load( projectFile );
+    
+    Environment environment( projectDirectory );
+    
+    Project project( projectDirectory, environment, pDocument->Project() );
+    
+    eg::ReadSession session( project.getAnalysisFileName() );
+    
+    if( bCode )
+    {
+        std::cout << "//Code\n";
+        const eg::interface::Root* pInterfaceRoot = session.getTreeRoot();
+        std::string strIndent;
+        pInterfaceRoot->print( std::cout, strIndent, true );
+        std::cout << "\n\n\n";
+    }
+    
+    if( bAbstract )
+    {
+        std::cout << "//Abstract Interface\n";
+        const eg::interface::Root* pInterfaceRoot = session.getTreeRoot();
+        std::string strIndent;
+        pInterfaceRoot->print( std::cout, strIndent, false );
+        std::cout << "\n\n\n";
+    }
+    
+    if( bConcrete )
+    {
+        std::cout << "//Concrete Memory Model\n";
+        const eg::concrete::Action* pConcreteRoot = session.getInstanceRoot();
+        std::string strIndent;
+        pConcreteRoot->print( std::cout, strIndent );
+        std::cout << "\n\n\n";
     }
 }

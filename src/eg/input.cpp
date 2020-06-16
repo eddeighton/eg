@@ -63,11 +63,13 @@ namespace input
     
     void HasParameters::load( Loader& loader )
     {
+        m_pReturnType = loader.loadObjectRef< Opaque >();
         m_pParams = loader.loadObjectRef< Opaque >();
     }
     
     void HasParameters::store( Storer& storer ) const
     {
+        storer.storeObjectRef( m_pReturnType );
         storer.storeObjectRef( m_pParams );
     }
     
@@ -321,8 +323,8 @@ namespace input
         HasChildren::load( loader );
         HasDomain::load( loader );
         HasBody::load( loader );
-        HasInheritance::load( loader );
         HasParameters::load( loader );
+        HasInheritance::load( loader );
         
         loader.load( m_contextType );
         
@@ -334,8 +336,8 @@ namespace input
         HasChildren::store( storer );
         HasDomain::store( storer );
         HasBody::store( storer );
-        HasInheritance::store( storer );
         HasParameters::store( storer );
+        HasInheritance::store( storer );
         
         storer.store( m_contextType );
     }
@@ -362,6 +364,7 @@ namespace input
     {
         switch( m_contextType )
         {
+            case eAbstract :  return "abstract" ;
             case eEvent    :  return "event"    ;
             case eFunction :  return "function" ;
             case eAction   :  return "action"   ;
@@ -377,6 +380,7 @@ namespace input
     Root::Root( const IndexedObject& object )
         :   Context( object )
     {
+        m_contextType = eObject;
         m_strIdentifier = RootTypeName;
 		m_rootType = eFile;
     }

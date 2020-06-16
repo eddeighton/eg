@@ -1,8 +1,33 @@
 
 
+
 object Test
 {
-    LOG( "Test called" );
+    
+    action A[ 4 ]
+    {
+        action C;
+    }
+    /*
+    function foobar( int i ) : int
+    {
+        return i + 1;
+    }*/
+}
+
+action Test::A
+{
+    LOG( "A" );
+}
+
+action Test::A
+{
+    dim int x;
+}
+
+action Test::A::B
+{
+    LOG( "B" );
 }
 
 link TestLink : Test;
@@ -13,6 +38,7 @@ if( state() == 1 )
 {
     Test.Start();
     TestLink().base( Test.Get() );
+    Test.Get().A().B();
     
 	return eg::sleep();
 }
@@ -21,4 +47,6 @@ if( state() == 1 )
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;
 while( events::get( iter, ev ) && ( ev.type != "log"s ) );
-TEST( (const char*)ev.value == "Test called"s );
+TEST( (const char*)ev.value == "A"s );
+while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+TEST( (const char*)ev.value == "B"s );

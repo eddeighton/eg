@@ -361,7 +361,7 @@ namespace eg
         osReadRef << generator.getDimension( ins.getDimension(), generator.getVarExpr( ins.getInstance() ) );
         generator.setVarExpr( ins.getReference(), osReadRef.str() );
         
-        ASSERT( ins.getChildren().size() == 1U );
+        //ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
             generate( *pChild, generator, os );
@@ -375,7 +375,7 @@ namespace eg
         }
         generator.setVarExpr( ins.getInstance(), osExpr.str() );
         
-        ASSERT( ins.getChildren().size() == 1U );
+        //ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
             generate( *pChild, generator, os );

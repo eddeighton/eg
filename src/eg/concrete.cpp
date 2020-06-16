@@ -225,6 +225,7 @@ namespace concrete
     void Action::print( std::ostream& os, std::string& strIndent ) const
     {
         const interface::Context* pContext = getContext();
+        VERIFY_RTE( pContext );
         os << strIndent << pContext->getContextType() << 
             "(" << getIndex() << ") " << pContext->getIdentifier() << "\n";
         

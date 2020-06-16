@@ -121,11 +121,11 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 	return diagnosticSystem.m_pImpl->m_pDiagnosticsEngine;
 }
 
-#define EG_PARSER_ERROR( msg ) \
+#define EG_PARSER_ERROR( _msg ) \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        Diags->Report( Tok.getLocation(), clang::diag::err_eg_generic_error ) << msg;\
         std::ostringstream _os; \
-        _os << msg; \
+        _os << _msg; \
+        Diags->Report( Tok.getLocation(), clang::diag::err_eg_generic_error ) << _os.str();\
         THROW_RTE( "Parser error: " << _os.str() );)
 
 
@@ -1405,12 +1405,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                         std::string strBodyPart;
                         VERIFY_RTE( getSourceText( startLoc, endLoc, strBodyPart ) );
                         
-                        if( !strBodyPart.empty() )
+                        if( !strBodyPart.empty() && bActionDefinition )
                         {
-                            if( pContext->m_pBody )
-                            {
-                                EG_PARSER_ERROR( "Action already has body" );
-                            }
                             if( !pContext->m_pBody )
                             {
                                 pContext->m_pBody = session.construct< input::Opaque >();
@@ -1434,12 +1430,12 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 {
                     if( pContext->m_definitionFile == egSourceFile )
                     {
-                        THROW_RTE( "Action: " << pContext->getIdentifier() << " multiply defined in: " << egSourceFile );
+                        EG_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined in: " << egSourceFile.string() );
                     }
                     else
                     {
-                        THROW_RTE( "Action: " << pContext->getIdentifier() << " multiply defined in: " <<
-                           pContext->m_definitionFile.value() << " and " << egSourceFile );
+                        EG_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined in: " <<
+                           pContext->m_definitionFile.value().string() << " and " << egSourceFile.string() );
                     }
                 }
                 pContext->m_definitionFile = egSourceFile;
@@ -1622,9 +1618,6 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 				{
 					pNestedRoot = construct< input::Root >();
 					{
-						/*pNestedRoot->m_pBody = construct< input::Opaque >();
-						pNestedRoot->m_elements.push_back( pNestedRoot->m_pBody );
-						pNestedRoot->m_pBody->m_bSemantic = false;*/
 						pNestedRoot->m_strIdentifier = j->string();
 						switch( iFolderDepth )
 						{
@@ -1659,9 +1652,6 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 	{
 		input::Root* pMegaStructureRoot = construct< input::Root >();
 		{
-			/*pMegaStructureRoot->m_pBody = construct< input::Opaque >();
-			pMegaStructureRoot->m_elements.push_back( pMegaStructureRoot->m_pBody );
-			pMegaStructureRoot->m_pBody->m_bSemantic = false;*/
 			pMegaStructureRoot->m_rootType = eMegaRoot;
 		}
 			
@@ -1692,9 +1682,6 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     {
 		input::Root* pRoot = construct< input::Root >();
 		{
-			/*pRoot->m_pBody = construct< input::Opaque >();
-			pRoot->m_elements.push_back( pRoot->m_pBody );
-			pRoot->m_pBody->m_bSemantic = false;*/
 			pRoot->m_rootType = eFileRoot;
 		}
 		
@@ -1720,9 +1707,6 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             {
 				input::Root* pIncludeRoot = construct< input::Root >();
 				{
-					/*pIncludeRoot->m_pBody = construct< input::Opaque >();
-					pIncludeRoot->m_elements.push_back( pIncludeRoot->m_pBody );
-					pIncludeRoot->m_pBody->m_bSemantic = false;*/
 					pIncludeRoot->m_includePath = includePath;
 					pIncludeRoot->m_rootType = eFile;
 				}
@@ -1770,7 +1754,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                     case input::Context::eUnknown  : 
                     default:
                     {
-                        THROW_RTE( "Undefined context type" );
+                        THROW_RTE( "Undefined context type for: " << pParent->getFriendlyName() << "::" << pContext->getIdentifier() );
                     }
                 }
                 break;
