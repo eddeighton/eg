@@ -39,6 +39,9 @@ int main( int argc, const char* argv[] )
     std::ostringstream os;
     
     const eg::interface::Root* pRoot = session.getTreeRoot();
+    const eg::concrete::Action* pConcreteRoot = session.getInstanceRoot();
+    const eg::concrete::Action* pActualRoot = dynamic_cast< const eg::concrete::Action* >( pConcreteRoot->getChildren().front() );
+    VERIFY_RTE( pActualRoot );
     
     const eg::DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
     const eg::Layout& layout = session.getLayout();
@@ -98,8 +101,8 @@ os << "#endif\n";
     
     os << "\n";
     os << "//Action functions\n";
-    os << "extern __eg_root< void > root_starter();\n";
-    os << "extern void root_stopper( eg::Instance _gid );\n";
+    os << "extern __eg_root< void > " << pActualRoot->getName() << "_starter();\n";
+    os << "extern void " << pActualRoot->getName() << "_stopper( eg::Instance _gid );\n";
     os << "\n";
     
     const char* pszMainRoutine = R"(
@@ -125,8 +128,12 @@ int main( int argc, const char* argv[] )
         //allocate everything
         allocate_buffers();
         
-        eg::Scheduler::start( root_starter(), &root_stopper );
+    )";
+    os << pszMainRoutine << "\n";
+    
+os << "        eg::Scheduler::call( " << pActualRoot->getName() << "_starter(), &" << pActualRoot->getName() << "_stopper );\n";
         
+    const char* pszMainRoutine2 = R"(
         float cycleStart = clock::ct();
         while( eg::Scheduler::active() )
         {
@@ -158,7 +165,7 @@ int main( int argc, const char* argv[] )
 }
     
     )";
-    os << pszMainRoutine << "\n";
+    os << pszMainRoutine2 << "\n";
     
     boost::filesystem::updateFileIfChanged( cmdLine.strBuildDir / std::string( "main.cpp" ), os.str() );    
 

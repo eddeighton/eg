@@ -418,71 +418,177 @@ namespace eg
     }
     void generate( const CallOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
+        const concrete::Action* pParent = dynamic_cast< const concrete::Action* >( ins.getConcreteType()->getParent() );
+        VERIFY_RTE( pParent );
+        const concrete::Dimension_Generated* pReferenceDimension = pParent->getReference();
+        VERIFY_RTE( pReferenceDimension );
         const interface::Context* pStaticType = ins.getConcreteType()->getContext();
+        VERIFY_RTE( pStaticType );
         
-        os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
-            "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
-        if( pStaticType->hasDefinition() )
+        //acquire the object via the starter / allocator
+        if( const interface::Abstract* pContext = dynamic_cast< const interface::Abstract* >( pStaticType ) )
         {
-			os << generator.getIndent() << "if( ref )\n";
-			os << generator.getIndent() << "{\n";
-			os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper " << ", args... );\n";
-			os << generator.getIndent() << "}\n";
+            THROW_RTE( "Invalid attempt to invoke abstract" );
+        }
+        else if( const interface::Event* pContext = dynamic_cast< const interface::Event* >( pStaticType ) )
+        {
+            THROW_RTE( "TODO" );
+            //immediately start and stop the event
+            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
+                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+                
+            os << generator.getIndent() << "if( ref )\n";
+            os << generator.getIndent() << "{\n";
+			os << generator.getIndent() << "    ::eg::Scheduler::signal_ref( ref, &" << ins.getConcreteType()->getName() << "_stopper " << " );\n";
+            os << generator.getIndent() << "}\n";
+            os << generator.getIndent() << "else\n";
+            os << generator.getIndent() << "{\n";
+            os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+            os << generator.getIndent() << "}\n";
+            
+        }
+        else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pStaticType ) )
+        {
+            THROW_RTE( "TODO" );
+            //directly invoke the function
+            //os << generator.getIndent() << getStaticType( pStaticType ) << " ref = { " << 
+            //    generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) 
+            
+        }
+        else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pStaticType ) )
+        {
+            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
+                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+                
+            if( pContext->hasDefinition() )
+            {
+                os << generator.getIndent() << "if( ref )\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper, args... );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "else\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
+            else
+            {
+                os << generator.getIndent() << "if( ref )\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ::eg::Scheduler::allocated_ref( ref.data, &" << ins.getConcreteType()->getName() << "_stopper );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "else\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
+        }
+        else if( const interface::Object* pContext = dynamic_cast< const interface::Object* >( pStaticType ) )
+        {
+            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
+                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+                
+            if( pContext->hasDefinition() )
+            {
+                os << generator.getIndent() << "if( ref )\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper, args... );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "else\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
+            else
+            {
+                os << generator.getIndent() << "if( ref )\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ::eg::Scheduler::allocated_ref( ref.data, &" << ins.getConcreteType()->getName() << "_stopper );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "else\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
+        }
+        else if( const interface::Link* pContext = dynamic_cast< const interface::Link* >( pStaticType ) )
+        {
+            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
+                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+                
+            if( pContext->hasDefinition() )
+            {
+                os << generator.getIndent() << "if( ref )\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper, args... );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "else\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
+            else
+            {
+                os << generator.getIndent() << "if( ref )\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ::eg::Scheduler::allocated_ref( ref.data, &" << ins.getConcreteType()->getName() << "_stopper );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "else\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
         }
         else
         {
-            //immediately stop the action to generate event
-            os << generator.getIndent() << "if( ref )\n";
-            os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    " << ins.getConcreteType()->getName() << "_stopper( ref.data.instance );\n";
-            os << generator.getIndent() << "}\n";
+            THROW_RTE( "Unknown abstract type" );
         }
-        os << generator.getIndent() << "return ref;\n";
     }
     void generate( const StartOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        const interface::Context* pStaticType = ins.getConcreteType()->getContext();
-        
-        os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
-            "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
-            
-        if( pStaticType->hasDefinition() )
-        {
-            os << generator.getIndent() << "if( ref )\n";
-            os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    ::eg::Scheduler::start( ref, &" << ins.getConcreteType()->getName() << "_stopper " << ", args... );\n";
-            os << generator.getIndent() << "}\n";
-        }
-        else
-        {
-            //just do the same as the call - immediately stop the action if it was started
-            os << generator.getIndent() << "if( ref )\n";
-            os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    " << ins.getConcreteType()->getName() << "_stopper( ref.data.instance );\n";
-            os << generator.getIndent() << "}\n";
-        }
-           
-        os << generator.getIndent() << "return ref;\n"; 
+        THROW_RTE( "TODO" );
+        //const interface::Context* pStaticType = ins.getConcreteType()->getContext();
+        //
+        //os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
+        //    "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+        //    
+        //os << generator.getIndent() << "return ref;\n"; 
     }
     void generate( const StopOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        os << generator.getIndent() << "return " << ins.getConcreteType()->getName() << 
-            "_stopper( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+        const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
+        VERIFY_RTE( pReferenceDimension );
+        os << generator.getIndent() << "::eg::Scheduler::stop_ref( " << 
+            generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
     }
     void generate( const PauseOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
+        const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
+        VERIFY_RTE( pReferenceDimension );
         os << generator.getIndent() << "if( " << 
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
                 " == " << getActionState( action_running ) << " )\n";
+        os << generator.getIndent() << "::eg::Scheduler::pause_ref( " << 
+            generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
         os << generator.getIndent() << 
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
                 " = " << getActionState( action_paused ) << ";\n";
     }
     void generate( const ResumeOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
+        const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
+        VERIFY_RTE( pReferenceDimension );
         os << generator.getIndent() << "if( " << 
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
                 " == " << getActionState( action_paused ) << " )\n";
+        os << generator.getIndent() << "::eg::Scheduler::unpause_ref( " << 
+            generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
         os << generator.getIndent() << "    " <<
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
                 " = " << getActionState( action_running ) << ";\n";
@@ -505,12 +611,14 @@ namespace eg
     }
     void generate( const WaitActionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
+        THROW_RTE( "TODO" );
         os << generator.getIndent() << "return " <<
             generator.getDimension( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
         
     }
     void generate( const WaitDimensionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
+        THROW_RTE( "TODO" );
         os << generator.getIndent() << "return " << 
             generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
@@ -542,47 +650,33 @@ namespace eg
 	
     void generate( const WriteLinkOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        //InstanceVariable* pInstance                     = ins.getInstance();
-        //const concrete::Dimension_User* pLinkDimension  = ins.getConcreteType();
-        DimensionReferenceVariable* pRefVar             = ins.getRefVar();
+        const concrete::Dimension_User* pLinkDimension  = ins.getConcreteType();
         const LinkGroup* pLinkGroup                     = ins.getLinkGroup();
 		
-		//branch over the current runtime type of the reference variable
-        
-        std::ostringstream osRef;
-        osRef << generator.getVarExpr( pRefVar ) << ".data.instance";
-        
-        //reset the existing link reference for the current link
+        const concrete::Action* pLink =
+            dynamic_cast< const concrete::Action* >( ins.getConcreteType()->getParent() );
+        VERIFY_RTE( pLink );
+                
+        //is the value different to the current base
+        os << generator.getIndent() << "if( " << 
+            generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " != value )\n";
+        os << generator.getIndent() << "{\n";
+        generator.pushIndent();
+            
+        //if current base is NOT null then invoke the breaker
         {
-            os << generator.getIndent() << "switch( " << generator.getVarExpr( pRefVar ) << ".data.type )\n";
+            os << generator.getIndent() << "if( " << 
+                generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ".data.timestamp != eg::INVALID_TIMESTAMP )\n";
             os << generator.getIndent() << "{\n";
-            generator.pushIndent();
-            
-            for( concrete::Action* pTargetType : pLinkGroup->getTargets() )
-            {
-                //work out the generated dimension for the link group within this target type
-                LinkGroup::LinkRefMap::const_iterator iFind =
-                    pLinkGroup->getDimensionMap().find( pTargetType );
-                VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
-                const concrete::Dimension_Generated* pLinkTargetRefDimension = iFind->second;
-                os << generator.getIndent() << "case " << pTargetType->getIndex() << ": " << 
-                    generator.getDimension( pLinkTargetRefDimension, osRef.str() ) << " = { 0, 0, 0 }; break;\n";
-            }
-            
-            os << generator.getIndent() << "case 0: break;\n";
-            os << generator.getIndent() << "default: throw std::runtime_error( \"runtime type error\" );\n";
-            generator.popIndent();
+            os << generator.getIndent() << "  " << pLink->getName() << "_breaker( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
             os << generator.getIndent() << "}\n";
         }
-        
+            
+        //assign the new base
         os << generator.getIndent() << 
             generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
             
-            
-        const concrete::Action* pDimensionAction =
-            dynamic_cast< const concrete::Action* >( ins.getConcreteType()->getParent() );
-        VERIFY_RTE( pDimensionAction );
-        const concrete::Dimension_Generated* pLinkerReferenceDimension = pDimensionAction->getReference();
+        const concrete::Dimension_Generated* pLinkerReferenceDimension = pLink->getReference();
         VERIFY_RTE( pLinkerReferenceDimension );
             
         //set the new link reference for the new link
@@ -597,19 +691,73 @@ namespace eg
                 LinkGroup::LinkRefMap::const_iterator iFind =
                     pLinkGroup->getDimensionMap().find( pTargetType );
                 VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
-                const concrete::Dimension_Generated* pLinkTargetRefDimension = iFind->second;
-                os << generator.getIndent() << "case " << pTargetType->getIndex() << ": " << 
-                    generator.getDimension( pLinkTargetRefDimension, osRef.str() ) << " = " <<
-                    generator.getDimension( pLinkerReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << 
-                    ".data; break;\n";
+                const concrete::Dimension_Generated* pLinkBackReference = iFind->second;
+                os << generator.getIndent() << "case " << pTargetType->getIndex() << ":\n";
+                {
+                    generator.pushIndent();
+                    //before assigning the link back reference - test it to see if existing link to it
+                    {
+                        os << generator.getIndent() << "if( " << 
+                            generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
+                        os << generator.getIndent() << "{\n";
+                        
+                        os << generator.getIndent() << "  switch( " << generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".type )\n";
+                        os << generator.getIndent() << "  {\n";
+                        
+                        for( const concrete::Action* pLink : pLinkGroup->getConcreteLinks() )
+                        {
+                        os << generator.getIndent() << "    case " << pLink->getIndex() << ": ::eg::Scheduler::stop_ref( " << 
+                            generator.getDimension( pLinkBackReference, "value.data.instance" ) << " ); break;\n";
+                        }
+                        os << generator.getIndent() << "    default: ERR( \"Unknown link type\" ); break;\n";
+                        os << generator.getIndent() << "  }\n";
+                        os << generator.getIndent() << "}\n";
+                        
+                    }
+                    
+                    //finally assign the back reference to the link
+                    {
+                        os << generator.getIndent() << generator.getDimension( pLinkBackReference, "value.data.instance" ) << " = " <<
+                            generator.getDimension( pLinkerReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data;\n";
+                            
+                        //increment the reference count
+                        {
+                            const concrete::Action* pObject = pTargetType->getObject();
+                            VERIFY_RTE( pObject );
+                            if( !pObject->getContext()->isMainExecutable() )
+                            {
+                                const concrete::Dimension_Generated* pLinkRefCount = pObject->getLinkRefCount();
+                                VERIFY_RTE( pLinkRefCount );
+                                
+                                std::ostringstream osDomain;
+                                {
+                                    const int iDomainFactor = pObject->getObjectDomainFactor();
+                                    if( iDomainFactor == 1 )
+                                        osDomain << "value.data.instance";
+                                    else
+                                        osDomain << "value.data.instance / " << iDomainFactor;
+                                }
+                                os << generator.getIndent() << generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << 
+                                    " = " << generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << " + 1;\n";
+                            }
+                        }
+                            
+                        os << generator.getIndent() << "break;\n";
+                    }
+                    generator.popIndent();
+                }
             }
             
             os << generator.getIndent() << "case 0: break;\n";
-            os << generator.getIndent() << "default: throw std::runtime_error( \"runtime type error\" );\n";
+            os << generator.getIndent() << "default: ERR( \"Invalid link\" );\n";
             generator.popIndent();
             os << generator.getIndent() << "}\n";
+            
+            
         }
             
+        generator.popIndent();
+        os << generator.getIndent() << "}\n";
         
         const concrete::Action* pReturnType = ins.getInstance()->getConcreteType();
         os << generator.getIndent() << "return " << 
@@ -618,6 +766,7 @@ namespace eg
     
     void generate( const RangeOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
+        //nothing to do here - the operation is aggregated up by the enumeration instruction
     }
     
     void generate( const Instruction& ins, CodeGenerator& generator, std::ostream& os )

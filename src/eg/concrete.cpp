@@ -148,8 +148,6 @@ namespace concrete
         m_pUserDimension = loader.loadObjectRef< Dimension_User >();
         loader.load( m_type );
         m_pContext = loader.loadObjectRef< Action >();
-        loader.load( dependencyDomain );
-        m_pDependency = loader.loadObjectRef< Dimension_Generated >();
         m_pLinkGroup = loader.loadObjectRef< LinkGroup >();
     }
     
@@ -159,8 +157,6 @@ namespace concrete
         storer.storeObjectRef( m_pUserDimension );
         storer.store( m_type );
         storer.storeObjectRef( m_pContext );
-        storer.store( dependencyDomain );
-        storer.storeObjectRef( m_pDependency );
         storer.storeObjectRef( m_pLinkGroup );
     }
     
@@ -187,6 +183,8 @@ namespace concrete
                 return 4;
             case eLinkReference:
                 return 12;
+            case eLinkReferenceCount:
+                return 4;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -195,6 +193,7 @@ namespace concrete
     void Action::load( Loader& loader )
     {
         Element::load( loader );
+        m_pObject = loader.loadObjectRef< Action >();
         m_inheritance = loader.loadObjectRef< Inheritance_Node >();
         loader.load( m_strName );
         loader.load( m_totalDomainSize );
@@ -203,6 +202,7 @@ namespace concrete
         m_pReference        = loader.loadObjectRef< Dimension_Generated >();
         m_pAllocatorData    = loader.loadObjectRef< Dimension_Generated >();
         m_pRingIndex        = loader.loadObjectRef< Dimension_Generated >();
+        m_pLinkRefCount     = loader.loadObjectRef< Dimension_Generated >();
         loader.loadObjectMap( m_allocators );
         loader.loadKeyObjectMap( m_links );
     }
@@ -210,6 +210,7 @@ namespace concrete
     void Action::store( Storer& storer ) const
     {
         Element::store( storer );
+        storer.storeObjectRef( m_pObject );
         storer.storeObjectRef( m_inheritance );
         storer.store( m_strName );
         storer.store( m_totalDomainSize );
@@ -218,6 +219,7 @@ namespace concrete
         storer.storeObjectRef( m_pReference     );
         storer.storeObjectRef( m_pAllocatorData );
         storer.storeObjectRef( m_pRingIndex     );
+        storer.storeObjectRef( m_pLinkRefCount  );
         storer.storeObjectMap( m_allocators );
         storer.storeKeyObjectMap( m_links );
     }
@@ -276,6 +278,19 @@ namespace concrete
             }
         }
         return m_totalDomainSize;
+    }
+    int Action::getObjectDomainFactor() const
+    {
+        VERIFY_RTE( m_pObject );
+        
+        int iDomainFactor = 1;
+        for( const concrete::Action* pIter = this; pIter != m_pObject; pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
+        {
+            VERIFY_RTE( pIter );
+            iDomainFactor *= pIter->getLocalDomainSize();
+        }
+        
+        return iDomainFactor;
     }
     
     const Dimension_User* Action::getLinkBaseDimension() const

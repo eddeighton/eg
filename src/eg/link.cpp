@@ -166,6 +166,26 @@ namespace eg
 					pGroup->m_concreteTargets.push_back( const_cast< concrete::Action* >( pContext ) );
 				}
 			}
+            
+            //get the concrete links
+			{
+				std::vector< const concrete::Element* > concreteLinks;
+				for( interface::Context* pLink : pGroup->m_links )
+				{
+					VERIFY_RTE( dynamic_cast< interface::Link* >( pLink ) );
+					derivationAnalysis.getInstances( pLink, concreteLinks, true );
+				}
+								
+				concreteLinks =
+					uniquify_without_reorder( concreteLinks );
+					
+				for( const concrete::Element* pElement : concreteLinks )
+				{
+					const concrete::Action* pContext = dynamic_cast< const concrete::Action* >( pElement );
+					VERIFY_RTE( pContext );
+					pGroup->m_concreteLinks.push_back( const_cast< concrete::Action* >( pContext ) );
+				}
+			}
 			
 			m_groups.push_back( pGroup );
 		}
@@ -187,6 +207,7 @@ namespace eg
 		loader.load( m_name );
 		loader.loadObjectVector( m_links );
 		loader.loadObjectVector( m_concreteTargets );
+		loader.loadObjectVector( m_concreteLinks );
         loader.loadObjectMap( m_dimensionMap );
 	}
 	
@@ -195,6 +216,7 @@ namespace eg
 		storer.store( m_name );
 		storer.storeObjectVector( m_links );
 		storer.storeObjectVector( m_concreteTargets );
+		storer.storeObjectVector( m_concreteLinks );
         storer.storeObjectMap( m_dimensionMap );
 	}
 		

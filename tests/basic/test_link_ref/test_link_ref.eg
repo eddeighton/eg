@@ -1,0 +1,52 @@
+
+
+
+
+abstract Foobar
+{
+    dim int x;
+}
+
+
+
+object A
+{
+    action actA : Foobar
+    {
+        LOG( "actA" );
+    }
+    
+    action actB : Foobar
+    {
+    }
+}
+
+
+link Test : Foobar
+{
+    
+}
+
+
+
+dim int state;
+state( state() + 1 );
+if( state() == 1 ) 
+{
+    
+    A a = A();
+    Test t = Test();
+    t.base( t.actA() );
+    
+    
+    //t.base( Foobar::null() );
+    t.Stop();
+
+
+	return eg::sleep();
+}
+
+eg::event_iterator iter = events::getIterator();
+RawEvent ev;
+//while( events::get( iter, ev ) && ( ev.type != "log"s ) );
+//TEST( (const char*)ev.value == "works1"s );

@@ -104,6 +104,9 @@ namespace eg
 			case concrete::Dimension_Generated::eLinkReference:
                 os << EG_REFERENCE_TYPE;
                 break;
+			case concrete::Dimension_Generated::eLinkReferenceCount:
+                os << EG_INSTANCE;
+                break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -149,6 +152,7 @@ namespace eg
             case concrete::Dimension_Generated::eActionAllocatorHead   : os << strIndent << printer << " = 0UL;\n"; 		break;
             case concrete::Dimension_Generated::eRingIndex             : os << strIndent << printer << " = i;\n";   		break;
 			case concrete::Dimension_Generated::eLinkReference         : os << strIndent << printer << " = { 0, 0, 0 };\n"; break;
+            case concrete::Dimension_Generated::eLinkReferenceCount    : os << strIndent << printer << " = 0;\n"; break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -322,17 +326,6 @@ namespace eg
         os << getBuffer()->getVariableName() << "[ " << strIndex << " ]." << getName();
     }
 
-    void DataMember::printDependencyVar( std::ostream& os, const std::string& strIndex ) const
-    {
-        if( m_pDependency )
-        {
-            const concrete::Dimension_Generated* pGen = 
-                dynamic_cast< const concrete::Dimension_Generated* >( m_pDimension );
-            
-            os << m_pDependency->getBuffer()->getVariableName() << 
-                "[ " << strIndex << " / " << pGen->getDependencyDomain() << " ]." << m_pDependency->getName();
-        }
-    }
 
     void DataMember::printAllocation( std::ostream& os, const std::string& strIndex ) const
     {

@@ -370,27 +370,9 @@ namespace eg
                     case id_Imp_Params          :
                         {
 							if( const LinkGroup* pLinkGroup = pUserDimension->getLinkGroup() )
-							{
-								//create a dimension reference variable for the link base dimension
-								std::vector< const concrete::Element* > types;
-								{
-									for( const concrete::Action* pType : pLinkGroup->getTargets() )
-									{
-                                        types.push_back( pType );
-									}
-								}
-								
-								DimensionReferenceVariable* pReferenceVariable = 
-									new DimensionReferenceVariable( pInstanceVariable, types );
-								{
-									DimensionReferenceReadInstruction* pDimensionRead = 
-										new DimensionReferenceReadInstruction( 
-											pInstanceVariable, pReferenceVariable, pUserDimension );
-									pInstruction->append( pDimensionRead );
-								}
-																
+							{							
 								WriteLinkOperation* pWrite = new WriteLinkOperation( 
-									pInstanceVariable, pInterfaceDimension, pUserDimension, pReferenceVariable, pLinkGroup );
+									pInstanceVariable, pInterfaceDimension, pUserDimension, pLinkGroup );
 								pInstruction->append( pWrite );
 							}
 							else

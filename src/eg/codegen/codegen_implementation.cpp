@@ -397,6 +397,8 @@ namespace eg
     {
         os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
         os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
+        if( dynamic_cast< const interface::Link* >( pAction->getContext() ) )
+            os << "void " << pAction->getName() << "_breaker( " << EG_INSTANCE << " _gid );\n";
     }
     
     void generateImplementationSource( std::ostream& os, 

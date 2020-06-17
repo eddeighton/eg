@@ -1194,12 +1194,10 @@ namespace eg
     WriteLinkOperation::WriteLinkOperation( InstanceVariable* pInstance, 
 				const interface::Dimension* pInterface, 
 				const concrete::Dimension_User* pTarget,
-				DimensionReferenceVariable* pReferenceVariable,
                 const LinkGroup* pLinkGroup )
         :   m_pInstance( pInstance ),
             m_pInterface( pInterface ),
             m_pTarget( pTarget ),
-			m_pReferenceVariable( pReferenceVariable ),
             m_pLinkGroup( pLinkGroup )
     {
 		
@@ -1208,7 +1206,6 @@ namespace eg
     {
         Operation::load( serialiser, loader );
         serialiser.load( loader, m_pInstance );
-        serialiser.load( loader, m_pReferenceVariable );
         m_pInterface 		= loader.loadObjectRef< interface::Dimension >();
         m_pTarget 			= loader.loadObjectRef< concrete::Dimension_User >();
         m_pLinkGroup        = loader.loadObjectRef< LinkGroup >();
@@ -1217,7 +1214,6 @@ namespace eg
     {
         Operation::store( serialiser, storer );
         serialiser.store( storer, m_pInstance );
-        serialiser.store( storer, m_pReferenceVariable );
         storer.storeObjectRef( m_pInterface );
         storer.storeObjectRef( m_pTarget );
         storer.storeObjectRef( m_pLinkGroup );

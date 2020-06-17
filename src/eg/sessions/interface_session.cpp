@@ -147,9 +147,17 @@ namespace eg
         {
             concrete::Action* pParent = dynamic_cast< concrete::Action* >( pAction->m_pParent );
             if( pParent->m_strName.empty() )
-                pAction->m_strName = pAction->getContext()->getIdentifier();
+            {
+                std::ostringstream os;
+                os << pAction->getContext()->getIdentifier() << "_" << pAction->getIndex();
+                pAction->m_strName = os.str();
+            }
             else
-                pAction->m_strName = pParent->m_strName + "_" + pAction->getContext()->getIdentifier();
+            {
+                std::ostringstream os;
+                os << pParent->m_strName << '_' << pAction->getContext()->getIdentifier() << "_" << pAction->getIndex();
+                pAction->m_strName = os.str();
+            }
         }
     }
     
@@ -168,7 +176,23 @@ namespace eg
         //if this is the root then add ALL objects
         if( pInstance->getParent() && !pInstance->getParent()->getParent() )
         {
-            std::copy( objects.begin(), objects.end(), std::back_inserter( actions ) );
+            //std::copy( objects.begin(), objects.end(), std::back_inserter( actions ) );
+            for( const interface::Object* pChildAction : objects )
+            {
+                //create the child instance node 
+                concrete::Action* pChildInstance = construct< concrete::Action >();
+                pInstance->m_children.push_back( pChildInstance );
+                pChildInstance->m_pElement = pChildAction;
+                pChildInstance->m_pParent = pInstance;
+                calculateInstanceActionName( pChildInstance );
+                
+                m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pChildAction, pChildInstance ) );
+                
+                //record it in the inheritance node
+                pInheritanceNode->m_actions.push_back( pChildInstance );
+                
+                actionInstances.insert( std::make_pair( pChildAction, pChildInstance ) );
+            }
         }
         
         for( const interface::Context* pChildAction : actions )
@@ -246,8 +270,13 @@ namespace eg
         }
     }
     
-    void InterfaceSession::constructAllocator( concrete::Action* pInstance )
+    void InterfaceSession::constructAllocator( concrete::Action* pInstance, concrete::Action* pObject )
     {
+        if( dynamic_cast< const interface::Object* >( pInstance->getContext() ) )
+            pObject = pInstance;
+        
+        pInstance->m_pObject = pObject;
+        
         if( pInstance->m_pParent && pInstance->m_pParent->m_pParent )
         {
             pInstance->m_pAllocatorData                 = construct< concrete::Dimension_Generated >();
@@ -277,6 +306,14 @@ namespace eg
             pInstance->m_pRingIndex->m_type             = concrete::Dimension_Generated::eRingIndex;
             pInstance->m_pRingIndex->m_pContext         = pInstance;
             pInstance->m_children.push_back( pInstance->m_pRingIndex );
+            
+            if( dynamic_cast< const interface::Object* >( pInstance->getContext() ) )
+            {
+                pInstance->m_pLinkRefCount                  = construct< concrete::Dimension_Generated >();
+                pInstance->m_pLinkRefCount->m_type          = concrete::Dimension_Generated::eLinkReferenceCount;
+                pInstance->m_pLinkRefCount->m_pContext      = pInstance;
+                pInstance->m_children.push_back( pInstance->m_pLinkRefCount );
+            }
         }
         
         std::vector< concrete::Element* > temp = pInstance->m_children;
@@ -293,7 +330,7 @@ namespace eg
                     pInstance->m_children.push_back( pHead );
                 }
                 
-                constructAllocator( pChildAction );
+                constructAllocator( pChildAction, pObject );
             }
         }
     }
@@ -331,7 +368,7 @@ namespace eg
         }
         
         constructInstance( pRoot, objects );
-        constructAllocator( pRoot );
+        constructAllocator( pRoot, pRoot );
         
         {
             std::vector< const interface::Context* > interfaceActions = 

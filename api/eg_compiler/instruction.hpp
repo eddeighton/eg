@@ -911,7 +911,6 @@ public:
     WriteLinkOperation( InstanceVariable* pInstance, 
 		const interface::Dimension* pInterface, 
 		const concrete::Dimension_User* pTarget,
-		DimensionReferenceVariable* pReferenceVariable,
         const LinkGroup* pLinkGroup );
     virtual ASTElementType getType() const { return eWriteLinkOperation; }
 protected:

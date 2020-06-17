@@ -75,6 +75,7 @@ namespace eg
 		const std::string& getLinkName() const { return m_name; }
 		const std::vector< interface::Link* >& getLinks() const { return m_links; }
 		const std::vector< concrete::Action* >& getTargets() const { return m_concreteTargets; }
+        const std::vector< concrete::Action* >& getConcreteLinks() const { return m_concreteLinks; }
         const LinkRefMap& getDimensionMap() const { return m_dimensionMap; }
         
         static const interface::Context* getLinkTarget( const interface::Link* pLink );
@@ -84,6 +85,7 @@ namespace eg
 		std::string m_name;
 		std::vector< interface::Link* > m_links;
 		std::vector< concrete::Action* > m_concreteTargets;
+		std::vector< concrete::Action* > m_concreteLinks;
         LinkRefMap m_dimensionMap;
 	};
 	

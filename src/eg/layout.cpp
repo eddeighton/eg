@@ -30,7 +30,6 @@ void DataMember::load( Loader& loader )
     loader.load( offset );
     loader.load( name );
     m_pBuffer = loader.loadObjectRef< Buffer >();
-    m_pDependency = loader.loadObjectRef< DataMember >();
 }
 
 void DataMember::store( Storer& storer ) const
@@ -39,7 +38,6 @@ void DataMember::store( Storer& storer ) const
     storer.store( offset );
     storer.store( name );
     storer.storeObjectRef( m_pBuffer );
-    storer.storeObjectRef( m_pDependency );
 }
 
 void Buffer::load( Loader& loader )

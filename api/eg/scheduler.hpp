@@ -198,25 +198,27 @@ namespace eg
 		typedef void (*StopperFunctionPtr)( eg::Instance );
         using ActionOperator = std::function< ReturnReason( ResumeReason ) >;
         
-        static void start_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
+        //static void start_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
+        static void allocated_ref( const reference& ref, StopperFunctionPtr pStopper );
         static void call_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
+        static void signal_ref( const reference& ref, StopperFunctionPtr pStopper );
         static void stop_ref( const reference& ref );
         static void pause_ref( const reference& ref );
         static void unpause_ref( const reference& ref );
         
-        template< typename T, typename... Args >
+        /*template< typename T, typename... Args >
         static void start( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
         {
             using namespace std::placeholders;
             start_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, _1, args... ) );
-        }
+        }*/
         template< typename T, typename... Args >
         static void call( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
         {
             using namespace std::placeholders;
             call_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, _1, args... ) );
         }
-        template< typename T >
+        /*template< typename T >
         static void stop( const T& staticRef )
         {
             stop_ref( staticRef.data );
@@ -231,7 +233,10 @@ namespace eg
         {
             using namespace std::placeholders;
             unpause_ref( staticRef.data );
-        }
+        }*/
+        
+        //object lifetime
+        static void zeroRefCount( const reference& ref, eg::Instance* pRefCount );
         
         //are there any active actions
         static bool active();

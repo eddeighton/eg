@@ -63,11 +63,15 @@ namespace eg
     {
         std::ostringstream os;
         os << prefix;
+        const concrete::Element* pIterLast = nullptr;
         for( const concrete::Element* pIter : path )
         {
             if( pIter->getParent() )
                 os << "_" << pIter->getAbstractElement()->getIdentifier();
+            pIterLast = pIter;
         }
+        VERIFY_RTE( pIterLast );
+        os << "_" << pIterLast->getIndex();
         return os.str();
     }
 
@@ -76,10 +80,14 @@ namespace eg
         std::ostringstream os;
         os << prefix;
         std::vector< const concrete::Element* > path = concrete::getPath( pElement, pFrom );
+        const concrete::Element* pIterLast = nullptr;
         for( const concrete::Element* pIter : path )
         {
             os << "_" << pIter->getAbstractElement()->getIdentifier();
+            pIterLast = pIter;
         }
+        VERIFY_RTE( pIterLast );
+        os << "_" << pIterLast->getIndex();
         return os.str();
     }
      
@@ -128,20 +136,6 @@ namespace eg
                     {
                         switch( pGenDim->getDimensionType() )
                         {
-                            //no need for this at the moment while no multi threading...
-                            //case concrete::Dimension_Generated::eDimensionTimestamp:
-                            //    {
-                            //        pDataMember = construct< DataMember >();
-                            //        
-                            //        const concrete::Dimension_User* pUserDim = pGenDim->getUserDimension();
-                            //        VERIFY_RTE( pUserDim );
-                            //        
-                            //        pDataMember->name = 
-                            //            generateName( 'g', pUserDim, pAction ) + "_timestamp";
-                            //        
-                            //    }
-                            //    break;
-                                
                             case concrete::Dimension_Generated::eActionStopCycle :
                                 {
                                     pDataMember = construct< DataMember >();
@@ -175,8 +169,9 @@ namespace eg
                                         
                                     const concrete::Action* pAllocatedAction = pDimGen->getAction();
                                     
-                                    pDataMember->name = pBuffer->variable + 
-                                        pAllocatedAction->getAbstractElement()->getIdentifier() + "_ring_iter";
+                                    std::ostringstream os;
+                                    os << pBuffer->variable << '_' << pAllocatedAction->getName() << "_ring_iter";                                    
+                                    pDataMember->name = os.str();
                                 }
                                 break;
                             case concrete::Dimension_Generated::eRingIndex:
@@ -197,7 +192,13 @@ namespace eg
 									osVarName << pBuffer->variable << "_link_" << pLinkGroup->getLinkName();
                                     pDataMember->name = osVarName.str();
 								}
-                                break;					
+                                break;
+							case concrete::Dimension_Generated::eLinkReferenceCount:
+                                {
+                                    pDataMember = construct< DataMember >();
+                                    pDataMember->name = pBuffer->variable + "_link_ref_count";
+                                }
+                                break;
                             default:
                                 THROW_RTE( "Unknown generated dimension type" );
                                 break;
@@ -242,26 +243,6 @@ namespace eg
         {
             const concrete::Action* pRoot = getInstanceRoot();
             recurseInstances( buffers, dimensionMap, 1, pRoot );
-            
-            //establish dimension depedencies
-            for( Layout::DimensionMap::iterator 
-                i = dimensionMap.begin(),
-                iEnd = dimensionMap.end(); i!=iEnd; ++i )
-            {
-                const concrete::Dimension* pInstance = i->first;
-                if( const concrete::Dimension_Generated* pGenDim = 
-                    dynamic_cast< const concrete::Dimension_Generated* >( pInstance ) )
-                {
-                    if( pGenDim->getDependency() )
-                    {
-                        DataMember* pDimension = i->second;
-                        Layout::DimensionMap::const_iterator iFind = 
-                            dimensionMap.find( pGenDim->getDependency() );
-                        VERIFY_RTE( iFind != dimensionMap.end() );
-                        pDimension->m_pDependency = iFind->second;
-                    }
-                }
-            }
         }
         
         Layout* pLayout = construct< Layout >();

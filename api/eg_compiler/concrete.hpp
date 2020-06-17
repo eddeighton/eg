@@ -212,7 +212,8 @@ namespace concrete
             eActionAllocatorData,
             eActionAllocatorHead,
             eRingIndex,
-			eLinkReference
+			eLinkReference,
+			eLinkReferenceCount
         };
         
     protected:
@@ -232,17 +233,16 @@ namespace concrete
         DimensionType getDimensionType() const { return m_type; }
         const Dimension_User* getUserDimension() const { return m_pUserDimension; }
         Action* getAction() const { return m_pContext; }
-        std::size_t getDependencyDomain() const { return dependencyDomain; }
-        Dimension_Generated* getDependency() const { return m_pDependency; }
 		LinkGroup* getLinkGroup() const { return m_pLinkGroup; }
     private:
         DimensionType m_type;
         Dimension_User* m_pUserDimension = nullptr;
         Action* m_pContext = nullptr;
-        Dimension_Generated* m_pDependency = nullptr;
-        std::size_t dependencyDomain = 1U;
 		LinkGroup* m_pLinkGroup = nullptr;
     };
+    
+    
+    
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
@@ -266,6 +266,7 @@ namespace concrete
         using IteratorMap = std::map< const Action*, const Dimension_Generated*, CompareIndexedObjects >;
 		using LinkMap = std::map< std::string, const Dimension_Generated* >;
         
+        const Action* getObject() const { return m_pObject; }
         const ::eg::interface::Context* getContext() const { return dynamic_cast< const ::eg::interface::Context* >( m_pElement ); }
         const Inheritance_Node* getInheritance() const { return m_inheritance; }
         const std::string& getName() const { return m_strName; }
@@ -275,6 +276,7 @@ namespace concrete
         const Dimension_Generated* getReference    () const { return m_pReference     ; }
         const Dimension_Generated* getAllocatorData() const { return m_pAllocatorData ; }
         const Dimension_Generated* getRingIndex    () const { return m_pRingIndex     ; }
+        const Dimension_Generated* getLinkRefCount () const { return m_pLinkRefCount  ; }
     
         const Dimension_Generated* getIterator( const Action* pAction ) const 
         {
@@ -294,11 +296,13 @@ namespace concrete
         virtual int getDataSize() const;
         virtual int getLocalDomainSize() const;
         virtual int getTotalDomainSize() const;
+        int getObjectDomainFactor() const;
         
         std::string getFriendlyName() const { return getContext()->getFriendlyName(); }
         void print( std::ostream& os, std::string& strIndent ) const;
         
     private:
+        Action* m_pObject = nullptr;
         Inheritance_Node* m_inheritance;
         std::string m_strName;
         mutable int m_totalDomainSize = 0;
@@ -308,6 +312,7 @@ namespace concrete
         Dimension_Generated* m_pReference     = nullptr;
         Dimension_Generated* m_pAllocatorData = nullptr;
         Dimension_Generated* m_pRingIndex     = nullptr;
+        Dimension_Generated* m_pLinkRefCount  = nullptr;
         IteratorMap m_allocators;
 		LinkMap m_links;
     };

@@ -321,6 +321,86 @@ namespace eg
         os << "\n";
 	}
 
+	void generateBreaker( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+	{
+        const interface::Link* pLink = dynamic_cast< const interface::Link* >( pAction->getContext() );
+        VERIFY_RTE( pLink );
+        
+        const concrete::Dimension_User* pLinkBase = pAction->getLinkBaseDimension();
+        VERIFY_RTE( pLinkBase );
+        const DataMember* pLinkBaseData = layout.getDataMember( pLinkBase );
+        VERIFY_RTE( pLinkBaseData );
+        
+        const LinkGroup* pLinkGroup = pLinkBase->getLinkGroup();
+        VERIFY_RTE( pLinkGroup );
+        
+        os << "void " << pAction->getName() << "_breaker( " << EG_INSTANCE << " _gid )\n";
+        os << "{\n";
+        
+        os << "  const " << EG_REFERENCE_TYPE << " currentBase = " << Printer( pLinkBaseData, "_gid" ) << ".data;\n";
+        
+        os << "  if( currentBase.timestamp != eg::INVALID_TIMESTAMP )\n";
+        os << "  {\n";
+        
+        os << "    switch( currentBase.type )\n";
+        os << "    {\n";
+        
+            for( const concrete::Action* pTargetType : pLinkGroup->getTargets() )
+            {
+                LinkGroup::LinkRefMap::const_iterator iFind =
+                    pLinkGroup->getDimensionMap().find( pTargetType );
+                VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
+                const concrete::Dimension_Generated* pLinkTargetRefDimension = iFind->second;
+                VERIFY_RTE( pLinkTargetRefDimension );
+                const DataMember* pLinkRef = layout.getDataMember( pLinkTargetRefDimension );
+                VERIFY_RTE( pLinkRef );
+                
+                const concrete::Action* pObject = pTargetType->getObject();
+                VERIFY_RTE( pObject );
+                
+                if( pObject->getContext()->isMainExecutable() )
+                {
+        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "_gid" ) << " = { 0, 0, 0 }; break;\n";
+                }
+                else
+                {
+                    const concrete::Dimension_Generated* pLinkRefCount = pObject->getLinkRefCount();
+                    VERIFY_RTE( pLinkRefCount );
+                    const DataMember* pLinkRefCountDataMember = layout.getDataMember( pLinkRefCount );
+                    VERIFY_RTE( pLinkRefCountDataMember );
+                    
+                    const DataMember* pReferenceData = layout.getDataMember( pObject->getReference() );
+                    
+                    std::ostringstream osDomain;
+                    {
+                        const int iDomainFactor = pObject->getObjectDomainFactor();
+                        if( iDomainFactor == 1 )
+                            osDomain << "_gid";
+                        else
+                            osDomain << "_gid / " << iDomainFactor;
+                    }
+                
+        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "_gid" ) << " = { 0, 0, 0 };\n";
+        os << "           " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
+        os << "           if( " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
+        os << "           {\n";
+        os << "             ::eg::Scheduler::zeroRefCount( " << Printer( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
+                                "&" << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
+        os << "           }\n";
+        os << "           break;\n";
+                }
+            }
+            
+        os << "      default: ERR( \"Invalid link base in breaker\" ); break;\n";
+        
+        os << "    }\n";
+        os << "  }\n";
+        
+        
+        os << "}\n";
+        os << "\n";
+    }
+    
     void generateActionInstanceFunctions( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
     {
         if( pAction->getStopCycle() && pAction->getState() )
@@ -336,6 +416,10 @@ namespace eg
 				generateExecutableActionStopper( os, layout, pAction );
             }
 		}
+        if( dynamic_cast< const interface::Link* >( pAction->getContext() ) )
+        {
+            generateBreaker( os, layout, pAction );
+        }
     }
 
     void generateActionInstanceFunctions( std::ostream& os, const ReadSession& program )

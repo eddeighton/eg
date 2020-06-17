@@ -111,7 +111,7 @@ void command_info( bool bHelp, const std::vector< std::string >& args )
     Project project( projectDirectory, environment, pDocument->Project() );
     
     eg::ReadSession session( project.getAnalysisFileName() );
-    
+
     if( bCode )
     {
         std::cout << "//Code\n";

@@ -13,15 +13,21 @@ action B
 {
     dim int x5;
         
-    object C
+    object C[ 2 ]
     {
-        dim int x3;
-        
-        object D
+        object D[ 2 ]
         {
+            
             dim int x4;
+            
+            object C
+            {
+                dim int x6;
+            }
         }
+        
     }
+    
 }
 
 x2( 1 );
@@ -32,8 +38,8 @@ a.x1( 1 );
 B b = B();
 b.x5( 1 );
 
-B::C c = C();
-c.x3( 1 );
+//C c = b.C();
+//c.x3( 1 );
 
 B::C::D d = D();
 d.x4( 1 );
@@ -41,4 +47,4 @@ d.x4( 1 );
 
 x4();
 
-B::C c2 = B.C();
+//B::C c2 = B::C::D::C();

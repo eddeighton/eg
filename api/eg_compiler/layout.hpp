@@ -67,7 +67,6 @@ namespace eg
         std::size_t offset;
         std::string name;
         Buffer* m_pBuffer;
-        DataMember* m_pDependency = nullptr;
     };
     
     class Buffer : public IndexedObject

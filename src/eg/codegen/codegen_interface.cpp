@@ -100,6 +100,9 @@ namespace eg
             //assignment operator
             os << strIndent << "template< typename TFrom >\n";
             os << strIndent << strActionInterfaceType << "& operator=( const TFrom& from );\n";
+            
+            //null
+            os << strIndent << "static " << strActionInterfaceType << " null() { return " << strActionInterfaceType << "(); }\n";
 
             //invocation
             os << strIndent << "template< typename TypePath, typename Operation, typename... Args >\n";

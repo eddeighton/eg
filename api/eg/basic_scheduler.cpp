@@ -257,14 +257,22 @@ namespace
 namespace eg
 {
 
-    void Scheduler::start_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action )
+    /*void Scheduler::start_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action )
     {
         theScheduler.start( ref, pStopper, action );
+    }*/
+    
+    void Scheduler::allocated_ref( const reference& ref, StopperFunctionPtr pStopper )
+    {
     }
     
     void Scheduler::call_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action )
     {
         theScheduler.call( ref, pStopper, action );
+    }
+    
+    void Scheduler::signal_ref( const reference& ref, StopperFunctionPtr pStopper  )
+    {
     }
     
     void Scheduler::stop_ref( const reference& ref )
@@ -282,6 +290,11 @@ namespace eg
         theScheduler.unpause( ref );
     }
     
+    void Scheduler::zeroRefCount( const reference& ref, eg::Instance* pRefCount )
+    {
+        
+    }
+        
     //are there any active actions
     bool Scheduler::active()
     {
