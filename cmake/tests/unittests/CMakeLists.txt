@@ -36,11 +36,15 @@ add_executable( eg_tests
                     ${SCHEMA_SRC}
 					${EG_SOURCES}
 					${UNITTEST_TEST_SOURCES}
+                    
+                    ${EG_API_DIR}/eg/frame.cpp
 				)
 
 ##configure all debug builds to have 'd' postfix
 set_target_properties( eg_tests PROPERTIES DEBUG_POSTFIX d )
 set_target_properties( eg_tests PROPERTIES FOLDER eg )
+
+target_compile_options( eg_tests PUBLIC /await )
 
 link_boost( eg_tests filesystem )
 link_boost( eg_tests iostreams )

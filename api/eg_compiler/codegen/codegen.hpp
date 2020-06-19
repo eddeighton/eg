@@ -63,7 +63,8 @@ namespace eg
 	static const char* EG_ALLOCATOR_TYPE = "std::uint64_t";
     static const char* EG_RESUME_REASON_TYPE = "eg::ResumeReason";
     static const char* EG_RESUME_REASON_PARAM = "reason";
-    static const char* EG_RETURN_REASON_TYPE = "eg::ReturnReason";
+    //static const char* EG_RETURN_REASON_TYPE = "eg::ReturnReason";
+    static const char* EG_RETURN_REASON_TYPE = "eg::ActionCoroutine";
     
     
     static const char* pszLine = 

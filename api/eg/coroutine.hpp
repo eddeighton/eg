@@ -22,126 +22,177 @@
 #define EG_COROUTINE
 
 #include "common.hpp"
+#include "event.hpp"
+#include "frame.hpp"
 
-//#include "frame.hpp"
-
-//#include <experimental/coroutine>
-//#include <coroutine>
+#include <experimental/coroutine>
+#include <chrono>
+#include <optional>
 
 namespace eg
 {
-    /*
-struct Coroutine
-{
-    struct promise_type
+    enum Reason
     {
-        Coroutine get_return_object()
+        eReason_Wait,
+        eReason_Wait_All,
+        eReason_Wait_Any,
+        eReason_Sleep,
+        eReason_Sleep_All,
+        eReason_Sleep_Any,
+        eReason_Timeout,
+        eReason_Terminated
+    };
+    
+    struct ReturnReason
+    {
+        Reason reason;
+        std::vector< Event > events;
+        std::optional< std::chrono::steady_clock::time_point > timeout;
+        
+        ReturnReason()
+            :   reason( eReason_Terminated )
         {
-            return Coroutine(
-                std::experimental::coroutine_handle< promise_type >::from_promise( *this ) );
+            
+        }
+        
+        ReturnReason( Reason _reason )
+            :   reason( _reason )
+        {
+            
+        }
+        
+        ReturnReason( Reason _reason, const Event& event )
+            :   reason( _reason ),
+                events( 1, event )
+        {
+        }
+        
+        ReturnReason( Reason _reason, std::initializer_list< Event > _events )
+            :   reason( _reason ),
+                events( _events )
+        {
+            
+        }
+        
+        ReturnReason( const std::chrono::steady_clock::time_point& _timeout )
+            :   reason( eReason_Timeout ),
+                timeout( _timeout )
+        {
+            
+        }
+        
+    };
+        
+    struct ActionCoroutine
+    {
+        struct promise_type
+        {
+            ReturnReason m_reason;
+            
+            ActionCoroutine get_return_object()
+            {
+                return ActionCoroutine(
+                    std::coroutine_handle< promise_type >::from_promise( *this ), &m_reason );
+            }
+
+            auto initial_suspend()  { return std::suspend_always{}; } //suspend_never
+            auto final_suspend()    { return std::suspend_never{}; }
+            void unhandled_exception() {}
+            
+            auto return_value( ReturnReason reason ) 
+            { 
+                m_reason = reason;
+                return std::suspend_always{}; 
+            }
+            auto yield_value( ReturnReason reason ) 
+            { 
+                m_reason = reason;
+                return std::suspend_always{}; 
+            }
+        };
+        
+        ReturnReason* m_pReason = nullptr;
+        std::coroutine_handle< promise_type > m_coroutine;
+
+        const ReturnReason getReason() const 
+        { 
+            if( m_pReason )
+                return *m_pReason;
+            else
+                return ReturnReason(); 
         }
 
-        auto initial_suspend()  { return std::experimental::suspend_always{}; }
-        auto final_suspend()    { return std::experimental::suspend_always{}; }
-        void unhandled_exception() {}
-        void return_void() {}
+        ActionCoroutine() = default;
+        ActionCoroutine( ActionCoroutine const& ) = delete;
+        ActionCoroutine& operator=( ActionCoroutine const& ) = delete;
+
+        explicit ActionCoroutine( std::coroutine_handle< promise_type > coroutine, ReturnReason* pReason )
+            :   m_coroutine( coroutine ),
+                m_pReason( pReason )
+        {
+        }
+
+        ActionCoroutine( ActionCoroutine&& other )
+            :   m_coroutine( other.m_coroutine ),
+                m_pReason( other.m_pReason )
+        {
+            other.m_coroutine = nullptr;
+        }
+
+        ActionCoroutine& operator=( ActionCoroutine&& other )
+        {
+            if( &other != this )
+            {
+                m_coroutine = other.m_coroutine;
+                m_pReason = other.m_pReason;
+                other.m_coroutine = nullptr;
+            }
+            return *this;
+        }
+
+        ~ActionCoroutine()
+        {
+            if( m_coroutine )
+            {
+                m_coroutine.destroy();
+                m_coroutine = nullptr;
+            }
+        }
+
+        void resume()
+        {
+            if( m_coroutine )
+                m_coroutine.resume();
+        }
+        
+        void destroy()
+        {
+            if( m_coroutine )
+            {
+                m_coroutine.destroy();
+                m_coroutine = nullptr;
+            }
+        }
+        
+        bool started()
+        {
+            return m_coroutine ? true : false;
+        }
+
+        bool done()
+        {
+            if( m_coroutine )
+                return m_coroutine.done();
+            else
+                return true;
+        }
+        
     };
 
-    std::experimental::coroutine_handle< promise_type > _coroutine;
+/*
+co_await std::experimental::suspend_always{}
+*/
 
-    Coroutine() = default;
-    Coroutine( Coroutine const& ) = delete;
-    Coroutine& operator=( Coroutine const& ) = delete;
-
-    explicit Coroutine( std::experimental::coroutine_handle< promise_type > coroutine )
-        : _coroutine( coroutine )
-    {
-    }
-
-    Coroutine( Coroutine&& other )
-        : _coroutine(other._coroutine )
-    {
-        other._coroutine = nullptr;
-    }
-
-    Coroutine& operator=( Coroutine&& other )
-    {
-        if( &other != this )
-        {
-            _coroutine = other._coroutine;
-            other._coroutine = nullptr;
-        }
-        return *this;
-    }
-
-    ~Coroutine()
-    {
-        if( _coroutine )
-        {
-            _coroutine.destroy();
-            _coroutine = nullptr;
-        }
-    }
-
-    void resume()
-    {
-        if( _coroutine )
-            _coroutine.resume();
-    }
-    
-    void destroy()
-    {
-        if( _coroutine )
-        {
-            _coroutine.destroy();
-            _coroutine = nullptr;
-        }
-    }
-
-    bool done()
-    {
-        if( _coroutine )
-            return _coroutine.done();
-        else
-            return true;
-    }
-};
-
-#define SLEEP co_await std::experimental::suspend_always{}
-
-#define SLEEP_S( seconds )\
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        const float _t = clock::ct(); \
-        auto _s = ( seconds );\
-        while( _s > ( clock::ct() - _t ) ) \
-        { \
-            co_await std::experimental::suspend_always{};  \
-        } \
-    )
-    
-    
-#define SLEEP_UNTIL( variable )\
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( \
-        bool bFound = false;\
-        auto v = ( variable );\
-        while( !bFound )\
-        {\
-            while( eg::Event e = get_next_event() )\
-            {\
-                if( v == e )\
-                {\
-                    bFound = true;\
-                    break;\
-                }\
-            }\
-            if( !bFound )\
-            {\
-                SLEEP;\
-            }\
-        }\
-    )
-    
-    */
 }
 
 #endif //EG_COROUTINE

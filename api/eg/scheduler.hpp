@@ -33,9 +33,9 @@
 using namespace std::chrono_literals;
 using namespace std::string_literals;
 
-eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
-eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );
-eg::TimeStamp getStopCycle( eg::TypeID typeID, eg::Instance instance );
+//eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
+//eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );
+//eg::TimeStamp getStopCycle( eg::TypeID typeID, eg::Instance instance );
 
 namespace eg
 {
@@ -67,58 +67,10 @@ namespace eg
         
     };
     
-    enum Reason
+    inline ReturnReason done()
     {
-        eReason_Wait,
-        eReason_Wait_All,
-        eReason_Wait_Any,
-        eReason_Sleep,
-        eReason_Sleep_All,
-        eReason_Sleep_Any,
-        eReason_Timeout,
-        eReason_Terminated
-    };
-    
-    struct ReturnReason
-    {
-        Reason reason;
-        std::vector< Event > events;
-        std::optional< std::chrono::steady_clock::time_point > timeout;
-        
-        ReturnReason()
-            :   reason( eReason_Terminated )
-        {
-            
-        }
-        
-        ReturnReason( Reason _reason )
-            :   reason( _reason )
-        {
-            
-        }
-        
-        ReturnReason( Reason _reason, const Event& event )
-            :   reason( _reason ),
-                events( 1, event )
-        {
-        }
-        
-        ReturnReason( Reason _reason, std::initializer_list< Event > _events )
-            :   reason( _reason ),
-                events( _events )
-        {
-            
-        }
-        
-        ReturnReason( const std::chrono::steady_clock::time_point& _timeout )
-            :   reason( eReason_Timeout ),
-                timeout( _timeout )
-        {
-            
-        }
-        
-    };
-    
+        return ReturnReason();
+    }
     
     ////////////////////////////////////////////////////////////////////////////
     //wait functions
@@ -196,9 +148,8 @@ namespace eg
     {
     public:
 		typedef void (*StopperFunctionPtr)( eg::Instance );
-        using ActionOperator = std::function< ReturnReason( ResumeReason ) >;
+        using ActionOperator = std::function< eg::ActionCoroutine( ResumeReason ) >;
         
-        //static void start_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
         static void allocated_ref( const reference& ref, StopperFunctionPtr pStopper );
         static void call_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
         static void signal_ref( const reference& ref, StopperFunctionPtr pStopper );
@@ -206,34 +157,12 @@ namespace eg
         static void pause_ref( const reference& ref );
         static void unpause_ref( const reference& ref );
         
-        /*template< typename T, typename... Args >
-        static void start( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
-        {
-            using namespace std::placeholders;
-            start_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, _1, args... ) );
-        }*/
         template< typename T, typename... Args >
         static void call( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
         {
             using namespace std::placeholders;
             call_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, _1, args... ) );
         }
-        /*template< typename T >
-        static void stop( const T& staticRef )
-        {
-            stop_ref( staticRef.data );
-        }
-        template< typename T >
-        static void pause( const T& staticRef )
-        {
-            pause_ref( staticRef.data );
-        }
-        template< typename T >
-        static void unpause( const T& staticRef )
-        {
-            using namespace std::placeholders;
-            unpause_ref( staticRef.data );
-        }*/
         
         //object lifetime
         static void zeroRefCount( const reference& ref, eg::Instance* pRefCount );

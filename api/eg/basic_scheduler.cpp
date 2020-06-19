@@ -20,232 +20,437 @@
 
 
 #include "common.hpp"
+#include "coroutine.hpp"
 #include "scheduler.hpp"
 #include "clock.hpp"
 
 #include <list>
-#include <queue>
+#include <map>
+#include <unordered_map>
+#include <optional>
 
 namespace
 {
+
     class BasicScheduler
     {
+    private:
+        struct ActiveAction;
+        
+        struct ReferenceHash
+        {
+            inline std::size_t operator()( const eg::reference& ref ) const
+            {
+                #define MAX_TYPES 1024
+                return ref.instance * MAX_TYPES + ref.type;
+            }
+        };
+            
+        using ActiveActionMap = std::unordered_map< eg::reference, ActiveAction*, BasicScheduler::ReferenceHash >;
+        using ActiveActionList = std::list< ActiveActionMap::iterator >;
+        
+		using Timeout = std::chrono::steady_clock::time_point;
+        using TimeoutQueue = std::multimap< Timeout, ActiveActionMap::iterator >;
+        
         struct ActiveAction
         {
             eg::reference ref;
 			eg::Scheduler::StopperFunctionPtr pStopper;
             eg::Scheduler::ActionOperator op;
 			
-			bool bAllEvents;
-			std::vector< Event > events;
-			
+            eg::ActionCoroutine coroutine;
+			//bool bAllEvents;
+			//std::vector< Event > events;
+            
+            //action must only occur in one of the iterators at a time
+            
+            ActiveActionList::iterator iter_one, iter_two, iter_three;
+            TimeoutQueue::iterator iter_timeout;
+            ActiveActionList::iterator iter_pause;
+            
+            ActiveAction() = delete;
+            ActiveAction( const ActiveAction& ) = delete;
+            
+            ActiveAction( const eg::reference& _ref, 
+                eg::Scheduler::StopperFunctionPtr _pStopper, 
+                eg::Scheduler::ActionOperator& _op,
+                ActiveActionList::iterator _iter_one,
+                ActiveActionList::iterator _iter_two,
+                ActiveActionList::iterator _iter_three,
+                ActiveActionList::iterator _iter_pause  )
+                :
+                    ref( _ref ),
+                    pStopper( _pStopper ),
+                    op( _op ),
+                    
+                    iter_one( _iter_one ),
+                    iter_two( _iter_two ),
+                    iter_three( _iter_three ),
+                    iter_pause( _iter_pause )
+            {
+                
+            }
         };
         
-        using ActiveActionList = std::list< ActiveAction >;
         
-		
-		using TimeoutAction = std::pair< std::chrono::steady_clock::time_point, ActiveAction >;
-		struct ComparePriorities
-		{
-			inline bool operator()( const TimeoutAction& left, const TimeoutAction& right ) const
-			{
-				return left.first < right.first;
-			}
-		};
-		using TimeoutQueue = std::priority_queue< TimeoutAction, std::vector< TimeoutAction >, ComparePriorities >;
-		
 	
-    private:
-        ActiveActionList m_ready, m_waiting, m_sleeping, m_sleepingUntilEvent;
+        ActiveActionMap m_actions;
+        
+        ActiveActionList m_listOne, m_listTwo, m_listThree;
 		TimeoutQueue m_timeouts;
-		
-		
-    public:
-        void start( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper, eg::Scheduler::ActionOperator action )
+        ActiveActionList m_paused;
+        
+        enum SleepSwapState
         {
-            m_ready.push_back( ActiveAction{ ref, pStopper, action } );
+            eState_A_W_S, //active, wait, sleep
+            eState_A_S_W,
+            eState_W_A_S,
+            eState_W_S_A,
+            eState_S_A_W,
+            eState_S_W_A
+        };
+        SleepSwapState m_sleepState = eState_A_W_S;
+        
+        ActiveActionList::iterator& getActiveIter( ActiveAction& action )
+        {
+           switch( m_sleepState )
+           {
+              case eState_A_W_S: return action.iter_one;
+              case eState_A_S_W: return action.iter_one;
+              case eState_W_A_S: return action.iter_two;
+              case eState_W_S_A: return action.iter_three;
+              case eState_S_A_W: return action.iter_two;
+              case eState_S_W_A: return action.iter_three;
+           }
+        }
+        ActiveActionList::iterator& getWaitIter( ActiveAction& action )
+        {
+           switch( m_sleepState )
+           {
+              case eState_A_W_S: return action.iter_two;
+              case eState_A_S_W: return action.iter_three;
+              case eState_W_A_S: return action.iter_one;
+              case eState_W_S_A: return action.iter_one;
+              case eState_S_A_W: return action.iter_three;
+              case eState_S_W_A: return action.iter_two;
+           }
+        }
+        ActiveActionList::iterator& getSleepIter( ActiveAction& action )
+        {
+           switch( m_sleepState )
+           {
+              case eState_A_W_S: return action.iter_three;
+              case eState_A_S_W: return action.iter_two;
+              case eState_W_A_S: return action.iter_three;
+              case eState_W_S_A: return action.iter_two;
+              case eState_S_A_W: return action.iter_one;
+              case eState_S_W_A: return action.iter_one;
+           }
         }
         
-        void call( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper, eg::Scheduler::ActionOperator action )
+        void swapActiveSleep()
         {
-            m_ready.push_back( ActiveAction{ ref, pStopper, action } );
+           switch( m_sleepState )
+           {
+              case eState_A_W_S: m_sleepState = eState_S_W_A; break;
+              case eState_A_S_W: m_sleepState = eState_S_A_W; break;
+              case eState_W_A_S: m_sleepState = eState_W_S_A; break;
+              case eState_W_S_A: m_sleepState = eState_W_A_S; break;
+              case eState_S_A_W: m_sleepState = eState_A_S_W; break;
+              case eState_S_W_A: m_sleepState = eState_A_W_S; break;
+           }
+        }
+        
+        void swapActiveWait()
+        {
+           switch( m_sleepState )
+           {
+              case eState_A_W_S: m_sleepState = eState_W_A_S; break;
+              case eState_A_S_W: m_sleepState = eState_W_S_A; break;
+              case eState_W_A_S: m_sleepState = eState_A_W_S; break;
+              case eState_W_S_A: m_sleepState = eState_A_S_W; break;
+              case eState_S_A_W: m_sleepState = eState_S_W_A; break;
+              case eState_S_W_A: m_sleepState = eState_S_A_W; break;
+           }
+        }
+        
+        ActiveActionList& getActive()
+        {
+            switch( m_sleepState )
+            {
+              case eState_A_W_S: return m_listOne;
+              case eState_A_S_W: return m_listOne;
+              case eState_W_A_S: return m_listTwo;
+              case eState_W_S_A: return m_listThree;
+              case eState_S_A_W: return m_listTwo;
+              case eState_S_W_A: return m_listThree;
+            }
+        }
+        
+        ActiveActionList& getWaiting()
+        {
+            switch( m_sleepState )
+            {
+              case eState_A_W_S: return m_listTwo;
+              case eState_A_S_W: return m_listThree;
+              case eState_W_A_S: return m_listOne;
+              case eState_W_S_A: return m_listOne;
+              case eState_S_A_W: return m_listThree;
+              case eState_S_W_A: return m_listTwo;
+            }
+        }
+        
+        ActiveActionList& getSleeping()
+        {
+            switch( m_sleepState )
+            {
+              case eState_A_W_S: return m_listThree;
+              case eState_A_S_W: return m_listTwo;
+              case eState_W_A_S: return m_listThree;
+              case eState_W_S_A: return m_listTwo;
+              case eState_S_A_W: return m_listOne;
+              case eState_S_W_A: return m_listOne;
+            }
+        }
+        
+        void active_insert( ActiveActionMap::iterator iterAction )
+        {
+            ActiveActionList& list = getActive();
+            getActiveIter( *iterAction->second ) = list.insert( list.end(), iterAction );
+        }
+        void active_remove( ActiveActionMap::iterator iterAction )
+        {
+            ActiveActionList& list = getActive();
+            ActiveActionList::iterator& i = getActiveIter( *iterAction->second );
+            if( i != list.end() )
+            {
+                list.erase( i );
+                i = list.end();
+            }
+        }
+        
+        void wait_insert( ActiveActionMap::iterator iterAction )
+        {
+            ActiveActionList& list = getWaiting();
+            getWaitIter( *iterAction->second ) = list.insert( list.end(), iterAction );
+        }
+        void wait_remove( ActiveActionMap::iterator iterAction )
+        {
+            ActiveActionList& list = getWaiting();
+            ActiveActionList::iterator& i = getWaitIter( *iterAction->second );
+            if( i != list.end() )
+            {
+                list.erase( i );
+                i = list.end();
+            }
+        }
+        
+        void sleep_insert( ActiveActionMap::iterator iterAction )
+        {
+            ActiveActionList& list = getSleeping();
+            getSleepIter( *iterAction->second ) = list.insert( list.end(), iterAction );
+        }
+        void sleep_remove( ActiveActionMap::iterator iterAction )
+        {
+            ActiveActionList& list = getSleeping();
+            ActiveActionList::iterator& i = getSleepIter( *iterAction->second );
+            if( i != list.end() )
+            {
+                list.erase( i );
+                i = list.end();
+            }
+        }
+        
+        
+        void pause_insert( ActiveActionMap::iterator iterAction )
+        {
+            iterAction->second->iter_pause = m_paused.insert( m_paused.end(), iterAction );
+        }
+        void pause_remove( ActiveActionMap::iterator iterAction )
+        {
+            if( iterAction->second->iter_pause != m_paused.end() )
+            {
+                m_paused.erase( iterAction->second->iter_pause );
+                iterAction->second->iter_pause = m_paused.end();
+            }
+        }
+        
+		//using Timeout = std::chrono::steady_clock::time_point;
+        //using TimeoutQueue = std::multimap< Timeout, ActiveActionMap::iterator >;
+        void timeout_insert( ActiveActionMap::iterator iterAction, const Timeout& timeout )
+        {
+            TimeoutQueue::iterator insertResult =
+                m_timeouts.insert( std::make_pair( timeout, iterAction ) );
+            iterAction->second->iter_timeout = insertResult;
+        }
+        void timeout_remove( ActiveActionMap::iterator iterAction )
+        {
+            if( iterAction->second->iter_timeout != m_timeouts.end() )
+            {
+                m_timeouts.erase( iterAction->second->iter_timeout );
+                iterAction->second->iter_timeout = m_timeouts.end();
+            }
+        }
+        
+		
+    public:
+    
+        void call( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper, eg::Scheduler::ActionOperator actionOperator )
+        {
+            ActiveAction* pAction = new ActiveAction( ref, pStopper, actionOperator, 
+                            getActive().end(), 
+                            getWaiting().end(), 
+                            getSleeping().end(),
+                            m_paused.end() );
+                            
+             
+            ActiveActionMap::_Pairib insertResult =
+                m_actions.insert( std::make_pair( ref, pAction ) );
+            if( insertResult.second )
+            {
+                active_insert( insertResult.first );
+            }
         }
         
         void stop( const eg::reference& ref )
         {
+            ActiveActionMap::iterator iFind = m_actions.find( ref );
+            if( iFind != m_actions.end() )
+            {
+                ActiveAction* pAction = iFind->second;
+                
+                active_remove( iFind );
+                wait_remove( iFind );
+                sleep_remove( iFind );
+                m_actions.erase( iFind );
+                
+                //invoke the stopper
+                pAction->pStopper( pAction->ref.instance );
+                
+                delete pAction;
+                
+            }
+            else
+            {
+                ERR( "Stopped inactive reference" );
+            }
         }
         
         void pause( const eg::reference& ref )
         {
+            ActiveActionMap::iterator iFind = m_actions.find( ref );
+            if( iFind != m_actions.end() )
+            {
+                active_remove( iFind );
+                wait_remove( iFind );
+                sleep_remove( iFind );
+                pause_insert( iFind );
+            }
+            else
+            {
+                ERR( "Stopped inactive reference" );
+            }
         }
         
         void unpause( const eg::reference& ref )
         {
+            ActiveActionMap::iterator iFind = m_actions.find( ref );
+            if( iFind != m_actions.end() )
+            {
+                pause_remove( iFind );
+                active_insert( iFind );
+            }
+            else
+            {
+                ERR( "Stopped inactive reference" );
+            }
         }
     
 
         bool active()
         {
-            return !m_ready.empty() || !m_waiting.empty() || !m_sleeping.empty() || !m_timeouts.empty();
+            return !m_actions.empty();
         }
 
         //run a cycle
         void cycle()
         {
             using namespace eg;
-			
-			std::list< eg::reference > stops;
-			
-			//check the timeouts
-			while( !m_timeouts.empty() )
-			{
-				TimeoutAction head = m_timeouts.top();
-				if( head.first < std::chrono::steady_clock::now() )
-				{
-					m_timeouts.pop();
-					m_ready.push_back( head.second );
-				}
-				else
-				{
-					break;
-				}
-			}
             
-			//swap the sleep with ready
-            if( m_ready.empty() && m_waiting.empty() )
+            //timeouts 
+            while( !m_timeouts.empty() )
             {
-                m_ready.swap( m_sleeping );
-            }
-            
-			//run until ready and waiting empty
-			bool bMadeProgress = false;
-            while( !( m_ready.empty() && m_waiting.empty() ) )
-            {
-                if( m_ready.empty() )
+                TimeoutQueue::iterator iterTimeout = m_timeouts.begin();
+                if( iterTimeout->first <= std::chrono::steady_clock::now() )
                 {
-					if( !bMadeProgress )
-					{
-						LOG( "Failed to make progress waiting for event" );
-						throw std::runtime_error( "Failed to make progress waiting for event" );
-					}
-					bMadeProgress = false;
-                    m_ready.swap( m_waiting );
+                    ActiveActionMap::iterator iter = iterTimeout->second;
+                    timeout_remove( iter );
+                    active_insert( iter );
                 }
-				
-				ActiveAction action = m_ready.front();
-				m_ready.pop_front();
-				
-				//does the action have an event criteria?
-				bool bResumed = false;
-				if( !action.events.empty() )
-				{
-					for( const eg::reference& ref : stops )
-					{
-						for( std::vector< Event >::iterator 
-								i = action.events.begin(); i != action.events.end();  )
-						{
-							if( i->data == ref )
-							{
-								i = action.events.erase( i );
-								if( !action.bAllEvents )
-									bResumed = true;
-							}
-							else
-							{
-								++i;
-							}
-						}
-					}
-				}
-				
-				if( !( action.events.empty() || bResumed ) )
-				{
-					//put back on the end of the list
-					m_waiting.push_back( action );
-				}
-				else
-				{
-					bMadeProgress = true;
-					
-					//run the action
-					ReturnReason returnReason =
-						action.op( ResumeReason() );
-					
-					switch( returnReason.reason )
-					{
-						case eReason_Wait:
-							m_waiting.push_back( action );
-							break;
-						case eReason_Wait_All:
-							action.events.swap( returnReason.events );
-							action.bAllEvents = true;
-							m_waiting.push_back( action );
-							break;
-						case eReason_Wait_Any:
-							action.events.swap( returnReason.events );
-							action.bAllEvents = false;
-							m_waiting.push_back( action );
-							break;
-						case eReason_Sleep:
-							m_sleeping.push_back( action );
-							break;
-						case eReason_Sleep_All:
-							action.events.swap( returnReason.events );
-							action.bAllEvents = true;
-							m_sleepingUntilEvent.push_back( action );
-							break;
-						case eReason_Sleep_Any:
-							action.events.swap( returnReason.events );
-							action.bAllEvents = false;
-							m_sleepingUntilEvent.push_back( action );
-							break;
-						case eReason_Timeout:
-							m_timeouts.push( std::make_pair( returnReason.timeout.value(), action ) );
-							break;
-						case eReason_Terminated:
-							action.pStopper( action.ref.instance );
-							stops.push_back( action.ref );
-							
-							//whenever an event happens - test to see if anything is waiting for it
-							{
-								for( std::list< ActiveAction >::iterator 
-									j = m_sleepingUntilEvent.begin();
-										j != m_sleepingUntilEvent.end(); )
-								{
-									bool bResumed = false;
-									ActiveAction& sleeperAction = *j;
-									for( std::vector< Event >::iterator 
-											i = sleeperAction.events.begin(); 
-												i != sleeperAction.events.end();  )
-									{
-										if( i->data == action.ref )
-										{
-											i = sleeperAction.events.erase( i );
-											if( !sleeperAction.bAllEvents )
-												bResumed = true;
-										}
-										else
-										{
-											++i;
-										}
-									}
-									if( sleeperAction.events.empty() || bResumed )
-									{
-										m_ready.push_front( sleeperAction ); //handle next
-										j = m_sleepingUntilEvent.erase( j );
-									}
-									else
-									{
-										++j;
-									}
-								}
-							}
-							break;
-						default:
-							throw std::runtime_error( "Unknown return reason" );
-					}
-				}
+                else
+                {
+                    break;
+                }
             }
+            
+            if( getActive().empty() && getWaiting().empty() )
+            {
+                swapActiveSleep();
+            }
+            
+            //run until everything is sleeping
+            while( !( getActive().empty() && getWaiting().empty() ) )
+            {
+                if( getActive().empty() )
+                {
+                    swapActiveWait();
+                }
+                
+                ActiveActionMap::iterator iter = getActive().front();
+                active_remove( iter );
+                
+                ActiveAction* pAction = iter->second;
+                
+                if( !pAction->coroutine.started() || pAction->coroutine.done() )
+                {
+                    pAction->coroutine = pAction->op( ResumeReason() );
+                    pAction->coroutine.resume();
+                }
+                else
+                {
+                    pAction->coroutine.resume();
+                }
+                
+                const eg::ReturnReason& reason = 
+                    pAction->coroutine.getReason();
+                switch( reason.reason )
+                {
+                    case eReason_Wait:
+                        wait_insert( iter );
+                        break;
+                    case eReason_Wait_All:
+                        break;
+                    case eReason_Wait_Any:
+                        break;
+                    case eReason_Sleep:
+                        sleep_insert( iter );
+                        break;
+                    case eReason_Sleep_All:
+                        break;
+                    case eReason_Sleep_Any:
+                        break;
+                    case eReason_Timeout:
+                        timeout_insert( iter, reason.timeout.value() );
+                        break;
+                    case eReason_Terminated:
+                        pAction->pStopper( pAction->ref.instance );
+                        m_actions.erase( iter );
+                        break;
+                    default:
+                        throw std::runtime_error( "Unknown return reason" );
+                }
+            }
+            
         }
         
     };
@@ -256,12 +461,6 @@ namespace
 
 namespace eg
 {
-
-    /*void Scheduler::start_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action )
-    {
-        theScheduler.start( ref, pStopper, action );
-    }*/
-    
     void Scheduler::allocated_ref( const reference& ref, StopperFunctionPtr pStopper )
     {
     }

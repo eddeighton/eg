@@ -20,6 +20,8 @@ set( EG_LIBRARY
 	${EG_API_DIR}/eg/eg_common_strings.hpp
 	${EG_API_DIR}/eg/event.hpp
 	${EG_API_DIR}/eg/event_log.cpp
+	${EG_API_DIR}/eg/frame.hpp
+	${EG_API_DIR}/eg/frame.cpp
 	${EG_API_DIR}/eg/include.hpp
 	${EG_API_DIR}/eg/iterators.hpp
 	${EG_API_DIR}/eg/macros.hpp

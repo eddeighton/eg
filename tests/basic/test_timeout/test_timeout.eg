@@ -1,0 +1,21 @@
+
+action A
+{
+    int i = 0;
+    while( ++i < 20 )
+    {
+        LOG( "A: " << i );
+        co_yield eg::sleep();
+    }
+    co_return eg::done();
+}
+
+A();
+
+for( int i = 0; i < 4; ++i )
+{
+    LOG( "Tick: " << i );
+    co_yield eg::sleep( 1s );
+}
+
+co_return eg::done();

@@ -36,7 +36,7 @@ dim int state;
 state( state() + 1 );
 if( state() == 1 ) 
 {
-    Test.Start();
+    Test();
     TestLink().base( Test.Get() );
     Test.Get().A().B();
     

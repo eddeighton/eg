@@ -145,7 +145,7 @@ namespace eg
                     VERIFY_RTE( pDimensionAction );
                     const interface::Context* pAction = pDimensionAction->getContext();
                     os << strIndent << printer << " = " << getStaticType( pAction ) << 
-                        "( " << EG_REFERENCE_TYPE << " { i, " << pDimensionAction->getIndex() << ", 0 } );\n";
+                        "( " << EG_REFERENCE_TYPE << " { i, " << pDimensionAction->getIndex() << ", 1 } );\n";
                 }
                 break;
             case concrete::Dimension_Generated::eActionAllocatorData   : os << strIndent << printer << " = i;\n";   		break;

@@ -116,6 +116,7 @@ int main( int argc, const char* argv[] )
 		
 #ifdef DEBUG
 		{
+            std::cout << "Waiting for input..." << std::endl;
 			char c;
 			std::cin >> c;
 		}

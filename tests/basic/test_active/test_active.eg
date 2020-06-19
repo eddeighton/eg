@@ -1,0 +1,59 @@
+
+
+action A[ 4 ]
+{
+    action B[ 4 ]
+    {
+        
+    }
+    
+    action C[ 4 ]
+    {
+    }
+}
+
+TEST( eg::count( A.Range() ) == 0 );
+TEST( eg::count( B.Range() ) == 0 );
+
+A a1 = A();
+
+TEST( eg::count( A.Range() ) == 1 );
+TEST( eg::count( B.Range() ) == 0 );
+
+
+A a2 = A();
+
+TEST( eg::count( A.Range() ) == 2 );
+TEST( eg::count( B.Range() ) == 0 );
+
+a1.B();
+a1.B();
+a1.B();
+
+a2.B();
+a2.B();
+
+TEST( eg::count( A.Range() ) == 2 );
+TEST( eg::count( B.Range() ) == 5 );
+
+for( A::B b : B.Range() )
+{
+    TEST( eg::Running == b );
+}
+
+for( A::C c : C.Raw() )
+{
+    TEST( eg::Invalid == c );
+}
+
+A a;
+TEST( eg::Null == a );
+
+a = A();
+TEST( eg::Running == a );
+
+a.Pause();
+TEST( eg::Paused == a );
+
+a.Stop();
+TEST( eg::Stopped == a );

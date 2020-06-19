@@ -68,18 +68,6 @@ inline bool isActionActive( eg::TypeID type, eg::Instance instance )
         ( getStopCycle< ReferenceType >( type, instance ) == clock::cycle() );
 }
 
-namespace eg
-{
-    template< typename ReferenceType >
-    inline bool isActive( const ReferenceType& ref )
-    {
-        if( ref.data.timestamp != eg::INVALID_TIMESTAMP )
-            return isActionActive< ReferenceType >( ref.data.type, ref.data.instance );
-        else
-            return false;
-    }
-}
-
 template< class ReferenceType >
 class __eg_ReferenceRawIterator : public std::iterator< std::forward_iterator_tag, ReferenceType >
 {

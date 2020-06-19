@@ -1,0 +1,52 @@
+
+
+action A[ 2 ]
+{
+    LOG( "A 1" );
+    
+    co_yield eg::wait();
+    
+    LOG( "A 2" );
+    
+    co_yield eg::wait();
+    
+    LOG( "A 3" );
+    
+    int iSleepCount = 0;
+    while( ++iSleepCount > 0 )
+    {
+        LOG( "A: " << iSleepCount );
+        co_yield eg::sleep();
+    }
+    
+    co_return eg::done();
+}
+
+
+A a = A();
+
+int iCounter = 0;
+while( a != eg::Invalid )
+{
+    ++iCounter;
+    LOG( "Root: " << iCounter );
+    
+    if( iCounter == 2 )
+    {
+        a.Pause();
+    }
+    else if( iCounter == 10 )
+    {
+        a.Resume();
+    }
+    else if( iCounter == 20 )
+    {
+        a.Stop();
+    }
+    
+    co_yield eg::sleep();
+}
+
+LOG( "Root done" );
+    
+co_return eg::done();

@@ -103,6 +103,7 @@ namespace eg
             
             //null
             os << strIndent << "static " << strActionInterfaceType << " null() { return " << strActionInterfaceType << "(); }\n";
+            
 
             //invocation
             os << strIndent << "template< typename TypePath, typename Operation, typename... Args >\n";
@@ -136,6 +137,13 @@ namespace eg
             os << strIndent << "      }\n";
             os << strIndent << "}\n";
 
+            //active
+            os << strIndent << "operator ::eg::ReferenceState() const;\n";
+            
+            //ReferenceState comparisons
+            os << strIndent << "bool operator==( ::eg::ReferenceState cmp ) const;\n";
+            os << strIndent << "bool operator!=( ::eg::ReferenceState cmp ) const;\n";
+            
             //equality operator
             os << strIndent << "template< typename TComp >\n";
             os << strIndent << "bool operator==( const TComp& cmp ) const\n";

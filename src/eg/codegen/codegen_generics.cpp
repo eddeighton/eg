@@ -292,6 +292,46 @@ namespace eg
             generateConversion( os, layout, compatibility, osTypeVoid.str(), pLinkGroup );
             os << "  return *this;\n";
             os << "}\n";
+            
+            //ReferenceState conversion
+            os << osTemplateArgLists.str();
+            os << "inline " << osTypeName.str() << "::operator ::eg::ReferenceState() const\n";
+            os << "{\n";
+            os << "    if( data.timestamp != ::eg::INVALID_TIMESTAMP )\n";
+            os << "    {\n";
+            os << "        if( data.timestamp == getTimestamp< " << osTypeVoid.str() << " >( data.type, data.instance ) )\n";
+            os << "        {\n";
+            os << "            const ::eg::ActionState state = getState< " << osTypeVoid.str() << " >( data.type, data.instance );\n";
+            os << "            switch( state )\n";
+            os << "            {\n";
+            os << "                case eg::action_stopped :\n";
+            os << "                    if( getStopCycle< " << osTypeVoid.str() << " >( data.type, data.instance ) == clock::cycle() )\n";
+            os << "                        return ::eg::Stopped;\n";
+            os << "                    else\n";
+            os << "                        return ::eg::Invalid;\n";
+            os << "                case eg::action_running : return ::eg::Running;\n";
+            os << "                case eg::action_paused  : return ::eg::Paused;\n";
+            os << "                case eg::TOTAL_ACTION_STATES  : return ::eg::Invalid;\n";
+            os << "            }\n";
+            os << "        }\n";
+            os << "        return ::eg::Invalid;\n";
+            os << "    }\n";
+            os << "    else \n";
+            os << "        return ::eg::Null;\n";
+            os << "}\n";
+            
+            //ReferenceState comparisons
+            os << osTemplateArgLists.str();
+            os << strIndent << "inline bool " << osTypeName.str() << "::operator==( ::eg::ReferenceState cmp ) const\n";
+            os << strIndent << "{\n";
+            os << strIndent << "    return ( (::eg::ReferenceState)*this ) == cmp;\n";
+            os << strIndent << "}\n";
+            
+            os << osTemplateArgLists.str();
+            os << strIndent << "inline bool " << osTypeName.str() << "::operator!=( ::eg::ReferenceState cmp ) const\n";
+            os << strIndent << "{\n";
+            os << strIndent << "    return ( (::eg::ReferenceState)*this ) != cmp;\n";
+            os << strIndent << "}\n";
 
             //getTimestamp
             if( !compatibility.dynamicCompatibleTypes.empty() )

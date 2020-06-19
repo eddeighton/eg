@@ -574,11 +574,13 @@ namespace eg
         os << generator.getIndent() << "if( " << 
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
                 " == " << getActionState( action_running ) << " )\n";
-        os << generator.getIndent() << "::eg::Scheduler::pause_ref( " << 
+        os << generator.getIndent() << "{\n";
+        os << generator.getIndent() << "    ::eg::Scheduler::pause_ref( " << 
             generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
-        os << generator.getIndent() << 
+        os << generator.getIndent() << "    " <<
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
                 " = " << getActionState( action_paused ) << ";\n";
+        os << generator.getIndent() << "}\n";
     }
     void generate( const ResumeOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
@@ -587,11 +589,13 @@ namespace eg
         os << generator.getIndent() << "if( " << 
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
                 " == " << getActionState( action_paused ) << " )\n";
-        os << generator.getIndent() << "::eg::Scheduler::unpause_ref( " << 
+        os << generator.getIndent() << "{\n";
+        os << generator.getIndent() << "    ::eg::Scheduler::unpause_ref( " << 
             generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
         os << generator.getIndent() << "    " <<
             generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
                 " = " << getActionState( action_running ) << ";\n";
+        os << generator.getIndent() << "}\n";
     }
     void generate( const DoneOperation& ins, CodeGenerator& generator, std::ostream& os )
     {

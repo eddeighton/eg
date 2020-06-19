@@ -120,6 +120,15 @@ namespace eg
         id_Variant = HIGHEST_OPERATION_TYPE,
         id_TypePath
     };
+    
+    enum ReferenceState
+    {
+        Null,
+        Invalid,
+        Stopped,
+        Paused,
+        Running
+    };
 
     struct reference
     {
@@ -147,11 +156,6 @@ namespace eg
                     ( timestamp != cmp.timestamp ) ?    ( timestamp < cmp.timestamp ) : 
                     false;
         }
-        
-        /*inline operator const void*() const
-        {
-            return ( type != 0U ) ? this : nullptr;
-        }*/
     };
 }
 
