@@ -229,7 +229,10 @@ namespace eg
                             os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
                         }
                     }
-                    os << "operator()( " << pElement->getParams()->getStr() << " ) const\n";
+                    if( pElement->getParams() )
+                        os << "operator()( " << pElement->getParams()->getStr() << " ) const\n";
+                    else
+                        os << "operator()() const\n";
                     
                     //generate the function body
                     os << strIndent << "{\n";

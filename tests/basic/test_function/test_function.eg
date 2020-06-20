@@ -17,3 +17,24 @@ foo2( &iResult );
 
 LOG( "got: " << iResult );
 
+
+object Vehicle
+{
+    function getPosition : int
+    {
+        return m_position();
+    }
+    
+    function getSpeed : float
+    {
+        return m_speed();
+    }
+
+    dim int m_position;
+    dim float m_speed;
+}
+
+
+Vehicle v = Vehicle();
+
+LOG( "pos: " << v.getPosition() << " speed: " << v.getSpeed() );

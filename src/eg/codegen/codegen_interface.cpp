@@ -174,7 +174,10 @@ namespace eg
             }
             else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pAction ) )
             {
-                os << strIndent << pContext->getReturnType() << " operator()(" << pParams->getStr() << ") const;\n";
+                if( pParams )
+                    os << strIndent << pContext->getReturnType() << " operator()(" << pParams->getStr() << ") const;\n";
+                else
+                    os << strIndent << pContext->getReturnType() << " operator()() const;\n";
             }
             else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pAction ) )
             {
