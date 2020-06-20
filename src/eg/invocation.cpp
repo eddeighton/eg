@@ -950,8 +950,7 @@ namespace eg
                         {
                             const interface::Context* pInterfaceContext = 
                                 dynamic_cast< const interface::Context* >( element.first );
-                            ASSERT( pInterfaceContext );
-                            
+                            if( pInterfaceContext )
                             {
                                 const concrete::Action* pConcreteAction = 
                                     dynamic_cast< const concrete::Action* >( element.second );

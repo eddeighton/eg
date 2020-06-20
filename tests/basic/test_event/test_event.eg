@@ -1,0 +1,33 @@
+
+
+action A[ 4 ]
+{
+    action Ev
+    {
+        LOG( "A Event" );
+        co_return eg::done();
+    }
+    
+    Ev();
+    
+    LOG( "A start" );
+    
+    co_yield eg::sleep_until( 100ms );
+    
+    LOG( "A finished" );
+}
+
+action B
+{
+}
+
+A a1 = A();
+A a2 = A();
+
+co_yield eg::wait_all( a1.Ev.Get(), a2.Ev.Get(), B.Get() );
+
+LOG( "Sleeping for A Event" );
+
+co_yield eg::sleep_all( a1, a2 );
+
+LOG( "Got A Event" );

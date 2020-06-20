@@ -1,0 +1,61 @@
+
+dim float total;
+total( 5 );
+
+abstract Base[ 2 ]
+{
+    dim float timeout;
+    
+    action Init
+    {
+        timeout( clock::ct() + total() );
+    }
+}
+
+action A[ 16 ] : Base
+{
+    co_yield eg::wait();
+    while( timeout() > clock::ct() )
+    {
+        LOG( "A: " << clock::ct() );
+        co_yield eg::sleep_until( 1s );
+    }
+}
+
+action B[ 16 ] : Base
+{
+    co_yield eg::wait();
+    while( timeout() > clock::ct() )
+    {
+        LOG( "B: " << clock::ct() );
+        co_yield eg::sleep_until( 1s );
+    }
+}
+
+for( int i = 0; i < 4; ++i )
+{
+    A().Init();
+    B().Init();
+}
+
+action C
+{
+    while( eg::count( root.Get().Base.Range() ) )
+    {
+        float fTotalRemaining = 0.0f;
+        for( Base b : root.Get().Base.Range() )
+        {
+            fTotalRemaining += b.timeout() - clock::ct();
+        }
+        LOG( "Total remaining: " << fTotalRemaining );
+        co_yield eg::sleep_until( 500ms );
+    }
+}
+C();
+
+
+
+while( !Done() )
+    co_yield eg::sleep();
+    
+LOG( "done" );

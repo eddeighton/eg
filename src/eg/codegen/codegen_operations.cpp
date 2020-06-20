@@ -245,7 +245,7 @@ namespace eg
                     }
                 }
                 
-                //os << strIndent << "return eg::ReturnReason();\n";
+                os << strIndent << "co_return eg::done();\n";
 
                 strIndent.pop_back();
                 strIndent.pop_back();

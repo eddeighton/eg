@@ -21,6 +21,7 @@
 #ifndef EG_COROUTINE
 #define EG_COROUTINE
 
+
 #include "common.hpp"
 #include "event.hpp"
 #include "frame.hpp"
@@ -96,7 +97,7 @@ namespace eg
             }
 
             auto initial_suspend()  { return std::suspend_always{}; } //suspend_never
-            auto final_suspend()    { return std::suspend_never{}; }
+            auto final_suspend()    { return std::suspend_always{}; }
             void unhandled_exception() {}
             
             auto return_value( ReturnReason reason ) 
@@ -152,7 +153,7 @@ namespace eg
 
         ~ActionCoroutine()
         {
-            if( m_coroutine )
+            if( m_coroutine && !m_coroutine.done() )
             {
                 m_coroutine.destroy();
                 m_coroutine = nullptr;

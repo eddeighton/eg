@@ -29,6 +29,11 @@
 #include <unordered_map>
 #include <optional>
 
+#ifndef ERR
+#define ERR( msg )
+#endif
+
+
 namespace
 {
 
@@ -52,21 +57,26 @@ namespace
 		using Timeout = std::chrono::steady_clock::time_point;
         using TimeoutQueue = std::multimap< Timeout, ActiveActionMap::iterator >;
         
+        using EventRefMap = std::multimap< eg::reference, ActiveActionMap::iterator >;
+        using EventRefMapIterArray = std::vector< EventRefMap::iterator >;
+        using EventVector = std::vector< eg::Event >;
+        
         struct ActiveAction
         {
             eg::reference ref;
 			eg::Scheduler::StopperFunctionPtr pStopper;
             eg::Scheduler::ActionOperator op;
-			
             eg::ActionCoroutine coroutine;
-			//bool bAllEvents;
-			//std::vector< Event > events;
-            
-            //action must only occur in one of the iterators at a time
             
             ActiveActionList::iterator iter_one, iter_two, iter_three;
             TimeoutQueue::iterator iter_timeout;
             ActiveActionList::iterator iter_pause;
+            
+            //event handling
+            EventRefMapIterArray iter_event_ref;
+            bool bWaitAny;
+            
+            EventVector events;
             
             ActiveAction() = delete;
             ActiveAction( const ActiveAction& ) = delete;
@@ -77,7 +87,7 @@ namespace
                 ActiveActionList::iterator _iter_one,
                 ActiveActionList::iterator _iter_two,
                 ActiveActionList::iterator _iter_three,
-                ActiveActionList::iterator _iter_pause  )
+                ActiveActionList::iterator _iter_pause )
                 :
                     ref( _ref ),
                     pStopper( _pStopper ),
@@ -86,7 +96,8 @@ namespace
                     iter_one( _iter_one ),
                     iter_two( _iter_two ),
                     iter_three( _iter_three ),
-                    iter_pause( _iter_pause )
+                    iter_pause( _iter_pause ),
+                    bWaitAny( true )
             {
                 
             }
@@ -99,6 +110,11 @@ namespace
         ActiveActionList m_listOne, m_listTwo, m_listThree;
 		TimeoutQueue m_timeouts;
         ActiveActionList m_paused;
+        
+        EventRefMap m_events_by_ref_sleep;
+        EventRefMap m_events_by_ref_wait;
+        
+        ActiveAction* m_pCurrentAction = nullptr;
         
         enum SleepSwapState
         {
@@ -275,8 +291,6 @@ namespace
             }
         }
         
-		//using Timeout = std::chrono::steady_clock::time_point;
-        //using TimeoutQueue = std::multimap< Timeout, ActiveActionMap::iterator >;
         void timeout_insert( ActiveActionMap::iterator iterAction, const Timeout& timeout )
         {
             TimeoutQueue::iterator insertResult =
@@ -292,6 +306,57 @@ namespace
             }
         }
         
+        void event_insert( EventRefMap& eventMap, ActiveActionMap::iterator iterAction, const Event& ev )
+        {
+            EventRefMap::iterator i =
+                eventMap.insert( std::make_pair( ev.data, iterAction ) );
+            iterAction->second->iter_event_ref.push_back( i );
+        }
+        
+        void event_remove( EventRefMap& eventMap, ActiveActionMap::iterator iterAction )
+        {
+            for( EventRefMap::iterator i : iterAction->second->iter_event_ref )
+            {
+                eventMap.erase( i );
+            }
+            iterAction->second->iter_event_ref.clear();
+        }
+        
+        void on_event( EventRefMap& eventMap, const eg::reference& ref )
+        {
+            EventRefMap::iterator iLower = eventMap.lower_bound( ref );
+            EventRefMap::iterator iUpper = eventMap.upper_bound( ref );
+            
+            for( EventRefMap::iterator iterEvent = iLower; iterEvent != iUpper; ++iterEvent )
+            {
+                ActiveActionMap::iterator iter = iterEvent->second;
+                ActiveAction* pAction = iter->second;
+                
+                for( EventRefMapIterArray::iterator 
+                    i       = pAction->iter_event_ref.begin(), 
+                    iEnd    = pAction->iter_event_ref.end(); i != iEnd;  )
+                {
+                    if( *i == iterEvent )
+                    {
+                        i = pAction->iter_event_ref.erase( i );
+                        pAction->events.push_back( ref );
+                        
+                        if( pAction->iter_event_ref.empty() || pAction->bWaitAny )
+                        {
+                            //activate the action
+                            event_remove( eventMap, iter );
+                            active_insert( iter );
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        ++i;
+                    }
+                }
+            }
+            eventMap.erase( iLower, iUpper );
+        }
 		
     public:
     
@@ -319,20 +384,28 @@ namespace
             {
                 ActiveAction* pAction = iFind->second;
                 
+                on_event( m_events_by_ref_wait, pAction->ref );
+                on_event( m_events_by_ref_sleep, pAction->ref );
+                
                 active_remove( iFind );
                 wait_remove( iFind );
                 sleep_remove( iFind );
+                event_remove( m_events_by_ref_wait, iFind );
+                event_remove( m_events_by_ref_sleep, iFind );
                 m_actions.erase( iFind );
                 
                 //invoke the stopper
                 pAction->pStopper( pAction->ref.instance );
+
+                if( m_pCurrentAction == pAction )
+                    m_pCurrentAction = nullptr;
                 
                 delete pAction;
                 
             }
             else
             {
-                ERR( "Stopped inactive reference" );
+                //ERR( "Stopped inactive reference" );
             }
         }
         
@@ -344,11 +417,13 @@ namespace
                 active_remove( iFind );
                 wait_remove( iFind );
                 sleep_remove( iFind );
+                event_remove( m_events_by_ref_wait, iFind );
+                event_remove( m_events_by_ref_sleep, iFind );
                 pause_insert( iFind );
             }
             else
             {
-                ERR( "Stopped inactive reference" );
+                //ERR( "Stopped inactive reference" );
             }
         }
         
@@ -362,7 +437,7 @@ namespace
             }
             else
             {
-                ERR( "Stopped inactive reference" );
+                //ERR( "Stopped inactive reference" );
             }
         }
     
@@ -409,46 +484,79 @@ namespace
                 ActiveActionMap::iterator iter = getActive().front();
                 active_remove( iter );
                 
-                ActiveAction* pAction = iter->second;
-                
-                if( !pAction->coroutine.started() || pAction->coroutine.done() )
+                //invoke the action
+                m_pCurrentAction = iter->second;
                 {
-                    pAction->coroutine = pAction->op( ResumeReason() );
-                    pAction->coroutine.resume();
+                    if( !m_pCurrentAction->coroutine.started() || m_pCurrentAction->coroutine.done() )
+                    {
+                        m_pCurrentAction->coroutine = m_pCurrentAction->op( ResumeReason() );
+                        m_pCurrentAction->coroutine.resume();
+                    }
+                    else
+                    {
+                        m_pCurrentAction->coroutine.resume();
+                    }
                 }
-                else
+
+                //pAction may have been deleted
+                if( m_pCurrentAction )
                 {
-                    pAction->coroutine.resume();
+                    const eg::ReturnReason& reason = 
+                        m_pCurrentAction->coroutine.getReason();
+                    switch( reason.reason )
+                    {
+                        case eReason_Wait:
+                            wait_insert( iter );
+                            break;
+                        case eReason_Wait_All:
+                            for( eg::Event ev : reason.events )
+                                event_insert( m_events_by_ref_wait, iter, ev );
+                            iter->second->bWaitAny = false;
+                            break;
+                        case eReason_Wait_Any:
+                            for( eg::Event ev : reason.events )
+                                event_insert( m_events_by_ref_wait, iter, ev );
+                            iter->second->bWaitAny = true;
+                            break;
+                        case eReason_Sleep:
+                            sleep_insert( iter );
+                            break;
+                        case eReason_Sleep_All:
+                            for( eg::Event ev : reason.events )
+                                event_insert( m_events_by_ref_sleep, iter, ev );
+                            iter->second->bWaitAny = false;
+                            break;
+                        case eReason_Sleep_Any:
+                            for( eg::Event ev : reason.events )
+                                event_insert( m_events_by_ref_sleep, iter, ev );
+                            iter->second->bWaitAny = true;
+                            break;
+                        case eReason_Timeout:
+                            timeout_insert( iter, reason.timeout.value() );
+                            break;
+                        case eReason_Terminated:
+                            on_event( m_events_by_ref_wait, m_pCurrentAction->ref );
+                            on_event( m_events_by_ref_sleep, m_pCurrentAction->ref );
+                            m_pCurrentAction->pStopper( m_pCurrentAction->ref.instance );
+                            m_actions.erase( iter );
+                            delete m_pCurrentAction;
+                            break;
+                        default:
+                            throw std::runtime_error( "Unknown return reason" );
+                    }
+                    m_pCurrentAction = nullptr;
                 }
-                
-                const eg::ReturnReason& reason = 
-                    pAction->coroutine.getReason();
-                switch( reason.reason )
-                {
-                    case eReason_Wait:
-                        wait_insert( iter );
-                        break;
-                    case eReason_Wait_All:
-                        break;
-                    case eReason_Wait_Any:
-                        break;
-                    case eReason_Sleep:
-                        sleep_insert( iter );
-                        break;
-                    case eReason_Sleep_All:
-                        break;
-                    case eReason_Sleep_Any:
-                        break;
-                    case eReason_Timeout:
-                        timeout_insert( iter, reason.timeout.value() );
-                        break;
-                    case eReason_Terminated:
-                        pAction->pStopper( pAction->ref.instance );
-                        m_actions.erase( iter );
-                        break;
-                    default:
-                        throw std::runtime_error( "Unknown return reason" );
-                }
+            }
+            
+            while( !m_events_by_ref_wait.empty() )
+            {
+                EventRefMap::iterator i = m_events_by_ref_wait.begin();
+                eg::reference ref = i->first;
+                ActiveAction* pAction = i->second->second;
+                //error
+                ERR( "Never got event: " << ref.instance << " " << ref.type << " " << ref.timestamp << " for action: " 
+                     << pAction->ref.instance << " " << pAction->ref.type << " " << pAction->ref.timestamp );
+                stop( pAction->ref );
             }
             
         }

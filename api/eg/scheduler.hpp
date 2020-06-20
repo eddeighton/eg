@@ -89,9 +89,21 @@ namespace eg
         return ReturnReason( eReason_Wait_All, events );
     }
     
+    template< typename... Args >
+    inline ReturnReason wait_all( Args... args )
+    {
+        return wait_all( { args... } );
+    }
+    
     inline ReturnReason wait_any( std::initializer_list< Event > events )
     {
         return ReturnReason( eReason_Wait_Any, events );
+    }
+    
+    template< typename... Args >
+    inline ReturnReason wait_any( Args... args )
+    {
+        return wait_any( { args... } );
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -111,35 +123,47 @@ namespace eg
         return ReturnReason( eReason_Sleep_All, events );
     }
     
+    template< typename... Args >
+    inline ReturnReason sleep_all( Args... args )
+    {
+        return sleep_all( { args... } );
+    }
+    
     inline ReturnReason sleep_any( std::initializer_list< Event > events )
     {
         return ReturnReason( eReason_Sleep_Any, events );
     }
     
+    template< typename... Args >
+    inline ReturnReason sleep_any( Args... args )
+    {
+        return sleep_any( { args... } );
+    }
+    
     template< typename Clock, typename Duration >
-    inline ReturnReason sleep( std::chrono::time_point< Clock, Duration > const& sleep_time )
+    inline ReturnReason sleep_until( std::chrono::time_point< Clock, Duration > const& sleep_time )
     {
         return ReturnReason( sleep_time );
     }
     
     template< typename Rep, typename Period >
-    inline ReturnReason sleep( std::chrono::duration< Rep, Period > const& timeout_duration )
+    inline ReturnReason sleep_until( std::chrono::duration< Rep, Period > const& timeout_duration )
     {
         return ReturnReason( std::chrono::steady_clock::now() + timeout_duration );
     }
     
-    inline ReturnReason sleep( float fDuration )
+    inline ReturnReason sleep_until( float fDuration )
     {
         auto floatDuration      = std::chrono::duration< float, std::ratio< 1 > >( fDuration );
         auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
-        return sleep( intMilliseconds );
+        return sleep_until( intMilliseconds );
     }
 
-    inline ReturnReason sleep( double dbDuration )
+    inline ReturnReason sleep_until( double dbDuration )
     {
         auto doubleDuration      = std::chrono::duration< double, std::ratio< 1 > >( dbDuration );
         auto intMilliseconds    = std::chrono::duration_cast< std::chrono::milliseconds >( doubleDuration );
-        return sleep( intMilliseconds );
+        return sleep_until( intMilliseconds );
     }
         
     ////////////////////////////////////////////////////////////////////////////

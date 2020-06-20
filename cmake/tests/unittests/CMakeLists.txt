@@ -38,6 +38,7 @@ add_executable( eg_tests
 					${UNITTEST_TEST_SOURCES}
                     
                     ${EG_API_DIR}/eg/frame.cpp
+                    ${EG_API_DIR}/eg/basic_scheduler.cpp
 				)
 
 ##configure all debug builds to have 'd' postfix
