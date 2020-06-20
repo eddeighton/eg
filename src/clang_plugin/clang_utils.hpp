@@ -75,6 +75,15 @@ namespace clang
         
     bool interfaceAnalysis( ASTContext* pASTContext, Sema* pSema, eg::InterfaceSession& session );
     bool operationsAnalysis( ASTContext* pASTContext, Sema* pSema, eg::OperationsSession& session );
+    
+    struct DeclLocType
+    {
+        DeclContext* pContext = nullptr;
+        SourceLocation loc;
+        QualType type;
+    };
+    DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, 
+        DeclContext* pDeclContext, SourceLocation loc, const std::string& str, bool bIsTemplate );
 }
 
 #endif //CLANG_UTILS_19_04_2019

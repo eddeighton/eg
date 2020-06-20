@@ -75,8 +75,7 @@ namespace eg
 
             //calculate the path to the root type
             std::vector< const interface::Element* > path = getPath( pNode );
-
-            
+          
             std::vector< interface::Export* > exports;
             pAction->getExports( exports );
             for( interface::Export* pExport : exports )
@@ -192,64 +191,176 @@ namespace eg
                 //calculate the path to the root type
                 std::vector< const interface::Element* > path = getPath( pNode );
 
-                //generate type comment
+                //acquire the object via the starter / allocator
+                if( const interface::Abstract* pContext = dynamic_cast< const interface::Abstract* >( pNode ) )
                 {
-                    os << "\n//";
-                    for( const interface::Element* pNodeIter : path )
-                    {
-                        if( pNodeIter != *path.begin())
-                            os << "::";
-                        os << pNodeIter->getIdentifier();
-                    }
-					os << " " << pAction->getDefinitionFile().value() << "\n";
                 }
-
-                //generate the template argument lists
+                else if( const interface::Event* pContext = dynamic_cast< const interface::Event* >( pNode ) )
                 {
-                    int iCounter = 1;
-                    for( const interface::Element* pNodeIter : path )
-                    {
-                        os << strIndent << "template<>\n";
-                        ++iCounter;
-                    }
                 }
-
-                //just generate an explicit template specialisation
-                os << strIndent << EG_RETURN_REASON_TYPE << " ";
+                else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pNode ) )
                 {
-                    for( const interface::Element* pNodeIter : path )
+                    //generate type comment
                     {
-                        os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
+                        os << "\n//";
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            if( pNodeIter != *path.begin())
+                                os << "::";
+                            os << pNodeIter->getIdentifier();
+                        }
+                        os << " " << pAction->getDefinitionFile().value() << "\n";
                     }
-                    /*if( const input::Opaque* pParams = pElement->getParams() )
+
+                    //generate the template argument lists
                     {
-                        os << "operator()(" << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const\n";
+                        int iCounter = 1;
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            os << strIndent << "template<>\n";
+                            ++iCounter;
+                        }
                     }
-                    else*/
+                    
+                    os << strIndent << pContext->getReturnType() << " ";
                     {
-                        os << "operator()( " << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << " ) const\n";
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
+                        }
                     }
+                    os << "operator()( " << pElement->getParams()->getStr() << " ) const\n";
+                    
+                    //generate the function body
+                    os << strIndent << "{\n";
+                    strIndent.push_back( ' ' );
+                    strIndent.push_back( ' ' );
+                    for( const interface::Element* pChild : pNode->getChildren() )
+                    {
+                        if( const input::Opaque* pOpaque =
+                                dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
+                        {
+                            os << strIndent << pOpaque->getStr() << "\n";
+                        }
+                    }
+                    strIndent.pop_back();
+                    strIndent.pop_back();
+                    os << strIndent << "}\n";
                 }
-
-                //generate the function body
-                os << strIndent << "{\n";
-                strIndent.push_back( ' ' );
-                strIndent.push_back( ' ' );
-
-                for( const interface::Element* pChild : pNode->getChildren() )
+                else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pNode ) )
                 {
-                    if( const input::Opaque* pOpaque =
-                            dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
+                    //generate type comment
                     {
-                        os << strIndent << pOpaque->getStr() << "\n";
+                        os << "\n//";
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            if( pNodeIter != *path.begin())
+                                os << "::";
+                            os << pNodeIter->getIdentifier();
+                        }
+                        os << " " << pAction->getDefinitionFile().value() << "\n";
                     }
-                }
-                
-                os << strIndent << "co_return eg::done();\n";
 
-                strIndent.pop_back();
-                strIndent.pop_back();
-                os << strIndent << "}\n";
+                    //generate the template argument lists
+                    {
+                        int iCounter = 1;
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            os << strIndent << "template<>\n";
+                            ++iCounter;
+                        }
+                    }
+                    
+                    os << strIndent << EG_RETURN_REASON_TYPE << " ";
+                    {
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
+                        }
+                    }
+                    os << "operator()( " << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << " ) const\n";
+                    
+                    
+                    //generate the function body
+                    os << strIndent << "{\n";
+                    strIndent.push_back( ' ' );
+                    strIndent.push_back( ' ' );
+
+                    for( const interface::Element* pChild : pNode->getChildren() )
+                    {
+                        if( const input::Opaque* pOpaque =
+                                dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
+                        {
+                            os << strIndent << pOpaque->getStr() << "\n";
+                        }
+                    }
+                    
+                    os << strIndent << "co_return eg::done();\n";
+
+                    strIndent.pop_back();
+                    strIndent.pop_back();
+                    os << strIndent << "}\n";
+                }
+                else if( const interface::Object* pContext = dynamic_cast< const interface::Object* >( pNode ) )
+                {
+                    //generate type comment
+                    {
+                        os << "\n//";
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            if( pNodeIter != *path.begin())
+                                os << "::";
+                            os << pNodeIter->getIdentifier();
+                        }
+                        os << " " << pAction->getDefinitionFile().value() << "\n";
+                    }
+
+                    //generate the template argument lists
+                    {
+                        int iCounter = 1;
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            os << strIndent << "template<>\n";
+                            ++iCounter;
+                        }
+                    }
+                    
+                    os << strIndent << EG_RETURN_REASON_TYPE << " ";
+                    {
+                        for( const interface::Element* pNodeIter : path )
+                        {
+                            os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
+                        }
+                    }
+                    os << "operator()( " << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << " ) const\n";
+                    
+                    //generate the function body
+                    os << strIndent << "{\n";
+                    strIndent.push_back( ' ' );
+                    strIndent.push_back( ' ' );
+
+                    for( const interface::Element* pChild : pNode->getChildren() )
+                    {
+                        if( const input::Opaque* pOpaque =
+                                dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
+                        {
+                            os << strIndent << pOpaque->getStr() << "\n";
+                        }
+                    }
+                    
+                    os << strIndent << "co_return eg::done();\n";
+
+                    strIndent.pop_back();
+                    strIndent.pop_back();
+                    os << strIndent << "}\n";
+                }
+                else if( const interface::Link* pContext = dynamic_cast< const interface::Link* >( pNode ) )
+                {
+                }
+                else
+                {
+                    THROW_RTE( "Unknown abstract type" );
+                }
             }
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )

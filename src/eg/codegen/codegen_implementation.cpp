@@ -74,6 +74,15 @@ namespace eg
             case id_Imp_Params  :
                 if( !invocation.isReturnTypeDimensions() )
                 {
+                    if( returnTypes.size() == 1U )
+                    {
+                        if( const interface::Function* pFunctionCall = 
+                            dynamic_cast< const interface::Function* >( returnTypes.front() ) )
+                        {
+                            os << pFunctionCall->getReturnType();
+                            break;
+                        }
+                    }
                     printActionType( os, returnTypes );
                 }
                 else if( invocation.getOperation() == id_Imp_NoParams )

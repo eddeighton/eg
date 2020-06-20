@@ -179,6 +179,7 @@ namespace interface
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
     public:
+        //const std::string& getStr() const { return m_pOpaque->getStr(); }
         bool isSemantic() const { return m_pOpaque->isSemantic(); }
         void modify( const Opaque* pNew ) { m_pOpaque->modify( pNew->m_pOpaque->getStr() ); }
     private:
@@ -349,12 +350,18 @@ namespace interface
         friend class ::clang::AbstractMutator;
     public:
         static const ObjectType Type = eAbstractFunction;
+        
+        std::string getReturnType() const;
+        void setReturnType( const std::string& strReturnType ) { m_strReturnType = strReturnType; }
+        
     protected:
         Function( const IndexedObject& indexedObject );
         Function( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
+    private:
+        std::string m_strReturnType;
     };
 
     class Action : public Context

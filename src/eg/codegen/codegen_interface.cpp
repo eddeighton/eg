@@ -166,19 +166,56 @@ namespace eg
             os << strIndent << "}\n";
 
             //operation
-            if( bHasOperation )
+            if( const interface::Abstract* pContext = dynamic_cast< const interface::Abstract* >( pAction ) )
             {
-                if( pParams )
+            }
+            else if( const interface::Event* pContext = dynamic_cast< const interface::Event* >( pAction ) )
+            {
+            }
+            else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pAction ) )
+            {
+                os << strIndent << pContext->getReturnType() << " operator()(" << pParams->getStr() << ") const;\n";
+            }
+            else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pAction ) )
+            {
+                if( bHasOperation )
                 {
-                    os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << EG_RESUME_REASON_TYPE << 
-                        " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const;\n";
-                }
-                else
-                {
-                    os << strIndent << EG_RETURN_REASON_TYPE << " operator()( " << EG_RESUME_REASON_TYPE << 
-                        " " << EG_RESUME_REASON_PARAM << " ) const;\n";
+                    if( pParams )
+                    {
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << EG_RESUME_REASON_TYPE << 
+                            " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const;\n";
+                    }
+                    else
+                    {
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()( " << EG_RESUME_REASON_TYPE << 
+                            " " << EG_RESUME_REASON_PARAM << " ) const;\n";
+                    }
                 }
             }
+            else if( const interface::Object* pContext = dynamic_cast< const interface::Object* >( pAction ) )
+            {
+                if( bHasOperation )
+                {
+                    if( pParams )
+                    {
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << EG_RESUME_REASON_TYPE << 
+                            " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const;\n";
+                    }
+                    else
+                    {
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()( " << EG_RESUME_REASON_TYPE << 
+                            " " << EG_RESUME_REASON_PARAM << " ) const;\n";
+                    }
+                }
+            }
+            else if( const interface::Link* pContext = dynamic_cast< const interface::Link* >( pAction ) )
+            {
+            }
+            else
+            {
+                THROW_RTE( "Unknown abstract type" );
+            }
+            
 
             //iterator type
             os << strIndent << "using Iterator = " << EG_REFERENCE_ITERATOR_TYPE << "< " << strActionInterfaceType << " >;\n";

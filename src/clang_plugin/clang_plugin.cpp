@@ -333,9 +333,35 @@ namespace eg
                 {
                     if( pElementElement == path.back() )
                     {
-                        return clang::getType( g_pASTContext, g_pSema, 
-                            getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                            pDeclContextIter, loc, true );
+                        if( const interface::Function* pFunctionCall = 
+                            dynamic_cast< const interface::Function* >( pElementElement ) )
+                        {
+                            //clang::getType( g_pASTContext, g_pSema, 
+                            //    getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                            //    pDeclContextIter, loc, true );
+                                
+                            clang::DeclLocType result = getNestedDeclContext( g_pASTContext, g_pSema, 
+                                pDeclContextIter, loc, ::eg::getInterfaceType( pElementElement->getIdentifier() ), true );
+                            if( result.pContext )
+                            {
+                                const std::string strBaseType = ::eg::getBaseTraitType( 0 );
+                                clang::DeclLocType linkResult = getNestedDeclContext( g_pASTContext, g_pSema,
+                                    result.pContext, result.loc, strBaseType, true );
+                                if( linkResult.pContext )
+                                {
+                                    //attempt to get the Type Alias
+                                    clang::QualType typeType = getTypeTrait( g_pASTContext, g_pSema, linkResult.pContext, linkResult.loc, "Type" );
+                                    return typeType.getCanonicalType();
+                                }
+                            }
+                        }
+                        else
+                        {
+                            return clang::getType( g_pASTContext, g_pSema, 
+                                getInterfaceType( pElementElement->getIdentifier() ), "void", 
+                                pDeclContextIter, loc, true );
+                        }    
+                            
                     }
                     else
                     {

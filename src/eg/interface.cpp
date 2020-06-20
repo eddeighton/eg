@@ -874,10 +874,34 @@ namespace interface
     void Function::load( Loader& loader )
     {
         Context::load( loader );
+        loader.load( m_strReturnType );
     }
     void Function::store( Storer& storer ) const
     {
         Context::store( storer );
+        storer.store( m_strReturnType );
+    }
+    
+    std::string Function::getReturnType() const
+    {
+        if( m_strReturnType.empty() )
+        {
+            const std::vector< input::Opaque* >& inheritance = m_pContext->getInheritance();
+            VERIFY_RTE( inheritance.size() <= 1U );
+            if( inheritance.size() == 1 )
+            {
+                const input::Opaque* pOpaque = inheritance.front();
+                return pOpaque->getStr();
+            }
+            else
+            {
+                return "void";
+            }
+        }
+        else
+        {
+            return m_strReturnType;
+        }
     }
     
     /////////////////////////////////////////////////////////////////

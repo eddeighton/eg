@@ -1,0 +1,19 @@
+
+
+function foobar( int i ) : int
+{
+    LOG( "i:" << i );
+    return i + 1;
+}
+
+function foo2( int* pInt ) : void
+{
+    *pInt = foobar( *pInt ) + 1;
+}
+
+int iResult = 1;
+
+foo2( &iResult );
+
+LOG( "got: " << iResult );
+

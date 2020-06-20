@@ -449,11 +449,10 @@ namespace eg
         }
         else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pStaticType ) )
         {
-            THROW_RTE( "TODO" );
             //directly invoke the function
-            //os << generator.getIndent() << getStaticType( pStaticType ) << " ref = { " << 
-            //    generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) 
-            
+            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = eg::reference{ " << generator.getVarExpr( ins.getInstance() ) << 
+                ", " << ins.getConcreteType()->getIndex() << ", clock::cycle() };\n";
+            os << generator.getIndent() << "return ref( args... );\n";
         }
         else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pStaticType ) )
         {

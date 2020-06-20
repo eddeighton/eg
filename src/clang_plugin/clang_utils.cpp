@@ -632,13 +632,6 @@ namespace clang
         return QualType();
     }
     
-    
-    struct DeclLocType
-    {
-        DeclContext* pContext = nullptr;
-        SourceLocation loc;
-        QualType type;
-    };
     DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, 
         DeclContext* pDeclContext, SourceLocation loc, const std::string& str, bool bIsTemplate )
     {
@@ -717,15 +710,17 @@ namespace clang
         }
         static void setInherited( ::eg::interface::Context& action, const std::string& strType )
         {
-            //action.m_strBaseType = strType;
-            THROW_RTE( "Base Type?" );
+            if( ::eg::interface::Function* pFunction = 
+                dynamic_cast< ::eg::interface::Function* >( &action ) )
+            {
+                pFunction->setReturnType( strType );
+            }
+            else
+            {
+                //action.m_strBaseType = strType;
+                THROW_RTE( "Base Type?" );
+            }
         }
-        static void setDependency( ::eg::interface::Context& action, const std::string& strType )
-        {
-            //action.m_strDependency = strType;
-            THROW_RTE( "Dependency?" );
-        }
-        
         static void setParameters( ::eg::interface::Context& action, const ArrayRef< ParmVarDecl * >& parameters )
         {
             for( const ParmVarDecl* pParam : parameters )
@@ -917,14 +912,6 @@ namespace clang
                         if( !strCanonical.empty() )
                         {
                             AbstractMutator::setInherited( *pAction, strCanonical );
-                        
-                            //report the dependency
-                            {
-                                QualType typeType = getTypeTrait( pASTContext, pSema, linkResult.pContext, linkResult.loc, "Dependency" );
-                                QualType typeTypeCanonical = typeType.getCanonicalType();
-                                const std::string strCanonical = typeTypeCanonical.getAsString();
-                                AbstractMutator::setDependency( *pAction, strCanonical );
-                            }
                         }
                     }
                 }
