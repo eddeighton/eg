@@ -1,6 +1,7 @@
 
 #include <gtest/gtest.h>
 
+#include <intrin.h>
 #include <memory>
 #include <memory_resource>
 
@@ -38,4 +39,17 @@ TEST( Allocators, Basic )
     const int i = *pStuff;
     
     ASSERT_EQ( i, 4 );
+}
+
+TEST( Allocators, BitScan )
+{
+    
+    unsigned long mask = 0x1000;
+    unsigned long index;
+    unsigned char isNonzero;
+
+    isNonzero = _BitScanForward( &index, mask );
+    
+    ASSERT_TRUE( isNonzero );
+    ASSERT_EQ( index, 12 );
 }

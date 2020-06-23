@@ -254,7 +254,7 @@ namespace eg
                 
         os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
-                
+        os << "         ::eg::Scheduler::stopperStopped( " << Printer( pReferenceData, "_gid" ) << ".data );\n";
         os << "         " << EG_RING_BUFFER_ALLOCATOR_TYPE << " iter;\n";
         os << "         while( true )\n";
         os << "         {\n";

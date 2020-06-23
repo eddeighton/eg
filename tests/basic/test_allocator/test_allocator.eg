@@ -1,0 +1,31 @@
+
+
+object A[ 1024 ]
+{
+    dim int x;
+
+    function foo( int i ) : int
+    {
+        return x() * i;
+    }
+    
+    action inc
+    {
+        while( true )
+        {
+            x( x() + 1 );
+            co_yield eg::sleep();
+        }
+    }
+}
+
+A a = A();
+a.inc();
+
+for( int i = 0; i < 10; ++i )
+{
+    LOG( "i: " << i << " x: " << a.foo( 1 ) );
+    co_yield eg::sleep();
+}
+
+a.Stop();

@@ -33,40 +33,8 @@
 using namespace std::chrono_literals;
 using namespace std::string_literals;
 
-//eg::TimeStamp getTimestamp( eg::TypeID typeID, eg::Instance instance );
-//eg::ActionState getState( eg::TypeID typeID, eg::Instance instance );
-//eg::TimeStamp getStopCycle( eg::TypeID typeID, eg::Instance instance );
-
 namespace eg
-{
-    enum Resumption
-    {
-        eResumption_Start,
-        eResumption_Wait,
-        eResumption_Sleep,
-        eResumption_Wait_Event,
-        eResumption_Sleep_Event,
-        eResumption_Sleep_Timeout
-    };
-    
-    struct ResumeReason
-    {
-        Resumption resumption;
-        
-        ResumeReason()
-            :   resumption( eResumption_Start )
-        {
-            
-        }
-        
-        ResumeReason( Resumption _resumption )
-            :   resumption( _resumption )
-        {
-            
-        }
-        
-    };
-    
+{    
     inline ReturnReason done()
     {
         return ReturnReason();
@@ -172,7 +140,7 @@ namespace eg
     {
     public:
 		typedef void (*StopperFunctionPtr)( eg::Instance );
-        using ActionOperator = std::function< eg::ActionCoroutine( ResumeReason ) >;
+        using ActionOperator = std::function< eg::ActionCoroutine() >;
         
         static void allocated_ref( const reference& ref, StopperFunctionPtr pStopper );
         static void call_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
@@ -185,11 +153,14 @@ namespace eg
         static void call( const T& staticRef, StopperFunctionPtr pStopper, Args... args )
         {
             using namespace std::placeholders;
-            call_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, _1, args... ) );
+            call_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, args... ) );
         }
         
         //object lifetime
         static void zeroRefCount( const reference& ref, eg::Instance* pRefCount );
+        
+        //stopper callback
+        static void stopperStopped( const reference& ref );
         
         //are there any active actions
         static bool active();

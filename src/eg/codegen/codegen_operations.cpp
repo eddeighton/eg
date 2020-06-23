@@ -281,7 +281,7 @@ namespace eg
                             os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
                         }
                     }
-                    os << "operator()( " << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << " ) const\n";
+                    os << "operator()() const\n";
                     
                     
                     //generate the function body
@@ -335,7 +335,7 @@ namespace eg
                             os << getInterfaceType( pNodeIter->getIdentifier() ) << "< void >::";
                         }
                     }
-                    os << "operator()( " << EG_RESUME_REASON_TYPE << " " << EG_RESUME_REASON_PARAM << " ) const\n";
+                    os << "operator()() const\n";
                     
                     //generate the function body
                     os << strIndent << "{\n";

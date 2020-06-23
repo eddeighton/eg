@@ -185,13 +185,11 @@ namespace eg
                 {
                     if( pParams )
                     {
-                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << EG_RESUME_REASON_TYPE << 
-                            " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const;\n";
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << pParams->getStr() << ") const;\n";
                     }
                     else
                     {
-                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()( " << EG_RESUME_REASON_TYPE << 
-                            " " << EG_RESUME_REASON_PARAM << " ) const;\n";
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()() const;\n";
                     }
                 }
             }
@@ -201,13 +199,11 @@ namespace eg
                 {
                     if( pParams )
                     {
-                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << EG_RESUME_REASON_TYPE << 
-                            " " << EG_RESUME_REASON_PARAM << ", " << pParams->getStr() << ") const;\n";
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()(" << pParams->getStr() << ") const;\n";
                     }
                     else
                     {
-                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()( " << EG_RESUME_REASON_TYPE << 
-                            " " << EG_RESUME_REASON_PARAM << " ) const;\n";
+                        os << strIndent << EG_RETURN_REASON_TYPE << " operator()() const;\n";
                     }
                 }
             }

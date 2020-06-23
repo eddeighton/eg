@@ -7,7 +7,7 @@
 
 struct TestAction
 {
-    eg::ActionCoroutine operator()( eg::ResumeReason r )
+    eg::ActionCoroutine operator()()
     {
         
         co_return eg::done();

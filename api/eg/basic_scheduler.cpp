@@ -359,6 +359,57 @@ namespace
         }
 		
     public:
+        void allocated( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper)
+        {
+            eg::Scheduler::ActionOperator actionOperator;
+            ActiveAction* pAction = new ActiveAction( ref, pStopper, actionOperator, 
+                            getActive().end(), 
+                            getWaiting().end(), 
+                            getSleeping().end(),
+                            m_paused.end() );
+                            
+            ActiveActionMap::_Pairib insertResult =
+                m_actions.insert( std::make_pair( ref, pAction ) );
+            if( !insertResult.second )
+            {
+                ERR( "Could not allocation action" );
+                delete pAction;
+            }
+        }
+        
+        void released( const eg::reference& ref, eg::Instance* pRefCount )
+        {
+            if( *pRefCount == 0 )
+            {
+                stop( ref );
+            }
+        }
+        
+        void stopperStopped( const eg::reference& ref )
+        {
+            ActiveActionMap::iterator iFind = m_actions.find( ref );
+            if( iFind != m_actions.end() )
+            {
+                ActiveAction* pAction = iFind->second;
+                
+                on_event( m_events_by_ref_wait, pAction->ref );
+                on_event( m_events_by_ref_sleep, pAction->ref );
+                
+                active_remove( iFind );
+                wait_remove( iFind );
+                sleep_remove( iFind );
+                event_remove( m_events_by_ref_wait, iFind );
+                event_remove( m_events_by_ref_sleep, iFind );
+                m_actions.erase( iFind );
+                
+                //DO NOT invoke the stopper
+
+                if( m_pCurrentAction == pAction )
+                    m_pCurrentAction = nullptr;
+                
+                delete pAction;
+            }
+        }
     
         void call( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper, eg::Scheduler::ActionOperator actionOperator )
         {
@@ -374,6 +425,11 @@ namespace
             if( insertResult.second )
             {
                 active_insert( insertResult.first );
+            }
+            else
+            {
+                ERR( "Could not call action" );
+                delete pAction;
             }
         }
         
@@ -394,7 +450,7 @@ namespace
                 event_remove( m_events_by_ref_sleep, iFind );
                 m_actions.erase( iFind );
                 
-                //invoke the stopper
+                //invoke the stopper - after removing
                 pAction->pStopper( pAction->ref.instance );
 
                 if( m_pCurrentAction == pAction )
@@ -405,7 +461,7 @@ namespace
             }
             else
             {
-                //ERR( "Stopped inactive reference" );
+                ERR( "Stopped inactive reference" );
             }
         }
         
@@ -423,7 +479,7 @@ namespace
             }
             else
             {
-                //ERR( "Stopped inactive reference" );
+                ERR( "Stopped inactive reference" );
             }
         }
         
@@ -437,7 +493,7 @@ namespace
             }
             else
             {
-                //ERR( "Stopped inactive reference" );
+                ERR( "Stopped inactive reference" );
             }
         }
     
@@ -489,7 +545,7 @@ namespace
                 {
                     if( !m_pCurrentAction->coroutine.started() || m_pCurrentAction->coroutine.done() )
                     {
-                        m_pCurrentAction->coroutine = m_pCurrentAction->op( ResumeReason() );
+                        m_pCurrentAction->coroutine = m_pCurrentAction->op();
                         m_pCurrentAction->coroutine.resume();
                     }
                     else
@@ -571,6 +627,7 @@ namespace eg
 {
     void Scheduler::allocated_ref( const reference& ref, StopperFunctionPtr pStopper )
     {
+        theScheduler.allocated( ref, pStopper );
     }
     
     void Scheduler::call_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action )
@@ -599,9 +656,14 @@ namespace eg
     
     void Scheduler::zeroRefCount( const reference& ref, eg::Instance* pRefCount )
     {
-        
+        theScheduler.released( ref, pRefCount );
     }
         
+    void Scheduler::stopperStopped( const reference& ref )
+    {
+        theScheduler.stopperStopped( ref );
+    }
+    
     //are there any active actions
     bool Scheduler::active()
     {
