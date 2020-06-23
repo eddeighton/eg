@@ -5,6 +5,9 @@
 #include <memory>
 #include <memory_resource>
 
+//#include <bit>
+#include <bitset>
+
 struct Stuff
 {
     Stuff( int _x, int _y )
@@ -52,4 +55,12 @@ TEST( Allocators, BitScan )
     
     ASSERT_TRUE( isNonzero );
     ASSERT_EQ( index, 12 );
+}
+
+TEST( Allocators, BitCpp20 )
+{
+    
+    //std::bitset< 8 > bits( 0b00001010 );
+    
+    //ASSERT_EQ( 4, std::countr_zero( bits.to_ullong() ) );
 }
