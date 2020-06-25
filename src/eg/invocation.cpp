@@ -243,37 +243,35 @@ namespace eg
                 
                 for( const concrete::Element* pIter : path )
                 {
-                    if( pIter->getLocalDomainSize() != 1 )
+                    if( const concrete::Action* pAction = 
+                        dynamic_cast< const concrete::Action* >( pIter ) )
                     {
-                        FailureInstruction* pFailure = new FailureInstruction;
-                        pInstruction->append( pFailure );
-                        pInstruction = pFailure;
-                        return;
+                        if( pAction->getLocalDomainSize() != 1 )
+                        {
+                            FailureInstruction* pFailure = new FailureInstruction;
+                            pInstruction->append( pFailure );
+                            pInstruction = pFailure;
+                            return;
+                        }
+                        
+                        InstanceVariable* pInstanceVariable = 
+                            new InstanceVariable( pVariable, pAction );
+                        
+                        ChildDerivationInstruction* pChildDerivation = 
+                            new ChildDerivationInstruction( pVariable, pInstanceVariable );
+                        pInstruction->append( pChildDerivation );
+                        
+                        pVariable = pInstanceVariable;
+                        pInstruction = pChildDerivation;
+                    }
+                    else if( const concrete::Dimension_User* pUserDimension =
+                        dynamic_cast< const concrete::Dimension_User* >( pIter ) )
+                    {
+                        //just ignor this - always only want the parent instance variable..
                     }
                     else
                     {
-                        if( const concrete::Action* pAction = 
-                            dynamic_cast< const concrete::Action* >( pIter ) )
-                        {
-                            InstanceVariable* pInstanceVariable = 
-                                new InstanceVariable( pVariable, pAction );
-                            
-                            ChildDerivationInstruction* pChildDerivation = 
-                                new ChildDerivationInstruction( pVariable, pInstanceVariable );
-                            pInstruction->append( pChildDerivation );
-                            
-                            pVariable = pInstanceVariable;
-                            pInstruction = pChildDerivation;
-                        }
-                        else if( const concrete::Dimension_User* pUserDimension =
-                            dynamic_cast< const concrete::Dimension_User* >( pIter ) )
-                        {
-                            //just ignor this - always only want the parent instance variable..
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unreachable" );
-                        }
+                        THROW_RTE( "Unreachable" );
                     }
                 }
             }

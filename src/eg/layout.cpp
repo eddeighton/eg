@@ -45,7 +45,6 @@ void Buffer::load( Loader& loader )
     m_pContext = loader.loadObjectRef< concrete::Action >();
     loader.loadObjectVector( m_dimensions );
     loader.load( size );
-    loader.load( stride );
     loader.load( name );
     loader.load( variable );
 }
@@ -55,7 +54,6 @@ void Buffer::store( Storer& storer ) const
     storer.storeObjectRef( m_pContext );
     storer.storeObjectVector( m_dimensions );
     storer.store( size );
-    storer.store( stride );
     storer.store( name );
     storer.store( variable );
 }

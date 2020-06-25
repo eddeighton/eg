@@ -189,15 +189,16 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
             os << "bool " << getFuncName( pAction, "done" ) << "( " << eg::EG_INSTANCE << " instance )\n";
             os << "{\n";
             
-            const eg::concrete::Action::IteratorMap& iterators = pAction->getAllocators();
+            const eg::concrete::Action::AllocatorMap& allocators = pAction->getAllocators();
             os << "    " << eg::EG_RING_BUFFER_ALLOCATOR_TYPE << " iter;\n";
-            for( eg::concrete::Action::IteratorMap::const_iterator 
-                i = iterators.begin(),
-                iEnd = iterators.end(); i!=iEnd; ++i )
+            for( eg::concrete::Action::AllocatorMap::const_iterator 
+                i = allocators.begin(),
+                iEnd = allocators.end(); i!=iEnd; ++i )
             {
-                const eg::concrete::Dimension_Generated* pIterator = i->second;
-                os << "    iter = " << eg::Printer( layout.getDataMember( pIterator ), "instance" ) << ";\n";
-                os << "    if( iter.full || ( iter.head != iter.tail ) ) return false;\n";
+                THROW_RTE( "TODO" );
+                //const eg::concrete::Dimension_Generated* pIterator = i->second;
+                //os << "    iter = " << eg::Printer( layout.getDataMember( pIterator ), "instance" ) << ";\n";
+                //os << "    if( iter.full || ( iter.head != iter.tail ) ) return false;\n";
             }
             os << "    return true;\n";
             os << "}\n";

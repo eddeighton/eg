@@ -1232,7 +1232,7 @@ namespace eg
     }
     void WriteLinkOperation::evaluate( RuntimeEvaluator& evaluator ) const
     {
-		THROW_RTE( "TODO" );
+		THROW_RTE( "TODO WriteLinkOperation emulation" );
         //evaluator.doWrite( evaluator.getVarValue( m_pInstance ), m_pTarget->getIndex() );
         //evaluator.doLink( evaluator.getVarValue( m_pLinkInstance ), 
 		//	m_pLinkReference->getIndex(), evaluator.getVarValue( m_pInstance ) );

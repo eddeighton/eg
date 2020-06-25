@@ -38,7 +38,6 @@
 
 namespace eg
 {
-
     struct SpecialMemberFunctionVisitor
     {
         std::ostream& os;
@@ -108,19 +107,19 @@ namespace eg
                     const concrete::Dimension_User* pInterfaceDimension = pCompatible->getLinkBaseDimension();
                     const DataMember* pReference = layout.getDataMember( pInterfaceDimension );
                     
-                    os << "         switch( " << Printer( pReference, "from.data.instance" ) << ".data.type )\n";
-                    os << "         {\n";
-                                
-            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
-            {
-                    os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            }       
-                    os << "                 data = " << Printer( pReference, "from.data.instance" ) << ".data;\n";
-                    os << "                 break;\n";
-                    os << "             default:\n";
-                    os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
-                    os << "                break;\n";
-                    os << "         }\n";
+            os << "         switch( " << Printer( pReference, "from.data.instance" ) << ".data.type )\n";
+            os << "         {\n";
+                        
+                    for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
+                    {
+            os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
+                    }       
+            os << "                 data = " << Printer( pReference, "from.data.instance" ) << ".data;\n";
+            os << "                 break;\n";
+            os << "             default:\n";
+            os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
+            os << "                break;\n";
+            os << "         }\n";
                 }
             
             os << "         break;\n";
@@ -339,25 +338,35 @@ namespace eg
             os << "template<>\n";
             os << "inline " << EG_TIME_STAMP << " getTimestamp< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
             os << "{\n";
-            if( compatibility.dynamicCompatibleTypes.size() > 1 )
-            {
+                if( compatibility.dynamicCompatibleTypes.size() > 1 )
+                {
             os << "    switch( type )\n";
             os << "    {\n";
-            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
-            {
-                const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
+                    for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
+                    {
+                        if( pCompatible->getReference() )
+                        {
+                            const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             os << "         return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
-            }
+                        }
+                    }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
             os << "    }\n";
-            }
-            else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
-            {
-                const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
-                const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
+                }
+                else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
+                {
+                    const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
+                    if( pCompatible->getReference() )
+                    {
+                        const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
             os << "    return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
-            }
+                    }
+                    else
+                    {
+            os << "    return " << EG_INVALID_TIMESTAMP << ";\n";
+                    }
+                }
             os << "}\n";
             os << "\n";
             }
@@ -368,25 +377,35 @@ namespace eg
             os << "template<>\n";
             os << "inline " << EG_TIME_STAMP << " getStopCycle< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
             os << "{\n";
-            if( compatibility.dynamicCompatibleTypes.size() > 1 )
-            {
+                if( compatibility.dynamicCompatibleTypes.size() > 1 )
+                {
             os << "    switch( type )\n";
             os << "    {\n";
-            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
-            {
-                const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
+                    for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
+                    {
+                        if( pCompatible->getStopCycle() )
+                        {
+                            const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             os << "         return " << Printer( pReference, "instance" ) << ";\n";
-            }
+                        }
+                    }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
             os << "    }\n";
-            }
-            else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
-            {
-                const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
-                const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
+                }
+                else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
+                {
+                    const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
+                    if( pCompatible->getStopCycle() )
+                    {
+                        const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
             os << "    return " << Printer( pReference, "instance" ) << ";\n";
-            }
+                    }
+                    else
+                    {
+            os << "    return " << EG_INVALID_TIMESTAMP << ";\n";
+                    }
+                }
             os << "}\n";
             os << "\n";
             }
@@ -397,29 +416,38 @@ namespace eg
             os << "template<>\n";
             os << "inline " << EG_ACTION_STATE << " getState< " << osTypeVoid.str() << " >( " << EG_TYPE_ID << " type, " << EG_INSTANCE << " instance )\n";
             os << "{\n";
-            if( compatibility.dynamicCompatibleTypes.size() > 1 )
-            {
+                if( compatibility.dynamicCompatibleTypes.size() > 1 )
+                {
             os << "    switch( type )\n";
             os << "    {\n";
-            for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
-            {
-                const DataMember* pState = layout.getDataMember( pCompatible->getState() );
+                    for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
+                    {
+                        if( pCompatible->getState() )
+                        {
+                            const DataMember* pState = layout.getDataMember( pCompatible->getState() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             os << "         return " << Printer( pState, "instance" ) << ";\n";
-            }
+                        }
+                    }
             os << "      default: return " << EG_INVALID_STATE << ";\n";
             os << "    }\n";
-            }
-            else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
-            {
-                const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
-                const DataMember* pState = layout.getDataMember( pCompatible->getState() );
+                }
+                else //if( compatibility.dynamicCompatibleTypes.size() == 1 )
+                {
+                    const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
+                    if( pCompatible->getState() )
+                    {
+                        const DataMember* pState = layout.getDataMember( pCompatible->getState() );
             os << "    return " << Printer( pState, "instance" ) << ";\n";
-            }
+                    }
+                    else
+                    {
+            os << "    return " << EG_INVALID_STATE << ";\n";
+                    }
+                }
             os << "}\n";
             os << "\n";
             }
-
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {
@@ -653,9 +681,12 @@ namespace eg
 
         for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
         {
-            const DataMember* pReference = layout.getDataMember( pConcreteAction->getReference() );
+            if( pConcreteAction->getReference() )
+            {
+                const DataMember* pReference = layout.getDataMember( pConcreteAction->getReference() );
         os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
         os << "            return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
+            }
         }
         os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
 
@@ -672,9 +703,12 @@ namespace eg
 
         for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
         {
-            const DataMember* pReference = layout.getDataMember( pConcreteAction->getStopCycle() );
+            if( pConcreteAction->getStopCycle() )
+            {
+                const DataMember* pReference = layout.getDataMember( pConcreteAction->getStopCycle() );
         os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
         os << "            return " << Printer( pReference, "instance" ) << ";\n";
+            }
         }
         os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
 
@@ -691,9 +725,12 @@ namespace eg
 
         for( const concrete::Action* pConcreteAction : dynamicCompatibleTypes )
         {
-            const DataMember* pState = layout.getDataMember( pConcreteAction->getState() );
+            if( pConcreteAction->getState() )
+            {
+                const DataMember* pState = layout.getDataMember( pConcreteAction->getState() );
         os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
         os << "            return " << Printer( pState, "instance" ) << ";\n";
+            }
         }
         os << "        default: return " << EG_INVALID_STATE << ";\n";
 

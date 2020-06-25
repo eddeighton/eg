@@ -117,12 +117,9 @@ namespace eg
             pBuffer->name       = generateName( 'b', path );
             pBuffer->variable   = generateName( 'g', path );
             
-            std::size_t szOffset = 0U;
             for( const concrete::Dimension* pDimension : dimensions )
             {
                 DataMember* pDataMember = nullptr; 
-                const std::size_t szDimensionOffset = szOffset;
-                szOffset += pDimension->getDataSize();
                 
                 {
                     if( const concrete::Dimension_User* pUserDim = 
@@ -154,30 +151,21 @@ namespace eg
                                     pDataMember->name = pBuffer->variable + "_reference";
                                 }
                                 break;
-                            case concrete::Dimension_Generated::eActionAllocatorData    :
+                            case concrete::Dimension_Generated::eActionAllocator    :
                                 {
-                                    pDataMember = construct< DataMember >();
-                                    pDataMember->name = pBuffer->variable + "_ring";
-                                }
-                                break;
-                            case concrete::Dimension_Generated::eActionAllocatorHead    :
-                                {
-                                    pDataMember = construct< DataMember >();
-                                    
                                     const concrete::Dimension_Generated* pDimGen = 
                                         dynamic_cast< const concrete::Dimension_Generated* >( pDimension );
-                                        
-                                    const concrete::Action* pAllocatedAction = pDimGen->getAction();
+									VERIFY_RTE( pDimGen );
+                                    const concrete::Action* pDimensionAction = pDimGen->getAction();
+									VERIFY_RTE( pDimensionAction );
+                                    const concrete::Allocator* pAllocator = pDimensionAction->getAllocator();
+									VERIFY_RTE( pAllocator );
                                     
-                                    std::ostringstream os;
-                                    os << pBuffer->variable << '_' << pAllocatedAction->getName() << "_ring_iter";                                    
-                                    pDataMember->name = os.str();
-                                }
-                                break;
-                            case concrete::Dimension_Generated::eRingIndex:
-                                {
+									std::ostringstream osVarName;
+                                    osVarName << pBuffer->variable << "_" << pDimensionAction->getContext()->getIdentifier() << "_allocator";
+                                    
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->name = pBuffer->variable + "_ring_index";
+                                    pDataMember->name = osVarName.str();
                                 }
                                 break;
 							case concrete::Dimension_Generated::eLinkReference:
@@ -213,14 +201,11 @@ namespace eg
                 {
                     pDataMember->m_pBuffer       = pBuffer;
                     pDataMember->m_pDimension    = pDimension;
-                    pDataMember->offset          = szDimensionOffset;
                     pBuffer->m_dimensions.push_back( pDataMember );
                     dimensionMap.insert( std::make_pair( pDimension, pDataMember ) );
                 }
             }
-            pBuffer->stride = szOffset;
             pBuffer->size   = szSize * pAction->getContext()->getSize();
-            
         }
         
         for( const concrete::Element* pChild : pAction->getChildren() )

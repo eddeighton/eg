@@ -21,6 +21,7 @@
 #include "eg_compiler/objects.hpp"
 #include "eg_compiler/input.hpp"
 #include "eg_compiler/interface.hpp"
+#include "eg_compiler/allocator.hpp"
 #include "eg_compiler/concrete.hpp"
 #include "eg_compiler/translation_unit.hpp"
 #include "eg_compiler/layout.hpp"
@@ -64,6 +65,9 @@ namespace eg
             case eConcreteAction             : pObject = new concrete::Action               ( object );  break;
             case eConcreteDimensionUser      : pObject = new concrete::Dimension_User       ( object );  break;
             case eConcreteDimensionGenerated : pObject = new concrete::Dimension_Generated  ( object );  break;
+            case eConcreteAllocator_Nothing  : pObject = new concrete::NothingAllocator     ( object );  break;
+            case eConcreteAllocator_Singleton: pObject = new concrete::SingletonAllocator   ( object );  break;
+            case eConcreteAllocator_Range    : pObject = new concrete::RangeAllocator       ( object );  break;
                                                                                             
             case eIdentifiers                : pObject = new Identifiers                    ( object );  break;
             case eDerivationAnalysis         : pObject = new DerivationAnalysis             ( object );  break;

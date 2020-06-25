@@ -144,7 +144,7 @@ namespace eg
         
         static void allocated_ref( const reference& ref, StopperFunctionPtr pStopper );
         static void call_ref( const reference& ref, StopperFunctionPtr pStopper, ActionOperator action );
-        static void signal_ref( const reference& ref, StopperFunctionPtr pStopper );
+        static void signal_ref( const reference& ref );
         static void stop_ref( const reference& ref );
         static void pause_ref( const reference& ref );
         static void unpause_ref( const reference& ref );

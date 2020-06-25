@@ -87,13 +87,12 @@ namespace eg
         const std::string& getTypeName() const { return name; }
         const std::string& getVariableName() const { return variable; }
         std::size_t getSize() const { return size; }
-        std::size_t getStride() const { return stride; }
         const std::vector< const DataMember* >& getDimensions() const { return m_dimensions; }
         const concrete::Action* getAction() const { return m_pContext; }
     private:
         const concrete::Action* m_pContext = nullptr;
         std::vector< const DataMember* > m_dimensions;
-        std::size_t size, stride;
+        std::size_t size;
         std::string name, variable;
     };
     

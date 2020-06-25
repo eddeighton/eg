@@ -108,6 +108,9 @@ namespace eg
         eConcreteAction,
         eConcreteDimensionUser,
         eConcreteDimensionGenerated,
+        eConcreteAllocator_Nothing,
+        eConcreteAllocator_Singleton,
+        eConcreteAllocator_Range,
         
         eIdentifiers,
         eDerivationAnalysis,

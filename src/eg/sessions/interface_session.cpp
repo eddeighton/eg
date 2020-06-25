@@ -22,6 +22,8 @@
 #include "eg_compiler/sessions/interface_session.hpp"
 
 #include "eg_compiler/interface.hpp"
+#include "eg_compiler/allocator.hpp"
+#include "eg_compiler/concrete.hpp"
 
 #include <iostream>
 
@@ -270,67 +272,77 @@ namespace eg
         }
     }
     
-    void InterfaceSession::constructAllocator( concrete::Action* pInstance, concrete::Action* pObject )
+    void InterfaceSession::constructAllocator( concrete::Action* pInstance, concrete::Action* pObject, std::vector< concrete::Allocator* >& allocators )
     {
         if( dynamic_cast< const interface::Object* >( pInstance->getContext() ) )
             pObject = pInstance;
         
         pInstance->m_pObject = pObject;
         
-        if( pInstance->m_pParent && pInstance->m_pParent->m_pParent )
         {
-            pInstance->m_pAllocatorData                 = construct< concrete::Dimension_Generated >();
-            pInstance->m_pAllocatorData->m_type         = concrete::Dimension_Generated::eActionAllocatorData;
-            pInstance->m_pAllocatorData->m_pContext     = pInstance;
-            pInstance->m_children.push_back( pInstance->m_pAllocatorData );
-        }
-        
-        if( pInstance->m_pParent )
-        {
-            pInstance->m_pStopCycle                     = construct< concrete::Dimension_Generated >();
-            pInstance->m_pStopCycle->m_type             = concrete::Dimension_Generated::eActionStopCycle;
-            pInstance->m_pStopCycle->m_pContext         = pInstance;
-            pInstance->m_children.push_back( pInstance->m_pStopCycle );
-            
-            pInstance->m_pState                         = construct< concrete::Dimension_Generated >();
-            pInstance->m_pState->m_type                 = concrete::Dimension_Generated::eActionState;
-            pInstance->m_pState->m_pContext             = pInstance;
-            pInstance->m_children.push_back( pInstance->m_pState );
-            
-            pInstance->m_pReference                     = construct< concrete::Dimension_Generated >();
-            pInstance->m_pReference->m_type             = concrete::Dimension_Generated::eActionReference;
-            pInstance->m_pReference->m_pContext         = pInstance;
-            pInstance->m_children.push_back( pInstance->m_pReference );
-            
-            pInstance->m_pRingIndex                     = construct< concrete::Dimension_Generated >();
-            pInstance->m_pRingIndex->m_type             = concrete::Dimension_Generated::eRingIndex;
-            pInstance->m_pRingIndex->m_pContext         = pInstance;
-            pInstance->m_children.push_back( pInstance->m_pRingIndex );
-            
-            if( dynamic_cast< const interface::Object* >( pInstance->getContext() ) )
+            std::vector< concrete::Element* > temp = pInstance->m_children;
+            for( concrete::Element* pChild : temp )
             {
-                pInstance->m_pLinkRefCount                  = construct< concrete::Dimension_Generated >();
-                pInstance->m_pLinkRefCount->m_type          = concrete::Dimension_Generated::eLinkReferenceCount;
-                pInstance->m_pLinkRefCount->m_pContext      = pInstance;
-                pInstance->m_children.push_back( pInstance->m_pLinkRefCount );
-            }
-        }
-        
-        std::vector< concrete::Element* > temp = pInstance->m_children;
-        for( concrete::Element* pChild : temp )
-        {
-            if( concrete::Action* pChildAction = dynamic_cast< concrete::Action* >( pChild ) )
-            {
-                if( pInstance->m_pParent )
+                if( concrete::Action* pChildAction = dynamic_cast< concrete::Action* >( pChild ) )
                 {
-                    concrete::Dimension_Generated* pHead = construct< concrete::Dimension_Generated >();
-                    pHead->m_type        = concrete::Dimension_Generated::eActionAllocatorHead;
-                    pHead->m_pContext     = pChildAction;
-                    pInstance->m_allocators.insert( std::make_pair( pChildAction, pHead ) );
-                    pInstance->m_children.push_back( pHead );
+                    if( const interface::Abstract* pContext = dynamic_cast< const interface::Abstract* >( pChildAction->getContext() ) )
+                    {
+                        //do nothing
+                    }
+                    else if( const interface::Event* pContext = dynamic_cast< const interface::Event* >( pChildAction->getContext() ) )
+                    {
+                        //generate allocator ONLY if event has user dimensions
+                        if( pChildAction->hasUserDimensions() )
+                        {
+                            concrete::NothingAllocator* pAllocator = construct< concrete::NothingAllocator >();
+                            pAllocator->m_pContext_Allocating = pInstance;
+                            pAllocator->m_pContext_Allocated = pChildAction;
+                            pChildAction->m_pAllocator = pAllocator;
+                            allocators.push_back( pChildAction->m_pAllocator );
+                            pInstance->m_allocators.insert( std::make_pair( pChildAction, pChildAction->m_pAllocator ) );
+                        }
+                        else
+                        {
+                            pChildAction->m_pAllocator = chooseAllocator( *this, pInstance, pChildAction );
+                            allocators.push_back( pChildAction->m_pAllocator );
+                            pInstance->m_allocators.insert( std::make_pair( pChildAction, pChildAction->m_pAllocator ) );
+                        }
+                    }
+                    else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pChildAction->getContext() ) )
+                    {
+                        concrete::NothingAllocator* pAllocator = construct< concrete::NothingAllocator >();
+                        pAllocator->m_pContext_Allocating = pInstance;
+                        pAllocator->m_pContext_Allocated = pChildAction;
+                        pChildAction->m_pAllocator = pAllocator;
+                        allocators.push_back( pChildAction->m_pAllocator );
+                        pInstance->m_allocators.insert( std::make_pair( pChildAction, pChildAction->m_pAllocator ) );
+                    }
+                    else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pChildAction->getContext() ) )
+                    {
+                        pChildAction->m_pAllocator = chooseAllocator( *this, pInstance, pChildAction );
+                        allocators.push_back( pChildAction->m_pAllocator );
+                        pInstance->m_allocators.insert( std::make_pair( pChildAction, pChildAction->m_pAllocator ) );
+                        constructAllocator( pChildAction, pObject, allocators );
+                    }
+                    else if( const interface::Object* pContext = dynamic_cast< const interface::Object* >( pChildAction->getContext() ) )
+                    {
+                        pChildAction->m_pAllocator = chooseAllocator( *this, pInstance, pChildAction );
+                        allocators.push_back( pChildAction->m_pAllocator );
+                        pInstance->m_allocators.insert( std::make_pair( pChildAction, pChildAction->m_pAllocator ) );
+                        constructAllocator( pChildAction, pObject, allocators );
+                    }
+                    else if( const interface::Link* pContext = dynamic_cast< const interface::Link* >( pChildAction->getContext() ) )
+                    {
+                        pChildAction->m_pAllocator = chooseAllocator( *this, pInstance, pChildAction );
+                        allocators.push_back( pChildAction->m_pAllocator );
+                        pInstance->m_allocators.insert( std::make_pair( pChildAction, pChildAction->m_pAllocator ) );
+                        constructAllocator( pChildAction, pObject, allocators );
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown context type" );
+                    }
                 }
-                
-                constructAllocator( pChildAction, pObject );
             }
         }
     }
@@ -368,8 +380,18 @@ namespace eg
         }
         
         constructInstance( pRoot, objects );
-        constructAllocator( pRoot, pRoot );
         
+        //construct the allocators
+        {
+            std::vector< concrete::Allocator* > allocators;            
+            constructAllocator( pRoot, pRoot, allocators );
+            for( concrete::Allocator* pAllocator : allocators )
+            {
+                pAllocator->constructDimensions( *this );
+            }
+        }
+        
+        //calculate the compatibility between static and dynamic types
         {
             std::vector< const interface::Context* > interfaceActions = 
                 many_cst< const interface::Context >( 

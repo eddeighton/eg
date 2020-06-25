@@ -55,18 +55,15 @@ namespace eg
             
             os << /*" stride: " << pBuffer->getStride() <<*/ " size: " << pBuffer->getSize() << "\n";
             os << "struct " << pBuffer->getTypeName() << "\n{\n";
-            std::size_t szBufferSize = 0U;
             for( const DataMember* pDimension : pBuffer->getDimensions() )
             {
                 os << "    ";
                 generateDataMemberType( os, pDimension );
                 os << " " << pDimension->getName() << ";\n";
-                szBufferSize += pDimension->getInstanceDimension()->getDataSize();
             }
             
             os << "};\n";
             os << "extern " << pBuffer->getTypeName() << " *" << pBuffer->getVariableName() << ";\n";
-            //os << "static_assert( sizeof( " << pBuffer->getTypeName() << " ) == " << szBufferSize << ", \"Incorrect buffer size\" );\n";
             
         }
         

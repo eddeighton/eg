@@ -410,6 +410,12 @@ namespace
                 delete pAction;
             }
         }
+        
+        void signal( const eg::reference& ref )
+        {
+            on_event( m_events_by_ref_wait, ref );
+            on_event( m_events_by_ref_sleep, ref );
+        }
     
         void call( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper, eg::Scheduler::ActionOperator actionOperator )
         {
@@ -635,8 +641,9 @@ namespace eg
         theScheduler.call( ref, pStopper, action );
     }
     
-    void Scheduler::signal_ref( const reference& ref, StopperFunctionPtr pStopper  )
+    void Scheduler::signal_ref( const reference& ref )
     {
+        theScheduler.signal( ref );
     }
     
     void Scheduler::stop_ref( const reference& ref )

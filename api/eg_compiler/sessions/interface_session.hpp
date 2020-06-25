@@ -82,7 +82,7 @@ namespace eg
                 DimensionOverrideMap& dimensionInstances, 
                 const std::vector< const interface::Object* >& objects );
         void constructInstance( concrete::Action* pInstance, const std::vector< const interface::Object* >& objects );
-        void constructAllocator( concrete::Action* pInstance, concrete::Action* pObject );
+        void constructAllocator( concrete::Action* pInstance, concrete::Action* pObject, std::vector< concrete::Allocator* >& allocators  );
 		
         using TranslationUnitMap = std::map< TranslationUnit::CoordinatorHostnameDefinitionFile, TranslationUnit::ActionSet >;
         void translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap );

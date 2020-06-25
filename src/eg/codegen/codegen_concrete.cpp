@@ -32,6 +32,7 @@
 #include "eg_compiler/derivation.hpp"
 #include "eg_compiler/translation_unit.hpp"
 #include "eg_compiler/invocation.hpp"
+#include "eg_compiler/allocator.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -75,9 +76,6 @@ namespace eg
     {
         switch( pDimension->getDimensionType() )
         {
-            //case eDimensionTimestamp :
-            //    os << EG_TIME_STAMP;
-            //    break;
             case concrete::Dimension_Generated::eActionStopCycle    :
                 os << EG_TIME_STAMP;
                 break;
@@ -92,14 +90,23 @@ namespace eg
                     os << getStaticType( pAction );
                 }
                 break;
-            case concrete::Dimension_Generated::eActionAllocatorData:
-                os << EG_INSTANCE;
-                break;
-            case concrete::Dimension_Generated::eActionAllocatorHead:
-                os << EG_ALLOCATOR_TYPE;
-                break;
-            case concrete::Dimension_Generated::eRingIndex:
-                os << EG_INSTANCE;
+            case concrete::Dimension_Generated::eActionAllocator:
+                {
+                    const concrete::Action* pDimensionAction = pDimension->getAction();
+                    VERIFY_RTE( pDimensionAction );
+                    const concrete::Allocator* pAllocator = pDimensionAction->getAllocator();
+                    VERIFY_RTE( pAllocator );
+                    
+                    if( const concrete::RangeAllocator* pRange = 
+                        dynamic_cast< const concrete::RangeAllocator* >( pAllocator ) )
+                    {
+                        os << pRange->getAllocatorType();
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown allocator type requiring dimension" );
+                    }
+                }
                 break;
 			case concrete::Dimension_Generated::eLinkReference:
                 os << EG_REFERENCE_TYPE;
@@ -148,9 +155,24 @@ namespace eg
                         "( " << EG_REFERENCE_TYPE << " { i, " << pDimensionAction->getIndex() << ", 1 } );\n";
                 }
                 break;
-            case concrete::Dimension_Generated::eActionAllocatorData   : os << strIndent << printer << " = i;\n";   		break;
-            case concrete::Dimension_Generated::eActionAllocatorHead   : os << strIndent << printer << " = 0UL;\n"; 		break;
-            case concrete::Dimension_Generated::eRingIndex             : os << strIndent << printer << " = i;\n";   		break;
+            case concrete::Dimension_Generated::eActionAllocator   : 
+                {
+                    const concrete::Action* pDimensionAction = pDimension->getAction();
+                    VERIFY_RTE( pDimensionAction );
+                    const concrete::Allocator* pAllocator = pDimensionAction->getAllocator();
+                    VERIFY_RTE( pAllocator );
+                    
+                    if( const concrete::RangeAllocator* pRange = 
+                        dynamic_cast< const concrete::RangeAllocator* >( pAllocator ) )
+                    {
+                        os << strIndent << "new (&" << printer << " )" << pRange->getAllocatorType() << ";\n";
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown allocator type requiring dimension" );
+                    }
+                }                
+                break;
 			case concrete::Dimension_Generated::eLinkReference         : os << strIndent << printer << " = { 0, 0, 0 };\n"; break;
             case concrete::Dimension_Generated::eLinkReferenceCount    : os << strIndent << printer << " = 0;\n"; break;
             default:
@@ -226,13 +248,7 @@ namespace eg
                     os << getStaticType( pAction );
                 }
                 break;
-            case eActionAllocatorData:
-                os << EG_INSTANCE;
-                break;
-            case eActionAllocatorHead:
-                os << EG_ALLOCATOR_TYPE;
-                break;
-            case eRingIndex:
+            case eActionAllocator:
                 os << EG_INSTANCE;
                 break;
 			case concrete::eLinkReference: 
@@ -271,12 +287,6 @@ namespace eg
             case eActionAllocatorData:
                 os << EG_INSTANCE;
                 break;
-            case eActionAllocatorHead:
-                os << EG_ALLOCATOR_TYPE;
-                break;
-            case eRingIndex:
-                os << EG_INSTANCE;
-                break;
             default:
                 THROW_RTE( "Unknown generated dimension type" );
         }
@@ -288,14 +298,6 @@ namespace eg
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
     void Action::printType( std::ostream& os ) const
     {
         os << getStaticType( getContext() );
@@ -303,12 +305,12 @@ namespace eg
 	void Action::printEncode( std::ostream& os, const std::string& strIndex ) const
 	{
 		const std::vector< std::string >& params = getContext()->getParameters();
-		//TODO - generate dimensions for parameters for defered / remote calls
+		//TODO printEncode - generate dimensions for parameters for defered / remote calls
 	}
 	void Action::printDecode( std::ostream& os, const std::string& strIndex ) const
 	{
 		const std::vector< std::string >& params = getContext()->getParameters();
-		//TODO - generate dimensions for parameters for defered / remote calls
+		//TODO printDecode - generate dimensions for parameters for defered / remote calls
 	}
     
     

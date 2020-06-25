@@ -11,6 +11,7 @@ include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
 
 set( EG_LIBRARY
+	${EG_API_DIR}/eg/allocator.hpp
 	${EG_API_DIR}/eg/backtrace.hpp
 	${EG_API_DIR}/eg/clock.cpp
 	${EG_API_DIR}/eg/clock.hpp
@@ -40,6 +41,7 @@ set( EG_API
     ${EG_API_DIR}/eg_compiler/objects.hpp
     ${EG_API_DIR}/eg_compiler/input.hpp
     ${EG_API_DIR}/eg_compiler/interface.hpp
+    ${EG_API_DIR}/eg_compiler/allocator.hpp
     ${EG_API_DIR}/eg_compiler/concrete.hpp
     ${EG_API_DIR}/eg_compiler/derivation.hpp
     ${EG_API_DIR}/eg_compiler/link.hpp
@@ -79,6 +81,7 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/objects.cpp
     ${EG_SRC_DIR}/eg/input.cpp
     ${EG_SRC_DIR}/eg/interface.cpp
+    ${EG_SRC_DIR}/eg/allocator.cpp
     ${EG_SRC_DIR}/eg/concrete.cpp
     ${EG_SRC_DIR}/eg/derivation.cpp
     ${EG_SRC_DIR}/eg/link.cpp

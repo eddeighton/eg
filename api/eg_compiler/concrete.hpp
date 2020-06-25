@@ -36,7 +36,7 @@ namespace concrete
     class Element;
     class Action;
     class Dimension;
-    
+    class RangeAllocator;
     class Inheritance_Node : public IndexedObject
     {
         friend class ::eg::InterfaceSession;
@@ -112,9 +112,6 @@ namespace concrete
         const std::vector< Element* >& getChildren() const { return m_children; }
     
         virtual void print( std::ostream& os, std::string& strIndent ) const = 0;
-        virtual int getLocalDomainSize() const = 0;
-        virtual int getTotalDomainSize() const = 0;
-        virtual int getDataSize() const = 0;
         
         inline bool isMember( const Element* pElement ) const
         {
@@ -143,11 +140,6 @@ namespace concrete
         
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        
-    public:
-    
-        virtual int getLocalDomainSize() const { return 1; }
-        virtual int getTotalDomainSize() const;
     };
     
     /////////////////////////////////////////////////////////////////////////////////////
@@ -171,9 +163,6 @@ namespace concrete
         
     public:
         virtual void print( std::ostream& os, std::string& strIndent ) const;
-        
-    protected:
-        virtual int getDataSize() const;
         
     public:
         bool isEGType() const
@@ -201,6 +190,8 @@ namespace concrete
     {
         friend class ::eg::InterfaceSession;
         friend class ::eg::ObjectFactoryImpl;
+        friend class ::eg::concrete::RangeAllocator;
+        friend void constructRuntimeDimensions( InterfaceSession&, Action* );
     public:
         static const ObjectType Type = eConcreteDimensionGenerated;
         
@@ -209,9 +200,7 @@ namespace concrete
             eActionStopCycle,
             eActionState,
             eActionReference,
-            eActionAllocatorData,
-            eActionAllocatorHead,
-            eRingIndex,
+            eActionAllocator,
 			eLinkReference,
 			eLinkReferenceCount
         };
@@ -227,8 +216,6 @@ namespace concrete
         
         virtual void print( std::ostream& os, std::string& strIndent ) const;
         
-        virtual int getDataSize() const;
-
     public:
         DimensionType getDimensionType() const { return m_type; }
         const Dimension_User* getUserDimension() const { return m_pUserDimension; }
@@ -246,11 +233,15 @@ namespace concrete
     
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
+    class Allocator;
+    
     class Action : public Element
     {
         friend class ::eg::InterfaceSession;
         friend class Inheritance_Node;
         friend class ::eg::ObjectFactoryImpl;
+        friend class ::eg::concrete::RangeAllocator;
+        friend void constructRuntimeDimensions( InterfaceSession&, Action* );
     public:
         static const ObjectType Type = eConcreteAction;
     protected:
@@ -263,7 +254,7 @@ namespace concrete
         virtual void store( Storer& storer ) const;
         
     public:
-        using IteratorMap = std::map< const Action*, const Dimension_Generated*, CompareIndexedObjects >;
+        using AllocatorMap = std::map< const Action*, const Allocator*, CompareIndexedObjects >;
 		using LinkMap = std::map< std::string, const Dimension_Generated* >;
         
         const Action* getObject() const { return m_pObject; }
@@ -274,17 +265,17 @@ namespace concrete
         const Dimension_Generated* getStopCycle    () const { return m_pStopCycle     ; } //timestamp when stopped
         const Dimension_Generated* getState        () const { return m_pState         ; }
         const Dimension_Generated* getReference    () const { return m_pReference     ; }
-        const Dimension_Generated* getAllocatorData() const { return m_pAllocatorData ; }
-        const Dimension_Generated* getRingIndex    () const { return m_pRingIndex     ; }
         const Dimension_Generated* getLinkRefCount () const { return m_pLinkRefCount  ; }
     
-        const Dimension_Generated* getIterator( const Action* pAction ) const 
+        const Allocator* getAllocator() const { return m_pAllocator; }
+        const Allocator* getAllocator( const Action* pAction ) const 
         {
-            IteratorMap::const_iterator iFind = m_allocators.find( pAction );
+            AllocatorMap::const_iterator iFind = m_allocators.find( pAction );
             VERIFY_RTE( iFind != m_allocators.end() );
             return iFind->second;
         }
-        const IteratorMap& getAllocators() const { return m_allocators; }
+        const AllocatorMap& getAllocators() const { return m_allocators; }
+        
 		const Dimension_Generated* getLink( const std::string& strLinkName ) const
 		{
             LinkMap::const_iterator iFind = m_links.find( strLinkName );
@@ -292,8 +283,8 @@ namespace concrete
             return iFind->second;
 		}
         const Dimension_User* getLinkBaseDimension() const;
+        bool hasUserDimensions() const;
     
-        virtual int getDataSize() const;
         virtual int getLocalDomainSize() const;
         virtual int getTotalDomainSize() const;
         int getObjectDomainFactor() const;
@@ -304,19 +295,17 @@ namespace concrete
     private:
         Action* m_pObject = nullptr;
         Inheritance_Node* m_inheritance;
+        Allocator* m_pAllocator = nullptr;
         std::string m_strName;
         mutable int m_totalDomainSize = 0;
         
         Dimension_Generated* m_pStopCycle     = nullptr;
         Dimension_Generated* m_pState         = nullptr;
         Dimension_Generated* m_pReference     = nullptr;
-        Dimension_Generated* m_pAllocatorData = nullptr;
-        Dimension_Generated* m_pRingIndex     = nullptr;
         Dimension_Generated* m_pLinkRefCount  = nullptr;
-        IteratorMap m_allocators;
+        AllocatorMap m_allocators;
 		LinkMap m_links;
     };
-
 
 } //namespace concrete
 } //namespace eg

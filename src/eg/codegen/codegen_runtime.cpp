@@ -23,6 +23,7 @@
 #include "eg_compiler/sessions/implementation_session.hpp"
 #include "eg_compiler/codegen/codegen.hpp"
 #include "eg_compiler/input.hpp"
+#include "eg_compiler/allocator.hpp"
 
 #include <ostream>
 
@@ -61,10 +62,10 @@ namespace eg
         os << "    {\n";
         for( const concrete::Action* pAction : actions )
         {
-            if( pAction->getParent() )
+            if( pAction->getParent() && pAction->getReference() )
             {
         os << "        case " << pAction->getIndex() << ": return " << 
-            Printer( layout.getDataMember( pAction->getReference() ), "instance" ) << ".data.timestamp;\n";
+                Printer( layout.getDataMember( pAction->getReference() ), "instance" ) << ".data.timestamp;\n";
             }
         }
         os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
@@ -77,7 +78,7 @@ namespace eg
         os << "    {\n";
         for( const concrete::Action* pAction : actions )
         {
-            if( pAction->getParent() )
+            if( pAction->getParent() && pAction->getState() )
             {
         os << "        case " << pAction->getIndex() << ": return " << 
             Printer( layout.getDataMember( pAction->getState() ), "instance" ) << ";\n";
@@ -93,7 +94,7 @@ namespace eg
         os << "    {\n";
         for( const concrete::Action* pAction : actions )
         {
-            if( pAction->getParent() )
+            if( pAction->getParent() && pAction->getStopCycle() )
             {
         os << "        case " << pAction->getIndex() << ": return " << 
             Printer( layout.getDataMember( pAction->getStopCycle() ), "instance" ) << ";\n";
@@ -119,69 +120,89 @@ namespace eg
 		VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
 		const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
 		VERIFY_RTE( pParentAction );
+        const concrete::Allocator* pAllocator = pParentAction->getAllocator( pAction );
+        VERIFY_RTE( pAllocator );
 		
-		const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
-		const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
-		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
-		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-		const DataMember* pRingIndex = layout.getDataMember( pAction->getRingIndex() );
-		const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
-                    
-        /////starter
+        if( const concrete::NothingAllocator* pNothingAllocator =
+                dynamic_cast< const concrete::NothingAllocator* >( pAllocator ) )
         {
-        os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
-        os << "{\n";
-        os << "    //claim next free index\n";
-        os << "    " << EG_RING_BUFFER_ALLOCATOR_TYPE << " iter;\n";
-        os << "    while( true )\n";
-        os << "    {\n";
-        os << "         iter = " << Printer( pIteratorData, "_parent_id" ) << ";\n";
-        os << "         if( iter.protection )\n";
-        os << "             continue;\n";
-        os << "         else if( iter.full )\n";
-        os << "             break;\n";
-        os << "         const " << EG_INSTANCE << " relativeNextCellIndex = static_cast< " << EG_INSTANCE << " >( iter.head );\n";
-        os << "         //claim the next free index\n";
-        os << "         if( relativeNextCellIndex == " << pAction->getLocalDomainSize() - 1U << " )\n";
-        os << "         {\n";
-        os << "             iter.head = 0U;\n";
-        os << "         }\n";
-        os << "         else\n";
-        os << "         {\n";
-        os << "             ++iter.head;\n";
-        os << "         }\n";
-        os << "         if( static_cast< " << EG_INSTANCE << " >( iter.head ) == static_cast< " << EG_INSTANCE << " >( iter.tail ) )\n";
-        os << "         {\n";
-        os << "             iter.full = 1U;\n";
-        os << "         }\n";
-        
-        //need to calculate the index based on local domain size
-        std::ostringstream osNextIndex;
-        osNextIndex << "_parent_id * " << pAction->getLocalDomainSize() << " + relativeNextCellIndex";
-		os << "         " << Printer( pIteratorData, "_parent_id" ) << " = iter.data;\n";
-        os << "         const " << EG_INSTANCE << " nextRingIndex = " << osNextIndex.str().c_str() << ";\n";
-        os << "         const " << EG_INSTANCE << " nextInstance = " << Printer( pAllocatorData, "nextRingIndex" ) << ";\n";
-        os << "         if( " << Printer( pCycleData, "nextInstance" ) << " < clock::cycle() )\n";
-        os << "         {\n";
-        os << "             //successfully claimed valid allocation index\n";
-        os << "             const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-        os << "             " << getStaticType( pAction->getContext() ) << "& reference = " << 
-                            Printer( pReferenceData, "nextInstance" ) << ";\n";
-        os << "             reference.data.timestamp = startCycle;\n";
-        os << "             " << Printer( pStateData, "nextInstance" ) << " = " << getActionState( action_running ) << ";\n";
-        os << "             " << Printer( pRingIndex, "nextInstance" ) << " = nextRingIndex;\n";
-        os << "             events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
-        os << "             return reference;\n";
-        os << "         }\n";
-        os << "    }\n";   
-        os << "    //failure return null handle\n";
-        std::ostringstream osError;
-        osError << "Failed to allocate " << pAction->getFriendlyName();
-        os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
-        os << "    " << getStaticType( pAction->getContext() ) << " nullInstance;\n";
-        os << "    return nullInstance;\n";
-        os << "}\n";
-        os << "\n";
+            //do nothing
+        }
+        else if( const concrete::SingletonAllocator* pSingletonAllocator =
+                dynamic_cast< const concrete::SingletonAllocator* >( pAllocator ) )
+        {
+            const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+            VERIFY_RTE( pStateData );
+            const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+            VERIFY_RTE( pReferenceData );
+		    const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+            VERIFY_RTE( pCycleData );
+            
+            os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
+            os << "{\n";
+            os << "    if( ( " << Printer( pStateData, "_parent_id" ) << " == " << getActionState( action_stopped ) << 
+                " ) && ( " << Printer( pCycleData, "_parent_id" ) << " < clock::cycle() ) )\n";
+            os << "    {\n";
+            os << "        const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
+            os << "        " << getStaticType( pAction->getContext() ) << "& reference = " << Printer( pReferenceData, "_parent_id" ) << ";\n";
+            os << "        reference.data.timestamp = startCycle;\n";
+            os << "        reference.data.type = " << pAction->getIndex() << ";\n";
+            os << "        " << Printer( pStateData, "_parent_id" ) << " = " << getActionState( action_running ) << ";\n";
+            os << "        events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            os << "        return reference;\n";
+            os << "    }\n";
+            
+            std::ostringstream osError;
+            osError << "Error attempting to start type: " << pAction->getName();
+            os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "    " << getStaticType( pAction->getContext() ) << " nullInstance;\n";
+            os << "    return nullInstance;\n";
+            os << "}\n";
+            os << "\n";
+        }
+        else if( const concrete::RangeAllocator* pRangeAllocator =
+                dynamic_cast< const concrete::RangeAllocator* >( pAllocator ) )
+        {
+            const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+            VERIFY_RTE( pStateData );
+            const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+            VERIFY_RTE( pReferenceData );
+            const DataMember* pAllocatorData = layout.getDataMember( pRangeAllocator->getAllocatorData() );
+            VERIFY_RTE( pAllocatorData );
+		    const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+            VERIFY_RTE( pCycleData );
+            
+            os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
+            os << "{\n";
+            
+            os << "    if( !" << Printer( pAllocatorData, "_parent_id" ) << ".full() )\n";
+            os << "    {\n";
+            os << "        const " << EG_INSTANCE << " freeIndex = " << Printer( pAllocatorData, "_parent_id" ) << ".nextFree();\n";
+            os << "        const " << EG_INSTANCE << " newInstance = " << "_parent_id * " << pAction->getLocalDomainSize() << " + freeIndex;\n";
+            os << "        if( " << Printer( pCycleData, "newInstance" ) << " < clock::cycle() )\n";
+            os << "        {\n";
+            os << "            " << Printer( pAllocatorData, "_parent_id" ) << ".allocate( freeIndex );\n";
+            os << "            const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
+            os << "            " << getStaticType( pAction->getContext() ) << "& reference = " << Printer( pReferenceData, "newInstance" ) << ";\n";
+            os << "            reference.data.timestamp = startCycle;\n";
+            os << "            reference.data.type = " << pAction->getIndex() << ";\n";
+            os << "            " << Printer( pStateData, "newInstance" ) << " = " << getActionState( action_running ) << ";\n";
+            os << "            events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            os << "            return reference;\n";
+            os << "        }\n";
+            os << "    }\n";
+            
+            std::ostringstream osError;
+            osError << "Error attempting to start type: " << pAction->getName();
+            os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "    " << getStaticType( pAction->getContext() ) << " nullInstance;\n";
+            os << "    return nullInstance;\n";
+            os << "}\n";
+            os << "\n";
+        }
+        else
+        {
+            THROW_RTE( "Unknown allocator type" );
         }
 	}
 	
@@ -203,6 +224,53 @@ namespace eg
         os << "\n";
 	}
 	
+    void generateSubTreeStop( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+    {
+        //stop the subtree
+        for( const concrete::Element* pChild : pAction->getChildren() )
+        {
+            if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
+            {
+                const concrete::Allocator* pChildAllocator = pAction->getAllocator( pChildAction );
+                VERIFY_RTE( pChildAllocator );
+                
+                if( const concrete::NothingAllocator* pChildNothingAllocator =
+                        dynamic_cast< const concrete::NothingAllocator* >( pChildAllocator ) )
+                {
+                    //do nothing
+                }
+                else if( const concrete::SingletonAllocator* pChildSingletonAllocator =
+                        dynamic_cast< const concrete::SingletonAllocator* >( pChildAllocator ) )
+                {
+                    const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
+        os << "        if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+        os << "             " << pChildAction->getName() << "_stopper( _gid );\n";
+                    
+                }
+                else if( const concrete::RangeAllocator* pChildRangeAllocator =
+                        dynamic_cast< const concrete::RangeAllocator* >( pChildAllocator ) )
+                {
+                    const DataMember* pChildAllocatorData = layout.getDataMember( pChildRangeAllocator->getAllocatorData() );
+                    const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
+                    
+        os << "        if( !" << Printer( pChildAllocatorData, "_gid" ) << ".empty() )\n";
+        os << "        {\n";
+        os << "            for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
+                                "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
+        os << "            {\n";
+        os << "                if( " << Printer( pStateData, "childIndex" ) << " != " << getActionState( action_stopped ) << " )\n";
+        os << "                    " << pChildAction->getName() << "_stopper( childIndex );\n";
+        os << "            }\n";
+        os << "        }\n";
+                }
+                else
+                {
+                    THROW_RTE( "Unknown allocator type" );
+                }
+            }
+        }
+    }
+    
 	void generateMainActionStopper( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
 	{
         os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
@@ -215,21 +283,11 @@ namespace eg
 		
         os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
-                        //stop the subtree
-                for( const concrete::Element* pChild : pAction->getChildren() )
-                {
-                    if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
-                    {
-        os << "         for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
-                                "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
-        os << "         {\n";
-        os << "             " << pChildAction->getName() << "_stopper( childIndex );\n";
-        os << "         }\n";
-                    }
-                }
         os << "         " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
         os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
         os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+        //stop the subtree
+        generateSubTreeStop( os, layout, pAction );
         os << "     }\n";
 		
         os << "}\n";
@@ -237,88 +295,84 @@ namespace eg
 	}
 	void generateExecutableActionStopper( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
 	{
-		////stopper
-        os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
-        os << "{\n";
-        os << "     " << EG_INSTANCE << " _parent_id = _gid / " << pAction->getLocalDomainSize() << ";\n";
         
+		VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
 		const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
 		VERIFY_RTE( pParentAction );
+        const concrete::Allocator* pAllocator = pParentAction->getAllocator( pAction );
+        VERIFY_RTE( pAllocator );
 		
-		const DataMember* pIteratorData = layout.getDataMember( pParentAction->getIterator( pAction ) );
-		const DataMember* pAllocatorData = layout.getDataMember( pAction->getAllocatorData() );
-		const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
-		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
-		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
-		const DataMember* pRingIndex = layout.getDataMember( pAction->getRingIndex() );
-                
-        os << "     if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
-        os << "     {\n";
-        os << "         ::eg::Scheduler::stopperStopped( " << Printer( pReferenceData, "_gid" ) << ".data );\n";
-        os << "         " << EG_RING_BUFFER_ALLOCATOR_TYPE << " iter;\n";
-        os << "         while( true )\n";
-        os << "         {\n";
-        os << "              iter = " << Printer( pIteratorData, "_parent_id" ) << ";\n";
-        os << "              if( iter.protection )\n";
-        os << "                  continue;\n";
-        os << "              const " << EG_INSTANCE << " ringBufferTailIndex = _parent_id * " << pAction->getLocalDomainSize() << " + static_cast< " << EG_INSTANCE << " >( iter.tail );\n";
-        os << "              //if buffer is full then set the protection bit while freeing\n";
-        os << "              if( iter.full )\n";
-        os << "              {\n";
-        os << "                  iter.protection = 1U;\n";
-        os << "                  iter.full = 0U;\n";
-        os << "              }\n";
-        os << "              //claim the index to store free instance\n";
-        os << "              if( static_cast< " << EG_INSTANCE << " >( iter.tail ) == " << pAction->getLocalDomainSize() << " - 1U )\n";
-        os << "              {\n";
-        os << "                  iter.tail = 0U;\n";
-        os << "              }\n";
-        os << "              else\n";
-        os << "              {\n";
-        os << "                  ++iter.tail;\n";
-        os << "              }\n";
-		os << "              " << Printer( pIteratorData, "_parent_id" ) << " = iter.data;\n";
-        os << "              {\n";
-        os << "                  //successfully freed index\n";
-        os << "                  const " << EG_INSTANCE << " ringIndex = " << Printer( pRingIndex, "_gid" ) << ";\n";
-        os << "                  if( ringBufferTailIndex != ringIndex )\n";
-        os << "                  {\n";
-        os << "                      const " << EG_INSTANCE << " tailInstance = " << Printer( pAllocatorData, "ringBufferTailIndex" ) << ";\n";
-        os << "                      " << Printer( pAllocatorData, "ringIndex" ) << " = tailInstance;\n";
-        os << "                      " << Printer( pRingIndex, "tailInstance" ) << " = ringIndex;\n";
-        os << "                  }\n";
-        os << "                  " << Printer( pAllocatorData, "ringBufferTailIndex" ) << " = _gid;\n";
-        os << "                  if( iter.protection )\n";
-        os << "                  {\n";
-        os << "                      //turn off the protection bit\n";
-        os << "                      iter.protection = 0;\n";
-        os << "                      " << Printer( pIteratorData, "_parent_id" ) << " = iter.data;\n";
-        os << "                  }\n";
-        os << "                  break;\n";
-        os << "              }\n";
-        os << "         }\n";   
-                        
-                        
-                        //stop the subtree
-                for( const concrete::Element* pChild : pAction->getChildren() )
-                {
-                    if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
-                    {
-        os << "         for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
-                                "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
-        os << "         {\n";
-        os << "             " << pChildAction->getName() << "_stopper( childIndex );\n";
-        os << "         }\n";
-                    }
-                }
+        if( const concrete::NothingAllocator* pNothingAllocator =
+                dynamic_cast< const concrete::NothingAllocator* >( pAllocator ) )
+        {
+            //do nothing
+        }
+        else if( const concrete::SingletonAllocator* pSingletonAllocator =
+                dynamic_cast< const concrete::SingletonAllocator* >( pAllocator ) )
+        {
+            const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+            const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+		    const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+            
+            os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
+            os << "{\n";
+            os << "    if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "    {\n";
+            os << "        ::eg::Scheduler::stopperStopped( " << Printer( pReferenceData, "_gid" ) << ".data );\n";
+            os << "        " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+            os << "        " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
+            os << "        events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            
+            //stop the subtree
+            generateSubTreeStop( os, layout, pAction );
         
-        os << "         " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-        os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
-        os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
-        os << "     }\n";
+            os << "    }\n";
+            os << "    else\n";
+            os << "    {\n";
+            std::ostringstream osError;
+            osError << "Error attempting to stop type: " << pAction->getName();
+            os << "        events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "    }\n";
+            os << "}\n";
+            os << "\n";
+        }
+        else if( const concrete::RangeAllocator* pRangeAllocator =
+                dynamic_cast< const concrete::RangeAllocator* >( pAllocator ) )
+        {
+            const DataMember* pStateData = layout.getDataMember( pAction->getState() );
+            const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
+            const DataMember* pAllocatorData = layout.getDataMember( pRangeAllocator->getAllocatorData() );
+		    const DataMember* pCycleData = layout.getDataMember( pAction->getStopCycle() );
+            
+            os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
+            os << "{\n";
+            os << "    if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "    {\n";
+            os << "        ::eg::Scheduler::stopperStopped( " << Printer( pReferenceData, "_gid" ) << ".data );\n";
+            os << "        const " << EG_INSTANCE << " _parentIndex = " << "_gid / " << pAction->getLocalDomainSize() << ";\n";
+            os << "        const " << EG_INSTANCE << " freeIndex = " << "_gid - _parentIndex * " << pAction->getLocalDomainSize() << ";\n";
+            os << "        " << Printer( pAllocatorData, "_parentIndex" ) << ".free( freeIndex );\n";
+            os << "        " << Printer( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+            os << "        " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
+            os << "        events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            
+            //stop the subtree
+            generateSubTreeStop( os, layout, pAction );
         
-        os << "}\n";
-        os << "\n";
+            os << "    }\n";
+            os << "    else\n";
+            os << "    {\n";
+            std::ostringstream osError;
+            osError << "Error attempting to stop type: " << pAction->getName();
+            os << "        events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "    }\n";
+            os << "}\n";
+            os << "\n";
+        }
+        else
+        {
+            THROW_RTE( "Unknown allocator type" );
+        }
 	}
 
 	void generateBreaker( std::ostream& os, const Layout& layout, const concrete::Action* pAction )

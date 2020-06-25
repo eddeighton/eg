@@ -19,6 +19,7 @@
 
 
 #include "eg_compiler/concrete.hpp"
+#include "eg_compiler/allocator.hpp"
 #include "eg_compiler/link.hpp"
 
 namespace eg
@@ -97,13 +98,6 @@ namespace concrete
         Element::store( storer );
     }
     
-    int Dimension::getTotalDomainSize() const
-    {
-        const Action* pParentAction = dynamic_cast< const Action* >( m_pParent );
-        VERIFY_RTE( pParentAction );
-        return pParentAction->getTotalDomainSize();
-    }
-    
     void Dimension_User::load( Loader& loader )
     {
         Dimension::load( loader );
@@ -119,27 +113,6 @@ namespace concrete
     void Dimension_User::print( std::ostream& os, std::string& strIndent ) const
     {
         os << strIndent << "dim(" << getIndex() << "): " << getDimension()->getIdentifier() << "\n";
-    }
-    
-    int Dimension_User::getDataSize() const
-    {
-        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
-        if( pNodeDimension->getContextTypes().empty() )
-        {
-            return pNodeDimension->getSize();
-        }
-        else if( pNodeDimension->getContextTypes().size() == 1U )
-        {
-            const interface::Context* pAction = pNodeDimension->getContextTypes().front();
-            if( pAction->isIndirectlyAbstract() )
-                return 12;
-            else
-                return 8;
-        }
-        else
-        {
-            return 12;
-        }
     }
     
     void Dimension_Generated::load( Loader& loader )
@@ -164,44 +137,18 @@ namespace concrete
     {
         //do nothing
     }
-    
-    int Dimension_Generated::getDataSize() const
-    {
-        switch( m_type )
-        {
-            case eActionStopCycle    :
-                return 4;
-            case eActionState        :
-                return 4;
-            case eActionReference    :
-                return 12;
-            case eActionAllocatorData:
-                return 4;
-            case eActionAllocatorHead:
-                return 8;
-            case eRingIndex:
-                return 4;
-            case eLinkReference:
-                return 12;
-            case eLinkReferenceCount:
-                return 4;
-            default:
-                THROW_RTE( "Unknown generated dimension type" );
-        }
-    }
 		
     void Action::load( Loader& loader )
     {
         Element::load( loader );
         m_pObject = loader.loadObjectRef< Action >();
         m_inheritance = loader.loadObjectRef< Inheritance_Node >();
+        m_pAllocator = loader.loadObjectRef< Allocator >();
         loader.load( m_strName );
         loader.load( m_totalDomainSize );
         m_pStopCycle        = loader.loadObjectRef< Dimension_Generated >();
         m_pState            = loader.loadObjectRef< Dimension_Generated >();
         m_pReference        = loader.loadObjectRef< Dimension_Generated >();
-        m_pAllocatorData    = loader.loadObjectRef< Dimension_Generated >();
-        m_pRingIndex        = loader.loadObjectRef< Dimension_Generated >();
         m_pLinkRefCount     = loader.loadObjectRef< Dimension_Generated >();
         loader.loadObjectMap( m_allocators );
         loader.loadKeyObjectMap( m_links );
@@ -212,13 +159,12 @@ namespace concrete
         Element::store( storer );
         storer.storeObjectRef( m_pObject );
         storer.storeObjectRef( m_inheritance );
+        storer.storeObjectRef( m_pAllocator );
         storer.store( m_strName );
         storer.store( m_totalDomainSize );
         storer.storeObjectRef( m_pStopCycle     );
         storer.storeObjectRef( m_pState         );
         storer.storeObjectRef( m_pReference     );
-        storer.storeObjectRef( m_pAllocatorData );
-        storer.storeObjectRef( m_pRingIndex     );
         storer.storeObjectRef( m_pLinkRefCount  );
         storer.storeObjectMap( m_allocators );
         storer.storeKeyObjectMap( m_links );
@@ -251,11 +197,7 @@ namespace concrete
             }
         }
     }
-	
-    int Action::getDataSize() const
-    {
-        return 0;
-    }
+    
     int Action::getLocalDomainSize() const
     {
         const interface::Context* pAction = getContext();
@@ -301,7 +243,6 @@ namespace concrete
         {
             switch( pElement->getType() )
             {
-                
                 case eConcreteAction:
                 case eConcreteDimensionGenerated:
                     break;
@@ -322,6 +263,25 @@ namespace concrete
         }
         
         return pDimension;
+    }
+    
+    bool Action::hasUserDimensions() const
+    {
+        for( Element* pElement : m_children )
+        {
+            switch( pElement->getType() )
+            {
+                case eConcreteAction:
+                case eConcreteDimensionGenerated:
+                    break;
+                case eConcreteDimensionUser :  
+                    return true;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break;
+            }
+        }
+        return false;
     }
 
 } //namespace concrete

@@ -31,6 +31,7 @@
 #include "eg_compiler/derivation.hpp"
 #include "eg_compiler/translation_unit.hpp"
 #include "eg_compiler/invocation.hpp"
+#include "eg_compiler/allocator.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -420,8 +421,8 @@ namespace eg
     {
         const concrete::Action* pParent = dynamic_cast< const concrete::Action* >( ins.getConcreteType()->getParent() );
         VERIFY_RTE( pParent );
-        const concrete::Dimension_Generated* pReferenceDimension = pParent->getReference();
-        VERIFY_RTE( pReferenceDimension );
+        const concrete::Allocator* pAllocator = pParent->getAllocator( ins.getConcreteType() );
+        VERIFY_RTE( pAllocator );
         const interface::Context* pStaticType = ins.getConcreteType()->getContext();
         VERIFY_RTE( pStaticType );
         
@@ -432,132 +433,92 @@ namespace eg
         }
         else if( const interface::Event* pContext = dynamic_cast< const interface::Event* >( pStaticType ) )
         {
-            THROW_RTE( "TODO" );
-            //immediately start and stop the event
-            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
-                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+            const concrete::SingletonAllocator* pSingletonAllocator =
+                dynamic_cast< const concrete::SingletonAllocator* >( pAllocator );
+            const concrete::RangeAllocator* pRangeAllocator =
+                dynamic_cast< const concrete::RangeAllocator* >( pAllocator );
                 
-            os << generator.getIndent() << "if( ref )\n";
-            os << generator.getIndent() << "{\n";
-			os << generator.getIndent() << "    ::eg::Scheduler::signal_ref( ref, &" << ins.getConcreteType()->getName() << "_stopper " << " );\n";
-            os << generator.getIndent() << "}\n";
-            os << generator.getIndent() << "else\n";
-            os << generator.getIndent() << "{\n";
-            os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
-            os << generator.getIndent() << "}\n";
-            
+            if( const concrete::NothingAllocator* pNothingAllocator =
+                dynamic_cast< const concrete::NothingAllocator* >( pAllocator ) )
+            {
+                os << generator.getIndent() << getStaticType( pStaticType ) << " ref = eg::reference{ " << generator.getVarExpr( ins.getInstance() ) << 
+                    ", " << ins.getConcreteType()->getIndex() << ", clock::cycle() };\n";
+                os << generator.getIndent() << "::eg::Scheduler::signal_ref( ref );\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
+            else if( pSingletonAllocator || pRangeAllocator )
+            {
+                os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
+                    "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+                os << generator.getIndent() << "if( ref )\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ::eg::Scheduler::signal_ref( ref );\n";
+                os << generator.getIndent() << "    " << ins.getConcreteType()->getName() << "_stopper( ref.data.instance );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "else\n";
+                os << generator.getIndent() << "{\n";
+                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                os << generator.getIndent() << "}\n";
+                os << generator.getIndent() << "return ref;\n";
+            }
+            else
+            {
+                THROW_RTE( "Unknown allocator type" );
+            }
         }
         else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pStaticType ) )
         {
+            VERIFY_RTE( dynamic_cast< const concrete::NothingAllocator* >( pAllocator ) );
             //directly invoke the function
             os << generator.getIndent() << getStaticType( pStaticType ) << " ref = eg::reference{ " << generator.getVarExpr( ins.getInstance() ) << 
                 ", " << ins.getConcreteType()->getIndex() << ", clock::cycle() };\n";
             os << generator.getIndent() << "return ref( args... );\n";
         }
-        else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pStaticType ) )
-        {
-            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
-                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
-                
-            if( pContext->hasDefinition() )
-            {
-                os << generator.getIndent() << "if( ref )\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper, args... );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "else\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "return ref;\n";
-            }
-            else
-            {
-                os << generator.getIndent() << "if( ref )\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ::eg::Scheduler::allocated_ref( ref.data, &" << ins.getConcreteType()->getName() << "_stopper );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "else\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "return ref;\n";
-            }
-        }
-        else if( const interface::Object* pContext = dynamic_cast< const interface::Object* >( pStaticType ) )
-        {
-            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
-                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
-                
-            if( pContext->hasDefinition() )
-            {
-                os << generator.getIndent() << "if( ref )\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper, args... );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "else\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "return ref;\n";
-            }
-            else
-            {
-                os << generator.getIndent() << "if( ref )\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ::eg::Scheduler::allocated_ref( ref.data, &" << ins.getConcreteType()->getName() << "_stopper );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "else\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "return ref;\n";
-            }
-        }
-        else if( const interface::Link* pContext = dynamic_cast< const interface::Link* >( pStaticType ) )
-        {
-            os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
-                "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
-                
-            if( pContext->hasDefinition() )
-            {
-                os << generator.getIndent() << "if( ref )\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper, args... );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "else\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "return ref;\n";
-            }
-            else
-            {
-                os << generator.getIndent() << "if( ref )\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ::eg::Scheduler::allocated_ref( ref.data, &" << ins.getConcreteType()->getName() << "_stopper );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "else\n";
-                os << generator.getIndent() << "{\n";
-                os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
-                os << generator.getIndent() << "}\n";
-                os << generator.getIndent() << "return ref;\n";
-            }
-        }
         else
         {
-            THROW_RTE( "Unknown abstract type" );
+            const interface::Action*    pActionContext  = dynamic_cast< const interface::Action* >( pStaticType );
+            const interface::Object*    pObjectContext  = dynamic_cast< const interface::Object* >( pStaticType );
+            const interface::Link*      pLinkContext    = dynamic_cast< const interface::Link* >( pStaticType );
+            
+            if( pActionContext || pObjectContext || pLinkContext )
+            {
+                os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
+                    "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
+                    
+                if( pStaticType->hasDefinition() )
+                {
+                    os << generator.getIndent() << "if( ref )\n";
+                    os << generator.getIndent() << "{\n";
+                    os << generator.getIndent() << "    ::eg::Scheduler::call( ref, &" << ins.getConcreteType()->getName() << "_stopper, args... );\n";
+                    os << generator.getIndent() << "}\n";
+                    os << generator.getIndent() << "else\n";
+                    os << generator.getIndent() << "{\n";
+                    os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                    os << generator.getIndent() << "}\n";
+                    os << generator.getIndent() << "return ref;\n";
+                }
+                else
+                {
+                    os << generator.getIndent() << "if( ref )\n";
+                    os << generator.getIndent() << "{\n";
+                    os << generator.getIndent() << "    ::eg::Scheduler::allocated_ref( ref.data, &" << ins.getConcreteType()->getName() << "_stopper );\n";
+                    os << generator.getIndent() << "}\n";
+                    os << generator.getIndent() << "else\n";
+                    os << generator.getIndent() << "{\n";
+                    os << generator.getIndent() << "    ERR( \"Failed to allocate action: " << ins.getConcreteType()->getName() << "\" );\n";
+                    os << generator.getIndent() << "}\n";
+                    os << generator.getIndent() << "return ref;\n";
+                }
+            }
+            else
+            {
+                THROW_RTE( "Unknown abstract type" );
+            }
         }
     }
     void generate( const StartOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        THROW_RTE( "TODO" );
-        //const interface::Context* pStaticType = ins.getConcreteType()->getContext();
-        //
-        //os << generator.getIndent() << getStaticType( pStaticType ) << " ref = " << ins.getConcreteType()->getName() << 
-        //    "_starter( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
-        //    
-        //os << generator.getIndent() << "return ref;\n"; 
+        THROW_RTE( "TODO StartOperation" );
     }
     void generate( const StopOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
@@ -598,35 +559,54 @@ namespace eg
     }
     void generate( const DoneOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        const concrete::Action::IteratorMap& iterators = ins.getConcreteType()->getAllocators();
-        os << generator.getIndent() << EG_RING_BUFFER_ALLOCATOR_TYPE << " iter;\n";
-        for( concrete::Action::IteratorMap::const_iterator 
-            i = iterators.begin(),
-            iEnd = iterators.end(); i!=iEnd; ++i )
+        const concrete::Action::AllocatorMap& allocators = ins.getConcreteType()->getAllocators();
+        
+        for( concrete::Action::AllocatorMap::const_iterator 
+            i = allocators.begin(),
+            iEnd = allocators.end(); i!=iEnd; ++i )
         {
-            const concrete::Dimension_Generated* pIterator = i->second;
-            os << generator.getIndent() << "iter = " << 
-                generator.getDimension( pIterator, generator.getVarExpr( ins.getInstance() ) ) << ";\n";
-            os << generator.getIndent() << "if( iter.full || ( iter.head != iter.tail ) ) return false;\n";
+            if( const concrete::NothingAllocator* pNothingAllocator = dynamic_cast< const concrete::NothingAllocator* >( i->second ) )
+            {
+                //do nothing
+            }
+            else if( const concrete::SingletonAllocator* pSingletonAllocator = dynamic_cast< const concrete::SingletonAllocator* >( i->second ) )
+            {
+                //test the active state of the single instance
+                const concrete::Action* pAllocated = pSingletonAllocator->getAllocated();
+                os << generator.getIndent() << "if( !" <<
+                    generator.getDimension( pAllocated->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
+                    " == " << getActionState( action_stopped ) << " ) return false;\n";
+            }
+            if( const concrete::RangeAllocator* pRangeAllocator = dynamic_cast< const concrete::RangeAllocator* >( i->second ) )
+            {
+                const concrete::Dimension_Generated* pAllocatorData = pRangeAllocator->getAllocatorData();
+                os << generator.getIndent() << "if( !" <<
+                    generator.getDimension( pAllocatorData, generator.getVarExpr( ins.getInstance() ) ) << ".empty() ) return false;\n";
+            }
+            else
+            {
+                THROW_RTE( "Unknown allocator type" );
+            }
         }
         
         os << generator.getIndent() << "return true;\n";
     }
     void generate( const WaitActionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        THROW_RTE( "TODO" );
+        THROW_RTE( "TODO WaitActionOperation" );
         os << generator.getIndent() << "return " <<
             generator.getDimension( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
         
     }
     void generate( const WaitDimensionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
-        THROW_RTE( "TODO" );
+        THROW_RTE( "TODO WaitDimensionOperation" );
         os << generator.getIndent() << "return " << 
             generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
     void generate( const GetActionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
+        VERIFY_RTE( ins.getConcreteType()->getReference() );
         os << generator.getIndent() << "return " <<
             generator.getDimension( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
         
@@ -647,6 +627,7 @@ namespace eg
             generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
         
         const concrete::Action* pReturnType = ins.getInstance()->getConcreteType();
+        VERIFY_RTE( pReturnType->getReference() );
         os << generator.getIndent() << "return " << 
             generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
