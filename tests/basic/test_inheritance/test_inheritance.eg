@@ -47,29 +47,22 @@ action E[ 2 ] : B
     
 
 
-dim int state;
-state( state() + 1 );
-if( state() == 1 ) 
-{
+A a = A(); //A
 
-    A a = A(); //A
-    
-    a.C().F(); //A::C, A::C::F
-    a.D().G(); //A::D, A::D::G
+a.C().F(); //A::C, A::C::F
+a.D().G(); //A::D, A::D::G
 
-    A b = B(); //B
-    
-    b.C().F(); //B::C, A::C::F
-    b.D().G(); //A::D, A::D::G
-    
-    A e = E(); //E
-    e.C().F(); //B::C, A::C::F
-    e.D().G(); //E::D, A::D::G
+A b = B(); //B
 
-	
-	return eg::sleep();
-}
+b.C().F(); //B::C, A::C::F
+b.D().G(); //A::D, A::D::G
 
+A e = E(); //E
+e.C().F(); //B::C, A::C::F
+e.D().G(); //E::D, A::D::G
+
+
+co_yield eg::sleep();
 
 
 eg::event_iterator iter = events::getIterator();

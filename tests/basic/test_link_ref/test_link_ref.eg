@@ -28,23 +28,15 @@ link Test : Foobar
 }
 
 
+A a = A();
+Test t = Test();
+t.base( t.actA() );
 
-dim int state;
-state( state() + 1 );
-if( state() == 1 ) 
-{
-    
-    A a = A();
-    Test t = Test();
-    t.base( t.actA() );
-    
-    
-    //t.base( Foobar::null() );
-    t.Stop();
+//t.base( Foobar::null() );
+t.Stop();
 
 
-	return eg::sleep();
-}
+co_yield eg::sleep();
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

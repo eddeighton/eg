@@ -8,11 +8,11 @@ object Test
     {
         action C;
     }
-    /*
+    
     function foobar( int i ) : int
     {
         return i + 1;
-    }*/
+    }
 }
 
 action Test::A
@@ -32,17 +32,12 @@ action Test::A::B
 
 link TestLink : Test;
 
-dim int state;
-state( state() + 1 );
-if( state() == 1 ) 
-{
-    Test();
-    TestLink().base( Test.Get() );
-    Test.Get().A().B();
-    
-	return eg::sleep();
-}
 
+Test();
+TestLink().base( Test.Get() );
+Test.Get().A().B();
+
+co_yield eg::sleep();
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

@@ -1,21 +1,7 @@
 
-
-dim int state;
-state( state() + 1 );
-
-switch( state() )
-{
-	case 1:
-	{
-		LOG( "waiting" );
-		return eg::wait();
-	}
-	case 2:
-	{
-		LOG( "done" );
-		break;
-	}
-}
+LOG( "waiting" );
+co_yield eg::wait();
+LOG( "done" );
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

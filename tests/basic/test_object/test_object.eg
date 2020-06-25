@@ -17,7 +17,6 @@ action B
     {
         object D[ 2 ]
         {
-            
             dim int x4;
             
             object C
@@ -45,6 +44,6 @@ B::C::D d = D();
 d.x4( 1 );
 
 
-x4();
+//x4();
 
 //B::C c2 = B::C::D::C();

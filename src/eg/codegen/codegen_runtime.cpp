@@ -231,41 +231,41 @@ namespace eg
         {
             if( const concrete::Action* pChildAction = dynamic_cast< const concrete::Action* >( pChild ) )
             {
-                const concrete::Allocator* pChildAllocator = pAction->getAllocator( pChildAction );
-                VERIFY_RTE( pChildAllocator );
-                
-                if( const concrete::NothingAllocator* pChildNothingAllocator =
-                        dynamic_cast< const concrete::NothingAllocator* >( pChildAllocator ) )
+                if( const concrete::Allocator* pChildAllocator = pChildAction->getAllocator() )
                 {
-                    //do nothing
-                }
-                else if( const concrete::SingletonAllocator* pChildSingletonAllocator =
-                        dynamic_cast< const concrete::SingletonAllocator* >( pChildAllocator ) )
-                {
-                    const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
-        os << "        if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
-        os << "             " << pChildAction->getName() << "_stopper( _gid );\n";
-                    
-                }
-                else if( const concrete::RangeAllocator* pChildRangeAllocator =
-                        dynamic_cast< const concrete::RangeAllocator* >( pChildAllocator ) )
-                {
-                    const DataMember* pChildAllocatorData = layout.getDataMember( pChildRangeAllocator->getAllocatorData() );
-                    const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
-                    
-        os << "        if( !" << Printer( pChildAllocatorData, "_gid" ) << ".empty() )\n";
-        os << "        {\n";
-        os << "            for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
-                                "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
-        os << "            {\n";
-        os << "                if( " << Printer( pStateData, "childIndex" ) << " != " << getActionState( action_stopped ) << " )\n";
-        os << "                    " << pChildAction->getName() << "_stopper( childIndex );\n";
-        os << "            }\n";
-        os << "        }\n";
-                }
-                else
-                {
-                    THROW_RTE( "Unknown allocator type" );
+                    if( const concrete::NothingAllocator* pChildNothingAllocator =
+                            dynamic_cast< const concrete::NothingAllocator* >( pChildAllocator ) )
+                    {
+                        //do nothing
+                    }
+                    else if( const concrete::SingletonAllocator* pChildSingletonAllocator =
+                            dynamic_cast< const concrete::SingletonAllocator* >( pChildAllocator ) )
+                    {
+                        const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
+            os << "        if( " << Printer( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "             " << pChildAction->getName() << "_stopper( _gid );\n";
+                        
+                    }
+                    else if( const concrete::RangeAllocator* pChildRangeAllocator =
+                            dynamic_cast< const concrete::RangeAllocator* >( pChildAllocator ) )
+                    {
+                        const DataMember* pChildAllocatorData = layout.getDataMember( pChildRangeAllocator->getAllocatorData() );
+                        const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
+                        
+            os << "        if( !" << Printer( pChildAllocatorData, "_gid" ) << ".empty() )\n";
+            os << "        {\n";
+            os << "            for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
+                                    "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
+            os << "            {\n";
+            os << "                if( " << Printer( pStateData, "childIndex" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "                    " << pChildAction->getName() << "_stopper( childIndex );\n";
+            os << "            }\n";
+            os << "        }\n";
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown allocator type" );
+                    }
                 }
             }
         }
@@ -295,7 +295,6 @@ namespace eg
 	}
 	void generateExecutableActionStopper( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
 	{
-        
 		VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
 		const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
 		VERIFY_RTE( pParentAction );
@@ -401,39 +400,40 @@ namespace eg
         
             for( const concrete::Action* pTargetType : pLinkGroup->getTargets() )
             {
-                LinkGroup::LinkRefMap::const_iterator iFind =
-                    pLinkGroup->getDimensionMap().find( pTargetType );
-                VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
-                const concrete::Dimension_Generated* pLinkTargetRefDimension = iFind->second;
-                VERIFY_RTE( pLinkTargetRefDimension );
-                const DataMember* pLinkRef = layout.getDataMember( pLinkTargetRefDimension );
-                VERIFY_RTE( pLinkRef );
-                
-                const concrete::Action* pObject = pTargetType->getObject();
-                VERIFY_RTE( pObject );
-                
-                if( pObject->getContext()->isMainExecutable() )
+                if( const concrete::Action* pObject = pTargetType->getObject() )
                 {
-        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "_gid" ) << " = { 0, 0, 0 }; break;\n";
-                }
-                else
-                {
-                    const concrete::Dimension_Generated* pLinkRefCount = pObject->getLinkRefCount();
-                    VERIFY_RTE( pLinkRefCount );
-                    const DataMember* pLinkRefCountDataMember = layout.getDataMember( pLinkRefCount );
-                    VERIFY_RTE( pLinkRefCountDataMember );
+                    LinkGroup::LinkRefMap::const_iterator iFind =
+                        pLinkGroup->getDimensionMap().find( pTargetType );
+                    VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
+                    const concrete::Dimension_Generated* pLinkTargetRefDimension = iFind->second;
+                    VERIFY_RTE( pLinkTargetRefDimension );
+                    const DataMember* pLinkRef = layout.getDataMember( pLinkTargetRefDimension );
+                    VERIFY_RTE( pLinkRef );
                     
-                    const DataMember* pReferenceData = layout.getDataMember( pObject->getReference() );
+                    VERIFY_RTE( pObject );
                     
-                    std::ostringstream osDomain;
+                    if( pObject->getContext()->isMainExecutable() )
                     {
-                        const int iDomainFactor = pObject->getObjectDomainFactor();
-                        if( iDomainFactor == 1 )
-                            osDomain << "_gid";
-                        else
-                            osDomain << "_gid / " << iDomainFactor;
+        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "_gid" ) << " = { 0, 0, 0 }; break;\n";
                     }
-                
+                    else
+                    {
+                        const concrete::Dimension_Generated* pLinkRefCount = pObject->getLinkRefCount();
+                        VERIFY_RTE( pLinkRefCount );
+                        const DataMember* pLinkRefCountDataMember = layout.getDataMember( pLinkRefCount );
+                        VERIFY_RTE( pLinkRefCountDataMember );
+                        
+                        const DataMember* pReferenceData = layout.getDataMember( pObject->getReference() );
+                        
+                        std::ostringstream osDomain;
+                        {
+                            const int iDomainFactor = pObject->getObjectDomainFactor();
+                            if( iDomainFactor == 1 )
+                                osDomain << "_gid";
+                            else
+                                osDomain << "_gid / " << iDomainFactor;
+                        }
+                    
         os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "_gid" ) << " = { 0, 0, 0 };\n";
         os << "           " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
         os << "           if( " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
@@ -442,6 +442,7 @@ namespace eg
                                 "&" << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
         os << "           }\n";
         os << "           break;\n";
+                    }
                 }
             }
             

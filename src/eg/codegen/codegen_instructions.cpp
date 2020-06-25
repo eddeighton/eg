@@ -573,11 +573,11 @@ namespace eg
             {
                 //test the active state of the single instance
                 const concrete::Action* pAllocated = pSingletonAllocator->getAllocated();
-                os << generator.getIndent() << "if( !" <<
+                os << generator.getIndent() << "if( " <<
                     generator.getDimension( pAllocated->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
-                    " == " << getActionState( action_stopped ) << " ) return false;\n";
+                    " != " << getActionState( action_stopped ) << " ) return false;\n";
             }
-            if( const concrete::RangeAllocator* pRangeAllocator = dynamic_cast< const concrete::RangeAllocator* >( i->second ) )
+            else if( const concrete::RangeAllocator* pRangeAllocator = dynamic_cast< const concrete::RangeAllocator* >( i->second ) )
             {
                 const concrete::Dimension_Generated* pAllocatorData = pRangeAllocator->getAllocatorData();
                 os << generator.getIndent() << "if( !" <<
@@ -627,9 +627,17 @@ namespace eg
             generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
         
         const concrete::Action* pReturnType = ins.getInstance()->getConcreteType();
-        VERIFY_RTE( pReturnType->getReference() );
-        os << generator.getIndent() << "return " << 
-            generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+        if( pReturnType->getReference() )
+        {
+            os << generator.getIndent() << "return " << 
+                generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+        }
+        else
+        {
+            os << generator.getIndent() << getStaticType( pReturnType->getContext() ) << " ref = eg::reference{ " << generator.getVarExpr( ins.getInstance() ) << 
+                ", " << ins.getConcreteType()->getIndex() << ", clock::cycle() };\n";
+            os << generator.getIndent() << "return ref;\n";
+        }         
     }
 	
     void generate( const WriteLinkOperation& ins, CodeGenerator& generator, std::ostream& os )
@@ -671,64 +679,67 @@ namespace eg
             
             for( concrete::Action* pTargetType : pLinkGroup->getTargets() )
             {
-                //work out the generated dimension for the link group within this target type
-                LinkGroup::LinkRefMap::const_iterator iFind =
-                    pLinkGroup->getDimensionMap().find( pTargetType );
-                VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
-                const concrete::Dimension_Generated* pLinkBackReference = iFind->second;
-                os << generator.getIndent() << "case " << pTargetType->getIndex() << ":\n";
+                if( pTargetType->getObject() )
                 {
-                    generator.pushIndent();
-                    //before assigning the link back reference - test it to see if existing link to it
+                    //work out the generated dimension for the link group within this target type
+                    LinkGroup::LinkRefMap::const_iterator iFind =
+                        pLinkGroup->getDimensionMap().find( pTargetType );
+                    VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
+                    const concrete::Dimension_Generated* pLinkBackReference = iFind->second;
+                    os << generator.getIndent() << "case " << pTargetType->getIndex() << ":\n";
                     {
-                        os << generator.getIndent() << "if( " << 
-                            generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
-                        os << generator.getIndent() << "{\n";
-                        
-                        os << generator.getIndent() << "  switch( " << generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".type )\n";
-                        os << generator.getIndent() << "  {\n";
-                        
-                        for( const concrete::Action* pLink : pLinkGroup->getConcreteLinks() )
+                        generator.pushIndent();
+                        //before assigning the link back reference - test it to see if existing link to it
                         {
-                        os << generator.getIndent() << "    case " << pLink->getIndex() << ": ::eg::Scheduler::stop_ref( " << 
-                            generator.getDimension( pLinkBackReference, "value.data.instance" ) << " ); break;\n";
-                        }
-                        os << generator.getIndent() << "    default: ERR( \"Unknown link type\" ); break;\n";
-                        os << generator.getIndent() << "  }\n";
-                        os << generator.getIndent() << "}\n";
-                        
-                    }
-                    
-                    //finally assign the back reference to the link
-                    {
-                        os << generator.getIndent() << generator.getDimension( pLinkBackReference, "value.data.instance" ) << " = " <<
-                            generator.getDimension( pLinkerReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data;\n";
+                            os << generator.getIndent() << "if( " << 
+                                generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
+                            os << generator.getIndent() << "{\n";
                             
-                        //increment the reference count
-                        {
-                            const concrete::Action* pObject = pTargetType->getObject();
-                            VERIFY_RTE( pObject );
-                            if( !pObject->getContext()->isMainExecutable() )
+                            os << generator.getIndent() << "  switch( " << generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".type )\n";
+                            os << generator.getIndent() << "  {\n";
+                            
+                            for( const concrete::Action* pLink : pLinkGroup->getConcreteLinks() )
                             {
-                                const concrete::Dimension_Generated* pLinkRefCount = pObject->getLinkRefCount();
-                                VERIFY_RTE( pLinkRefCount );
-                                
-                                std::ostringstream osDomain;
-                                {
-                                    const int iDomainFactor = pObject->getObjectDomainFactor();
-                                    if( iDomainFactor == 1 )
-                                        osDomain << "value.data.instance";
-                                    else
-                                        osDomain << "value.data.instance / " << iDomainFactor;
-                                }
-                                os << generator.getIndent() << generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << 
-                                    " = " << generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << " + 1;\n";
+                            os << generator.getIndent() << "    case " << pLink->getIndex() << ": ::eg::Scheduler::stop_ref( " << 
+                                generator.getDimension( pLinkBackReference, "value.data.instance" ) << " ); break;\n";
                             }
-                        }
+                            os << generator.getIndent() << "    default: ERR( \"Unknown link type\" ); break;\n";
+                            os << generator.getIndent() << "  }\n";
+                            os << generator.getIndent() << "}\n";
                             
-                        os << generator.getIndent() << "break;\n";
+                        }
+                        
+                        //finally assign the back reference to the link
+                        {
+                            os << generator.getIndent() << generator.getDimension( pLinkBackReference, "value.data.instance" ) << " = " <<
+                                generator.getDimension( pLinkerReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data;\n";
+                                
+                            //increment the reference count
+                            {
+                                const concrete::Action* pObject = pTargetType->getObject();
+                                VERIFY_RTE( pObject );
+                                if( !pObject->getContext()->isMainExecutable() )
+                                {
+                                    const concrete::Dimension_Generated* pLinkRefCount = pObject->getLinkRefCount();
+                                    VERIFY_RTE( pLinkRefCount );
+                                    
+                                    std::ostringstream osDomain;
+                                    {
+                                        const int iDomainFactor = pObject->getObjectDomainFactor();
+                                        if( iDomainFactor == 1 )
+                                            osDomain << "value.data.instance";
+                                        else
+                                            osDomain << "value.data.instance / " << iDomainFactor;
+                                    }
+                                    os << generator.getIndent() << generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << 
+                                        " = " << generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << " + 1;\n";
+                                }
+                            }
+                                
+                            os << generator.getIndent() << "break;\n";
+                        }
+                        generator.popIndent();
                     }
-                    generator.popIndent();
                 }
             }
             

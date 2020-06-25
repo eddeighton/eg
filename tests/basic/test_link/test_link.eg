@@ -73,20 +73,14 @@ action TestIt
 	}
 }
 
+TestIt();
 
-dim int state;
-state( state() + 1 );
-if( state() == 1 ) 
-{
-	TestIt();
-	
-	Interaction i = Interaction();
-	i.Left().base( C() );
-	i.Right().base( D() );
-	i.Check();
-	
-	return eg::sleep();
-}
+Interaction i = Interaction();
+i.Left().base( C() );
+i.Right().base( D() );
+i.Check();
+
+co_yield eg::sleep();
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

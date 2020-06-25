@@ -1,26 +1,14 @@
 
 
-dim int state;
-state( state() + 1 );
+LOG( "sleeping1:" << clock::cycle() );
+co_yield eg::sleep();
 
-switch( state() )
-{
-	case 1:
-	{
-		LOG( "sleeping1:" << clock::cycle() );
-		return eg::sleep();
-	}
-	case 2:
-	{
-		LOG( "sleeping2:" << clock::cycle() );
-		return eg::sleep();
-	}
-	case 3:
-	{
-		LOG( "done:" << clock::cycle() );
-		return eg::sleep();
-	}
-}
+LOG( "sleeping2:" << clock::cycle() );
+co_yield eg::sleep();
+
+LOG( "done:" << clock::cycle() );
+co_yield eg::sleep();
+
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

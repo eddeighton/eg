@@ -15,7 +15,7 @@ A();
 for( int i = 0; i < 4; ++i )
 {
     LOG( "Tick: " << i );
-    co_yield eg::sleep( 1s );
+    co_yield eg::sleep_until( 1s );
 }
 
 co_return eg::done();
