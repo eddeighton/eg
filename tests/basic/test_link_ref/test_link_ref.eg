@@ -11,33 +11,92 @@ abstract Foobar
 
 object A
 {
-    action actA : Foobar
+    action ActOne : Foobar
     {
         LOG( "actA" );
+        co_yield eg::sleep();
     }
     
-    action actB : Foobar
+    action ActTwo : Foobar
     {
+        LOG( "actB" );
+        co_yield eg::sleep();
     }
 }
 
 
-link Test : Foobar
+link Test[ 2 ] : Foobar
 {
     
 }
 
+//test that the links will keep object A running via ref count until they are stopped
+{
+    A a = A();
+    
+    Test t1 = Test();
+    t1.base( a.ActOne() );
+    
+    Test t2 = Test();
+    t2.base( a.ActTwo() );
+    
+    LOG( "Linked" );
+    co_yield eg::sleep();
+    
+    TEST( eg::Running == a );
+    LOG( "Stopping t1" );
+    t1.Stop();
+    
+    TEST( eg::Running == a );
+    LOG( "Stopping t2" );
+    t2.Stop();
+    
+    TEST( eg::Stopped == a );
+    
+    co_yield eg::sleep();
+    
+    TEST( eg::Invalid == a );
+}
 
-A a = A();
-Test t = Test();
-t.base( t.actA() );
+//test that stopping link target stops the link
 
-//t.base( Foobar::null() );
-t.Stop();
+{
+
+    A a = A();
+    A::ActOne actOne = a.ActOne();
+    
+    Test t1 = Test();
+    t1.base( actOne );
+    
+    TEST( eg::Running == t1 );
+    
+    actOne.Stop();
+    
+    TEST( eg::Stopped == actOne );
+    TEST( eg::Running == a ); //note how a remains running because actOne was stopped, breaking the link before Test was then stopped.
+    TEST( eg::Stopped == t1 );
+    
+    co_yield eg::sleep();
+    
+    TEST( eg::Invalid == actOne );
+    TEST( eg::Running == a );
+    TEST( eg::Invalid == t1 );
+    
+    Test t2 = Test();
+    t2.base( a.ActTwo() );
+    t2.Stop();
+    
+    TEST( eg::Stopped == t2 );
+    TEST( eg::Stopped == a );
+    
+    co_yield eg::sleep();
+    
+    TEST( eg::Invalid == a );
+}
+
 
 
 co_yield eg::sleep();
-
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;
 //while( events::get( iter, ev ) && ( ev.type != "log"s ) );

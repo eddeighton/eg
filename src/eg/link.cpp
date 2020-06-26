@@ -201,6 +201,15 @@ namespace eg
         }
         return nullptr;
     }
+    const LinkGroup* LinkAnalysis::getLinkGroup( const std::string& strName ) const
+    {
+        for( const LinkGroup* pLinkGroup : m_groups )
+        {
+            if( pLinkGroup->getLinkName() == strName )
+                return pLinkGroup;
+        }
+        return nullptr;
+    }
 		
 	void LinkGroup::load( Loader& loader )
 	{

@@ -282,6 +282,7 @@ namespace concrete
             VERIFY_RTE( iFind != m_links.end() );
             return iFind->second;
 		}
+        const LinkMap& getLinks() const { return m_links; }
         const Dimension_User* getLinkBaseDimension() const;
         bool hasUserDimensions() const;
     

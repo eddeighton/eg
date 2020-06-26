@@ -5,7 +5,7 @@ for f in test_*
 do
     echo Test: $f
     cd $f
-    eg --build quick
+    eg --build
     eg --run
     eg --log fail
     cd ..

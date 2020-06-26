@@ -63,9 +63,17 @@ inline eg::TimeStamp getStopCycle( eg::TypeID type, eg::Instance instance );
 template< typename ReferenceType >
 inline bool isActionActive( eg::TypeID type, eg::Instance instance )
 {
-    return 
-        ( getState< ReferenceType >( type, instance ) != eg::action_stopped ) ||
-        ( getStopCycle< ReferenceType >( type, instance ) == clock::cycle() );
+    switch( getState< ReferenceType >( type, instance ) )
+    {
+        case eg::action_running : return true;
+        case eg::action_paused  : return true;
+        case eg::action_stopped :
+            if( getStopCycle< ReferenceType >( type, instance ) == clock::cycle() )
+                return true;
+            else
+                return false;
+        case eg::TOTAL_ACTION_STATES  : return false;
+    }
 }
 
 template< class ReferenceType >

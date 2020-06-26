@@ -362,11 +362,17 @@ namespace
         void allocated( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper)
         {
             eg::Scheduler::ActionOperator actionOperator;
-            ActiveAction* pAction = new ActiveAction( ref, pStopper, actionOperator, 
-                            getActive().end(), 
-                            getWaiting().end(), 
-                            getSleeping().end(),
-                            m_paused.end() );
+            ActiveAction* pAction = 
+                new ActiveAction
+                ( 
+                    ref, 
+                    pStopper, 
+                    actionOperator, 
+                    m_listOne.end(), 
+                    m_listTwo.end(), 
+                    m_listThree.end(),
+                    m_paused.end() 
+                );
                             
             ActiveActionMap::_Pairib insertResult =
                 m_actions.insert( std::make_pair( ref, pAction ) );
@@ -419,11 +425,17 @@ namespace
     
         void call( const eg::reference& ref, eg::Scheduler::StopperFunctionPtr pStopper, eg::Scheduler::ActionOperator actionOperator )
         {
-            ActiveAction* pAction = new ActiveAction( ref, pStopper, actionOperator, 
-                            getActive().end(), 
-                            getWaiting().end(), 
-                            getSleeping().end(),
-                            m_paused.end() );
+            ActiveAction* pAction = 
+                new ActiveAction
+                ( 
+                    ref, 
+                    pStopper, 
+                    actionOperator, 
+                    m_listOne.end(), 
+                    m_listTwo.end(), 
+                    m_listThree.end(),
+                    m_paused.end() 
+                );
                             
              
             ActiveActionMap::_Pairib insertResult =
@@ -597,10 +609,10 @@ namespace
                             timeout_insert( iter, reason.timeout.value() );
                             break;
                         case eReason_Terminated:
+                            m_actions.erase( iter );
                             on_event( m_events_by_ref_wait, m_pCurrentAction->ref );
                             on_event( m_events_by_ref_sleep, m_pCurrentAction->ref );
                             m_pCurrentAction->pStopper( m_pCurrentAction->ref.instance );
-                            m_actions.erase( iter );
                             delete m_pCurrentAction;
                             break;
                         default:

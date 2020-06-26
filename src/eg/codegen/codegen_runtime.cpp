@@ -114,6 +114,19 @@ namespace eg
         
     }
 	
+    void generateActionInit( std::ostream& os, const Layout& layout, const concrete::Action* pAction, const char* pszInstance )
+    {
+        if( const interface::Link* pLink = dynamic_cast< const interface::Link* >( pAction->getContext() ) )
+        {
+            const concrete::Dimension_User* pLinkBaseDimension = pAction->getLinkBaseDimension();
+            VERIFY_RTE( pLinkBaseDimension );
+            const DataMember* pLinkBaseData = layout.getDataMember( pLinkBaseDimension );
+            VERIFY_RTE( pLinkBaseData );
+            
+            os << "            " << Printer( pLinkBaseData, pszInstance ) << ".data = { 0, 0, 0 };\n";
+        }
+    }
+        
 	
 	void generateExecutableActionStarter( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
 	{
@@ -149,6 +162,9 @@ namespace eg
             os << "        reference.data.type = " << pAction->getIndex() << ";\n";
             os << "        " << Printer( pStateData, "_parent_id" ) << " = " << getActionState( action_running ) << ";\n";
             os << "        events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            
+            generateActionInit( os, layout, pAction, "_parent_id" );
+            
             os << "        return reference;\n";
             os << "    }\n";
             
@@ -188,6 +204,9 @@ namespace eg
             os << "            reference.data.type = " << pAction->getIndex() << ";\n";
             os << "            " << Printer( pStateData, "newInstance" ) << " = " << getActionState( action_running ) << ";\n";
             os << "            events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            
+            generateActionInit( os, layout, pAction, "newInstance" );
+            
             os << "            return reference;\n";
             os << "        }\n";
             os << "    }\n";
@@ -271,7 +290,85 @@ namespace eg
         }
     }
     
-	void generateMainActionStopper( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+    void generateStopperLinkBreaks( std::ostream& os, const Layout& layout, const LinkAnalysis& linkAnalysis, const concrete::Action* pAction )
+    {
+        if( const interface::Link* pLink = dynamic_cast< const interface::Link* >( pAction->getContext() ) )
+        {
+            //call the breaker
+            os << "        " << pAction->getName() << "_breaker( _gid );\n";
+        }
+            
+        const concrete::Action* pObject = pAction->getObject();
+        VERIFY_RTE( pObject );
+        const concrete::Dimension_Generated* pLinkRefCount = pObject->getLinkRefCount();
+        VERIFY_RTE( pLinkRefCount );
+        const DataMember* pLinkRefCountDataMember = layout.getDataMember( pLinkRefCount );
+        VERIFY_RTE( pLinkRefCountDataMember );
+        
+        std::ostringstream osObjectDomain;
+        {
+            const int iDomainFactor = pObject->getObjectDomainFactor();
+            if( iDomainFactor == 1 )
+                osObjectDomain << "_gid";
+            else
+                osObjectDomain << "_gid / " << iDomainFactor;
+        }
+        
+        const concrete::Action::LinkMap& links = pAction->getLinks();
+        for( concrete::Action::LinkMap::const_iterator 
+                i = links.begin(), iEnd = links.end(); i!=iEnd; ++i )
+        {
+            const std::string& strLinkName = i->first;
+            const concrete::Dimension_Generated* pLinkBackRef = i->second;
+            VERIFY_RTE( pLinkBackRef );
+            const DataMember* pBackRefData = layout.getDataMember( pLinkBackRef );
+            const LinkGroup* pLinkGroup = pLinkBackRef->getLinkGroup();
+            VERIFY_RTE( pLinkGroup );
+            
+            
+            os << "        if( " << Printer( pBackRefData, "_gid" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
+            os << "        {\n";
+            os << "            switch( " << Printer( pBackRefData, "_gid" ) << ".type )\n";
+            os << "            {\n";
+            for( const concrete::Action* pLink : pLinkGroup->getConcreteLinks() )
+            {
+            os << "                case " << pLink->getIndex() << ":\n";
+            os << "                {\n";
+            os << "                     " << Printer( pLinkRefCountDataMember, osObjectDomain.str().c_str() ) << 
+                " = " << Printer( pLinkRefCountDataMember, osObjectDomain.str().c_str() ) << " - 1;\n";
+                
+            os << "                     const eg::reference backRef = " << Printer( pBackRefData, "_gid" ) << ";\n";
+            os << "                     " << Printer( pBackRefData, "_gid" ) << " = { 0, 0, 0 };\n";
+                const concrete::Dimension_User* pLinkBaseDimension = pLink->getLinkBaseDimension();
+                VERIFY_RTE( pLinkBaseDimension );
+                const DataMember* pLinkBaseData = layout.getDataMember( pLinkBaseDimension );
+                VERIFY_RTE( pLinkBaseData );
+            
+            os << "                     " << Printer( pLinkBaseData, "backRef.instance" ) << ".data = { 0, 0, 0 };\n";
+            os << "                     ::eg::Scheduler::stop_ref( backRef );\n";
+                
+       // TODO - should stopping a link target trigger referenced count based stop  
+       // os << "           " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
+       // os << "           if( " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
+       // os << "           {\n";
+       // os << "             ::eg::Scheduler::zeroRefCount( " << Printer( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
+       //                         "&" << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
+       // os << "           }\n";
+            
+            
+            
+            os << "                }\n";
+            os << "                break;\n";
+            
+            }   
+            os << "                default: ERR( \"Unknown link type\" ); break;\n";
+            os << "            }\n";
+            os << "        }\n";
+        }
+        
+    }
+    
+	void generateMainActionStopper( std::ostream& os, const Layout& layout, const LinkAnalysis& linkAnalysis, const concrete::Action* pAction )
 	{
         os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
         os << "{\n";
@@ -287,13 +384,14 @@ namespace eg
         os << "         " << Printer( pCycleData, "_gid" ) << " = clock::cycle();\n";
         os << "         events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
         //stop the subtree
+        generateStopperLinkBreaks( os, layout, linkAnalysis, pAction );
         generateSubTreeStop( os, layout, pAction );
         os << "     }\n";
 		
         os << "}\n";
         os << "\n";
 	}
-	void generateExecutableActionStopper( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+	void generateExecutableActionStopper( std::ostream& os, const Layout& layout, const LinkAnalysis& linkAnalysis, const concrete::Action* pAction )
 	{
 		VERIFY_RTE( pAction->getParent() && pAction->getParent()->getParent() );
 		const concrete::Action* pParentAction = dynamic_cast< const concrete::Action* >( pAction->getParent() );
@@ -323,6 +421,7 @@ namespace eg
             os << "        events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             //stop the subtree
+            generateStopperLinkBreaks( os, layout, linkAnalysis, pAction );
             generateSubTreeStop( os, layout, pAction );
         
             os << "    }\n";
@@ -356,6 +455,7 @@ namespace eg
             os << "        events::put( \"stop\", clock::cycle(), &" << Printer( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             //stop the subtree
+            generateStopperLinkBreaks( os, layout, linkAnalysis, pAction );
             generateSubTreeStop( os, layout, pAction );
         
             os << "    }\n";
@@ -414,7 +514,7 @@ namespace eg
                     
                     if( pObject->getContext()->isMainExecutable() )
                     {
-        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "_gid" ) << " = { 0, 0, 0 }; break;\n";
+        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "currentBase.instance" ) << " = { 0, 0, 0 }; break;\n";
                     }
                     else
                     {
@@ -429,12 +529,12 @@ namespace eg
                         {
                             const int iDomainFactor = pObject->getObjectDomainFactor();
                             if( iDomainFactor == 1 )
-                                osDomain << "_gid";
+                                osDomain << "currentBase.instance";
                             else
-                                osDomain << "_gid / " << iDomainFactor;
+                                osDomain << "currentBase.instance / " << iDomainFactor;
                         }
                     
-        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "_gid" ) << " = { 0, 0, 0 };\n";
+        os << "      case " << pTargetType->getIndex() << ": " << Printer( pLinkRef, "currentBase.instance" ) << " = { 0, 0, 0 };\n";
         os << "           " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
         os << "           if( " << Printer( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
         os << "           {\n";
@@ -456,19 +556,19 @@ namespace eg
         os << "\n";
     }
     
-    void generateActionInstanceFunctions( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+    void generateActionInstanceFunctions( std::ostream& os, const Layout& layout, const LinkAnalysis& linkAnalysis, const concrete::Action* pAction )
     {
         if( pAction->getStopCycle() && pAction->getState() )
         {
             if( pAction->getContext()->isMainExecutable() )
             {
 				generateMainActionStarter( os, layout, pAction );
-				generateMainActionStopper( os, layout, pAction );
+				generateMainActionStopper( os, layout, linkAnalysis, pAction );
             }
 			else if( pAction->getContext()->isExecutable() )
             {
                 generateExecutableActionStarter( os, layout, pAction );
-				generateExecutableActionStopper( os, layout, pAction );
+				generateExecutableActionStopper( os, layout, linkAnalysis, pAction );
             }
 		}
         if( dynamic_cast< const interface::Link* >( pAction->getContext() ) )
@@ -481,9 +581,10 @@ namespace eg
     {
         const interface::Root* pRoot = program.getTreeRoot();
         
-        const DerivationAnalysis& derivationAnalysis = program.getDerivationAnalysis();
-        const Layout& layout = program.getLayout();
-        const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
+        const DerivationAnalysis&   derivationAnalysis  = program.getDerivationAnalysis();
+        const Layout&               layout              = program.getLayout();
+        const LinkAnalysis&         linkAnalysis        = program.getLinkAnalysis();
+        const IndexedObject::Array& objects             = program.getObjects( eg::IndexedObject::MASTER_FILE );
         std::vector< const concrete::Action* > actions = 
             many_cst< concrete::Action >( objects );
             
@@ -494,6 +595,10 @@ namespace eg
                 //os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
                 os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
             }
+            if( dynamic_cast< const interface::Link* >( pAction->getContext() ) )
+            {
+                os << "void " << pAction->getName() << "_breaker( " << EG_INSTANCE << " _gid );\n";
+            }
         }
         
         os << "//input::Context Function Implementations\n";
@@ -502,7 +607,7 @@ namespace eg
             if( pAction->getParent() )
             {
                 os << "\n";
-                generateActionInstanceFunctions( os, layout, pAction );
+                generateActionInstanceFunctions( os, layout, linkAnalysis, pAction );
             }
         }
         os << "\n";

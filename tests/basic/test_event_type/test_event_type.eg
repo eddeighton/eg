@@ -1,6 +1,6 @@
 
 dim float total;
-total( 5 );
+total( 2 );
 
 abstract Base[ 2 ]
 {
@@ -18,7 +18,7 @@ action A[ 16 ] : Base
     while( timeout() > clock::ct() )
     {
         LOG( "A: " << clock::ct() );
-        co_yield eg::sleep_until( 1s );
+        co_yield eg::sleep_until( 100ms );
     }
 }
 
@@ -28,7 +28,7 @@ action B[ 16 ] : Base
     while( timeout() > clock::ct() )
     {
         LOG( "B: " << clock::ct() );
-        co_yield eg::sleep_until( 1s );
+        co_yield eg::sleep_until( 100ms );
     }
 }
 
@@ -48,7 +48,7 @@ action C
             fTotalRemaining += b.timeout() - clock::ct();
         }
         LOG( "Total remaining: " << fTotalRemaining );
-        co_yield eg::sleep_until( 500ms );
+        co_yield eg::sleep_until( 50ms );
     }
 }
 C();

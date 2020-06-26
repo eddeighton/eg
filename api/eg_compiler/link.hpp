@@ -122,6 +122,7 @@ namespace eg
 		const LinkGroup::Vector& getLinkGroups() const { return m_groups; }
         
         const LinkGroup* getLinkGroup( const interface::Link* pLink ) const; 
+        const LinkGroup* getLinkGroup( const std::string& strName ) const;
 		
     public:
         virtual void load( Loader& loader );

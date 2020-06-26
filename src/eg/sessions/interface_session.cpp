@@ -201,7 +201,7 @@ namespace eg
         {
             std::map< const interface::Context*, concrete::Action* >::iterator iFind = 
                 actionInstances.find( pChildAction );
-            if( iFind == actionInstances.end() )
+            if( iFind == actionInstances.end() && !pChildAction->isAbstract() )
             {
                 //create the child instance node 
                 concrete::Action* pChildInstance = construct< concrete::Action >();
