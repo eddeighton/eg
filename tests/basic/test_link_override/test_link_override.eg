@@ -1,0 +1,50 @@
+
+
+object Vehicle
+{
+    function IsTrapped() : bool
+    {
+        return false;
+    }
+}
+
+object VehicleTractorBeaming
+{
+    link TheVehicle : Vehicle
+    {
+        function IsTrapped() : bool
+        {
+            return true;
+        }
+    }
+}
+
+object Tank : Vehicle
+{
+    function IsTrapped() : bool
+    {
+        return false;
+    }
+}
+
+object Mech : Vehicle
+{
+    function IsTrapped() : bool
+    {
+        return false;
+    }
+}
+
+
+Tank t = Tank();
+
+TEST( !t.isTrapped() );
+
+VehicleTractorBeaming vt = VehicleTractorBeaming();
+vt.TheVehicle().base( t );
+
+TEST( t.isTrapped() );
+
+vt.Stop();
+
+TEST( !t.isTrapped() );
