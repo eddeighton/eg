@@ -170,6 +170,7 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
     os << "\n";
     os << "//Python Interface\n";
     
+    /*
     for( const eg::concrete::Action* pAction : actions )
     {
         if( pAction->getContext()->isExecutable() )
@@ -203,7 +204,7 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
             os << "    return true;\n";
             os << "}\n";
         }
-    }
+    }*/
     
 const char* pszSleepUtils = R"(
 
@@ -296,8 +297,8 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
             {
                 if( pDimension->isEGType() )
                 {
-    os << "            case " << pDimension->getIndex() << ":\n";
-    os << "                return " << eg::Printer( pDataMember, "action.instance" ) << ".data;\n";
+    //os << "            case " << pDimension->getIndex() << ":\n";
+    //os << "                return " << eg::Printer( pDataMember, "action.instance" ) << ".data;\n";
                 }
             }
         }
@@ -328,9 +329,9 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "            case " << pDimension->getIndex() << ":\n";
-    os << "                pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
-    os << "                break;\n";
+    //os << "            case " << pDimension->getIndex() << ":\n";
+    //os << "                pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
+    //os << "                break;\n";
             }
         }
     }
@@ -356,9 +357,9 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "            case " << pDimension->getIndex() << ":\n";
-    os << "                 " << eg::Printer( pDataMember, "reference.instance" ) << " = pybind11::cast< "; generateDataMemberType( os, pDataMember ); os << " >( args[ 0 ] );\n";
-    os << "                 break;\n";
+    //os << "            case " << pDimension->getIndex() << ":\n";
+    //os << "                 " << eg::Printer( pDataMember, "reference.instance" ) << " = pybind11::cast< "; generateDataMemberType( os, pDataMember ); os << " >( args[ 0 ] );\n";
+    //os << "                 break;\n";
             }
         }
     }
@@ -611,9 +612,9 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
             {
-    os << "            case " << pDimension->getIndex() << ":\n";
-    os << "                pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
-    os << "                break;\n";
+    //os << "            case " << pDimension->getIndex() << ":\n";
+    //os << "                pStack->m_result = pybind11::cast( " << eg::Printer( pDataMember, "reference.instance" ) << " );\n";
+    //os << "                break;\n";
             }
         }
     }

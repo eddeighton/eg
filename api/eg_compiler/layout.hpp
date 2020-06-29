@@ -43,25 +43,12 @@ namespace eg
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
-        
-        //void print( std::ostream& os ) const;
-        
         const concrete::Dimension* getInstanceDimension() const { return m_pDimension; }
         
         const std::string& getName() const { return name; }
         std::size_t getOffset() const { return offset; }
         const Buffer* getBuffer() const { return m_pBuffer; }
         
-        /*
-        virtual void printVariableAccess( std::ostream& os, const std::string& strIndex ) const;
-        virtual void printDependencyVar( std::ostream& os, const std::string& strIndex ) const;
-        void printAllocation( std::ostream& os, const std::string& strIndex ) const;
-        void printDeallocation( std::ostream& os, const std::string& strIndex ) const;
-        void printStart( std::ostream& os, const std::string& strIndex ) const;
-        void printStop( std::ostream& os, const std::string& strIndex ) const;
-        void printEncode( std::ostream& os, const std::string& strIndex ) const;
-        void printDecode( std::ostream& os, const std::string& strIndex ) const;
-        */
     private:
         const concrete::Dimension* m_pDimension;
         std::size_t offset;

@@ -314,7 +314,9 @@ namespace eg
         os << " >";
     }
     
-    void generateInvocation( std::ostream& os, const IndexedObject::Array& objects,
+    void generateInvocation( std::ostream& os,
+        PrinterFactory& printerFactory, 
+        const IndexedObject::Array& objects,
         const DerivationAnalysis& derivationAnalysis, 
         const Layout& layout, const InvocationSolution& invocation )
     {
@@ -395,7 +397,7 @@ namespace eg
         
         os << "    {\n";
         
-		generateInstructions( os, invocation.getRoot(), layout );
+		generateInstructions( os, printerFactory, invocation.getRoot(), layout );
         
         os << "    }\n";
         os << "};\n";
@@ -411,6 +413,7 @@ namespace eg
     }
     
     void generateImplementationSource( std::ostream& os, 
+        PrinterFactory& printerFactory,
         const ReadSession& program, 
         const eg::TranslationUnit& translationUnit )
     {
@@ -457,14 +460,14 @@ namespace eg
         for( const InvocationSolution* pInvocation : invocations )
         {
             os << "\n";
-            generateInvocation( os, objects, derivationAnalysis, layout, *pInvocation );
+            generateInvocation( os, printerFactory, objects, derivationAnalysis, layout, *pInvocation );
         }
         
         
         std::vector< const concrete::Inheritance_Node* > iNodes = 
             many_cst< const concrete::Inheritance_Node >( objects );
         
-        generateGenerics( os, program, actions, iNodes, translationUnit );
+        generateGenerics( os, printerFactory, program, actions, iNodes, translationUnit );
                 
         os << "\n";
         os << "\n";

@@ -2,7 +2,7 @@
 
 object Vehicle
 {
-    function IsTrapped() : bool
+    function IsTrapped() : int
     {
         return false;
     }
@@ -12,7 +12,7 @@ object VehicleTractorBeaming
 {
     link TheVehicle : Vehicle
     {
-        function IsTrapped() : bool
+        function IsTrapped() : int
         {
             return true;
         }
@@ -21,7 +21,7 @@ object VehicleTractorBeaming
 
 object Tank : Vehicle
 {
-    function IsTrapped() : bool
+    function IsTrapped() : int
     {
         return false;
     }
@@ -29,7 +29,7 @@ object Tank : Vehicle
 
 object Mech : Vehicle
 {
-    function IsTrapped() : bool
+    function IsTrapped() : int
     {
         return false;
     }
@@ -38,13 +38,13 @@ object Mech : Vehicle
 
 Tank t = Tank();
 
-TEST( !t.isTrapped() );
+TEST( !t.IsTrapped() );
 
 VehicleTractorBeaming vt = VehicleTractorBeaming();
 vt.TheVehicle().base( t );
 
-TEST( t.isTrapped() );
+TEST( t.IsTrapped() );
 
 vt.Stop();
 
-TEST( !t.isTrapped() );
+TEST( !t.IsTrapped() );

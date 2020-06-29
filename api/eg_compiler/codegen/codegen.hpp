@@ -23,9 +23,11 @@
 
 #include "eg/eg_common_strings.hpp"
 
-#include "../interface.hpp"
-#include "../sessions/implementation_session.hpp"
-#include "../instruction.hpp"
+#include "eg_compiler/codegen/dataAccessPrinter.hpp"
+
+#include "eg_compiler/interface.hpp"
+#include "eg_compiler/sessions/implementation_session.hpp"
+#include "eg_compiler/instruction.hpp"
 
 #include <string>
 #include <cstddef>
@@ -86,8 +88,6 @@ namespace eg
         const interface::Root* pRoot, 
         const Identifiers* pIdentifiers, 
         std::size_t szFiberStackSize );
-        
-        
 
     class TranslationUnit;
     void generateOperationSource( std::ostream& os, 
@@ -97,36 +97,32 @@ namespace eg
     void generateBufferStructures( std::ostream& os, const ReadSession& program );
 
     void generateGenerics(std::ostream& os, 
+        PrinterFactory& printerFactory,
         const ReadSession& program, 
         const std::vector< const concrete::Action* >& actions, 
         const std::vector< const concrete::Inheritance_Node* >& iNodes,
         const eg::TranslationUnit& translationUnit );
         
     void generateImplementationSource( std::ostream& os, 
+        PrinterFactory& printerFactory,
         const ReadSession& program, 
         const eg::TranslationUnit& translationUnit );
         
-    void generate_dynamic_interface( std::ostream& os, const ReadSession& session );
-    void generateActionInstanceFunctions( std::ostream& os, const ReadSession& program );
+    void generate_dynamic_interface( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& session );
+    void generateActionInstanceFunctions( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program );
             
     class DataMember;
 
-    struct Printer
-    {
-        const DataMember* m_pDataMember;
-        const char* pszIndex;
-        Printer( const DataMember* pDataMember, const char* pszIndex ) : m_pDataMember( pDataMember ), pszIndex( pszIndex ) {}
-    };
-    
-    std::ostream& operator<<( std::ostream& os, const Printer& printer );
-    
     void generateDataMemberType( std::ostream& os, const DataMember* pDataMember );
     
     void generateAllocation( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
     void generateDeallocation( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
+    
+    void generateEncode( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
+    void generateDecode( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
 	
     class Layout;
-	void generateInstructions( std::ostream& os, const RootInstruction* pRootInstruction, const Layout& layout );
+	void generateInstructions( std::ostream& os, PrinterFactory& printerFactory, const RootInstruction* pRootInstruction, const Layout& layout );
 
 }
 

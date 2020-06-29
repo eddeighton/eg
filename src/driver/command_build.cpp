@@ -402,7 +402,7 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
 }
 
 void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, const Environment& environment,
-    const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
+    const Project& project, eg::PrinterFactory& printerFactory, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
 {
     eg::IndexedFile::FileIDtoPathMap allFiles;
     
@@ -442,7 +442,7 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
             {
                 LogEntry log( std::cout, "Generating implementation: " + pTranslationUnit->getName(), bBenchCommands );
                 std::ostringstream osImpl;
-                eg::generateImplementationSource( osImpl, session, *pTranslationUnit );
+                eg::generateImplementationSource( osImpl, printerFactory, session, *pTranslationUnit );
                 boost::filesystem::updateFileIfChanged( project.getImplementationSource( pTranslationUnit->getName() ), osImpl.str() );
             }
         }
@@ -451,8 +451,8 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         {
             std::ostringstream osImpl;
             osImpl << "#include \"structures.hpp\"\n";
-            eg::generate_dynamic_interface( osImpl, session );
-            eg::generateActionInstanceFunctions( osImpl, session );
+            eg::generate_dynamic_interface( osImpl, printerFactory, session );
+            eg::generateActionInstanceFunctions( osImpl, printerFactory, session );
             boost::filesystem::updateFileIfChanged( project.getRuntimeSource(), osImpl.str() );
         }
     }
@@ -520,7 +520,7 @@ void objectCompilationCommandSetFileTIme( std::string strMsg, std::string strCom
 }
 
 std::vector< boost::filesystem::path > 
-    build_objects( const eg::TranslationUnitAnalysis& translationUnits, const Environment& environment, const Project& project, 
+    build_objects( const eg::TranslationUnitAnalysis& translationUnits, const Environment& environment, const Project& project,
         FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
 {
     std::vector< boost::filesystem::path > objectFiles;
@@ -812,7 +812,9 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
              
         build_operations( *pInterfaceSession, environment, project, fileTracker, bBenchCommands, bLogCommands );
         
-        generate_objects( pInterfaceSession->getTranslationUnitAnalysis(), environment, project, fileTracker, bBenchCommands, bLogCommands );
+        eg::PrinterFactory::Ptr pPrinterFactory = eg::getDefaultPrinterFactory();
+        
+        generate_objects( pInterfaceSession->getTranslationUnitAnalysis(), environment, project, *pPrinterFactory, fileTracker, bBenchCommands, bLogCommands );
         
         std::vector< boost::filesystem::path > objectFiles = 
             build_objects( pInterfaceSession->getTranslationUnitAnalysis(), environment, project, fileTracker, bBenchCommands, bLogCommands );

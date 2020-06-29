@@ -51,8 +51,7 @@ action C
         co_yield eg::sleep_until( 50ms );
     }
 }
-C();
-
+C c = C();
 
 
 while( !Done() )

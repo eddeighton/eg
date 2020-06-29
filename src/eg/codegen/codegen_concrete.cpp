@@ -41,9 +41,6 @@
 
 namespace eg
 {
-/*
-    */
-    
     
     void generateDataMemberType( std::ostream& os, const concrete::Dimension_User* pDimension )
     {
@@ -122,13 +119,9 @@ namespace eg
     void generateDataMemberAllocation( std::ostream& os, const concrete::Dimension_User* pDimension, Printer& printer )
     {
         static const std::string strIndent = "        ";
-        
-        //use the traits
-        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( pDimension->getAbstractElement() );
-        if( pNodeDimension->getContextTypes().empty() )
-        {
-            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::initialise( " << printer << " );\n";
-        }
+        os << strIndent << "::eg::DimensionTraits< ";
+        generateDataMemberType( os, pDimension );
+        os << " >::initialise( " << printer << " );\n";
     }
     
     void generateDataMemberAllocation( std::ostream& os, const concrete::Dimension_Generated* pDimension, Printer& printer )
@@ -182,188 +175,53 @@ namespace eg
     
     void generateDataMemberDeallocation( std::ostream& os, const concrete::Dimension_User* pDimension, Printer& printer )
     {
-        
+        static const std::string strIndent = "        ";
+        os << strIndent << "::eg::DimensionTraits< ";
+        generateDataMemberType( os, pDimension );
+        os << " >::uninitialise( " << printer << " );\n";
     }
     
     void generateDataMemberDeallocation( std::ostream& os, const concrete::Dimension_Generated* pDimension, Printer& printer )
     {
-        
+        static const std::string strIndent = "        ";
+        os << strIndent << "::eg::DimensionTraits< ";
+        generateDataMemberType( os, pDimension );
+        os << " >::uninitialise( " << printer << " );\n";
     }
-    /*
     
-    void Dimension_User::printStart( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
-    {
-    }
-    void Dimension_User::printStop( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
-    {
-    }
-	void Dimension_User::printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	void generateEncode( std::ostream& os, const concrete::Dimension_User* pDimension, Printer& printer )
 	{
         static const std::string strIndent = "        ";
         
-        //use the traits
-        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
-        if( pNodeDimension->getContextTypes().empty() )
-        {
-            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::encode( buffer, ";
-            printer.printVariableAccess( os, strIndex );
-            os << ");";
-        }
+        os << strIndent << "::eg::DimensionTraits< ";
+        generateDataMemberType( os, pDimension );
+        os << " >::encode( buffer, " << printer << " );";
 	}
-	void Dimension_User::printDecode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	void generateDecode( std::ostream& os, const concrete::Dimension_User* pDimension, Printer& printer )
 	{
         static const std::string strIndent = "        ";
         
-        //use the traits
-        const interface::Dimension* pNodeDimension = dynamic_cast< const interface::Dimension* >( m_pElement );
-        if( pNodeDimension->getContextTypes().empty() )
-        {
-            os << strIndent << "::eg::DimensionTraits< " << pNodeDimension->getCanonicalType() << " >::decode( buffer, ";
-            printer.printVariableAccess( os, strIndex );
-            os << ");";
-        }
+        os << strIndent << "::eg::DimensionTraits< ";
+        generateDataMemberType( os, pDimension );
+        os << " >::decode( buffer, " << printer << " );";
 	}
             
-	void Dimension_Generated::printEncode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	void generateEncode( std::ostream& os, const concrete::Dimension_Generated* pDimension, Printer& printer )
 	{
         static const std::string strIndent = "        ";
         
 		os << strIndent << "::eg::DimensionTraits< ";
-		
-        switch( m_type )
-        {
-            //case eDimensionTimestamp :
-            //    os << EG_TIME_STAMP;
-            //    break;
-            case eActionStopCycle    :
-                os << EG_TIME_STAMP;
-                break;
-            case eActionState        :
-                os << EG_ACTION_STATE;
-                break;
-            case eActionReference    :
-                {
-                    VERIFY_RTE( m_pContext );
-                    const interface::Context* pAction = m_pContext->getContext();
-                    os << getStaticType( pAction );
-                }
-                break;
-            case eActionAllocator:
-                os << EG_INSTANCE;
-                break;
-			case concrete::eLinkReference: 
-            default:
-                THROW_RTE( "Unknown generated dimension type" );
-        }
-		
-		os << " >::encode( buffer, ";
-		printer.printVariableAccess( os, strIndex );
-		os << ");";
+        generateDataMemberType( os, pDimension );
+		os << " >::encode( buffer, " << printer << " );";
 	}
-	void Dimension_Generated::printDecode( std::ostream& os, const IPrintDimensions& printer, const std::string& strIndex ) const
+	void generateDecode( std::ostream& os, const concrete::Dimension_Generated* pDimension, Printer& printer )
 	{
         static const std::string strIndent = "        ";
         
 		os << strIndent << "::eg::DimensionTraits< ";
-		
-        switch( m_type )
-        {
-            //case eDimensionTimestamp :
-            //    os << EG_TIME_STAMP;
-            //    break;
-            case eActionStopCycle    :
-                os << EG_TIME_STAMP;
-                break;
-            case eActionState        :
-                os << EG_ACTION_STATE;
-                break;
-            case eActionReference    :
-                {
-                    VERIFY_RTE( m_pContext );
-                    const interface::Context* pAction = m_pContext->getContext();
-                    os << getStaticType( pAction );
-                }
-                break;
-            case eActionAllocatorData:
-                os << EG_INSTANCE;
-                break;
-            default:
-                THROW_RTE( "Unknown generated dimension type" );
-        }
-		
-		os << " >::decode( buffer, ";
-		printer.printVariableAccess( os, strIndex );
-		os << ");";
+        generateDataMemberType( os, pDimension );
+		os << " >::decode( buffer, " << printer << " );";
 	}
-    
-    
-    
-    void Action::printType( std::ostream& os ) const
-    {
-        os << getStaticType( getContext() );
-    }
-	void Action::printEncode( std::ostream& os, const std::string& strIndex ) const
-	{
-		const std::vector< std::string >& params = getContext()->getParameters();
-		//TODO printEncode - generate dimensions for parameters for defered / remote calls
-	}
-	void Action::printDecode( std::ostream& os, const std::string& strIndex ) const
-	{
-		const std::vector< std::string >& params = getContext()->getParameters();
-		//TODO printDecode - generate dimensions for parameters for defered / remote calls
-	}
-    
-    
-    
-    
-        
-    void DataMember::print( std::ostream& os ) const
-    {
-        m_pDimension->printType( os );
-    }
-
-
-    void DataMember::printVariableAccess( std::ostream& os, const std::string& strIndex ) const
-    {
-        os << getBuffer()->getVariableName() << "[ " << strIndex << " ]." << getName();
-    }
-
-
-    void DataMember::printAllocation( std::ostream& os, const std::string& strIndex ) const
-    {
-        return m_pDimension->printAllocation( os, *this, strIndex );
-    }
-    void DataMember::printDeallocation( std::ostream& os, const std::string& strIndex ) const
-    {
-        return m_pDimension->printDeallocation( os, *this, strIndex );
-    }
-    void DataMember::printStart( std::ostream& os, const std::string& strIndex ) const
-    {
-        return m_pDimension->printStart( os, *this, strIndex );
-    }
-    void DataMember::printStop( std::ostream& os, const std::string& strIndex ) const
-    {
-        return m_pDimension->printStop( os, *this, strIndex );
-    }
-
-    void DataMember::printEncode( std::ostream& os, const std::string& strIndex ) const
-    {
-        return m_pDimension->printEncode( os, *this, strIndex );
-    }
-    void DataMember::printDecode( std::ostream& os, const std::string& strIndex ) const
-    {
-        return m_pDimension->printDecode( os, *this, strIndex );
-    }
-
-*/
-
-
-    std::ostream& operator<<( std::ostream& os, const Printer& printer )
-    {
-        os << printer.m_pDataMember->getBuffer()->getVariableName() << "[ " << 
-            printer.pszIndex << " ]." << printer.m_pDataMember->getName();
-        return os;
-    }
     
     void generateDataMemberType( std::ostream& os, const DataMember* pDataMember )
     {
@@ -385,15 +243,15 @@ namespace eg
     void generateAllocation( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex )
     {
         const concrete::Dimension* pDimension = pDataMember->getInstanceDimension();
-        Printer printer( pDataMember, strIndex.c_str() );
+        Printer::Ptr pPrinter = getDefaultPrinterFactory()->getPrinter( pDataMember, strIndex.c_str() );
         switch( pDimension->getType() )
         {
             case eConcreteDimensionUser:
-                generateDataMemberAllocation( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ), printer );
+                generateDataMemberAllocation( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ), *pPrinter );
                 break;
     
             case eConcreteDimensionGenerated:
-                generateDataMemberAllocation( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ), printer );
+                generateDataMemberAllocation( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ), *pPrinter );
                 break;
             default:
                 THROW_RTE( "Invalid dimension type" );
@@ -403,15 +261,51 @@ namespace eg
     void generateDeallocation( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex )
     {
         const concrete::Dimension* pDimension = pDataMember->getInstanceDimension();
-        Printer printer( pDataMember, strIndex.c_str() );
+        Printer::Ptr pPrinter = getDefaultPrinterFactory()->getPrinter( pDataMember, strIndex.c_str() );
         switch( pDimension->getType() )
         {
             case eConcreteDimensionUser:
-                generateDataMemberDeallocation( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ), printer );
+                generateDataMemberDeallocation( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ), *pPrinter );
                 break;
     
             case eConcreteDimensionGenerated:
-                generateDataMemberDeallocation( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ), printer );
+                generateDataMemberDeallocation( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ), *pPrinter );
+                break;
+            default:
+                THROW_RTE( "Invalid dimension type" );
+        }
+    }
+    
+    void generateEncode( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex )
+    {
+        const concrete::Dimension* pDimension = pDataMember->getInstanceDimension();
+        Printer::Ptr pPrinter = getDefaultPrinterFactory()->getPrinter( pDataMember, strIndex.c_str() );
+        switch( pDimension->getType() )
+        {
+            case eConcreteDimensionUser:
+                generateEncode( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ), *pPrinter );
+                break;
+    
+            case eConcreteDimensionGenerated:
+                generateEncode( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ), *pPrinter );
+                break;
+            default:
+                THROW_RTE( "Invalid dimension type" );
+        }
+    }
+    
+    void generateDecode( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex )
+    {
+        const concrete::Dimension* pDimension = pDataMember->getInstanceDimension();
+        Printer::Ptr pPrinter = getDefaultPrinterFactory()->getPrinter( pDataMember, strIndex.c_str() );
+        switch( pDimension->getType() )
+        {
+            case eConcreteDimensionUser:
+                generateDecode( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ), *pPrinter );
+                break;
+    
+            case eConcreteDimensionGenerated:
+                generateDecode( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ), *pPrinter );
                 break;
             default:
                 THROW_RTE( "Invalid dimension type" );

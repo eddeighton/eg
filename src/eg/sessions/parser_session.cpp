@@ -829,22 +829,27 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 BalancedDelimiterTracker T( *this, clang::tok::l_paren );
                 T.consumeOpen();
                 
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc   = Tok.getEndLoc();
-                ConsumeAnyToken();
-                
-                while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                if( !Tok.is( clang::tok::r_paren ) )
                 {
-                    endLoc = Tok.getEndLoc();
+                    clang::SourceLocation startLoc = Tok.getLocation();
+                    clang::SourceLocation endLoc   = Tok.getEndLoc();
                     ConsumeAnyToken();
-                }
-                
-                {
+                    
+                    while( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
+                    {
+                        endLoc = Tok.getEndLoc();
+                        ConsumeAnyToken();
+                    }
                     pArguments = session.construct< input::Opaque >();
                     if( !getSourceText( startLoc, endLoc, pArguments->m_str ) )
                     {
                         EG_PARSER_ERROR( "Error parsing argument list" );
                     }
+                }
+                else
+                {
+                    //generate empty parameter list since found empty parens
+                    pArguments = session.construct< input::Opaque >();
                 }
                 
                 T.consumeClose();
@@ -1017,7 +1022,11 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         void parse_include( ParserSession& session, input::Include* pInclude )
         {
             //include name( file );
-            parse_identifier( pInclude->m_strIdentifier );
+            //optional identifier
+            if( Tok.is( clang::tok::identifier ) )
+            {
+                parse_identifier( pInclude->m_strIdentifier );
+            }
 
             BalancedDelimiterTracker T( *this, clang::tok::l_paren );
 

@@ -2,24 +2,29 @@
 action A[ 2 ]
 {
     LOG( "A" );
+    co_yield eg::sleep();
     
     action C[ 3 ]
     {
         LOG( "A::C" );
+        co_yield eg::sleep();
         
         action F
         {
             LOG( "A::C::F" );
+            co_yield eg::sleep();
         }
     }
     
     action D[ 3 ]
     {
         LOG( "A::D" );
+        co_yield eg::sleep();
         
         action G
         {
             LOG( "A::D::G" );
+            co_yield eg::sleep();
         }
     }
 }
@@ -27,10 +32,12 @@ action A[ 2 ]
 action B[ 2 ] : A
 {
     LOG( "B" );
+    co_yield eg::sleep();
     
     action C[ 3 ] : A::C
     {
         LOG( "B::C" );
+        co_yield eg::sleep();
     }
     
 }
@@ -38,14 +45,14 @@ action B[ 2 ] : A
 action E[ 2 ] : B
 {
     LOG( "E" );
+    co_yield eg::sleep();
     
     action D[ 3 ] : A::D
     {
         LOG( "E::D" );
+        co_yield eg::sleep();
     }
 }
-    
-
 
 A a = A(); //A
 
@@ -63,7 +70,6 @@ e.D().G(); //E::D, A::D::G
 
 
 co_yield eg::sleep();
-
 
 eg::event_iterator iter = events::getIterator();
 RawEvent ev;

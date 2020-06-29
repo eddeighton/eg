@@ -199,27 +199,30 @@ namespace eg
         
         for( const interface::Context* pChildAction : actions )
         {
-            std::map< const interface::Context*, concrete::Action* >::iterator iFind = 
-                actionInstances.find( pChildAction );
-            if( iFind == actionInstances.end() && !pChildAction->isAbstract() )
+            if( !pChildAction->isAbstract() )
             {
-                //create the child instance node 
-                concrete::Action* pChildInstance = construct< concrete::Action >();
-                pInstance->m_children.push_back( pChildInstance );
-                pChildInstance->m_pElement = pChildAction;
-                pChildInstance->m_pParent = pInstance;
-                calculateInstanceActionName( pChildInstance );
+                std::map< const interface::Context*, concrete::Action* >::iterator iFind = 
+                    actionInstances.find( pChildAction );
+                if( iFind == actionInstances.end() )
+                {
+                    //create the child instance node 
+                    concrete::Action* pChildInstance = construct< concrete::Action >();
+                    pInstance->m_children.push_back( pChildInstance );
+                    pChildInstance->m_pElement = pChildAction;
+                    pChildInstance->m_pParent = pInstance;
+                    calculateInstanceActionName( pChildInstance );
                 
-                m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pChildAction, pChildInstance ) );
+                    m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pChildAction, pChildInstance ) );
                 
-                //record it in the inheritance node
-                pInheritanceNode->m_actions.push_back( pChildInstance );
+                    //record it in the inheritance node
+                    pInheritanceNode->m_actions.push_back( pChildInstance );
                 
-                actionInstances.insert( std::make_pair( pChildAction, pChildInstance ) );
-            }
-            else
-            {
-                pInheritanceNode->m_actions.push_back( iFind->second );
+                    actionInstances.insert( std::make_pair( pChildAction, pChildInstance ) );
+                }
+                else
+                {
+                    pInheritanceNode->m_actions.push_back( iFind->second );
+                }
             }
         }
         

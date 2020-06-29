@@ -43,6 +43,7 @@ namespace eg
         std::ostream& os;
         const std::vector< const concrete::Action* >& instances;
         const std::vector< const concrete::Inheritance_Node* >& iNodes;
+        PrinterFactory& printerFactory;
         const Layout& layout;
         const LinkAnalysis& linkAnalysis;
         const DerivationAnalysis& derivationAnalysis;
@@ -51,12 +52,14 @@ namespace eg
         SpecialMemberFunctionVisitor( std::ostream& os,
             const std::vector< const concrete::Action* >& instances,
             const std::vector< const concrete::Inheritance_Node* >& iNodes,
+            PrinterFactory& _printerFactory,
             const Layout& layout,
             const LinkAnalysis& linkAnalysis,
             const DerivationAnalysis& derivationAnalysis )
         :   os( os ),
             instances( instances ),
             iNodes( iNodes ),
+            printerFactory( _printerFactory ),
             layout( layout ),
             linkAnalysis( linkAnalysis ),
             derivationAnalysis( derivationAnalysis )
@@ -107,14 +110,14 @@ namespace eg
                     const concrete::Dimension_User* pInterfaceDimension = pCompatible->getLinkBaseDimension();
                     const DataMember* pReference = layout.getDataMember( pInterfaceDimension );
                     
-            os << "         switch( " << Printer( pReference, "from.data.instance" ) << ".data.type )\n";
+            os << "         switch( " << *printerFactory.getPrinter( pReference, "from.data.instance" ) << ".data.type )\n";
             os << "         {\n";
                         
                     for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
                     {
             os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
                     }       
-            os << "                 data = " << Printer( pReference, "from.data.instance" ) << ".data;\n";
+            os << "                 data = " << *printerFactory.getPrinter( pReference, "from.data.instance" ) << ".data;\n";
             os << "                 break;\n";
             os << "             default:\n";
             os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
@@ -138,7 +141,7 @@ namespace eg
             const concrete::Dimension_Generated* pBackRef = iFind->second;
             const DataMember* pReference = layout.getDataMember( pBackRef );
             
-                    os << "         switch( " << Printer( pReference, "from.data.instance" ) << ".type )\n";
+                    os << "         switch( " << *printerFactory.getPrinter( pReference, "from.data.instance" ) << ".type )\n";
                     os << "         {\n";
                                 
                 
@@ -146,7 +149,7 @@ namespace eg
             {
                     os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             }       
-                    os << "                 data = " << Printer( pReference, "from.data.instance" ) << ";\n";
+                    os << "                 data = " << *printerFactory.getPrinter( pReference, "from.data.instance" ) << ";\n";
                     os << "                 break;\n";
                     os << "             default:\n";
                     os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
@@ -348,7 +351,7 @@ namespace eg
                         {
                             const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
+            os << "         return " << *printerFactory.getPrinter( pReference, "instance" ) << ".data.timestamp;\n";
                         }
                     }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
@@ -360,7 +363,7 @@ namespace eg
                     if( pCompatible->getReference() )
                     {
                         const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
-            os << "    return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
+            os << "    return " << *printerFactory.getPrinter( pReference, "instance" ) << ".data.timestamp;\n";
                     }
                     else
                     {
@@ -387,7 +390,7 @@ namespace eg
                         {
                             const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         return " << Printer( pReference, "instance" ) << ";\n";
+            os << "         return " << *printerFactory.getPrinter( pReference, "instance" ) << ";\n";
                         }
                     }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
@@ -399,7 +402,7 @@ namespace eg
                     if( pCompatible->getStopCycle() )
                     {
                         const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
-            os << "    return " << Printer( pReference, "instance" ) << ";\n";
+            os << "    return " << *printerFactory.getPrinter( pReference, "instance" ) << ";\n";
                     }
                     else
                     {
@@ -426,7 +429,7 @@ namespace eg
                         {
                             const DataMember* pState = layout.getDataMember( pCompatible->getState() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         return " << Printer( pState, "instance" ) << ";\n";
+            os << "         return " << *printerFactory.getPrinter( pState, "instance" ) << ";\n";
                         }
                     }
             os << "      default: return " << EG_INVALID_STATE << ";\n";
@@ -438,7 +441,7 @@ namespace eg
                     if( pCompatible->getState() )
                     {
                         const DataMember* pState = layout.getDataMember( pCompatible->getState() );
-            os << "    return " << Printer( pState, "instance" ) << ";\n";
+            os << "    return " << *printerFactory.getPrinter( pState, "instance" ) << ";\n";
                     }
                     else
                     {
@@ -613,6 +616,7 @@ namespace eg
 
 
     void generateGenerics(std::ostream& os,
+        PrinterFactory& printerFactory,
         const ReadSession& program,
         const std::vector< const concrete::Action* >& actions,
         const std::vector< const concrete::Inheritance_Node* >& iNodes,
@@ -685,7 +689,7 @@ namespace eg
             {
                 const DataMember* pReference = layout.getDataMember( pConcreteAction->getReference() );
         os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
-        os << "            return " << Printer( pReference, "instance" ) << ".data.timestamp;\n";
+        os << "            return " << *printerFactory.getPrinter( pReference, "instance" ) << ".data.timestamp;\n";
             }
         }
         os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
@@ -707,7 +711,7 @@ namespace eg
             {
                 const DataMember* pReference = layout.getDataMember( pConcreteAction->getStopCycle() );
         os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
-        os << "            return " << Printer( pReference, "instance" ) << ";\n";
+        os << "            return " << *printerFactory.getPrinter( pReference, "instance" ) << ";\n";
             }
         }
         os << "        default: return " << EG_INVALID_TIMESTAMP << ";\n";
@@ -729,7 +733,7 @@ namespace eg
             {
                 const DataMember* pState = layout.getDataMember( pConcreteAction->getState() );
         os << "        case " << pConcreteAction->getIndex() << ": //" << pConcreteAction->getFriendlyName() << "\n";
-        os << "            return " << Printer( pState, "instance" ) << ";\n";
+        os << "            return " << *printerFactory.getPrinter( pState, "instance" ) << ";\n";
             }
         }
         os << "        default: return " << EG_INVALID_STATE << ";\n";
@@ -742,7 +746,7 @@ namespace eg
         }
 
         {
-            SpecialMemberFunctionVisitor visitor( os, actions, iNodes, layout, linkAnalysis, derivationAnalysis );
+            SpecialMemberFunctionVisitor visitor( os, actions, iNodes, printerFactory, layout, linkAnalysis, derivationAnalysis );
             pRoot->pushpop( visitor );
         }
         {

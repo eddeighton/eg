@@ -63,6 +63,7 @@ set( EG_API_SESSIONS
 	
 set( EG_API_CODEGEN
     ${EG_API_DIR}/eg_compiler/codegen/codegen.hpp
+    ${EG_API_DIR}/eg_compiler/codegen/dataAccessPrinter.hpp
 	)
 	
 set( EG_API_IO
@@ -108,6 +109,7 @@ set( EG_SOURCES
     ${EG_SRC_DIR}/eg/codegen/codegen_implementation.cpp
     ${EG_SRC_DIR}/eg/codegen/codegen_instructions.cpp
     ${EG_SRC_DIR}/eg/codegen/codegen_concrete.cpp
+    ${EG_SRC_DIR}/eg/codegen/codegen_dataAccessPrinter.cpp
     )
     
 add_library( eglib 

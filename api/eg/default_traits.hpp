@@ -39,6 +39,10 @@ struct DimensionTraits
     {
         new (&value ) T;
     }
+    static void uninitialise( T& value )
+    {
+        value.~T();
+    }
 };
 
 //default object traits

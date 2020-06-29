@@ -1,0 +1,16 @@
+
+object Tank
+{
+    function IsTrapped() : int
+    {
+        return 0;
+    }
+}
+
+Tank theTank = Tank();
+
+if( 0 == theTank.IsTrapped() )
+{
+    LOG(" isTrapped is true" );
+}
+
