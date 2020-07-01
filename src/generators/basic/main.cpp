@@ -71,7 +71,7 @@ os << "#endif\n";
     
     os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
             eg::generateAllocation( os, pDataMember, "i" );
         }
@@ -90,7 +90,7 @@ os << "#endif\n";
         const eg::Buffer* pBuffer = layout.getBuffers()[ sz - 1U ];
     os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
             eg::generateDeallocation( os, pDataMember, "i" );
         }

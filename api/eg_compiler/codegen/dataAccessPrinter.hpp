@@ -53,6 +53,8 @@ namespace eg
     public:
         PrinterFactory(){}
         virtual Printer::Ptr getPrinter( const DataMember* pDataMember, const char* pszIndex ) = 0;
+        virtual Printer::Ptr read( const DataMember* pDataMember, const char* pszIndex ) = 0;
+        virtual Printer::Ptr write( const DataMember* pDataMember, const char* pszIndex ) = 0;
     };
     
     PrinterFactory::Ptr getDefaultPrinterFactory();

@@ -55,11 +55,11 @@ namespace eg
             
             os << /*" stride: " << pBuffer->getStride() <<*/ " size: " << pBuffer->getSize() << "\n";
             os << "struct " << pBuffer->getTypeName() << "\n{\n";
-            for( const DataMember* pDimension : pBuffer->getDimensions() )
+            for( const DataMember* pDataMember : pBuffer->getDataMembers() )
             {
                 os << "    ";
-                generateDataMemberType( os, pDimension );
-                os << " " << pDimension->getName() << ";\n";
+                generateDataMemberType( os, pDataMember );
+                os << " " << pDataMember->getName() << ";\n";
             }
             
             os << "};\n";

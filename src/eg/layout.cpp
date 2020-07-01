@@ -27,23 +27,21 @@ namespace eg
 void DataMember::load( Loader& loader )
 {
     m_pDimension = loader.loadObjectRef< concrete::Dimension >();
-    loader.load( offset );
-    loader.load( name );
+    loader.load( m_name );
     m_pBuffer = loader.loadObjectRef< Buffer >();
 }
 
 void DataMember::store( Storer& storer ) const
 {
     storer.storeObjectRef( m_pDimension );
-    storer.store( offset );
-    storer.store( name );
+    storer.store( m_name );
     storer.storeObjectRef( m_pBuffer );
 }
 
 void Buffer::load( Loader& loader )
 {
     m_pContext = loader.loadObjectRef< concrete::Action >();
-    loader.loadObjectVector( m_dimensions );
+    loader.loadObjectVector( m_dataMembers );
     loader.load( size );
     loader.load( name );
     loader.load( variable );
@@ -52,7 +50,7 @@ void Buffer::load( Loader& loader )
 void Buffer::store( Storer& storer ) const
 {
     storer.storeObjectRef( m_pContext );
-    storer.storeObjectVector( m_dimensions );
+    storer.storeObjectVector( m_dataMembers );
     storer.store( size );
     storer.store( name );
     storer.store( variable );

@@ -268,7 +268,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     std::vector< const eg::DataMember* > referenceDimensions;
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
@@ -324,7 +324,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
@@ -352,7 +352,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
@@ -574,7 +574,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )
@@ -607,7 +607,7 @@ void python_sleep_reference_vector( std::vector< eg::Event > events )
     
     for( const eg::Buffer* pBuffer : layout.getBuffers() )
     {
-        for( const eg::DataMember* pDataMember : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
             if( const eg::concrete::Dimension_User* pDimension = 
                 dynamic_cast< const eg::concrete::Dimension_User* >( pDataMember->getInstanceDimension() ) )

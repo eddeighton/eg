@@ -126,7 +126,7 @@ namespace eg
                         dynamic_cast< const concrete::Dimension_User* >( pDimension ) )
                     {
                         pDataMember = construct< DataMember >();
-                        pDataMember->name = generateName( 'm', pUserDim, pAction );
+                        pDataMember->m_name = generateName( 'm', pUserDim, pAction );
                     }
                     else if( const concrete::Dimension_Generated* pGenDim =
                         dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) )
@@ -136,19 +136,19 @@ namespace eg
                             case concrete::Dimension_Generated::eActionStopCycle :
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->name = pBuffer->variable + "_cycle";
+                                    pDataMember->m_name = pBuffer->variable + "_cycle";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionState    :
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->name = pBuffer->variable + "_state";
+                                    pDataMember->m_name = pBuffer->variable + "_state";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionReference    :
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->name = pBuffer->variable + "_reference";
+                                    pDataMember->m_name = pBuffer->variable + "_reference";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionAllocator    :
@@ -165,7 +165,7 @@ namespace eg
                                     osVarName << pBuffer->variable << "_" << pDimensionAction->getContext()->getIdentifier() << "_allocator";
                                     
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->name = osVarName.str();
+                                    pDataMember->m_name = osVarName.str();
                                 }
                                 break;
 							case concrete::Dimension_Generated::eLinkReference:
@@ -178,13 +178,13 @@ namespace eg
                                     pDataMember = construct< DataMember >();
 									std::ostringstream osVarName;
 									osVarName << pBuffer->variable << "_link_" << pLinkGroup->getLinkName();
-                                    pDataMember->name = osVarName.str();
+                                    pDataMember->m_name = osVarName.str();
 								}
                                 break;
 							case concrete::Dimension_Generated::eLinkReferenceCount:
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->name = pBuffer->variable + "_link_ref_count";
+                                    pDataMember->m_name = pBuffer->variable + "_link_ref_count";
                                 }
                                 break;
                             default:
@@ -201,11 +201,11 @@ namespace eg
                 {
                     pDataMember->m_pBuffer       = pBuffer;
                     pDataMember->m_pDimension    = pDimension;
-                    pBuffer->m_dimensions.push_back( pDataMember );
+                    pBuffer->m_dataMembers.push_back( pDataMember );
                     dimensionMap.insert( std::make_pair( pDimension, pDataMember ) );
                 }
             }
-            pBuffer->size   = szSize * pAction->getContext()->getSize();
+            pBuffer->size = szSize * pAction->getContext()->getSize();
         }
         
         for( const concrete::Element* pChild : pAction->getChildren() )
@@ -218,7 +218,6 @@ namespace eg
         }
         
     }
-        
         
     void ImplementationSession::fullProgramAnalysis()
     {
@@ -238,6 +237,7 @@ namespace eg
         {
             pLayout->m_dimensionMap.insert( *i );
         }
+        
     }
 
     ReadSession::ReadSession( const boost::filesystem::path& filePath )

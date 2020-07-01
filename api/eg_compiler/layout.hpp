@@ -28,7 +28,8 @@ namespace eg
     class AnalysisSession;
     class Buffer;
     class Layout;
-    class DataMember : public IndexedObject//, public ::eg::concrete::IPrintDimensions
+    
+    class DataMember : public IndexedObject
     {
         friend class ObjectFactoryImpl;
         friend class ImplementationSession;
@@ -45,14 +46,12 @@ namespace eg
         
         const concrete::Dimension* getInstanceDimension() const { return m_pDimension; }
         
-        const std::string& getName() const { return name; }
-        std::size_t getOffset() const { return offset; }
+        const std::string& getName() const { return m_name; }
         const Buffer* getBuffer() const { return m_pBuffer; }
         
     private:
         const concrete::Dimension* m_pDimension;
-        std::size_t offset;
-        std::string name;
+        std::string m_name;
         Buffer* m_pBuffer;
     };
     
@@ -74,11 +73,11 @@ namespace eg
         const std::string& getTypeName() const { return name; }
         const std::string& getVariableName() const { return variable; }
         std::size_t getSize() const { return size; }
-        const std::vector< const DataMember* >& getDimensions() const { return m_dimensions; }
+        const std::vector< const DataMember* >& getDataMembers() const { return m_dataMembers; }
         const concrete::Action* getAction() const { return m_pContext; }
     private:
         const concrete::Action* m_pContext = nullptr;
-        std::vector< const DataMember* > m_dimensions;
+        std::vector< const DataMember* > m_dataMembers;
         std::size_t size;
         std::string name, variable;
     };

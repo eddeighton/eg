@@ -80,9 +80,14 @@ namespace eg
                 m_strIndent.pop_back();
         }
         
-        Printer::Ptr getDimension( const concrete::Dimension* pDimension, const std::string& strIndex )
+        Printer::Ptr read( const concrete::Dimension* pDimension, const std::string& strIndex )
         {
-            return m_printerFactory.getPrinter( m_layout.getDataMember( pDimension ), strIndex.c_str() );
+            return m_printerFactory.read( m_layout.getDataMember( pDimension ), strIndex.c_str() );
+        }
+        
+        Printer::Ptr write( const concrete::Dimension* pDimension, const std::string& strIndex )
+        {
+            return m_printerFactory.write( m_layout.getDataMember( pDimension ), strIndex.c_str() );
         }
         
         std::string getFailureReturnType() const { return m_strFailureType; }
@@ -360,7 +365,7 @@ namespace eg
     void generate( const DimensionReferenceReadInstruction& ins, CodeGenerator& generator, std::ostream& os )
     {
         std::ostringstream osReadRef;
-        osReadRef << *generator.getDimension( ins.getDimension(), generator.getVarExpr( ins.getInstance() ) );
+        osReadRef << *generator.read( ins.getDimension(), generator.getVarExpr( ins.getInstance() ) );
         generator.setVarExpr( ins.getReference(), osReadRef.str() );
         
         //ASSERT( ins.getChildren().size() == 1U );
@@ -526,20 +531,20 @@ namespace eg
         const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
         VERIFY_RTE( pReferenceDimension );
         os << generator.getIndent() << "::eg::Scheduler::stop_ref( " << 
-            *generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
+            *generator.read( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
     }
     void generate( const PauseOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
         const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
         VERIFY_RTE( pReferenceDimension );
         os << generator.getIndent() << "if( " << 
-            *generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
+            *generator.read( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
                 " == " << getActionState( action_running ) << " )\n";
         os << generator.getIndent() << "{\n";
         os << generator.getIndent() << "    ::eg::Scheduler::pause_ref( " << 
-            *generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
+            *generator.read( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
         os << generator.getIndent() << "    " <<
-            *generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
+            *generator.write( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
                 " = " << getActionState( action_paused ) << ";\n";
         os << generator.getIndent() << "}\n";
     }
@@ -548,13 +553,13 @@ namespace eg
         const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
         VERIFY_RTE( pReferenceDimension );
         os << generator.getIndent() << "if( " << 
-            *generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
+            *generator.read( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) <<
                 " == " << getActionState( action_paused ) << " )\n";
         os << generator.getIndent() << "{\n";
         os << generator.getIndent() << "    ::eg::Scheduler::unpause_ref( " << 
-            *generator.getDimension( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
+            *generator.read( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
         os << generator.getIndent() << "    " <<
-            *generator.getDimension( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
+            *generator.write( ins.getConcreteType()->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
                 " = " << getActionState( action_running ) << ";\n";
         os << generator.getIndent() << "}\n";
     }
@@ -575,14 +580,14 @@ namespace eg
                 //test the active state of the single instance
                 const concrete::Action* pAllocated = pSingletonAllocator->getAllocated();
                 os << generator.getIndent() << "if( " <<
-                    *generator.getDimension( pAllocated->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
+                    *generator.read( pAllocated->getState(), generator.getVarExpr( ins.getInstance() ) ) << 
                     " != " << getActionState( action_stopped ) << " ) return false;\n";
             }
             else if( const concrete::RangeAllocator* pRangeAllocator = dynamic_cast< const concrete::RangeAllocator* >( i->second ) )
             {
                 const concrete::Dimension_Generated* pAllocatorData = pRangeAllocator->getAllocatorData();
                 os << generator.getIndent() << "if( !" <<
-                    *generator.getDimension( pAllocatorData, generator.getVarExpr( ins.getInstance() ) ) << ".empty() ) return false;\n";
+                    *generator.read( pAllocatorData, generator.getVarExpr( ins.getInstance() ) ) << ".empty() ) return false;\n";
             }
             else
             {
@@ -596,42 +601,42 @@ namespace eg
     {
         THROW_RTE( "TODO WaitActionOperation" );
         os << generator.getIndent() << "return " <<
-            *generator.getDimension( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+            *generator.read( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
         
     }
     void generate( const WaitDimensionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
         THROW_RTE( "TODO WaitDimensionOperation" );
         os << generator.getIndent() << "return " << 
-            *generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+            *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
     void generate( const GetActionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
         VERIFY_RTE( ins.getConcreteType()->getReference() );
         os << generator.getIndent() << "return " <<
-            *generator.getDimension( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+            *generator.read( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
         
     }
     void generate( const GetDimensionOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
         os << generator.getIndent() << "return " << 
-            *generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+            *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
     void generate( const ReadOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
         os << generator.getIndent() << "return " << 
-            *generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+            *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
     void generate( const WriteOperation& ins, CodeGenerator& generator, std::ostream& os )
     {
         os << generator.getIndent() << 
-            *generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
+            *generator.write( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
         
         const concrete::Action* pReturnType = ins.getInstance()->getConcreteType();
         if( pReturnType->getReference() )
         {
             os << generator.getIndent() << "return " << 
-                *generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+                *generator.read( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
         }
         else
         {
@@ -652,14 +657,14 @@ namespace eg
                 
         //is the value different to the current base
         os << generator.getIndent() << "if( " << 
-            *generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " != value )\n";
+            *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " != value )\n";
         os << generator.getIndent() << "{\n";
         generator.pushIndent();
             
         //if current base is NOT null then invoke the breaker
         {
             os << generator.getIndent() << "if( " << 
-                *generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ".data.timestamp != eg::INVALID_TIMESTAMP )\n";
+                *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ".data.timestamp != eg::INVALID_TIMESTAMP )\n";
             os << generator.getIndent() << "{\n";
             os << generator.getIndent() << "  " << pLink->getName() << "_breaker( " << generator.getVarExpr( ins.getInstance() ) << " );\n";
             os << generator.getIndent() << "}\n";
@@ -667,7 +672,7 @@ namespace eg
             
         //assign the new base
         os << generator.getIndent() << 
-            *generator.getDimension( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
+            *generator.write( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
             
         const concrete::Dimension_Generated* pLinkerReferenceDimension = pLink->getReference();
         VERIFY_RTE( pLinkerReferenceDimension );
@@ -693,16 +698,16 @@ namespace eg
                         //before assigning the link back reference - test it to see if existing link to it
                         {
                             os << generator.getIndent() << "if( " << 
-                                *generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
+                                *generator.read( pLinkBackReference, "value.data.instance" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
                             os << generator.getIndent() << "{\n";
                             
-                            os << generator.getIndent() << "  switch( " << *generator.getDimension( pLinkBackReference, "value.data.instance" ) << ".type )\n";
+                            os << generator.getIndent() << "  switch( " << *generator.read( pLinkBackReference, "value.data.instance" ) << ".type )\n";
                             os << generator.getIndent() << "  {\n";
                             
                             for( const concrete::Action* pLink : pLinkGroup->getConcreteLinks() )
                             {
                             os << generator.getIndent() << "    case " << pLink->getIndex() << ": ::eg::Scheduler::stop_ref( " << 
-                                *generator.getDimension( pLinkBackReference, "value.data.instance" ) << " ); break;\n";
+                                *generator.read( pLinkBackReference, "value.data.instance" ) << " ); break;\n";
                             }
                             os << generator.getIndent() << "    default: ERR( \"Unknown link type\" ); break;\n";
                             os << generator.getIndent() << "  }\n";
@@ -712,8 +717,8 @@ namespace eg
                         
                         //finally assign the back reference to the link
                         {
-                            os << generator.getIndent() << *generator.getDimension( pLinkBackReference, "value.data.instance" ) << " = " <<
-                                *generator.getDimension( pLinkerReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data;\n";
+                            os << generator.getIndent() << *generator.write( pLinkBackReference, "value.data.instance" ) << " = " <<
+                                *generator.read( pLinkerReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data;\n";
                                 
                             //increment the reference count
                             {
@@ -732,8 +737,8 @@ namespace eg
                                         else
                                             osDomain << "value.data.instance / " << iDomainFactor;
                                     }
-                                    os << generator.getIndent() << *generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << 
-                                        " = " << *generator.getDimension( pLinkRefCount, osDomain.str().c_str() ) << " + 1;\n";
+                                    os << generator.getIndent() << *generator.write( pLinkRefCount, osDomain.str().c_str() ) << 
+                                        " = " << *generator.read( pLinkRefCount, osDomain.str().c_str() ) << " + 1;\n";
                                 }
                             }
                                 
@@ -757,7 +762,7 @@ namespace eg
         
         const concrete::Action* pReturnType = ins.getInstance()->getConcreteType();
         os << generator.getIndent() << "return " << 
-            *generator.getDimension( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
+            *generator.read( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
     
     void generate( const RangeOperation& ins, CodeGenerator& generator, std::ostream& os )

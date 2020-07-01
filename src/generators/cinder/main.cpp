@@ -87,9 +87,9 @@ std::pair< Input::Iter, Input::Iter > Input::getEvents()
     
     os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
-        for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
-            generateAllocation( os, pDimension, "i" );
+            generateAllocation( os, pDataMember, "i" );
         }
     
     os << "    }\n";
@@ -106,9 +106,9 @@ std::pair< Input::Iter, Input::Iter > Input::getEvents()
         const eg::Buffer* pBuffer = layout.getBuffers()[ sz - 1U ];
     os << "    for( " << eg::EG_INSTANCE << " i = 0U; i != " << pBuffer->getSize() << "; ++i )\n";
     os << "    {\n";
-        for( const eg::DataMember* pDimension : pBuffer->getDimensions() )
+        for( const eg::DataMember* pDataMember : pBuffer->getDataMembers() )
         {
-            generateDeallocation( os, pDimension, "i" );
+            generateDeallocation( os, pDataMember, "i" );
         }
     os << "    }\n";
     }

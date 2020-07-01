@@ -65,7 +65,7 @@ namespace eg
             if( pAction->getParent() && pAction->getReference() )
             {
         os << "        case " << pAction->getIndex() << ": return " << 
-                *printerFactory.getPrinter( layout.getDataMember( pAction->getReference() ), "instance" ) << ".data.timestamp;\n";
+                *printerFactory.read( layout.getDataMember( pAction->getReference() ), "instance" ) << ".data.timestamp;\n";
             }
         }
         os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
@@ -81,7 +81,7 @@ namespace eg
             if( pAction->getParent() && pAction->getState() )
             {
         os << "        case " << pAction->getIndex() << ": return " << 
-            *printerFactory.getPrinter( layout.getDataMember( pAction->getState() ), "instance" ) << ";\n";
+            *printerFactory.read( layout.getDataMember( pAction->getState() ), "instance" ) << ";\n";
             }
         }
         os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
@@ -97,7 +97,7 @@ namespace eg
             if( pAction->getParent() && pAction->getStopCycle() )
             {
         os << "        case " << pAction->getIndex() << ": return " << 
-            *printerFactory.getPrinter( layout.getDataMember( pAction->getStopCycle() ), "instance" ) << ";\n";
+            *printerFactory.read( layout.getDataMember( pAction->getStopCycle() ), "instance" ) << ";\n";
             }
         }
         os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
@@ -123,7 +123,7 @@ namespace eg
             const DataMember* pLinkBaseData = layout.getDataMember( pLinkBaseDimension );
             VERIFY_RTE( pLinkBaseData );
             
-            os << "            " << *printerFactory.getPrinter( pLinkBaseData, pszInstance ) << ".data = { 0, 0, 0 };\n";
+            os << "            " << *printerFactory.write( pLinkBaseData, pszInstance ) << ".data = { 0, 0, 0 };\n";
         }
     }
         
@@ -153,14 +153,14 @@ namespace eg
             
             os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
             os << "{\n";
-            os << "    if( ( " << *printerFactory.getPrinter( pStateData, "_parent_id" ) << " == " << getActionState( action_stopped ) << 
-                " ) && ( " << *printerFactory.getPrinter( pCycleData, "_parent_id" ) << " < clock::cycle() ) )\n";
+            os << "    if( ( " << *printerFactory.read( pStateData, "_parent_id" ) << " == " << getActionState( action_stopped ) << 
+                " ) && ( " << *printerFactory.read( pCycleData, "_parent_id" ) << " < clock::cycle() ) )\n";
             os << "    {\n";
             os << "        const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-            os << "        " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.getPrinter( pReferenceData, "_parent_id" ) << ";\n";
+            os << "        " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.write( pReferenceData, "_parent_id" ) << ";\n";
             os << "        reference.data.timestamp = startCycle;\n";
             os << "        reference.data.type = " << pAction->getIndex() << ";\n";
-            os << "        " << *printerFactory.getPrinter( pStateData, "_parent_id" ) << " = " << getActionState( action_running ) << ";\n";
+            os << "        " << *printerFactory.write( pStateData, "_parent_id" ) << " = " << getActionState( action_running ) << ";\n";
             os << "        events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             generateActionInit( os, printerFactory, layout, pAction, "_parent_id" );
@@ -191,18 +191,18 @@ namespace eg
             os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
             os << "{\n";
             
-            os << "    if( !" << *printerFactory.getPrinter( pAllocatorData, "_parent_id" ) << ".full() )\n";
+            os << "    if( !" << *printerFactory.read( pAllocatorData, "_parent_id" ) << ".full() )\n";
             os << "    {\n";
-            os << "        const " << EG_INSTANCE << " freeIndex = " << *printerFactory.getPrinter( pAllocatorData, "_parent_id" ) << ".nextFree();\n";
+            os << "        const " << EG_INSTANCE << " freeIndex = " << *printerFactory.read( pAllocatorData, "_parent_id" ) << ".nextFree();\n";
             os << "        const " << EG_INSTANCE << " newInstance = " << "_parent_id * " << pAction->getLocalDomainSize() << " + freeIndex;\n";
-            os << "        if( " << *printerFactory.getPrinter( pCycleData, "newInstance" ) << " < clock::cycle() )\n";
+            os << "        if( " << *printerFactory.read( pCycleData, "newInstance" ) << " < clock::cycle() )\n";
             os << "        {\n";
-            os << "            " << *printerFactory.getPrinter( pAllocatorData, "_parent_id" ) << ".allocate( freeIndex );\n";
+            os << "            " << *printerFactory.write( pAllocatorData, "_parent_id" ) << ".allocate( freeIndex );\n";
             os << "            const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-            os << "            " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.getPrinter( pReferenceData, "newInstance" ) << ";\n";
+            os << "            " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.write( pReferenceData, "newInstance" ) << ";\n";
             os << "            reference.data.timestamp = startCycle;\n";
             os << "            reference.data.type = " << pAction->getIndex() << ";\n";
-            os << "            " << *printerFactory.getPrinter( pStateData, "newInstance" ) << " = " << getActionState( action_running ) << ";\n";
+            os << "            " << *printerFactory.write( pStateData, "newInstance" ) << " = " << getActionState( action_running ) << ";\n";
             os << "            events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             generateActionInit( os, printerFactory, layout, pAction, "newInstance" );
@@ -234,9 +234,9 @@ namespace eg
         os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter()\n";
         os << "{\n";
         os << "    const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
-        os << "    " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.getPrinter( pReferenceData, "0" ) << ";\n";
+        os << "    " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.write( pReferenceData, "0" ) << ";\n";
         os << "    reference.data.timestamp = startCycle;\n";
-        os << "    " << *printerFactory.getPrinter( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
+        os << "    " << *printerFactory.write( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
         os << "    events::put( \"start\", startCycle, &reference.data, sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
         os << "    return reference;\n";
         os << "}\n";
@@ -261,7 +261,7 @@ namespace eg
                             dynamic_cast< const concrete::SingletonAllocator* >( pChildAllocator ) )
                     {
                         const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
-            os << "        if( " << *printerFactory.getPrinter( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "        if( " << *printerFactory.read( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
             os << "             " << pChildAction->getName() << "_stopper( _gid );\n";
                         
                     }
@@ -271,12 +271,12 @@ namespace eg
                         const DataMember* pChildAllocatorData = layout.getDataMember( pChildRangeAllocator->getAllocatorData() );
                         const DataMember* pStateData = layout.getDataMember( pChildAction->getState() );
                         
-            os << "        if( !" << *printerFactory.getPrinter( pChildAllocatorData, "_gid" ) << ".empty() )\n";
+            os << "        if( !" << *printerFactory.read( pChildAllocatorData, "_gid" ) << ".empty() )\n";
             os << "        {\n";
             os << "            for( " << EG_INSTANCE << " childIndex = _gid * " << pChildAction->getLocalDomainSize() << 
                                     "; childIndex != ( _gid + 1 ) * " << pChildAction->getLocalDomainSize() << "; ++childIndex )\n";
             os << "            {\n";
-            os << "                if( " << *printerFactory.getPrinter( pStateData, "childIndex" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "                if( " << *printerFactory.read( pStateData, "childIndex" ) << " != " << getActionState( action_stopped ) << " )\n";
             os << "                    " << pChildAction->getName() << "_stopper( childIndex );\n";
             os << "            }\n";
             os << "        }\n";
@@ -326,33 +326,33 @@ namespace eg
             VERIFY_RTE( pLinkGroup );
             
             
-            os << "        if( " << *printerFactory.getPrinter( pBackRefData, "_gid" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
+            os << "        if( " << *printerFactory.read( pBackRefData, "_gid" ) << ".timestamp != eg::INVALID_TIMESTAMP )\n";
             os << "        {\n";
-            os << "            switch( " << *printerFactory.getPrinter( pBackRefData, "_gid" ) << ".type )\n";
+            os << "            switch( " << *printerFactory.read( pBackRefData, "_gid" ) << ".type )\n";
             os << "            {\n";
             for( const concrete::Action* pLink : pLinkGroup->getConcreteLinks() )
             {
             os << "                case " << pLink->getIndex() << ":\n";
             os << "                {\n";
-            os << "                     " << *printerFactory.getPrinter( pLinkRefCountDataMember, osObjectDomain.str().c_str() ) << 
-                " = " << *printerFactory.getPrinter( pLinkRefCountDataMember, osObjectDomain.str().c_str() ) << " - 1;\n";
+            os << "                     " << *printerFactory.write( pLinkRefCountDataMember, osObjectDomain.str().c_str() ) << 
+                " = " << *printerFactory.read( pLinkRefCountDataMember, osObjectDomain.str().c_str() ) << " - 1;\n";
                 
-            os << "                     const eg::reference backRef = " << *printerFactory.getPrinter( pBackRefData, "_gid" ) << ";\n";
-            os << "                     " << *printerFactory.getPrinter( pBackRefData, "_gid" ) << " = { 0, 0, 0 };\n";
+            os << "                     const eg::reference backRef = " << *printerFactory.read( pBackRefData, "_gid" ) << ";\n";
+            os << "                     " << *printerFactory.write( pBackRefData, "_gid" ) << " = { 0, 0, 0 };\n";
                 const concrete::Dimension_User* pLinkBaseDimension = pLink->getLinkBaseDimension();
                 VERIFY_RTE( pLinkBaseDimension );
                 const DataMember* pLinkBaseData = layout.getDataMember( pLinkBaseDimension );
                 VERIFY_RTE( pLinkBaseData );
             
-            os << "                     " << *printerFactory.getPrinter( pLinkBaseData, "backRef.instance" ) << ".data = { 0, 0, 0 };\n";
+            os << "                     " << *printerFactory.write( pLinkBaseData, "backRef.instance" ) << ".data = { 0, 0, 0 };\n";
             os << "                     ::eg::Scheduler::stop_ref( backRef );\n";
                 
        // TODO - should stopping a link target trigger referenced count based stop  
-       // os << "           " << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
-       // os << "           if( " << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
+       // os << "           " << *printerFactory.write( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
+       // os << "           if( " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
        // os << "           {\n";
-       // os << "             ::eg::Scheduler::zeroRefCount( " << *printerFactory.getPrinter( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
-       //                         "&" << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
+       // os << "             ::eg::Scheduler::zeroRefCount( " << *printerFactory.read( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
+       //                         "&" << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
        // os << "           }\n";
             
             
@@ -378,11 +378,11 @@ namespace eg
 		const DataMember* pStateData = layout.getDataMember( pAction->getState() );
 		const DataMember* pReferenceData = layout.getDataMember( pAction->getReference() );
 		
-        os << "     if( " << *printerFactory.getPrinter( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+        os << "     if( " << *printerFactory.read( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
-        os << "         " << *printerFactory.getPrinter( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-        os << "         " << *printerFactory.getPrinter( pCycleData, "_gid" ) << " = clock::cycle();\n";
-        os << "         events::put( \"stop\", clock::cycle(), &" << *printerFactory.getPrinter( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+        os << "         " << *printerFactory.write( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+        os << "         " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle();\n";
+        os << "         events::put( \"stop\", clock::cycle(), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
         //stop the subtree
         generateStopperLinkBreaks( os, printerFactory, layout, linkAnalysis, pAction );
         generateSubTreeStop( os, printerFactory, layout, pAction );
@@ -413,12 +413,12 @@ namespace eg
             
             os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
             os << "{\n";
-            os << "    if( " << *printerFactory.getPrinter( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "    if( " << *printerFactory.read( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
             os << "    {\n";
-            os << "        ::eg::Scheduler::stopperStopped( " << *printerFactory.getPrinter( pReferenceData, "_gid" ) << ".data );\n";
-            os << "        " << *printerFactory.getPrinter( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-            os << "        " << *printerFactory.getPrinter( pCycleData, "_gid" ) << " = clock::cycle();\n";
-            os << "        events::put( \"stop\", clock::cycle(), &" << *printerFactory.getPrinter( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            os << "        ::eg::Scheduler::stopperStopped( " << *printerFactory.read( pReferenceData, "_gid" ) << ".data );\n";
+            os << "        " << *printerFactory.write( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+            os << "        " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle();\n";
+            os << "        events::put( \"stop\", clock::cycle(), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             //stop the subtree
             generateStopperLinkBreaks( os, printerFactory, layout, linkAnalysis, pAction );
@@ -444,15 +444,15 @@ namespace eg
             
             os << "void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid )\n";
             os << "{\n";
-            os << "    if( " << *printerFactory.getPrinter( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
+            os << "    if( " << *printerFactory.read( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
             os << "    {\n";
-            os << "        ::eg::Scheduler::stopperStopped( " << *printerFactory.getPrinter( pReferenceData, "_gid" ) << ".data );\n";
+            os << "        ::eg::Scheduler::stopperStopped( " << *printerFactory.read( pReferenceData, "_gid" ) << ".data );\n";
             os << "        const " << EG_INSTANCE << " _parentIndex = " << "_gid / " << pAction->getLocalDomainSize() << ";\n";
             os << "        const " << EG_INSTANCE << " freeIndex = " << "_gid - _parentIndex * " << pAction->getLocalDomainSize() << ";\n";
-            os << "        " << *printerFactory.getPrinter( pAllocatorData, "_parentIndex" ) << ".free( freeIndex );\n";
-            os << "        " << *printerFactory.getPrinter( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-            os << "        " << *printerFactory.getPrinter( pCycleData, "_gid" ) << " = clock::cycle();\n";
-            os << "        events::put( \"stop\", clock::cycle(), &" << *printerFactory.getPrinter( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            os << "        " << *printerFactory.write( pAllocatorData, "_parentIndex" ) << ".free( freeIndex );\n";
+            os << "        " << *printerFactory.write( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
+            os << "        " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle();\n";
+            os << "        events::put( \"stop\", clock::cycle(), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             //stop the subtree
             generateStopperLinkBreaks( os, printerFactory, layout, linkAnalysis, pAction );
@@ -490,7 +490,7 @@ namespace eg
         os << "void " << pAction->getName() << "_breaker( " << EG_INSTANCE << " _gid )\n";
         os << "{\n";
         
-        os << "  const " << EG_REFERENCE_TYPE << " currentBase = " << *printerFactory.getPrinter( pLinkBaseData, "_gid" ) << ".data;\n";
+        os << "  const " << EG_REFERENCE_TYPE << " currentBase = " << *printerFactory.read( pLinkBaseData, "_gid" ) << ".data;\n";
         
         os << "  if( currentBase.timestamp != eg::INVALID_TIMESTAMP )\n";
         os << "  {\n";
@@ -514,7 +514,7 @@ namespace eg
                     
                     if( pObject->getContext()->isMainExecutable() )
                     {
-        os << "      case " << pTargetType->getIndex() << ": " << *printerFactory.getPrinter( pLinkRef, "currentBase.instance" ) << " = { 0, 0, 0 }; break;\n";
+        os << "      case " << pTargetType->getIndex() << ": " << *printerFactory.write( pLinkRef, "currentBase.instance" ) << " = { 0, 0, 0 }; break;\n";
                     }
                     else
                     {
@@ -534,12 +534,12 @@ namespace eg
                                 osDomain << "currentBase.instance / " << iDomainFactor;
                         }
                     
-        os << "      case " << pTargetType->getIndex() << ": " << *printerFactory.getPrinter( pLinkRef, "currentBase.instance" ) << " = { 0, 0, 0 };\n";
-        os << "           " << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
-        os << "           if( " << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
+        os << "      case " << pTargetType->getIndex() << ": " << *printerFactory.write( pLinkRef, "currentBase.instance" ) << " = { 0, 0, 0 };\n";
+        os << "           " << *printerFactory.write( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
+        os << "           if( " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
         os << "           {\n";
-        os << "             ::eg::Scheduler::zeroRefCount( " << *printerFactory.getPrinter( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
-                                "&" << *printerFactory.getPrinter( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
+        os << "             ::eg::Scheduler::zeroRefCount( " << *printerFactory.read( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
+                                "&" << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
         os << "           }\n";
         os << "           break;\n";
                     }

@@ -55,6 +55,14 @@ namespace eg
         {
             return std::make_shared< DefaultPrinter >( pDataMember, pszIndex );
         }
+        Printer::Ptr read( const DataMember* pDataMember, const char* pszIndex )
+        {
+            return std::make_shared< DefaultPrinter >( pDataMember, pszIndex );
+        }
+        Printer::Ptr write( const DataMember* pDataMember, const char* pszIndex )
+        {
+            return std::make_shared< DefaultPrinter >( pDataMember, pszIndex );
+        }
     };
     
     PrinterFactory::Ptr getDefaultPrinterFactory()
