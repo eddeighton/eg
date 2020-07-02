@@ -415,7 +415,8 @@ namespace eg
     void generateImplementationSource( std::ostream& os, 
         PrinterFactory& printerFactory,
         const ReadSession& program, 
-        const eg::TranslationUnit& translationUnit )
+        const eg::TranslationUnit& translationUnit,
+        const std::vector< std::string >& additionalIncludes )
     {
         const interface::Root* pRoot = program.getTreeRoot();
         
@@ -424,7 +425,10 @@ namespace eg
         
         const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
         
-        os << "#include \"structures.hpp\"\n\n";
+        for( const std::string& strInclude : additionalIncludes )
+        {
+            os << "#include \"" << strInclude << "\"\n";
+        }
                 
         os << "\n";
         os << "//input::Action function forward declarations\n";

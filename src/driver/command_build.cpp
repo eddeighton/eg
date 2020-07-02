@@ -442,7 +442,7 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
             {
                 LogEntry log( std::cout, "Generating implementation: " + pTranslationUnit->getName(), bBenchCommands );
                 std::ostringstream osImpl;
-                eg::generateImplementationSource( osImpl, printerFactory, session, *pTranslationUnit );
+                eg::generateImplementationSource( osImpl, printerFactory, session, *pTranslationUnit, { "structures.hpp" } );
                 boost::filesystem::updateFileIfChanged( project.getImplementationSource( pTranslationUnit->getName() ), osImpl.str() );
             }
         }
