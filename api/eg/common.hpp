@@ -129,11 +129,32 @@ namespace eg
         Paused,
         Running
     };
-
-    struct reference
+    
+    struct TypeInstance
     {
         Instance  instance  = 0U;
         TypeID    type      = 0;
+        
+        inline bool operator==( const TypeInstance& cmp ) const
+        {
+            return  ( instance == cmp.instance ) && ( type == cmp.type );
+        }
+        
+        inline bool operator!=( const TypeInstance& cmp ) const
+        {
+            return !( *this == cmp );
+        }
+        
+        inline bool operator<( const TypeInstance& cmp ) const
+        {
+            return  ( instance != cmp.instance ) ?      ( instance < cmp.instance ) : 
+                    ( type != cmp.type ) ?              ( type < cmp.type ) : 
+                    false;
+        }
+    };
+
+    struct reference : TypeInstance
+    {
         TimeStamp timestamp = INVALID_TIMESTAMP;
         
         inline bool operator==( const reference& cmp ) const
