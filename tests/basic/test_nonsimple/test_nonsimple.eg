@@ -1,0 +1,21 @@
+
+include( "test_traits.hpp" );
+
+dim int x;
+dim Thing::Ptr thing1;
+dim Thing::Ptr thing2;
+
+TEST( thing1()->value == 0 );
+TEST( thing2()->value == 0 );
+
+thing1()->value = 1;
+thing2()->value = 2;
+
+TEST( thing1()->value == 1 );
+TEST( thing2()->value == 2 );
+
+thing1( thing2() );
+
+TEST( thing1()->value == 2 );
+TEST( thing2()->value == 2 );
+

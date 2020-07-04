@@ -206,6 +206,7 @@ namespace interface
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
         std::size_t getSize() const { VERIFY_RTE_MSG( m_size != SIZE_NOT_SET, "Size not calculated for: " << getType() ); return m_size; }
+        bool isSimple() const { VERIFY_RTE_MSG( m_simple != SIZE_NOT_SET, "Size not calculated for: " << getType() ); return ( m_simple != 0U ) ? true : false; }
         const std::vector< Context* >& getContextTypes() const { return m_contextTypes; }
         static bool isHomogenous( const std::vector< const Dimension* >& dimensions );
     private:
@@ -213,6 +214,7 @@ namespace interface
         std::vector< Context* > m_contextTypes;
         std::string m_canonicalType;
         std::size_t m_size = SIZE_NOT_SET;
+        std::size_t m_simple = SIZE_NOT_SET;
     };
     
     class Using : public Element

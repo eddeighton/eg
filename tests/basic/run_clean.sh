@@ -3,7 +3,7 @@
 for fl in test_*
 do
     cd $fl
-    for f in *.db *.pch *.gch *.o *.obj *.exe *.tmp *.egcpp *.log *.pdb *.ilk *.xml *interface* *operations* *impl* *includes* *build *log
+    for f in *.db *.pch *.gch *.o *.obj *.exe *.tmp *.egcpp *.log *.pdb *.ilk *.xml *interface* *operations* *includes* *build *log
     do
         if [ -d "$f" ]; then
             rm -rf $f

@@ -311,6 +311,7 @@ namespace interface
         loader.loadObjectVector( m_contextTypes );
         loader.load( m_canonicalType );
         loader.load( m_size );
+        loader.load( m_simple );
     }
     void Dimension::store( Storer& storer ) const
     {
@@ -318,6 +319,7 @@ namespace interface
         storer.storeObjectVector( m_contextTypes );
         storer.store( m_canonicalType );
         storer.store( m_size );
+        storer.store( m_simple );
     }
     
     /*bool Dimension::update( const Element* pElement )

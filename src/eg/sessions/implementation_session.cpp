@@ -105,22 +105,15 @@ namespace eg
             }
         }
         
-        if( !dimensions.empty() )
+        const std::vector< const concrete::Element* > path = concrete::getPath( pAction );
+        const std::string strBaseVariable = generateName( 'g', path );
+    
+        //construct the data members
+        std::vector< DataMember* > dataMembers;
         {
-            //create buffer
-            Buffer* pBuffer = construct< Buffer >();
-            buffers.push_back( pBuffer );
-            pBuffer->m_pContext = pAction;
-            
-            std::vector< const concrete::Element* > path = concrete::getPath( pAction );
-            
-            pBuffer->name       = generateName( 'b', path );
-            pBuffer->variable   = generateName( 'g', path );
-            
             for( const concrete::Dimension* pDimension : dimensions )
             {
                 DataMember* pDataMember = nullptr; 
-                
                 {
                     if( const concrete::Dimension_User* pUserDim = 
                         dynamic_cast< const concrete::Dimension_User* >( pDimension ) )
@@ -136,19 +129,19 @@ namespace eg
                             case concrete::Dimension_Generated::eActionStopCycle :
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->m_name = pBuffer->variable + "_cycle";
+                                    pDataMember->m_name = strBaseVariable + "_cycle";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionState    :
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->m_name = pBuffer->variable + "_state";
+                                    pDataMember->m_name = strBaseVariable + "_state";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionReference    :
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->m_name = pBuffer->variable + "_reference";
+                                    pDataMember->m_name = strBaseVariable + "_reference";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionAllocator    :
@@ -162,7 +155,7 @@ namespace eg
 									VERIFY_RTE( pAllocator );
                                     
 									std::ostringstream osVarName;
-                                    osVarName << pBuffer->variable << "_" << pDimensionAction->getContext()->getIdentifier() << "_allocator";
+                                    osVarName << strBaseVariable << "_" << pDimensionAction->getContext()->getIdentifier() << "_allocator";
                                     
                                     pDataMember = construct< DataMember >();
                                     pDataMember->m_name = osVarName.str();
@@ -177,14 +170,14 @@ namespace eg
 									VERIFY_RTE( !pLinkGroup->getLinkName().empty() );
                                     pDataMember = construct< DataMember >();
 									std::ostringstream osVarName;
-									osVarName << pBuffer->variable << "_link_" << pLinkGroup->getLinkName();
+									osVarName << strBaseVariable << "_link_" << pLinkGroup->getLinkName();
                                     pDataMember->m_name = osVarName.str();
 								}
                                 break;
 							case concrete::Dimension_Generated::eLinkReferenceCount:
                                 {
                                     pDataMember = construct< DataMember >();
-                                    pDataMember->m_name = pBuffer->variable + "_link_ref_count";
+                                    pDataMember->m_name = strBaseVariable + "_link_ref_count";
                                 }
                                 break;
                             default:
@@ -197,15 +190,52 @@ namespace eg
                         THROW_RTE( "Unknown dimension type" );
                     }
                 }
+                
                 if( pDataMember )
                 {
-                    pDataMember->m_pBuffer       = pBuffer;
+                    dataMembers.push_back( pDataMember );
+                    
                     pDataMember->m_pDimension    = pDimension;
-                    pBuffer->m_dataMembers.push_back( pDataMember );
                     dimensionMap.insert( std::make_pair( pDimension, pDataMember ) );
                 }
             }
-            pBuffer->size = szSize * pAction->getContext()->getSize();
+        }
+        
+        Buffer* pBuffer_Simple = nullptr;
+        Buffer* pBuffer_Complex = nullptr;
+            
+        for( DataMember* pDataMember : dataMembers )
+        {
+            if( pDataMember->m_pDimension->isSimple() )
+            {
+                if( !pBuffer_Simple )
+                {
+                    pBuffer_Simple = construct< Buffer >();
+                    buffers.push_back( pBuffer_Simple );
+                    pBuffer_Simple->m_pContext = pAction;
+                    pBuffer_Simple->name        = generateName( 'b', path );
+                    pBuffer_Simple->variable    = generateName( 'g', path );
+                }
+                
+                pDataMember->m_pBuffer = pBuffer_Simple;
+                pBuffer_Simple->m_dataMembers.push_back( pDataMember );
+                pBuffer_Simple->size = szSize * pAction->getContext()->getSize();
+            }
+            else
+            {
+                if( !pBuffer_Complex )
+                {
+                    pBuffer_Complex = construct< Buffer >();
+                    buffers.push_back( pBuffer_Complex );
+                    pBuffer_Complex->m_pContext = pAction;
+                    pBuffer_Complex->name       = generateName( 'b', path ) + "_complex";
+                    pBuffer_Complex->variable   = generateName( 'g', path ) + "_complex";
+                }
+                
+                pDataMember->m_pBuffer = pBuffer_Complex;
+                pBuffer_Complex->m_dataMembers.push_back( pDataMember );
+                pBuffer_Complex->size = szSize * pAction->getContext()->getSize();
+            }
         }
         
         for( const concrete::Element* pChild : pAction->getChildren() )
@@ -216,7 +246,6 @@ namespace eg
                 recurseInstances( buffers, dimensionMap, szSize * pAction->getContext()->getSize(), pChildAction );
             }
         }
-        
     }
         
     void ImplementationSession::fullProgramAnalysis()

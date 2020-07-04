@@ -22,6 +22,7 @@
 #define EG_DEFAULT_TRAITS
 
 #include <cstddef>
+#include <type_traits>
 
 namespace eg
 {
@@ -34,6 +35,7 @@ struct DimensionTraits
     using Write = T;
     using Get   = T&;
     static const std::size_t Size = sizeof( T );
+    static const std::size_t Simple = std::is_trivially_copyable< T >::value;
     
     static void initialise( T& value )
     {

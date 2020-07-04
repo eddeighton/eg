@@ -140,6 +140,8 @@ namespace concrete
         
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
+    public:
+        virtual bool isSimple() const = 0;
     };
     
     /////////////////////////////////////////////////////////////////////////////////////
@@ -169,6 +171,8 @@ namespace concrete
         {
             return !getContextTypes().empty();
         }
+        
+        virtual bool isSimple() const { return getDimension()->isSimple(); }
         
         const std::vector< ::eg::interface::Context* >& getContextTypes() const
         {
@@ -218,12 +222,11 @@ namespace concrete
         
     public:
         DimensionType getDimensionType() const { return m_type; }
-        const Dimension_User* getUserDimension() const { return m_pUserDimension; }
         Action* getAction() const { return m_pContext; }
 		LinkGroup* getLinkGroup() const { return m_pLinkGroup; }
+        virtual bool isSimple() const { return true; }
     private:
         DimensionType m_type;
-        Dimension_User* m_pUserDimension = nullptr;
         Action* m_pContext = nullptr;
 		LinkGroup* m_pLinkGroup = nullptr;
     };

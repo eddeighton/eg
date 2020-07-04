@@ -687,6 +687,10 @@ namespace clang
         {
             dimension.m_size = szSize;
         }
+        static void setSimple( ::eg::interface::Dimension& dimension, std::size_t szSimple )
+        {
+            dimension.m_simple = szSimple;
+        }
         static void setCanonicalType( ::eg::interface::Dimension& dimension, const std::string& strType )
         {
             dimension.m_canonicalType = strType;
@@ -843,6 +847,13 @@ namespace clang
                     {
                         AbstractMutator::setSize( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
                     }
+                    
+                    //determine if the type is simple
+                    if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, ::eg::EG_TRAITS_SIMPLE ) )
+                    {
+                        AbstractMutator::setSimple( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
+                    }
+                    
                 }
             }
             

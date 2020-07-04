@@ -427,6 +427,7 @@ namespace eg
             os << "  using Write = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Write;\n";
             os << "  using Get   = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::Get;\n";
             os << "  static const " << EG_INSTANCE << " " << EG_TRAITS_SIZE << " = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::" << EG_TRAITS_SIZE << ";\n";
+            os << "  static const " << EG_INSTANCE << " " << EG_TRAITS_SIMPLE << " = " << EG_DIMENSION_TRAITS << "< " << pElement->getType()->getStr() << " >::" << EG_TRAITS_SIMPLE << ";\n";
             os << "};\n";
         }
         void push ( const input::Include*   pElement, const interface::Element* pNode )

@@ -118,7 +118,6 @@ namespace concrete
     void Dimension_Generated::load( Loader& loader )
     {
         Dimension::load( loader );
-        m_pUserDimension = loader.loadObjectRef< Dimension_User >();
         loader.load( m_type );
         m_pContext = loader.loadObjectRef< Action >();
         m_pLinkGroup = loader.loadObjectRef< LinkGroup >();
@@ -127,7 +126,6 @@ namespace concrete
     void Dimension_Generated::store( Storer& storer ) const
     {
         Dimension::store( storer );
-        storer.storeObjectRef( m_pUserDimension );
         storer.store( m_type );
         storer.storeObjectRef( m_pContext );
         storer.storeObjectRef( m_pLinkGroup );
