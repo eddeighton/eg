@@ -194,8 +194,7 @@ namespace eg
                 if( pDataMember )
                 {
                     dataMembers.push_back( pDataMember );
-                    
-                    pDataMember->m_pDimension    = pDimension;
+                    pDataMember->m_pDimension = pDimension;
                     dimensionMap.insert( std::make_pair( pDimension, pDataMember ) );
                 }
             }
@@ -203,6 +202,36 @@ namespace eg
         
         Buffer* pBuffer_Simple = nullptr;
         Buffer* pBuffer_Complex = nullptr;
+        
+        if( !dataMembers.empty() )
+        {
+            if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pAction->getContext() ) )
+            {
+                switch( pRoot->getRootType() )
+                {
+                    case eInterfaceRoot :
+                    case eFile          :
+                    case eFileRoot      :
+                    case eProjectName   :
+                        break;
+                    case eMegaRoot      :
+                    case eCoordinator   :
+                    case eHostName      :
+                    case eSubFolder     :
+                        {
+                            std::ostringstream osDataMembers;
+                            for( DataMember* pDataMember : dataMembers )
+                            {
+                                osDataMembers << pDataMember->m_name << "\n";
+                            }
+                            THROW_RTE( "Root has datamembers with root type is: " << pRoot->getRootType() << "\n" << osDataMembers.str() );
+                        }
+                        break;
+                    default:
+                        THROW_RTE( "Unknown root type" );
+                }
+            }
+        }
             
         for( DataMember* pDataMember : dataMembers )
         {
@@ -213,13 +242,14 @@ namespace eg
                     pBuffer_Simple = construct< Buffer >();
                     buffers.push_back( pBuffer_Simple );
                     pBuffer_Simple->m_pContext = pAction;
-                    pBuffer_Simple->name        = generateName( 'b', path );
-                    pBuffer_Simple->variable    = generateName( 'g', path );
+                    pBuffer_Simple->m_name      = generateName( 'b', path );
+                    pBuffer_Simple->m_variable  = generateName( 'g', path );
+                    pBuffer_Simple->m_simple    = true;
+                    pBuffer_Simple->m_size      = szSize * pAction->getContext()->getSize();
                 }
                 
                 pDataMember->m_pBuffer = pBuffer_Simple;
                 pBuffer_Simple->m_dataMembers.push_back( pDataMember );
-                pBuffer_Simple->size = szSize * pAction->getContext()->getSize();
             }
             else
             {
@@ -228,13 +258,14 @@ namespace eg
                     pBuffer_Complex = construct< Buffer >();
                     buffers.push_back( pBuffer_Complex );
                     pBuffer_Complex->m_pContext = pAction;
-                    pBuffer_Complex->name       = generateName( 'b', path ) + "_complex";
-                    pBuffer_Complex->variable   = generateName( 'g', path ) + "_complex";
+                    pBuffer_Complex->m_name     = generateName( 'b', path ) + "_complex";
+                    pBuffer_Complex->m_variable = generateName( 'g', path ) + "_complex";
+                    pBuffer_Complex->m_simple   = false;
+                    pBuffer_Complex->m_size     = szSize * pAction->getContext()->getSize();
                 }
                 
                 pDataMember->m_pBuffer = pBuffer_Complex;
                 pBuffer_Complex->m_dataMembers.push_back( pDataMember );
-                pBuffer_Complex->size = szSize * pAction->getContext()->getSize();
             }
         }
         

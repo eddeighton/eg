@@ -122,19 +122,73 @@ Allocator* chooseAllocator( InterfaceSession& session, Action* pParent, Action* 
 {
     Allocator* pResult = nullptr;
     
-    if( pChild->getLocalDomainSize() == 1U )
+    bool bGenerate = true;
+    if( pParent == nullptr )
     {
-        SingletonAllocator* pAllocator = session.construct< concrete::SingletonAllocator >();
+        bGenerate = false;
+    }
+    else if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pChild->getContext() ) )
+    {
+        switch( pRoot->getRootType() )
+        {
+            case eInterfaceRoot :
+            case eFile          :
+            case eFileRoot      :
+            case eProjectName   :
+                break;
+            case eMegaRoot      :
+            case eCoordinator   :
+            case eHostName      :
+            case eSubFolder     :
+                bGenerate = false;
+                break;
+            default:
+                THROW_RTE( "Unknown root type" );
+        }
+    }
+    else if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pParent->getContext() ) )
+    {
+        switch( pRoot->getRootType() )
+        {
+            case eInterfaceRoot :
+            case eFile          :
+            case eFileRoot      :
+            case eProjectName   :
+                break;
+            case eMegaRoot      :
+            case eCoordinator   :
+            case eHostName      :
+            case eSubFolder     :
+                bGenerate = false;
+                break;
+            default:
+                THROW_RTE( "Unknown root type" );
+        }
+    }
+    
+    if( !bGenerate )
+    {
+        concrete::NothingAllocator* pAllocator = session.construct< concrete::NothingAllocator >();
         pAllocator->m_pContext_Allocating = pParent;
         pAllocator->m_pContext_Allocated = pChild;
         pResult = pAllocator;
     }
-    else 
+    else
     {
-        RangeAllocator* pAllocator = session.construct< concrete::RangeAllocator >();
-        pAllocator->m_pContext_Allocating = pParent;
-        pAllocator->m_pContext_Allocated = pChild;
-        pResult = pAllocator;
+        if( pChild->getLocalDomainSize() == 1U )
+        {
+            SingletonAllocator* pAllocator = session.construct< concrete::SingletonAllocator >();
+            pAllocator->m_pContext_Allocating = pParent;
+            pAllocator->m_pContext_Allocated = pChild;
+            pResult = pAllocator;
+        }
+        else 
+        {
+            RangeAllocator* pAllocator = session.construct< concrete::RangeAllocator >();
+            pAllocator->m_pContext_Allocating = pParent;
+            pAllocator->m_pContext_Allocated = pChild;
+            pResult = pAllocator;
+        }
     }
     
     return pResult;

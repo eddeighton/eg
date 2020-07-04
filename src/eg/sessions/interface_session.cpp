@@ -462,37 +462,6 @@ namespace eg
         }
     }
     
-    bool getInterfaceActionCoordinatorHostname( const interface::Context* pInterfaceAction, const interface::Root*& pCoordinator, const interface::Root*& pHostname )
-    {
-        const interface::Context* pIter = pInterfaceAction;
-        
-        pCoordinator = nullptr;
-        pHostname = nullptr;
-        
-        while( pIter && !( pCoordinator && pHostname ) )
-        {
-            if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pIter ) )
-            {
-                switch( pRoot->getRootType() )
-                {
-                    case eInterfaceRoot  :
-                    case eFileRoot       :
-                    case eFile           :
-                    case eMegaRoot       :  break;
-                    case eCoordinator    :  pCoordinator    = pRoot; break;
-                    case eHostName       :  pHostname       = pRoot; break;
-                    case eProjectName    :
-                    case eSubFolder      :
-                    case TOTAL_ROOT_TYPES:
-                        break;
-                }
-            }
-            
-            pIter = dynamic_cast< const interface::Context* >( pIter->getParent() );
-        }
-        return pCoordinator && pHostname;
-    }
-    
     void InterfaceSession::translationUnitAnalysis_recurse( concrete::Action* pAction, TranslationUnitMap& translationUnitMap )
     {
         const interface::Context* pInterfaceAction = pAction->getContext();
@@ -500,7 +469,7 @@ namespace eg
         TranslationUnit::CoordinatorHostnameDefinitionFile coordinatorHostnameDefinitionFile;
         coordinatorHostnameDefinitionFile.definitionFile = pInterfaceAction->getDefinitionFile();
         
-        if( !getInterfaceActionCoordinatorHostname( pInterfaceAction, 
+        if( !pInterfaceAction->getCoordinatorHostname(
                 coordinatorHostnameDefinitionFile.pCoordinator, 
                 coordinatorHostnameDefinitionFile.pHostName ) )
         {

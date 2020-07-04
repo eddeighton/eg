@@ -274,6 +274,7 @@ namespace interface
         input::Include* m_pInclude = nullptr;
     };
     
+    class Root;
     class Context : public Element
     {
         friend class ObjectFactoryImpl;
@@ -287,6 +288,7 @@ namespace interface
         const std::vector< Context* >& getBaseContexts() const { return m_baseContexts; }
         const std::vector< std::string >& getParameters() const { return m_parameterTypes; }
         void getChildContexts( std::vector< Context* >& actions ) const;
+        const Context* getChildContext( const std::string& strIdentifier ) const;
         bool isIndirectlyAbstract() const;
         std::size_t getSize() const { return m_size; }
         const char* getContextType() const;
@@ -300,6 +302,7 @@ namespace interface
 		virtual bool isExecutable() const;
 		virtual bool isMainExecutable() const;
         const interface::Dimension* getLinkBaseDimension() const;
+        bool getCoordinatorHostname( const Root*& pCoordinator, const Root*& pHostname ) const;
         
     protected:
         Context( const IndexedObject& indexedObject );
@@ -439,6 +442,7 @@ namespace interface
         input::Root* m_pRoot = nullptr;
 		RootType m_rootType;
     };
+    
 
 } //namespace interface
 } //namespace eg

@@ -41,19 +41,21 @@ void DataMember::store( Storer& storer ) const
 void Buffer::load( Loader& loader )
 {
     m_pContext = loader.loadObjectRef< concrete::Action >();
+    loader.load( m_size );
+    loader.load( m_name );
+    loader.load( m_variable );
+    loader.load( m_simple );
     loader.loadObjectVector( m_dataMembers );
-    loader.load( size );
-    loader.load( name );
-    loader.load( variable );
 }
 
 void Buffer::store( Storer& storer ) const
 {
     storer.storeObjectRef( m_pContext );
+    storer.store( m_size );
+    storer.store( m_name );
+    storer.store( m_variable );
+    storer.store( m_simple );
     storer.storeObjectVector( m_dataMembers );
-    storer.store( size );
-    storer.store( name );
-    storer.store( variable );
 }
     
 void Layout::load( Loader& loader )

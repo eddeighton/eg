@@ -70,16 +70,20 @@ namespace eg
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
 
-        const std::string& getTypeName() const { return name; }
-        const std::string& getVariableName() const { return variable; }
-        std::size_t getSize() const { return size; }
+        std::size_t getSize() const                 { return m_size; }
+        const std::string& getTypeName() const      { return m_name; }
+        const std::string& getVariableName() const  { return m_variable; }
+        bool isSimple() const                       { return m_simple; }
+        const concrete::Action* getAction() const   { return m_pContext; }
+        
         const std::vector< const DataMember* >& getDataMembers() const { return m_dataMembers; }
-        const concrete::Action* getAction() const { return m_pContext; }
     private:
+        std::size_t m_size;
+        std::string m_name, m_variable;
+        bool m_simple;
         const concrete::Action* m_pContext = nullptr;
+        
         std::vector< const DataMember* > m_dataMembers;
-        std::size_t size;
-        std::string name, variable;
     };
     
     class Layout : public IndexedObject

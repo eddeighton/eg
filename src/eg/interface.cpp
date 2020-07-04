@@ -658,6 +658,36 @@ namespace interface
             }
         }
     }
+    const Context* Context::getChildContext( const std::string& strIdentifier ) const
+    {
+        for( Element* pElement : m_children )
+        {
+            switch( pElement->getType() )
+            {
+                case eAbstractOpaque    :  break;
+                case eAbstractDimension :  break;
+                case eAbstractInclude   :  break;
+                case eAbstractUsing     :  break;
+                case eAbstractExport    :  break;
+                case eAbstractAbstract  :  
+                case eAbstractEvent     :  
+                case eAbstractFunction  :  
+                case eAbstractAction    :  
+                case eAbstractObject    :  
+                case eAbstractLink      :  
+                case eAbstractRoot      :  
+                    if( pElement->getIdentifier() == strIdentifier )
+                    {
+                        return dynamic_cast< Context* >( pElement );
+                    }
+                    break;
+                default:
+                    THROW_RTE( "Unsupported type" );
+                    break;
+            }
+        }
+        return nullptr;
+    }
     bool Context::isIndirectlyAbstract() const
     {
         if( !m_bIndirectlyAbstract )
@@ -729,6 +759,37 @@ namespace interface
         }
         
         return pDimension;
+    }
+    
+    bool Context::getCoordinatorHostname( const Root*& pCoordinator, const Root*& pHostname ) const
+    {
+        const Context* pIter = this;
+        
+        pCoordinator = nullptr;
+        pHostname = nullptr;
+        
+        while( pIter && !( pCoordinator && pHostname ) )
+        {
+            if( const Root* pRoot = dynamic_cast< const Root* >( pIter ) )
+            {
+                switch( pRoot->getRootType() )
+                {
+                    case eInterfaceRoot  :
+                    case eFileRoot       :
+                    case eFile           :
+                    case eMegaRoot       :  break;
+                    case eCoordinator    :  pCoordinator    = pRoot; break;
+                    case eHostName       :  pHostname       = pRoot; break;
+                    case eProjectName    :
+                    case eSubFolder      :
+                    case TOTAL_ROOT_TYPES:
+                        break;
+                }
+            }
+            
+            pIter = dynamic_cast< const Context* >( pIter->getParent() );
+        }
+        return pCoordinator && pHostname;
     }			
     
     void Context::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const

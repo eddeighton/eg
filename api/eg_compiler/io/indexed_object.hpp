@@ -119,15 +119,20 @@ namespace eg
     template< typename T >
     inline T* root( const IndexedObject::Array& objects )
     {
+        T* pFound = nullptr;
         for( IndexedObject* pObject : objects )
         {
             if( T* p = dynamic_cast< T* >( pObject ) )
             {
                 if( p->getParent() == nullptr )
-                    return p;
+                {
+                    VERIFY_RTE( pFound == nullptr );
+                    pFound = p;
+                }
             }
         }
-        THROW_RTE( "Failed to locate root" );
+        VERIFY_RTE( pFound );
+        return pFound;
     }
         
     
@@ -171,15 +176,20 @@ namespace eg
     template< typename T >
     inline const T* root_cst( const IndexedObject::Array& objects )
     {
+        const T* pFound = nullptr;
         for( const IndexedObject* pObject : objects )
         {
             if( const T* p = dynamic_cast< const T* >( pObject ) )
             {
                 if( p->getParent() == nullptr )
-                    return p;
+                {
+                    VERIFY_RTE( pFound == nullptr );
+                    pFound = p;
+                }
             }
         }
-        THROW_RTE( "Failed to locate root" );
+        VERIFY_RTE( pFound );
+        return pFound;
     }
     
     struct CompareIndexedObjects
