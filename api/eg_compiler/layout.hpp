@@ -49,6 +49,7 @@ namespace eg
         const std::string& getName() const { return m_name; }
         const Buffer* getBuffer() const { return m_pBuffer; }
         
+        bool isActivationState() const;
     private:
         const concrete::Dimension* m_pDimension;
         std::string m_name;

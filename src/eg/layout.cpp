@@ -38,6 +38,17 @@ void DataMember::store( Storer& storer ) const
     storer.storeObjectRef( m_pBuffer );
 }
 
+bool DataMember::isActivationState() const
+{
+    if( const concrete::Dimension_Generated* pGeneratedDimension = 
+        dynamic_cast< const concrete::Dimension_Generated* >( m_pDimension ) )
+    {
+        return pGeneratedDimension->getDimensionType() == 
+            concrete::Dimension_Generated::eActionState;
+    }
+    return false;
+}
+        
 void Buffer::load( Loader& loader )
 {
     m_pContext = loader.loadObjectRef< concrete::Action >();

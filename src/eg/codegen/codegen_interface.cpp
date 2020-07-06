@@ -466,8 +466,8 @@ namespace eg
 
                 os << "\n{\n";
                 os << "  using Type  = " << pOpaque->getStr() << ";\n";
-                os << "  using Dependency = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::Dependency;\n";
-                os << "  static const " << EG_INSTANCE << " " << EG_TRAITS_SIZE << " = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::" << EG_TRAITS_SIZE << ";\n";
+                //os << "  using Dependency = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::Dependency;\n";
+                //os << "  static const " << EG_INSTANCE << " " << EG_TRAITS_SIZE << " = " << EG_OBJECT_TRAITS << "< " << pOpaque->getStr() << " >::" << EG_TRAITS_SIZE << ";\n";
                 os << "};\n";
             }
         }

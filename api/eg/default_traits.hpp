@@ -47,44 +47,6 @@ struct DimensionTraits
     }
 };
 
-//default object traits
-template< typename T >
-struct ObjectTraits
-{
-    using Dependency = void;
-    
-    using PtrType = T*;
-    
-    static const std::size_t Size = sizeof( PtrType );
-    
-    static PtrType Allocate()
-    {
-        return new T;
-    }
-    static void Deallocate( PtrType p )
-    {
-        delete p;
-    }
-    static void Start( PtrType p )
-    {
-        //do nothing
-    }
-    static void Stop( PtrType p )
-    {
-        //do nothing
-    }
-    static void Pause( PtrType p )
-    {
-        //do nothing
-    }
-    static void Unpause( PtrType p )
-    {
-        //do nothing
-    }
-    
-    //copy, restore, serialise, python bindings....
-};  
-
 }
 
 #endif //EG_DEFAULT_TRAITS
