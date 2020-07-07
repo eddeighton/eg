@@ -88,8 +88,6 @@ public:
     const std::string& getCompilerFlags()   const;
     const std::string& getLinkerFlags()     const;
     
-    std::size_t getFiberStackSize() const;
-    
     std::vector< boost::filesystem::path > getEGSourceCode() const;
     std::vector< boost::filesystem::path > getHostSystemIncludes() const;
     std::vector< boost::filesystem::path > getHostUserIncludes() const;

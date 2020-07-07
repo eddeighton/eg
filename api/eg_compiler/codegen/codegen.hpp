@@ -87,8 +87,7 @@ namespace eg
     
     void generateInterface( std::ostream& os, 
         const interface::Root* pRoot, 
-        const Identifiers* pIdentifiers, 
-        std::size_t szFiberStackSize );
+        const Identifiers* pIdentifiers );
 
     class TranslationUnit;
     void generateOperationSource( std::ostream& os, 

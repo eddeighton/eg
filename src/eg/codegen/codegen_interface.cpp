@@ -494,7 +494,7 @@ namespace eg
         }
     };
 
-    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers, std::size_t szFiberStackSize )
+    void generateInterface( std::ostream& os, const interface::Root* pRoot, const Identifiers* pIdentifiers )
     {
         generateIncludeGuard( os, "INTERFACE" );
 

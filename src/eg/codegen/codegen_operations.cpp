@@ -70,14 +70,14 @@ namespace eg
         }
         void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
-            const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
-            VERIFY_RTE( pAction );
+            const interface::Context* pContext = dynamic_cast< const interface::Context* >( pNode );
+            VERIFY_RTE( pContext );
 
             //calculate the path to the root type
             std::vector< const interface::Element* > path = getPath( pNode );
           
             std::vector< interface::Export* > exports;
-            pAction->getExports( exports );
+            pContext->getExports( exports );
             for( interface::Export* pExport : exports )
             {
                 //generate type comment
@@ -183,10 +183,12 @@ namespace eg
         }
         void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
-            const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
-            VERIFY_RTE( pAction );
+            const interface::Context* pContext = dynamic_cast< const interface::Context* >( pNode );
+            VERIFY_RTE( pContext );
+            
+            //dynamic_cast< const interface::Function* >( pContext ) || 
 
-            if( m_translationUnit.isAction( pAction ) && pAction->getDefinitionFile() )
+            if( ( m_translationUnit.isAction( pContext ) ) && pContext->getDefinitionFile() )
             {
                 //calculate the path to the root type
                 std::vector< const interface::Element* > path = getPath( pNode );
@@ -209,7 +211,7 @@ namespace eg
                                 os << "::";
                             os << pNodeIter->getIdentifier();
                         }
-                        os << " " << pAction->getDefinitionFile().value() << "\n";
+                        os << " " << pContext->getDefinitionFile().value() << "\n";
                     }
 
                     //generate the template argument lists
@@ -261,7 +263,7 @@ namespace eg
                                 os << "::";
                             os << pNodeIter->getIdentifier();
                         }
-                        os << " " << pAction->getDefinitionFile().value() << "\n";
+                        os << " " << pContext->getDefinitionFile().value() << "\n";
                     }
 
                     //generate the template argument lists
@@ -315,7 +317,7 @@ namespace eg
                                 os << "::";
                             os << pNodeIter->getIdentifier();
                         }
-                        os << " " << pAction->getDefinitionFile().value() << "\n";
+                        os << " " << pContext->getDefinitionFile().value() << "\n";
                     }
 
                     //generate the template argument lists

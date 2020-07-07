@@ -254,7 +254,7 @@ void build_parser_session( const Environment& environment, const Project& projec
         VERIFY_RTE( pParserSession );
         std::ostringstream osInterface;
         eg::generateInterface( osInterface, 
-            pParserSession->getTreeRoot(), pParserSession->getIdentifiers(), project.getFiberStackSize() );
+            pParserSession->getTreeRoot(), pParserSession->getIdentifiers() );
         boost::filesystem::updateFileIfChanged( project.getInterfaceHeader(), osInterface.str() );
     }
     
