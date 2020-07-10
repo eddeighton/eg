@@ -29,24 +29,9 @@
 
 namespace eg
 {
-    void generate_dynamic_interface( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& session )
+    /*void generate_dynamic_interface( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& session )
     {
         const interface::Root* pRoot = session.getTreeRoot();
-        const concrete::Action* pInstanceRoot = nullptr;
-        {
-            std::vector< const concrete::Action* > roots;
-            for( const concrete::Element* pChild : session.getInstanceRoot()->getChildren() )
-            {
-                if( const concrete::Action* pAction = 
-                    dynamic_cast< const concrete::Action* >( pChild ) )
-                {
-                    roots.push_back( pAction );
-                }
-            }
-            ASSERT( !roots.empty() );
-            ASSERT( roots.size() == 1U );
-            pInstanceRoot = roots.front();
-        }
         
         const DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
         const Layout& layout = session.getLayout();
@@ -105,6 +90,21 @@ namespace eg
         os << "}\n";
         }
         
+        const concrete::Action* pInstanceRoot = nullptr;
+        {
+            std::vector< const concrete::Action* > roots;
+            for( const concrete::Element* pChild : session.getInstanceRoot()->getChildren() )
+            {
+                if( const concrete::Action* pAction = 
+                    dynamic_cast< const concrete::Action* >( pChild ) )
+                {
+                    roots.push_back( pAction );
+                }
+            }
+            ASSERT( !roots.empty() );
+            ASSERT( roots.size() == 1U );
+            pInstanceRoot = roots.front();
+        }
         os << getInterfaceType( input::Root::RootTypeName ) << "< void > get_root()\n";
         os << "{\n";
         os << "    return  " << getInterfaceType( input::Root::RootTypeName ) << "< void >( " << 
@@ -112,7 +112,7 @@ namespace eg
         os << "}\n";
         os << "\n";
         
-    }
+    }*/
 	
     void generateActionInit( std::ostream& os, PrinterFactory& printerFactory, const Layout& layout, const concrete::Action* pAction, const char* pszInstance )
     {

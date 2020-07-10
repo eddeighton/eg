@@ -35,6 +35,26 @@
 //EG Runtime Interface
 namespace eg
 {
+    struct EGRT_EXPORT RuntimeTypeInterop
+    {
+        virtual ~RuntimeTypeInterop();
+        
+        struct EGRT_EXPORT Evaluation
+        {
+            using Ptr = std::shared_ptr< Evaluation >;
+            virtual ~Evaluation();
+        
+            virtual bool isResult() const = 0;
+            virtual void* getResult() const = 0;
+        };
+        
+        virtual Evaluation::Ptr begin( void* pArgs, void* pKWArgs ) = 0;
+        
+        virtual eg::TimeStamp   getTimestamp( eg::TypeID type, eg::Instance instance ) = 0;
+        virtual eg::ActionState getState( eg::TypeID type, eg::Instance instance ) = 0;
+        virtual eg::TimeStamp   getStopCycle( eg::TypeID type, eg::Instance instance ) = 0;
+        virtual eg::TimeStamp   getClockCycle() = 0;
+    };
     
     struct EGRT_EXPORT EGRangeDescription
     {
@@ -49,9 +69,9 @@ namespace eg
     
     using EGRangeDescriptionPtr = std::shared_ptr< EGRangeDescription >;
     
-    struct EGRT_EXPORT HostFunctionAccessor
+    struct EGRT_EXPORT ComponentInterop
     {
-        virtual ~HostFunctionAccessor();
+        virtual ~ComponentInterop();
         
         virtual reference dereferenceDimension( const reference& action, const TypeID& dimensionType ) = 0;
         virtual void doRead(    const reference& reference, TypeID dimensionType ) = 0;
@@ -80,7 +100,7 @@ namespace eg
     };
 
     using EGRuntimePtr = std::shared_ptr< EGRuntime >;
-    EGRT_EXPORT EGRuntimePtr constructRuntime( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath );
+    EGRT_EXPORT EGRuntimePtr constructRuntime( ComponentInterop& componentInterop, const char* pszDatabaseFilePath );
 
 }
 

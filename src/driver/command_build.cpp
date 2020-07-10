@@ -451,7 +451,7 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         {
             std::ostringstream osImpl;
             osImpl << "#include \"structures.hpp\"\n";
-            eg::generate_dynamic_interface( osImpl, printerFactory, session );
+            //eg::generate_dynamic_interface( osImpl, printerFactory, session );
             eg::generateActionInstanceFunctions( osImpl, printerFactory, session );
             boost::filesystem::updateFileIfChanged( project.getRuntimeSource(), osImpl.str() );
         }

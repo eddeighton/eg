@@ -64,9 +64,11 @@ void generate_python( std::ostream& os, const eg::ReadSession& session )
     std::vector< const eg::concrete::Action* > actions = 
         eg::many_cst< eg::concrete::Action >( objects );
 
+        
+    os << "std::shared_ptr< eg::PythonEGReferenceType > g_pEGRefType;\n";
+    
     os << "\n";
     os << "//Python Interface Converters\n";
-    os << "std::shared_ptr< eg::PythonEGReferenceType > g_pEGRefType;\n";
     os << "namespace pybind11\n";
     os << "{\n";
     os << "    namespace detail\n";

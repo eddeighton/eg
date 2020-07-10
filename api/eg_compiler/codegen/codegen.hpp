@@ -109,7 +109,7 @@ namespace eg
         const eg::TranslationUnit& translationUnit,
         const std::vector< std::string >& additionalIncludes );
         
-    void generate_dynamic_interface( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& session );
+    //void generate_dynamic_interface( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& session );
     void generateActionInstanceFunctions( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program );
             
     class DataMember;

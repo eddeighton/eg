@@ -32,7 +32,17 @@
 namespace eg
 {
     
-    HostFunctionAccessor::~HostFunctionAccessor()
+    RuntimeTypeInterop::~RuntimeTypeInterop()
+    {
+        
+    }
+    
+    RuntimeTypeInterop::Evaluation::~Evaluation()
+    {
+        
+    }
+    
+    ComponentInterop::~ComponentInterop()
     {
         
     }
@@ -94,9 +104,9 @@ namespace eg
     class EGRuntimeImpl : public EGRuntime, public RuntimeEvaluator, public CreatingSession
     {
     public:
-        EGRuntimeImpl( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath )
+        EGRuntimeImpl( ComponentInterop& componentInterop, const char* pszDatabaseFilePath )
             :   CreatingSession( IndexedFile::FileIDtoPathMap{}, IndexedObject::NO_FILE ),
-                m_hostAccessor( hostAccessor ),
+                m_componentInterop( componentInterop ),
                 m_pDatabase( loadDatabase( pszDatabaseFilePath ) ),
                 m_invocations( *this, m_pDatabase->getDerivationAnalysis() )
         {
@@ -112,59 +122,59 @@ namespace eg
         }
         virtual void doRead(    const reference& reference, TypeID dimensionType )
         {
-            m_hostAccessor.doRead( reference, dimensionType );
+            m_componentInterop.doRead( reference, dimensionType );
         }
         virtual void doWrite(   const reference& reference, TypeID dimensionType )
         {
-            m_hostAccessor.doWrite( reference, dimensionType );
+            m_componentInterop.doWrite( reference, dimensionType );
         }
         virtual void doCall(   const reference& reference, TypeID dimensionType )
         {
-            m_hostAccessor.doCall( reference, dimensionType );
+            m_componentInterop.doCall( reference, dimensionType );
         }
         virtual void doStart(   const reference& reference, TypeID dimensionType )
         {
-            m_hostAccessor.doStart( reference, dimensionType );
+            m_componentInterop.doStart( reference, dimensionType );
         }
         virtual void doStop(    const reference& reference )
         {
-            m_hostAccessor.doStop( reference );
+            m_componentInterop.doStop( reference );
         }
         virtual void doPause(   const reference& reference )
         {
-            m_hostAccessor.doPause( reference );
+            m_componentInterop.doPause( reference );
         }
         virtual void doResume(  const reference& reference )
         {
-            m_hostAccessor.doResume( reference );
+            m_componentInterop.doResume( reference );
         }
         virtual void doDone(    const reference& reference )
         {
-            m_hostAccessor.doDone( reference );
+            m_componentInterop.doDone( reference );
         }
         virtual void doWaitAction(    const reference& reference )
         {
-            m_hostAccessor.doWaitAction( reference );
+            m_componentInterop.doWaitAction( reference );
         }
         virtual void doWaitDimension(    const reference& reference, TypeID dimensionType )
         {
-            m_hostAccessor.doWaitDimension( reference, dimensionType );
+            m_componentInterop.doWaitDimension( reference, dimensionType );
         }
         virtual void doGetAction(    const reference& reference )
         {
-            m_hostAccessor.doGetAction( reference );
+            m_componentInterop.doGetAction( reference );
         }
         virtual void doGetDimension(    const reference& reference, TypeID dimensionType )
         {
-            m_hostAccessor.doGetDimension( reference, dimensionType );
+            m_componentInterop.doGetDimension( reference, dimensionType );
         }
         virtual void doRange( const RangeDescription& range )
         {
-            m_hostAccessor.doRange( std::make_shared< EGRange >( range ) );
+            m_componentInterop.doRange( std::make_shared< EGRange >( range ) );
         }
 		virtual void doLink( const reference& linkeeRef, TypeID linkeeDimension, const reference& linkValue )
 		{
-            m_hostAccessor.doLink( linkeeRef, linkeeDimension, linkValue );
+            m_componentInterop.doLink( linkeeRef, linkeeDimension, linkValue );
 		}
             
         //EGRuntime
@@ -221,15 +231,15 @@ namespace eg
         }
         
     private:
-        HostFunctionAccessor& m_hostAccessor;
+        ComponentInterop& m_componentInterop;
         std::shared_ptr< eg::ReadSession > m_pDatabase;
         InvocationSolutionMap m_invocations;
     };
     
     
-    EGRT_EXPORT EGRuntimePtr constructRuntime( HostFunctionAccessor& hostAccessor, const char* pszDatabaseFilePath )
+    EGRT_EXPORT EGRuntimePtr constructRuntime( ComponentInterop& componentInterop, const char* pszDatabaseFilePath )
     {
-        static EGRuntimePtr pRuntime = std::make_shared< EGRuntimeImpl >( hostAccessor, pszDatabaseFilePath );
+        static EGRuntimePtr pRuntime = std::make_shared< EGRuntimeImpl >( componentInterop, pszDatabaseFilePath );
         return pRuntime;
     }
     
