@@ -185,8 +185,6 @@ namespace eg
         {
             const interface::Context* pContext = dynamic_cast< const interface::Context* >( pNode );
             VERIFY_RTE( pContext );
-            
-            //dynamic_cast< const interface::Function* >( pContext ) || 
 
             if( ( m_translationUnit.isAction( pContext ) ) && pContext->getDefinitionFile() )
             {
@@ -284,7 +282,6 @@ namespace eg
                         }
                     }
                     os << "operator()() const\n";
-                    
                     
                     //generate the function body
                     os << strIndent << "{\n";

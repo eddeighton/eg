@@ -705,11 +705,19 @@ namespace clang
         }
         static void setInherited( ::eg::interface::Context& action, ::eg::interface::Context* pLink )
         {
-            std::vector< ::eg::interface::Context* >::iterator iFind = 
-                std::find( action.m_baseContexts.begin(), action.m_baseContexts.end(), pLink );
-            if( iFind == action.m_baseContexts.end() )
+            if( ::eg::interface::Function* pFunction = 
+                dynamic_cast< ::eg::interface::Function* >( &action ) )
             {
-                action.m_baseContexts.push_back( pLink );
+                THROW_RTE( "setInherited with function" );
+            }
+            else
+            {
+                std::vector< ::eg::interface::Context* >::iterator iFind = 
+                    std::find( action.m_baseContexts.begin(), action.m_baseContexts.end(), pLink );
+                if( iFind == action.m_baseContexts.end() )
+                {
+                    action.m_baseContexts.push_back( pLink );
+                }
             }
         }
         static void setInherited( ::eg::interface::Context& action, const std::string& strType )
@@ -722,7 +730,7 @@ namespace clang
             else
             {
                 //action.m_strBaseType = strType;
-                THROW_RTE( "Base Type?" );
+                THROW_RTE( "setInherited with non-function" );
             }
         }
         static void setParameters( ::eg::interface::Context& action, const ArrayRef< ParmVarDecl * >& parameters )
@@ -892,7 +900,15 @@ namespace clang
                             ::eg::IndexedObject* pObject = objects[ iLinkEGTypeID ];
                             if( ::eg::interface::Context* pLinkedAction = dynamic_cast< ::eg::interface::Context* >( pObject ) )
                             {
-                                AbstractMutator::setInherited( *pAction, pLinkedAction );
+                                if( ::eg::interface::Function* pFunction = 
+                                    dynamic_cast< ::eg::interface::Function* >( pAction ) )
+                                {
+                                    AbstractMutator::setInherited( *pAction, typeTypeCanonical.getAsString() );
+                                }
+                                else
+                                {
+                                    AbstractMutator::setInherited( *pAction, pLinkedAction );
+                                }
                             }
                         }
                         else

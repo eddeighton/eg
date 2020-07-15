@@ -180,6 +180,11 @@ namespace eg
         
         void push ( const input::Context*    pElement, const interface::Element* pNode )
         {
+            if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pNode ) )
+            {
+                return;
+            }
+            
             //calculate the path to the root type
             std::vector< const interface::Element* > path = getPath( pNode );
 
@@ -508,9 +513,7 @@ namespace eg
         {
             const interface::Context* pAction = dynamic_cast< const interface::Context* >( pNode );
             VERIFY_RTE( pAction );
-
-            //TODO ELIMINATION: only generate ::invoke member function definitions for the set of contexts the translation unit
-            //actually uses -
+            
             {
                 //calculate the path to the root type
                 std::vector< const interface::Element* > path = getPath( pNode );

@@ -100,7 +100,7 @@ namespace eg
         concrete::Inheritance_Node* pInheritanceNode    = construct< concrete::Inheritance_Node >(); 
         pInheritanceNode->m_pRootConcreteAction         = pConcreteAction;
         pInheritanceNode->m_pParent                     = pParent;
-        pInheritanceNode->m_pContext                     = pAbstractAction;
+        pInheritanceNode->m_pContext                    = pAbstractAction;
         
         if( pParent )
             pParent->m_children.push_back( pInheritanceNode );
@@ -116,7 +116,8 @@ namespace eg
         concrete::Inheritance_Node* pInheritanceNode  
             = constructInheritanceNode( pConcreteAction, pParent, pAbstractAction );
         
-        if( !dynamic_cast< const interface::Link* >( pAbstractAction ) )
+        if( !dynamic_cast< const interface::Link* >( pAbstractAction ) &&
+            !dynamic_cast< const interface::Function* >( pAbstractAction ) )
         {
             for( const interface::Context* pBaseAbstractAction : pAbstractAction->m_baseContexts )
             {

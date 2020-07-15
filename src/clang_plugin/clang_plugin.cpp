@@ -648,8 +648,9 @@ namespace eg
                                         std::vector< eg::TypeID > contextTypes;
                                         if( !clang::getContextTypes( g_pASTContext, context, contextTypes ) )
                                         {
-                                            g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) <<
-                                                "Invalid context for invocation";
+                                            std::ostringstream os;
+                                            os << "Invalid context for invocation of type: " + context.getCanonicalType().getAsString();
+                                            g_pASTContext->getDiagnostics().Report( loc, clang::diag::err_eg_generic_error ) << os.str();
                                             g_bError = true;
                                             return false;
                                         }

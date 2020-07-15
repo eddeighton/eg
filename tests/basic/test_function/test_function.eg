@@ -1,40 +1,22 @@
 
+dim int x;
 
-function foobar( int i ) : int
+function foobar() : int
 {
-    LOG( "i:" << i );
-    return i + 1;
+    return x();
 }
 
-function foo2( int* pInt ) : void
+LOG( "foobar: " << foobar() );
+
+function getTestObject() : root::TestObject
 {
-    *pInt = foobar( *pInt ) + 1;
+    return TestObject.Get().y( 123 );
 }
 
-int iResult = 1;
-
-foo2( &iResult );
-
-LOG( "got: " << iResult );
-
-
-object Vehicle
+object TestObject
 {
-    function getPosition : int
-    {
-        return m_position();
-    }
-    
-    function getSpeed : float
-    {
-        return m_speed();
-    }
-
-    dim int m_position;
-    dim float m_speed;
+    dim int y;
 }
 
 
-Vehicle v = Vehicle();
-
-LOG( "pos: " << v.getPosition() << " speed: " << v.getSpeed() );
+LOG( "getTestObject: " << getTestObject().y() );
