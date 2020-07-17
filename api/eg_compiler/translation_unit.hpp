@@ -108,7 +108,7 @@ namespace eg
 			if( coordinatorHostnameDefinitionFile.definitionFile )
 			{
 				boost::filesystem::path relativePath = boost::filesystem::edsInclude( projectFolder, coordinatorHostnameDefinitionFile.definitionFile.value() );
-				return style_replace_non_alpha_numeric( relativePath.generic_string(), '_' );
+				return style_replace_non_alpha_numeric( relativePath.replace_extension().generic_string(), '_' );
 			}
 			else
 			{
