@@ -20,6 +20,7 @@
 
 
 #include "eg_compiler/codegen/codegen.hpp"
+#include "eg_compiler/codegen/instructionCodeGenerator.hpp"
 
 #include "eg_compiler/eg.hpp"
 #include "eg_compiler/input.hpp"
@@ -40,83 +41,30 @@
 
 namespace eg
 {
-    class CodeGenerator
+    
+    InstructionCodeGenerator::InstructionCodeGenerator( CodeGenerator& _generator, std::ostream& _os )
+        :   generator( _generator ),
+            os( _os )
     {
-        static const int INDENT = 4;
-    public:
-        CodeGenerator( const Layout& layout, int iIndent, const std::string& strFailureType, PrinterFactory& printerFactory ) 
-            :   m_layout( layout ), 
-                m_strFailureType( strFailureType ),
-                m_printerFactory( printerFactory )
-        {
-            for( int i = 0; i != iIndent; ++i )
-                pushIndent();
-        }
         
-        using VariableExprMap = std::map< const Variable*, std::string >;
+    }
+    
+    InstructionCodeGenerator::~InstructionCodeGenerator()
+    {
         
-        inline void setVarExpr( const Variable* pVariable, const std::string& str )
-        {
-            VariableExprMap::const_iterator iFind = m_variables.find( pVariable );
-            VERIFY_RTE( iFind == m_variables.end() );
-            m_variables.insert( std::make_pair( pVariable, str ) );
-        }
-        inline const std::string& getVarExpr( const Variable* pVariable ) const
-        {
-            VariableExprMap::const_iterator iFind = m_variables.find( pVariable );
-            VERIFY_RTE( iFind != m_variables.end() );
-            return iFind->second;
-        }
-        
-        const std::string& getIndent() const { return m_strIndent; }
-        void pushIndent() 
-        { 
-            for( int i = 0; i != INDENT; ++i )
-                m_strIndent.push_back( ' ' );
-        }
-        void popIndent()
-        {
-            for( int i = 0; i != INDENT; ++i )
-                m_strIndent.pop_back();
-        }
-        
-        Printer::Ptr read( const concrete::Dimension* pDimension, const std::string& strIndex )
-        {
-            return m_printerFactory.read( m_layout.getDataMember( pDimension ), strIndex.c_str() );
-        }
-        
-        Printer::Ptr write( const concrete::Dimension* pDimension, const std::string& strIndex )
-        {
-            return m_printerFactory.write( m_layout.getDataMember( pDimension ), strIndex.c_str() );
-        }
-        
-        std::string getFailureReturnType() const { return m_strFailureType; }
-        
-        const Layout& getLayout() const { return m_layout; }
-    private:
-        VariableExprMap m_variables;
-        std::string m_strIndent;
-        const Layout& m_layout;
-        std::string m_strFailureType;
-        PrinterFactory& m_printerFactory;
-    };
+    }
 
-    
-    //instruction code generators
-    
-    void generate( const Instruction& ins, CodeGenerator& generator, std::ostream& os );
-    
-    void generate( const RootInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const RootInstruction& ins )
     {
         generator.setVarExpr( ins.getContextVariable(), "context" );
         
         ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
     }
-    void generate( const ParentDerivationInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const ParentDerivationInstruction& ins )
     {
         std::ostringstream osExpr;
         {
@@ -136,27 +84,27 @@ namespace eg
         ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
     }
-    void generate( const ChildDerivationInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const ChildDerivationInstruction& ins )
     {
         generator.setVarExpr( ins.getTo(), generator.getVarExpr( ins.getFrom() ) );
         ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
     }
-    void generate( const EnumDerivationInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const EnumDerivationInstruction& ins )
     {
         ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
     }
-    void generate( const EnumerationInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const EnumerationInstruction& ins )
     {
         ASSERT( !ins.getReturnTypes().empty() );
         
@@ -362,7 +310,7 @@ namespace eg
                 "< MultiIterType >( MultiIterType( iterators_begin ), MultiIterType( iterators_end ) );\n";
         }
     }
-    void generate( const DimensionReferenceReadInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const DimensionReferenceReadInstruction& ins )
     {
         std::ostringstream osReadRef;
         osReadRef << *generator.read( ins.getDimension(), generator.getVarExpr( ins.getInstance() ) );
@@ -371,10 +319,10 @@ namespace eg
         //ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
     }
-    void generate( const MonomorphicReferenceInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const MonomorphicReferenceInstruction& ins )
     {
         std::ostringstream osExpr;
         {
@@ -385,10 +333,10 @@ namespace eg
         //ASSERT( ins.getChildren().size() == 1U );
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
     }
-    void generate( const PolymorphicReferenceBranchInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const PolymorphicReferenceBranchInstruction& ins )
     {
         os << generator.getIndent() << "switch( " << generator.getVarExpr( ins.getFrom() ) << ".data.type )\n";
         os << generator.getIndent() << "{\n";
@@ -396,14 +344,14 @@ namespace eg
         
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
         
         os << generator.getIndent() << "default: throw std::runtime_error( \"runtime type error\" );\n";
         generator.popIndent();
         os << generator.getIndent() << "}\n";
     }
-    void generate( const PolymorphicCaseInstruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const PolymorphicCaseInstruction& ins )
     {
         std::ostringstream osExpr;
         {
@@ -417,13 +365,13 @@ namespace eg
         generator.pushIndent();
         for( const Instruction* pChild : ins.getChildren() )
         {
-            generate( *pChild, generator, os );
+            generate( *pChild );
         }
         generator.popIndent();
         os << generator.getIndent() << "}\n";
         os << generator.getIndent() << "break;\n";
     }
-    void generate( const CallOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const CallOperation& ins )
     {
         const concrete::Action* pParent = dynamic_cast< const concrete::Action* >( ins.getConcreteType()->getParent() );
         VERIFY_RTE( pParent );
@@ -522,18 +470,18 @@ namespace eg
             }
         }
     }
-    void generate( const StartOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const StartOperation& ins )
     {
         THROW_RTE( "TODO StartOperation" );
     }
-    void generate( const StopOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const StopOperation& ins )
     {
         const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
         VERIFY_RTE( pReferenceDimension );
         os << generator.getIndent() << "::eg::Scheduler::stop_ref( " << 
             *generator.read( pReferenceDimension, generator.getVarExpr( ins.getInstance() ) ) << ".data );\n";
     }
-    void generate( const PauseOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const PauseOperation& ins )
     {
         const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
         VERIFY_RTE( pReferenceDimension );
@@ -548,7 +496,7 @@ namespace eg
                 " = " << getActionState( action_paused ) << ";\n";
         os << generator.getIndent() << "}\n";
     }
-    void generate( const ResumeOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const ResumeOperation& ins )
     {
         const concrete::Dimension_Generated* pReferenceDimension = ins.getConcreteType()->getReference();
         VERIFY_RTE( pReferenceDimension );
@@ -563,7 +511,7 @@ namespace eg
                 " = " << getActionState( action_running ) << ";\n";
         os << generator.getIndent() << "}\n";
     }
-    void generate( const DoneOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const DoneOperation& ins )
     {
         const concrete::Action::AllocatorMap& allocators = ins.getConcreteType()->getAllocators();
         
@@ -597,37 +545,36 @@ namespace eg
         
         os << generator.getIndent() << "return true;\n";
     }
-    void generate( const WaitActionOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const WaitActionOperation& ins )
     {
         THROW_RTE( "TODO WaitActionOperation" );
         os << generator.getIndent() << "return " <<
             *generator.read( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
         
     }
-    void generate( const WaitDimensionOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const WaitDimensionOperation& ins )
     {
         THROW_RTE( "TODO WaitDimensionOperation" );
         os << generator.getIndent() << "return " << 
             *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
-    void generate( const GetActionOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const GetActionOperation& ins )
     {
         VERIFY_RTE( ins.getConcreteType()->getReference() );
         os << generator.getIndent() << "return " <<
             *generator.read( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
-        
     }
-    void generate( const GetDimensionOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const GetDimensionOperation& ins )
     {
         os << generator.getIndent() << "return " << 
             *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
-    void generate( const ReadOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const ReadOperation& ins )
     {
         os << generator.getIndent() << "return " << 
             *generator.read( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
-    void generate( const WriteOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const WriteOperation& ins )
     {
         os << generator.getIndent() << 
             *generator.write( ins.getConcreteType(), generator.getVarExpr( ins.getInstance() ) ) << " = value;\n";
@@ -645,12 +592,12 @@ namespace eg
             os << generator.getIndent() << "return ref;\n";
         }         
     }
-	
-    void generate( const WriteLinkOperation& ins, CodeGenerator& generator, std::ostream& os )
+    
+    void InstructionCodeGenerator::generate( const WriteLinkOperation& ins )
     {
         const concrete::Dimension_User* pLinkDimension  = ins.getConcreteType();
         const LinkGroup* pLinkGroup                     = ins.getLinkGroup();
-		
+        
         const concrete::Action* pLink =
             dynamic_cast< const concrete::Action* >( ins.getConcreteType()->getParent() );
         VERIFY_RTE( pLink );
@@ -765,38 +712,38 @@ namespace eg
             *generator.read( pReturnType->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
     
-    void generate( const RangeOperation& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const RangeOperation& ins )
     {
         //nothing to do here - the operation is aggregated up by the enumeration instruction
     }
     
-    void generate( const Instruction& ins, CodeGenerator& generator, std::ostream& os )
+    void InstructionCodeGenerator::generate( const Instruction& ins )
     {
         switch( ins.getType() )
         {
-            case eParentDerivationInstruction:       generate( dynamic_cast<  const ParentDerivationInstruction           & >( ins ) , generator, os ); break;
-            case eChildDerivationInstruction:        generate( dynamic_cast<  const ChildDerivationInstruction            & >( ins ) , generator, os ); break;
-            case eEnumDerivationInstruction:         generate( dynamic_cast<  const EnumDerivationInstruction             & >( ins ) , generator, os ); break;
-            case eEnumerationInstruction:            generate( dynamic_cast<  const EnumerationInstruction                & >( ins ) , generator, os ); break;
-            case eDimensionReferenceReadInstruction: generate( dynamic_cast<  const DimensionReferenceReadInstruction     & >( ins ) , generator, os ); break;
-            case eMonoReferenceInstruction:          generate( dynamic_cast<  const MonomorphicReferenceInstruction       & >( ins ) , generator, os ); break;
-            case ePolyReferenceInstruction:          generate( dynamic_cast<  const PolymorphicReferenceBranchInstruction & >( ins ) , generator, os ); break;
-            case ePolyCaseInstruction:               generate( dynamic_cast<  const PolymorphicCaseInstruction            & >( ins ) , generator, os ); break;
+            case eParentDerivationInstruction:       generate( dynamic_cast<  const ParentDerivationInstruction           & >( ins ) ); break;
+            case eChildDerivationInstruction:        generate( dynamic_cast<  const ChildDerivationInstruction            & >( ins ) ); break;
+            case eEnumDerivationInstruction:         generate( dynamic_cast<  const EnumDerivationInstruction             & >( ins ) ); break;
+            case eEnumerationInstruction:            generate( dynamic_cast<  const EnumerationInstruction                & >( ins ) ); break;
+            case eDimensionReferenceReadInstruction: generate( dynamic_cast<  const DimensionReferenceReadInstruction     & >( ins ) ); break;
+            case eMonoReferenceInstruction:          generate( dynamic_cast<  const MonomorphicReferenceInstruction       & >( ins ) ); break;
+            case ePolyReferenceInstruction:          generate( dynamic_cast<  const PolymorphicReferenceBranchInstruction & >( ins ) ); break;
+            case ePolyCaseInstruction:               generate( dynamic_cast<  const PolymorphicCaseInstruction            & >( ins ) ); break;
                                                                                                                             
-            case eCallOperation:                     generate( dynamic_cast<  const CallOperation                         & >( ins ) , generator, os ); break;
-            case eStartOperation:                    generate( dynamic_cast<  const StartOperation                        & >( ins ) , generator, os ); break;
-            case eStopOperation:                     generate( dynamic_cast<  const StopOperation                         & >( ins ) , generator, os ); break;
-            case ePauseOperation:                    generate( dynamic_cast<  const PauseOperation                        & >( ins ) , generator, os ); break;
-            case eResumeOperation:                   generate( dynamic_cast<  const ResumeOperation                       & >( ins ) , generator, os ); break;
-            case eDoneOperation:                     generate( dynamic_cast<  const DoneOperation                         & >( ins ) , generator, os ); break;
-            case eWaitActionOperation:               generate( dynamic_cast<  const WaitActionOperation                   & >( ins ) , generator, os ); break;
-            case eWaitDimensionOperation:            generate( dynamic_cast<  const WaitDimensionOperation                & >( ins ) , generator, os ); break;
-            case eGetActionOperation:                generate( dynamic_cast<  const GetActionOperation                    & >( ins ) , generator, os ); break;
-            case eGetDimensionOperation:             generate( dynamic_cast<  const GetDimensionOperation                 & >( ins ) , generator, os ); break;
-            case eReadOperation:                     generate( dynamic_cast<  const ReadOperation                         & >( ins ) , generator, os ); break;
-            case eWriteOperation:                    generate( dynamic_cast<  const WriteOperation                        & >( ins ) , generator, os ); break;
-            case eWriteLinkOperation:                generate( dynamic_cast<  const WriteLinkOperation                    & >( ins ) , generator, os ); break;
-            case eRangeOperation:                    generate( dynamic_cast<  const RangeOperation                        & >( ins ) , generator, os ); break;
+            case eCallOperation:                     generate( dynamic_cast<  const CallOperation                         & >( ins ) ); break;
+            case eStartOperation:                    generate( dynamic_cast<  const StartOperation                        & >( ins ) ); break;
+            case eStopOperation:                     generate( dynamic_cast<  const StopOperation                         & >( ins ) ); break;
+            case ePauseOperation:                    generate( dynamic_cast<  const PauseOperation                        & >( ins ) ); break;
+            case eResumeOperation:                   generate( dynamic_cast<  const ResumeOperation                       & >( ins ) ); break;
+            case eDoneOperation:                     generate( dynamic_cast<  const DoneOperation                         & >( ins ) ); break;
+            case eWaitActionOperation:               generate( dynamic_cast<  const WaitActionOperation                   & >( ins ) ); break;
+            case eWaitDimensionOperation:            generate( dynamic_cast<  const WaitDimensionOperation                & >( ins ) ); break;
+            case eGetActionOperation:                generate( dynamic_cast<  const GetActionOperation                    & >( ins ) ); break;
+            case eGetDimensionOperation:             generate( dynamic_cast<  const GetDimensionOperation                 & >( ins ) ); break;
+            case eReadOperation:                     generate( dynamic_cast<  const ReadOperation                         & >( ins ) ); break;
+            case eWriteOperation:                    generate( dynamic_cast<  const WriteOperation                        & >( ins ) ); break;
+            case eWriteLinkOperation:                generate( dynamic_cast<  const WriteLinkOperation                    & >( ins ) ); break;
+            case eRangeOperation:                    generate( dynamic_cast<  const RangeOperation                        & >( ins ) ); break;
                               
             default:
             case eRootInstruction:                      
@@ -810,16 +757,16 @@ namespace eg
             case eDimensionVariable:
             case eContextVariable:
                 THROW_RTE( "Invalid instruction type ");
-            
-            
         }
     }
+    
+    extern std::shared_ptr< InstructionCodeGenerator > constructInstructionCodeGenerator( CodeGenerator& generator, std::ostream& os );
 
     void generateInstructions( std::ostream& os, PrinterFactory& printerFactory, const RootInstruction* pRootInstruction, const Layout& layout )
     {
         CodeGenerator codeGenerator( layout, 2, "eg::Event()", printerFactory );
-        generate( *pRootInstruction, codeGenerator, os );
+        std::shared_ptr< InstructionCodeGenerator > pGenerator = constructInstructionCodeGenerator( codeGenerator, os );
+        pGenerator->generate( *pRootInstruction );
     }
-
 
 }

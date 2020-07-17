@@ -29,6 +29,7 @@
 #include "eg_compiler/sessions/operations_session.hpp"
 #include "eg_compiler/sessions/implementation_session.hpp"
 #include "eg_compiler/codegen/codegen.hpp"
+#include "eg_compiler/codegen/instructionCodeGenerator.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -728,6 +729,14 @@ void link_program( const Environment& environment, const Project& project,
         }
     }
     
+}
+
+namespace eg
+{
+    std::shared_ptr< InstructionCodeGenerator > constructInstructionCodeGenerator( CodeGenerator& generator, std::ostream& os )
+    {
+        return std::make_shared< InstructionCodeGenerator >( generator, os );
+    }
 }
 
 void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args )

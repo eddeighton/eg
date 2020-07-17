@@ -64,6 +64,7 @@ set( EG_API_SESSIONS
 set( EG_API_CODEGEN
     ${EG_API_DIR}/eg_compiler/codegen/codegen.hpp
     ${EG_API_DIR}/eg_compiler/codegen/dataAccessPrinter.hpp
+    ${EG_API_DIR}/eg_compiler/codegen/instructionCodeGenerator.hpp
 	)
 	
 set( EG_API_IO
