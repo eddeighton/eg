@@ -760,13 +760,20 @@ namespace eg
         }
     }
     
-    extern std::shared_ptr< InstructionCodeGenerator > constructInstructionCodeGenerator( CodeGenerator& generator, std::ostream& os );
-
-    void generateInstructions( std::ostream& os, PrinterFactory& printerFactory, const RootInstruction* pRootInstruction, const Layout& layout )
+    InstructionCodeGeneratorFactory::~InstructionCodeGeneratorFactory()
+    {
+    }
+    
+    std::shared_ptr< InstructionCodeGenerator > InstructionCodeGeneratorFactoryDefault::create( CodeGenerator& generator, std::ostream& os )
+    {
+        return std::make_shared< InstructionCodeGenerator >( generator, os );
+    }
+        
+    void generateInstructions( std::ostream& os, InstructionCodeGeneratorFactory& factory,
+        PrinterFactory& printerFactory, const RootInstruction* pRootInstruction, const Layout& layout )
     {
         CodeGenerator codeGenerator( layout, 2, "eg::Event()", printerFactory );
-        std::shared_ptr< InstructionCodeGenerator > pGenerator = constructInstructionCodeGenerator( codeGenerator, os );
-        pGenerator->generate( *pRootInstruction );
+        factory.create( codeGenerator, os )->generate( *pRootInstruction );
     }
 
 }

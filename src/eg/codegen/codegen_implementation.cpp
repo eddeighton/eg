@@ -315,6 +315,7 @@ namespace eg
     }
     
     void generateInvocation( std::ostream& os,
+        InstructionCodeGeneratorFactory& instructionCodeGenFactory,
         PrinterFactory& printerFactory, 
         const IndexedObject::Array& objects,
         const DerivationAnalysis& derivationAnalysis, 
@@ -397,7 +398,7 @@ namespace eg
         
         os << "    {\n";
         
-		generateInstructions( os, printerFactory, invocation.getRoot(), layout );
+		generateInstructions( os, instructionCodeGenFactory, printerFactory, invocation.getRoot(), layout );
         
         os << "    }\n";
         os << "};\n";
@@ -413,6 +414,7 @@ namespace eg
     }
     
     void generateImplementationSource( std::ostream& os, 
+        InstructionCodeGeneratorFactory& instructionCodeGenFactory,
         PrinterFactory& printerFactory,
         const ReadSession& program, 
         const eg::TranslationUnit& translationUnit,
@@ -464,7 +466,7 @@ namespace eg
         for( const InvocationSolution* pInvocation : invocations )
         {
             os << "\n";
-            generateInvocation( os, printerFactory, objects, derivationAnalysis, layout, *pInvocation );
+            generateInvocation( os, instructionCodeGenFactory, printerFactory, objects, derivationAnalysis, layout, *pInvocation );
         }
         
         

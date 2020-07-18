@@ -403,7 +403,8 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
 }
 
 void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, const Environment& environment,
-    const Project& project, eg::PrinterFactory& printerFactory, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
+    const Project& project, eg::InstructionCodeGeneratorFactory& instructionCodeGenFactory, eg::PrinterFactory& printerFactory, 
+    FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
 {
     eg::IndexedFile::FileIDtoPathMap allFiles;
     
@@ -443,7 +444,8 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
             {
                 LogEntry log( std::cout, "Generating implementation: " + pTranslationUnit->getName(), bBenchCommands );
                 std::ostringstream osImpl;
-                eg::generateImplementationSource( osImpl, printerFactory, session, *pTranslationUnit, { "structures.hpp" } );
+                eg::generateImplementationSource( osImpl, instructionCodeGenFactory, 
+                    printerFactory, session, *pTranslationUnit, { "structures.hpp" } );
                 boost::filesystem::updateFileIfChanged( project.getImplementationSource( pTranslationUnit->getName() ), osImpl.str() );
             }
         }
@@ -731,13 +733,6 @@ void link_program( const Environment& environment, const Project& project,
     
 }
 
-namespace eg
-{
-    std::shared_ptr< InstructionCodeGenerator > constructInstructionCodeGenerator( CodeGenerator& generator, std::ostream& os )
-    {
-        return std::make_shared< InstructionCodeGenerator >( generator, os );
-    }
-}
 
 void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args )
 {
@@ -822,8 +817,10 @@ void command_build( bool bHelp, const std::string& strBuildCommand, const std::v
         build_operations( *pInterfaceSession, environment, project, fileTracker, bBenchCommands, bLogCommands );
         
         eg::PrinterFactory::Ptr pPrinterFactory = eg::getDefaultPrinterFactory();
+        eg::InstructionCodeGeneratorFactoryDefault defaultInstructionCodeGen;
         
-        generate_objects( pInterfaceSession->getTranslationUnitAnalysis(), environment, project, *pPrinterFactory, fileTracker, bBenchCommands, bLogCommands );
+        generate_objects( pInterfaceSession->getTranslationUnitAnalysis(), environment, project,
+            defaultInstructionCodeGen, *pPrinterFactory, fileTracker, bBenchCommands, bLogCommands );
         
         std::vector< boost::filesystem::path > objectFiles = 
             build_objects( pInterfaceSession->getTranslationUnitAnalysis(), environment, project, fileTracker, bBenchCommands, bLogCommands );

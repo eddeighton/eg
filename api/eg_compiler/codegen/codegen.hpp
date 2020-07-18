@@ -92,7 +92,7 @@ namespace eg
     class TranslationUnit;
     void generateOperationSource( std::ostream& os, 
         const interface::Root* pRoot, 
-        const eg::TranslationUnit& translationUnit );
+        const TranslationUnit& translationUnit );
     
     void generateBufferStructures( std::ostream& os, const ReadSession& program );
 
@@ -101,15 +101,16 @@ namespace eg
         const ReadSession& program, 
         const std::vector< const concrete::Action* >& actions, 
         const std::vector< const concrete::Inheritance_Node* >& iNodes,
-        const eg::TranslationUnit& translationUnit );
+        const TranslationUnit& translationUnit );
         
+    class InstructionCodeGeneratorFactory;
     void generateImplementationSource( std::ostream& os, 
+        InstructionCodeGeneratorFactory& instructionCodeGenFactory,
         PrinterFactory& printerFactory,
         const ReadSession& program, 
-        const eg::TranslationUnit& translationUnit,
+        const TranslationUnit& translationUnit,
         const std::vector< std::string >& additionalIncludes );
         
-    //void generate_dynamic_interface( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& session );
     void generateActionInstanceFunctions( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program );
             
     class DataMember;
@@ -123,7 +124,8 @@ namespace eg
     void generateDecode( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
 	
     class Layout;
-	void generateInstructions( std::ostream& os, PrinterFactory& printerFactory, const RootInstruction* pRootInstruction, const Layout& layout );
+	void generateInstructions( std::ostream& os, InstructionCodeGeneratorFactory& factory, 
+        PrinterFactory& printerFactory, const RootInstruction* pRootInstruction, const Layout& layout );
 
 }
 

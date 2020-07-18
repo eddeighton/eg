@@ -124,7 +124,18 @@ namespace eg
         std::ostream& os;
     };
 
+    class InstructionCodeGeneratorFactory
+    {
+    public:
+        virtual ~InstructionCodeGeneratorFactory();
+        virtual std::shared_ptr< InstructionCodeGenerator > create( CodeGenerator& generator, std::ostream& os ) = 0;
+    };
     
+    class InstructionCodeGeneratorFactoryDefault : public InstructionCodeGeneratorFactory
+    {
+    public:
+        std::shared_ptr< InstructionCodeGenerator > create( CodeGenerator& generator, std::ostream& os );
+    };
 }
 
 #endif //INSRUCTION_CODE_GENERATOR_17_JULY_2020
