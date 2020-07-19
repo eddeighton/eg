@@ -617,14 +617,38 @@ namespace eg
         }
     };
 
+    void generateMemberFunctions( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program )
+    {
+        const Layout& layout = program.getLayout();
+        const interface::Root* pRoot = program.getTreeRoot();
+        const LinkAnalysis& linkAnalysis = program.getLinkAnalysis();
+        const DerivationAnalysis& derivationAnalysis = program.getDerivationAnalysis();
+        
+        const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
+        
+        std::vector< const concrete::Action* > actions = 
+            many_cst< concrete::Action >( objects );
+            
+        std::vector< const concrete::Inheritance_Node* > iNodes = 
+            many_cst< const concrete::Inheritance_Node >( objects );
+            
+        SpecialMemberFunctionVisitor visitor( os, actions, iNodes, printerFactory, layout, linkAnalysis, derivationAnalysis );
+        pRoot->pushpop( visitor );
+    }
 
-    void generateGenerics(std::ostream& os,
+    void generateGenerics( std::ostream& os,
         PrinterFactory& printerFactory,
         const ReadSession& program,
-        const std::vector< const concrete::Action* >& actions,
-        const std::vector< const concrete::Inheritance_Node* >& iNodes,
         const eg::TranslationUnit& translationUnit )
     {
+        const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
+        
+        std::vector< const concrete::Action* > actions = 
+            many_cst< concrete::Action >( objects );
+            
+        std::vector< const concrete::Inheritance_Node* > iNodes = 
+            many_cst< const concrete::Inheritance_Node >( objects );
+        
         const Layout& layout = program.getLayout();
         const interface::Root* pRoot = program.getTreeRoot();
         const LinkAnalysis& linkAnalysis = program.getLinkAnalysis();
@@ -749,8 +773,7 @@ namespace eg
         }
 
         {
-            SpecialMemberFunctionVisitor visitor( os, actions, iNodes, printerFactory, layout, linkAnalysis, derivationAnalysis );
-            pRoot->pushpop( visitor );
+            generateMemberFunctions( os, printerFactory, program );
         }
         {
             InvokeVisitor visitor( os, translationUnit );
@@ -758,6 +781,7 @@ namespace eg
         }
 
     }
+    
 
 
 }

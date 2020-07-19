@@ -96,11 +96,13 @@ namespace eg
     
     void generateBufferStructures( std::ostream& os, const ReadSession& program );
 
+    void generateMemberFunctions( std::ostream& os, 
+        PrinterFactory& printerFactory, 
+        const ReadSession& program );
+        
     void generateGenerics(std::ostream& os, 
         PrinterFactory& printerFactory,
         const ReadSession& program, 
-        const std::vector< const concrete::Action* >& actions, 
-        const std::vector< const concrete::Inheritance_Node* >& iNodes,
         const TranslationUnit& translationUnit );
         
     class InstructionCodeGeneratorFactory;

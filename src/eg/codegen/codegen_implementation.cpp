@@ -473,7 +473,7 @@ namespace eg
         std::vector< const concrete::Inheritance_Node* > iNodes = 
             many_cst< const concrete::Inheritance_Node >( objects );
         
-        generateGenerics( os, printerFactory, program, actions, iNodes, translationUnit );
+        generateGenerics( os, printerFactory, program, translationUnit );
                 
         os << "\n";
         os << "\n";
