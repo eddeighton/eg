@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef EG_ALLOCATORS_GUARD_20_JULY_2020
+#define EG_ALLOCATORS_GUARD_20_JULY_2020
 
 #include <array>
 #include <bitset>
@@ -29,9 +31,13 @@
 namespace eg
 {
     
+template< typename T >
+struct DimensionTraits;
+    
 template< std::size_t _Size >
 class Bitmask32Allocator
 {
+    friend class eg::DimensionTraits< eg::Bitmask32Allocator< _Size > >;
 public:
     static const std::size_t Size = _Size;
     
@@ -79,6 +85,7 @@ private:
 template< std::size_t _Size >
 class Bitmask64Allocator
 {
+    friend class eg::DimensionTraits< eg::Bitmask64Allocator< _Size > >;
 public:
     static const std::size_t Size = _Size;
     
@@ -137,6 +144,7 @@ private:
 template< std::size_t _Size >
 class RingAllocator
 {
+    friend class eg::DimensionTraits< eg::RingAllocator< _Size > >;
 public:
     static const std::size_t Size = _Size;
     
@@ -206,3 +214,5 @@ private:
 };
 
 }
+
+#endif //EG_ALLOCATORS_GUARD_20_JULY_2020
