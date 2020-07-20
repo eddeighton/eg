@@ -224,7 +224,14 @@ namespace concrete
         DimensionType getDimensionType() const { return m_type; }
         Action* getAction() const { return m_pContext; }
 		LinkGroup* getLinkGroup() const { return m_pLinkGroup; }
-        virtual bool isSimple() const { return true; }
+        virtual bool isSimple() const 
+        { 
+            switch( m_type )
+            {
+                case eActionState:          return false;
+                default:                    return true; 
+            }
+        }
     private:
         DimensionType m_type;
         Action* m_pContext = nullptr;
