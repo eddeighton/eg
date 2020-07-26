@@ -346,29 +346,35 @@ Project::Project( const boost::filesystem::path& projectDir,
     }
 }
 
-const std::string& Project::getCompilerFlags() const 
+const std::string Project::getCompilerFlags() const 
 {
+    std::ostringstream osFlags;
     if( !m_strBuildCommand.empty() )
     {
         for( const egxml::Build& build : m_project.Build() )
         {
             if( build.Name() == m_strBuildCommand )
             {
-                return build.CompilerFlags(); 
+                osFlags << build.CompilerFlags(); 
+                osFlags << " " << m_host.CompilerFlags();
+                return osFlags.str();
             }
         }
     }
     THROW_RTE( "Failed to locate build command: " << m_strBuildCommand << " in project: " << m_projectDir );
 }
-const std::string& Project::getLinkerFlags() const 
+const std::string Project::getLinkerFlags() const 
 { 
+    std::ostringstream osFlags;
     if( !m_strBuildCommand.empty() )
     {
         for( const egxml::Build& build : m_project.Build() )
         {
             if( build.Name() == m_strBuildCommand )
             {
-                return build.LinkerFlags(); 
+                osFlags << build.LinkerFlags(); 
+                osFlags << " " << m_host.LinkerFlags();
+                return osFlags.str();
             }
         }
     }

@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX
 
 #include <xsde/cxx/pre.hxx>
 
@@ -30,7 +30,7 @@
 
 #ifndef XSDE_OMIT_SAGGR
 #  define XSDE_OMIT_SAGGR
-#  define W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
+#  define W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #endif
 
 #include "wizard_schema-sskel.hxx"
@@ -65,7 +65,7 @@ namespace wizardxml
   };
 }
 
-#ifdef W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
+#ifdef W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #  undef XSDE_OMIT_SAGGR
 #endif
 
@@ -111,8 +111,8 @@ namespace wizardxml
     }
 
     public:
-    ::wizardxml::Wizard_simpl Wizard_s_;
     ::xml_schema::string_simpl string_s_;
+    ::wizardxml::Wizard_simpl Wizard_s_;
   };
 }
 
@@ -125,4 +125,4 @@ namespace wizardxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_SIMPL_HXX

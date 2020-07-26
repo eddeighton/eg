@@ -54,13 +54,13 @@ namespace eg
             return m_server.updateHead();
         }
         
-        void write( const char* pszType, std::size_t szTypeSize, std::size_t timestamp, 
+        void write( const char* pszType, std::size_t szTypeSize, std::uint32_t timestamp, 
                 const void* pValue, std::size_t szValueSize )
         {
             m_server.write( IPC::Event::Event( pszType, szTypeSize, timestamp, pValue, szValueSize ) );
         }
         
-        bool read( std::uint64_t& iterator, const char*& pszType, std::size_t& timestamp, 
+        bool read( std::uint64_t& iterator, const char*& pszType, std::uint32_t& timestamp, 
                 const void*& pValue, std::size_t& szValueSize )
         {
             IPC::Event::Event ev;
@@ -95,7 +95,7 @@ namespace eg
             return m_client.head();
         }
         
-        bool read( std::uint64_t& iterator, const char*& pszType, std::size_t& timestamp, 
+        bool read( std::uint64_t& iterator, const char*& pszType, std::uint32_t& timestamp, 
                 const void*& pValue, std::size_t& szValueSize )
         {
             IPC::Event::Event ev;

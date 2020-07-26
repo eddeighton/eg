@@ -109,8 +109,8 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "release" );
-                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -DBOOST_ALL_NO_LIB -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -Ofast -fexceptions -Xclang -std=c++17 -Xclang -fcoroutines-ts -Xclang -flto -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
-                        build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
+                        build.CompilerFlags( "-Ofast -Xclang -flto" );
+                        build.LinkerFlags( "" );
                     }
                     pProject->Build().push_back( build );
                 }
@@ -119,8 +119,8 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "quick" );
-                        build.CompilerFlags( "-D_MT -D_DLL -DNOMINMAX -DBOOST_ALL_NO_LIB -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -fcoroutines-ts -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
-                        build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
+                        build.CompilerFlags( "" );
+                        build.LinkerFlags( "" );
                     }
                     pProject->Build().push_back( build );
                 }
@@ -129,8 +129,8 @@ void command_create( bool bHelp, const std::vector< std::string >& args )
                     egxml::Build build;
                     {
                         build.Name( "debug" );
-                        build.CompilerFlags( "-g -DDEBUG -D_MT -D_DLL -DNOMINMAX -DBOOST_ALL_NO_LIB -D_CRT_SECURE_NO_WARNINGS -DBOOST_USE_WINDOWS_H -fexceptions -Xclang -std=c++17 -Xclang -fcoroutines-ts -Xclang -flto-visibility-public-std -Wno-deprecated -Wno-inconsistent-missing-override" );
-                        build.LinkerFlags( "-nostdlib -lmsvcrt -Xlinker /SUBSYSTEM:CONSOLE" );
+                        build.CompilerFlags( "-g -DDEBUG" );
+                        build.LinkerFlags( "" );
                     }
                     pProject->Build().push_back( build );
                 }

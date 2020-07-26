@@ -48,7 +48,7 @@ namespace clang
     
     bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< eg::TypeID >& typePathTypes );
     
-    std::optional< int > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
+    std::optional< std::size_t > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
         const SourceLocation& loc, const std::string& strConstantName );
     
     QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 

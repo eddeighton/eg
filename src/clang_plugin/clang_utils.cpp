@@ -391,7 +391,7 @@ namespace clang
         
     }
     
-    std::optional< int > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
+    std::optional< std::size_t > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
         const SourceLocation& loc, const std::string& strConstantName )
     {
         IdentifierInfo& identifierInfo = pASTContext->Idents.get( strConstantName );
@@ -411,7 +411,7 @@ namespace clang
                 }
             }
         }
-        return std::optional< int >();
+        return std::optional< std::size_t >();
     }
     
     QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc, 
@@ -794,7 +794,7 @@ namespace clang
             }
             
             //get the optional allocation size
-            if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, result.pContext, result.loc, ::eg::EG_TRAITS_SIZE ) )
+            if( std::optional< std::size_t > sizeOpt = getConstant( pASTContext, pSema, result.pContext, result.loc, ::eg::EG_TRAITS_SIZE ) )
             {
                 AbstractMutator::setSize( *pAction, static_cast< std::size_t >( sizeOpt.value() ) );
             }
@@ -851,13 +851,13 @@ namespace clang
                         }
                     }
                     //determine the size
-                    if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, ::eg::EG_TRAITS_SIZE ) )
+                    if( std::optional< std::size_t > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, ::eg::EG_TRAITS_SIZE ) )
                     {
                         AbstractMutator::setSize( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
                     }
                     
                     //determine if the type is simple
-                    if( std::optional< int > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, ::eg::EG_TRAITS_SIMPLE ) )
+                    if( std::optional< std::size_t > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, ::eg::EG_TRAITS_SIMPLE ) )
                     {
                         AbstractMutator::setSimple( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
                     }

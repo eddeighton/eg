@@ -129,7 +129,7 @@ public:
     }
 };
 
-template< class IteratorType, std::size_t SIZE >
+template< class IteratorType, eg::Instance SIZE >
 class __eg_MultiIterator : public std::iterator< std::forward_iterator_tag, typename IteratorType::value_type >
 {
 public:
@@ -137,7 +137,7 @@ public:
     using value_type = typename IteratorType::value_type;
 private:
     IteratorArray iterators;
-    std::size_t szIndex = 0U;
+    eg::Instance szIndex = 0U;
 public:
 
     inline __eg_MultiIterator()

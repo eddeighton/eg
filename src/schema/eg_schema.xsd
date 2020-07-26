@@ -33,7 +33,12 @@
 	</xs:complexType>
 	<xs:complexType name="Host">
 		<xs:complexContent>
-			<xs:extension base="Package"/>
+			<xs:extension base="Package">
+				<xs:sequence>
+					<xs:element name="CompilerFlags" type="xs:string" minOccurs="0"/>
+					<xs:element name="LinkerFlags" type="xs:string" minOccurs="0"/>
+				</xs:sequence>
+			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	<xs:complexType name="Project">

@@ -166,6 +166,18 @@ namespace egxml
     this->pre_impl (x);
   }
 
+  void Host_pimpl::
+  CompilerFlags (const ::std::string& x)
+  {
+    this->Host_pimpl_state_.Host_->CompilerFlags (x);
+  }
+
+  void Host_pimpl::
+  LinkerFlags (const ::std::string& x)
+  {
+    this->Host_pimpl_state_.Host_->LinkerFlags (x);
+  }
+
   ::egxml::Host* Host_pimpl::
   post_Host ()
   {
@@ -657,15 +669,6 @@ namespace egxml
   EG_paggr::
   EG_paggr ()
   {
-    this->Files_p_.parsers (this->string_p_,
-                            this->string_p_,
-                            this->string_p_,
-                            this->string_p_);
-
-    this->EG_p_.parsers (this->Package_p_,
-                         this->Host_p_,
-                         this->Project_p_);
-
     this->Package_p_.parsers (this->string_p_,
                               this->string_p_,
                               this->string_p_,
@@ -683,6 +686,8 @@ namespace egxml
                            this->string_p_,
                            this->Directories_p_,
                            this->Files_p_,
+                           this->string_p_,
+                           this->string_p_,
                            this->string_p_);
 
     this->Project_p_.parsers (this->string_p_,
@@ -707,6 +712,15 @@ namespace egxml
     this->Fibers_p_.parsers (this->Stack_p_);
 
     this->Stack_p_.parsers (this->unsigned_int_p_);
+
+    this->Files_p_.parsers (this->string_p_,
+                            this->string_p_,
+                            this->string_p_,
+                            this->string_p_);
+
+    this->EG_p_.parsers (this->Package_p_,
+                         this->Host_p_,
+                         this->Project_p_);
   }
 
   const char* EG_paggr::

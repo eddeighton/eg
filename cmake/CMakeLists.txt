@@ -23,7 +23,7 @@ set( EG_API_DIR ${EG_ROOT_DIR}/api )
 set( EG_SRC_DIR ${EG_ROOT_DIR}/src )
 
 #helper path if third party libs are in parent folder
-set( EG_THIRD_PARTY_DIR ${EG_ROOT_DIR}/../../thirdparty )
+set( EG_THIRD_PARTY_DIR ${EG_ROOT_DIR}/../../thirdparty_x64 )
 
 include_directories( ${EG_API_DIR} )
 include_directories( ${EG_SRC_DIR} )

@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_HXX
 
 #include <xsde/cxx/version.hxx>
 
@@ -209,4 +209,4 @@ namespace wizardxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_HXX

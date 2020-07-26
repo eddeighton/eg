@@ -52,6 +52,27 @@ macro( compile_schema target_name xml_schema nmspace output_directory )
         
     )
     
+    ##problem with this is it will run every time
+    #add_custom_target( 
+    #    ${target_name}
+    #    ${XSDE_EXECUTABLE} "cxx-hybrid" --generate-parser --generate-serializer --generate-aggregate --no-long-long --namespace-map =${nmspace} --output-dir ${output_directory} ${xml_schema}
+    #    
+    #    BYPRODUCTS 
+    #    ${output_directory}/schema.hxx
+    #    ${output_directory}/schema.cxx
+    #    ${output_directory}/schema-pskel.hxx
+    #    ${output_directory}/schema-pskel.cxx
+    #    ${output_directory}/schema-pimpl.hxx
+    #    ${output_directory}/schema-pimpl.cxx
+    #    ${output_directory}/schema-sskel.hxx
+    #    ${output_directory}/schema-sskel.cxx
+    #    ${output_directory}/schema-simpl.hxx
+    #    ${output_directory}/schema-simpl.cxx
+    #    
+    #    DEPENDS ${xml_schema}
+    #    
+    #    COMMENT "Generating xml schema parser using xsde for ${xml_schema} to ${output_directory}" )
+    
     #enable this to cause the schema to recompile - or find a way for cmake to detect the schema file timestamp properly
     #add_custom_target(
     #    ${target_name}

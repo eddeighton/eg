@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX
 
 #include <xsde/cxx/pre.hxx>
 
@@ -30,7 +30,7 @@
 
 #ifndef XSDE_OMIT_PAGGR
 #  define XSDE_OMIT_PAGGR
-#  define W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
+#  define W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
 #endif
 
 #include "wizard_schema-pskel.hxx"
@@ -75,7 +75,7 @@ namespace wizardxml
   };
 }
 
-#ifdef W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
+#ifdef W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
 #  undef XSDE_OMIT_PAGGR
 #endif
 
@@ -121,8 +121,8 @@ namespace wizardxml
     }
 
     public:
-    ::wizardxml::Wizard_pimpl Wizard_p_;
     ::xml_schema::string_pimpl string_p_;
+    ::wizardxml::Wizard_pimpl Wizard_p_;
   };
 }
 
@@ -135,4 +135,4 @@ namespace wizardxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_WIZARD_SCHEMA_PIMPL_HXX

@@ -131,6 +131,30 @@ namespace egxml
     this->Host_simpl_state_.Host_ = &x;
   }
 
+  bool Host_simpl::
+  CompilerFlags_present ()
+  {
+    return this->Host_simpl_state_.Host_->CompilerFlags_present ();
+  }
+
+  ::std::string Host_simpl::
+  CompilerFlags ()
+  {
+    return this->Host_simpl_state_.Host_->CompilerFlags ();
+  }
+
+  bool Host_simpl::
+  LinkerFlags_present ()
+  {
+    return this->Host_simpl_state_.Host_->LinkerFlags_present ();
+  }
+
+  ::std::string Host_simpl::
+  LinkerFlags ()
+  {
+    return this->Host_simpl_state_.Host_->LinkerFlags ();
+  }
+
   // Build_simpl
   //
 
@@ -531,15 +555,6 @@ namespace egxml
   EG_saggr::
   EG_saggr ()
   {
-    this->Files_s_.serializers (this->string_s_,
-                                this->string_s_,
-                                this->string_s_,
-                                this->string_s_);
-
-    this->EG_s_.serializers (this->Package_s_,
-                             this->Host_s_,
-                             this->Project_s_);
-
     this->Package_s_.serializers (this->string_s_,
                                   this->string_s_,
                                   this->string_s_,
@@ -557,6 +572,8 @@ namespace egxml
                                this->string_s_,
                                this->Directories_s_,
                                this->Files_s_,
+                               this->string_s_,
+                               this->string_s_,
                                this->string_s_);
 
     this->Project_s_.serializers (this->string_s_,
@@ -581,6 +598,15 @@ namespace egxml
     this->Fibers_s_.serializers (this->Stack_s_);
 
     this->Stack_s_.serializers (this->unsigned_int_s_);
+
+    this->Files_s_.serializers (this->string_s_,
+                                this->string_s_,
+                                this->string_s_,
+                                this->string_s_);
+
+    this->EG_s_.serializers (this->Package_s_,
+                             this->Host_s_,
+                             this->Project_s_);
   }
 
   const char* EG_saggr::

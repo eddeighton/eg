@@ -122,17 +122,57 @@ namespace egxml
   // Host_pskel
   //
 
+  void Host_pskel::
+  CompilerFlags_parser (::xml_schema::string_pskel& p)
+  {
+    this->CompilerFlags_parser_ = &p;
+  }
+
+  void Host_pskel::
+  LinkerFlags_parser (::xml_schema::string_pskel& p)
+  {
+    this->LinkerFlags_parser_ = &p;
+  }
+
+  void Host_pskel::
+  parsers (::xml_schema::string_pskel& Name,
+           ::xml_schema::string_pskel& Repository,
+           ::xml_schema::string_pskel& License,
+           ::xml_schema::string_pskel& Description,
+           ::egxml::Directories_pskel& Directories,
+           ::egxml::Files_pskel& Files,
+           ::xml_schema::string_pskel& Command,
+           ::xml_schema::string_pskel& CompilerFlags,
+           ::xml_schema::string_pskel& LinkerFlags)
+  {
+    this->Name_parser_ = &Name;
+    this->Repository_parser_ = &Repository;
+    this->License_parser_ = &License;
+    this->Description_parser_ = &Description;
+    this->Directories_parser_ = &Directories;
+    this->Files_parser_ = &Files;
+    this->Command_parser_ = &Command;
+    this->CompilerFlags_parser_ = &CompilerFlags;
+    this->LinkerFlags_parser_ = &LinkerFlags;
+  }
+
   Host_pskel::
   Host_pskel (::egxml::Package_pskel* tiein)
   : ::egxml::Package_pskel (tiein, 0),
-    Host_impl_ (0)
+    Host_impl_ (0),
+    CompilerFlags_parser_ (0),
+    LinkerFlags_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
   }
 
   Host_pskel::
   Host_pskel (Host_pskel* impl, void*)
   : ::egxml::Package_pskel (impl, 0),
-    Host_impl_ (impl)
+    Host_impl_ (impl),
+    CompilerFlags_parser_ (0),
+    LinkerFlags_parser_ (0),
+    v_state_stack_ (sizeof (v_state_), &v_state_first_)
   {
   }
 
@@ -690,6 +730,42 @@ namespace egxml
 
   // Host_pskel
   //
+
+  void Host_pskel::
+  CompilerFlags (const ::std::string& x)
+  {
+    if (this->Host_impl_)
+      this->Host_impl_->CompilerFlags (x);
+  }
+
+  void Host_pskel::
+  LinkerFlags (const ::std::string& x)
+  {
+    if (this->Host_impl_)
+      this->Host_impl_->LinkerFlags (x);
+  }
+
+  void Host_pskel::
+  _reset ()
+  {
+    if (this->resetting_)
+      return;
+
+    typedef ::egxml::Package_pskel base;
+    base::_reset ();
+
+    this->v_state_stack_.clear ();
+
+    this->resetting_ = true;
+
+    if (this->CompilerFlags_parser_)
+      this->CompilerFlags_parser_->_reset ();
+
+    if (this->LinkerFlags_parser_)
+      this->LinkerFlags_parser_->_reset ();
+
+    this->resetting_ = false;
+  }
 
   ::egxml::Package* Host_pskel::
   post_Package ()
@@ -1526,6 +1602,229 @@ namespace egxml
             }
 
             count++;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = ~0UL;
+          // Fall through.
+        }
+      }
+      case ~0UL:
+        break;
+    }
+  }
+
+  // Element validation and dispatch functions for Host_pskel.
+  //
+  bool Host_pskel::
+  _start_element_impl (const ::xsde::cxx::ro_string& ns,
+                       const ::xsde::cxx::ro_string& n)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    if (vd->func == 0 && vd->state == 0)
+    {
+      typedef ::egxml::Package_pskel base;
+      if (base::_start_element_impl (ns, n))
+        return true;
+      else
+        vd->state = 1;
+    }
+
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, ns, n, true);
+
+      vd = vs.data + (vs.size - 1);
+
+      if (vd->state == ~0UL && !ctx.error_type ())
+        vd = vs.data + (--vs.size - 1);
+      else
+        break;
+    }
+
+    if (vd->func == 0)
+    {
+      if (vd->state != ~0UL)
+      {
+        unsigned long s = ~0UL;
+
+        if (n == "CompilerFlags" && ns.empty ())
+          s = 0UL;
+        else if (n == "LinkerFlags" && ns.empty ())
+          s = 1UL;
+
+        if (s != ~0UL)
+        {
+          vd->count++;
+          vd->state = ~0UL;
+
+          vd = vs.data + vs.size++;
+          vd->func = &Host_pskel::sequence_0;
+          vd->state = s;
+          vd->count = 0;
+
+          this->sequence_0 (vd->state, vd->count, ns, n, true);
+        }
+        else
+        {
+          return false;
+        }
+      }
+      else
+        return false;
+    }
+
+    return true;
+  }
+
+  bool Host_pskel::
+  _end_element_impl (const ::xsde::cxx::ro_string& ns,
+                     const ::xsde::cxx::ro_string& n)
+  {
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size - 1];
+
+    if (vd.func == 0 && vd.state == 0)
+    {
+      typedef ::egxml::Package_pskel base;
+      if (!base::_end_element_impl (ns, n))
+        assert (false);
+      return true;
+    }
+
+    assert (vd.func != 0);
+    (this->*vd.func) (vd.state, vd.count, ns, n, false);
+
+    if (vd.state == ~0UL)
+      vs.size--;
+
+    return true;
+  }
+
+  void Host_pskel::
+  _pre_e_validate ()
+  {
+    this->v_state_stack_.push ();
+    static_cast< v_state_* > (this->v_state_stack_.top ())->size = 0;
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_& vd = vs.data[vs.size++];
+
+    vd.func = 0;
+    vd.state = 0;
+    vd.count = 0;
+    typedef ::egxml::Package_pskel base;
+    base::_pre_e_validate ();
+  }
+
+  void Host_pskel::
+  _post_e_validate ()
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    typedef ::egxml::Package_pskel base;
+    base::_post_e_validate ();
+
+    if (ctx.error_type ())
+      return;
+
+    v_state_& vs = *static_cast< v_state_* > (this->v_state_stack_.top ());
+    v_state_descr_* vd = vs.data + (vs.size - 1);
+
+    ::xsde::cxx::ro_string empty;
+    while (vd->func != 0)
+    {
+      (this->*vd->func) (vd->state, vd->count, empty, empty, true);
+
+      if (ctx.error_type ())
+        return;
+
+      assert (vd->state == ~0UL);
+      vd = vs.data + (--vs.size - 1);
+    }
+
+
+    this->v_state_stack_.pop ();
+  }
+
+  void Host_pskel::
+  sequence_0 (unsigned long& state,
+              unsigned long& count,
+              const ::xsde::cxx::ro_string& ns,
+              const ::xsde::cxx::ro_string& n,
+              bool start)
+  {
+    ::xsde::cxx::parser::context& ctx = this->_context ();
+
+    XSDE_UNUSED (ctx);
+
+    switch (state)
+    {
+      case 0UL:
+      {
+        if (n == "CompilerFlags" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->CompilerFlags_parser_)
+            {
+              this->CompilerFlags_parser_->pre ();
+              ctx.nested_parser (this->CompilerFlags_parser_);
+            }
+          }
+          else
+          {
+            if (this->CompilerFlags_parser_ != 0)
+            {
+              const ::std::string& tmp = this->CompilerFlags_parser_->post_string ();
+              this->CompilerFlags (tmp);
+            }
+
+            count = 0;
+            state = 1UL;
+          }
+
+          break;
+        }
+        else
+        {
+          assert (start);
+          count = 0;
+          state = 1UL;
+          // Fall through.
+        }
+      }
+      case 1UL:
+      {
+        if (n == "LinkerFlags" && ns.empty ())
+        {
+          if (start)
+          {
+            if (this->LinkerFlags_parser_)
+            {
+              this->LinkerFlags_parser_->pre ();
+              ctx.nested_parser (this->LinkerFlags_parser_);
+            }
+          }
+          else
+          {
+            if (this->LinkerFlags_parser_ != 0)
+            {
+              const ::std::string& tmp = this->LinkerFlags_parser_->post_string ();
+              this->LinkerFlags (tmp);
+            }
+
+            count = 0;
+            state = ~0UL;
           }
 
           break;
@@ -2710,12 +3009,6 @@ namespace egxml
         else
         {
           assert (start);
-          if (count < 1UL)
-          {
-            this->_schema_error (::xsde::cxx::schema_error::expected_element);
-            break;
-          }
-
           count = 0;
           state = 6UL;
           // Fall through.
@@ -2749,12 +3042,6 @@ namespace egxml
         else
         {
           assert (start);
-          if (count < 1UL)
-          {
-            this->_schema_error (::xsde::cxx::schema_error::expected_element);
-            break;
-          }
-
           count = 0;
           state = 7UL;
           // Fall through.

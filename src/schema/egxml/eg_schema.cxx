@@ -195,6 +195,68 @@ namespace egxml
   // Host
   //
 
+  bool Host::
+  CompilerFlags_present () const
+  {
+    return this->CompilerFlags_present_;
+  }
+
+  void Host::
+  CompilerFlags_present (bool x)
+  {
+    this->CompilerFlags_present_ = x;
+  }
+
+  const ::std::string& Host::
+  CompilerFlags () const
+  {
+    return this->CompilerFlags_;
+  }
+
+  ::std::string& Host::
+  CompilerFlags ()
+  {
+    return this->CompilerFlags_;
+  }
+
+  void Host::
+  CompilerFlags (const ::std::string& x)
+  {
+    this->CompilerFlags_ = x;
+    this->CompilerFlags_present_ = true;
+  }
+
+  bool Host::
+  LinkerFlags_present () const
+  {
+    return this->LinkerFlags_present_;
+  }
+
+  void Host::
+  LinkerFlags_present (bool x)
+  {
+    this->LinkerFlags_present_ = x;
+  }
+
+  const ::std::string& Host::
+  LinkerFlags () const
+  {
+    return this->LinkerFlags_;
+  }
+
+  ::std::string& Host::
+  LinkerFlags ()
+  {
+    return this->LinkerFlags_;
+  }
+
+  void Host::
+  LinkerFlags (const ::std::string& x)
+  {
+    this->LinkerFlags_ = x;
+    this->LinkerFlags_present_ = true;
+  }
+
   // Build
   //
 
@@ -760,6 +822,8 @@ namespace egxml
   Host::
   Host ()
   {
+    this->CompilerFlags_present_ = false;
+    this->LinkerFlags_present_ = false;
   }
 
   Host::

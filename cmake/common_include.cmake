@@ -4,7 +4,7 @@ find_path( COMMON_INSTALL_PATH share PATHS ${CMAKE_CURRENT_LIST_DIR}../../../com
 
 include( ${COMMON_INSTALL_PATH}/share/common-config.cmake )
 
-find_package( common )
+#find_package( common )
 
 function( link_common targetname )
 	target_link_libraries( ${targetname} PUBLIC Common::commonlib )

@@ -652,7 +652,7 @@ namespace eg
             const RangeOperation* pRangeOp = dynamic_cast< const RangeOperation* >( pOperation );
             ASSERT( pRangeOp );
             const concrete::Action* pTarget = pRangeOp->getTarget();
-            std::size_t szDomainMultiplier = 1U;
+            std::int32_t szDomainMultiplier = 1U;
             
             const concrete::Action* pIter = pTarget;
             for( ; pIter != pEnumerationAction; 

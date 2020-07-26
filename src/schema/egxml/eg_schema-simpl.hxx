@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX
 
 #include <xsde/cxx/pre.hxx>
 
@@ -30,7 +30,7 @@
 
 #ifndef XSDE_OMIT_SAGGR
 #  define XSDE_OMIT_SAGGR
-#  define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
+#  define W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #endif
 
 #include "eg_schema-sskel.hxx"
@@ -101,6 +101,20 @@ namespace egxml
 
     virtual void
     pre (const ::egxml::Host&);
+
+    // Elements.
+    //
+    virtual bool
+    CompilerFlags_present ();
+
+    virtual ::std::string
+    CompilerFlags ();
+
+    virtual bool
+    LinkerFlags_present ();
+
+    virtual ::std::string
+    LinkerFlags ();
 
     public:
     ::egxml::Package_simpl base_impl_;
@@ -417,7 +431,7 @@ namespace egxml
   };
 }
 
-#ifdef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
+#ifdef W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX_CLEAR_OMIT_SAGGR
 #  undef XSDE_OMIT_SAGGR
 #endif
 
@@ -463,8 +477,6 @@ namespace egxml
     }
 
     public:
-    ::egxml::Files_simpl Files_s_;
-    ::egxml::EG_simpl EG_s_;
     ::egxml::Package_simpl Package_s_;
     ::egxml::Directories_simpl Directories_s_;
     ::egxml::Host_simpl Host_s_;
@@ -474,8 +486,10 @@ namespace egxml
     ::egxml::Defaults_simpl Defaults_s_;
     ::egxml::Fibers_simpl Fibers_s_;
     ::egxml::Stack_simpl Stack_s_;
+    ::egxml::Files_simpl Files_s_;
     ::xml_schema::unsigned_int_simpl unsigned_int_s_;
     ::xml_schema::string_simpl string_s_;
+    ::egxml::EG_simpl EG_s_;
   };
 }
 
@@ -488,4 +502,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SIMPL_HXX

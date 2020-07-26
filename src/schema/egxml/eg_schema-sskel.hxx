@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX
 
 #include <xsde/cxx/version.hxx>
 
@@ -415,8 +415,46 @@ namespace egxml
     virtual void
     pre (const ::egxml::Host&) = 0;
 
+    // Elements.
+    //
+    virtual bool
+    CompilerFlags_present ();
+
+    virtual ::std::string
+    CompilerFlags () = 0;
+
+    virtual bool
+    LinkerFlags_present ();
+
+    virtual ::std::string
+    LinkerFlags () = 0;
+
     // virtual void
     // post ();
+
+    // Serializer construction API.
+    //
+    void
+    serializers (::xml_schema::string_sskel& /* Name */,
+                 ::xml_schema::string_sskel& /* Repository */,
+                 ::xml_schema::string_sskel& /* License */,
+                 ::xml_schema::string_sskel& /* Description */,
+                 ::egxml::Directories_sskel& /* Directories */,
+                 ::egxml::Files_sskel& /* Files */,
+                 ::xml_schema::string_sskel& /* Command */,
+                 ::xml_schema::string_sskel& /* CompilerFlags */,
+                 ::xml_schema::string_sskel& /* LinkerFlags */);
+
+    // Individual element serializers.
+    //
+    void
+    CompilerFlags_serializer (::xml_schema::string_sskel&);
+
+    void
+    LinkerFlags_serializer (::xml_schema::string_sskel&);
+
+    virtual void
+    _reset ();
 
     // Constructor.
     //
@@ -449,9 +487,16 @@ namespace egxml
     virtual ::std::string
     Command ();
 
+    virtual void
+    _serialize_content ();
+
     protected:
     Host_sskel* Host_impl_;
     Host_sskel (Host_sskel*, void*);
+
+    protected:
+    ::xml_schema::string_sskel* CompilerFlags_serializer_;
+    ::xml_schema::string_sskel* LinkerFlags_serializer_;
   };
 
   class Build_sskel: public ::xsde::cxx::serializer::validating::complex_content
@@ -707,13 +752,13 @@ namespace egxml
     Files () = 0;
 
     virtual bool
-    Build_next () = 0;
+    Build_next ();
 
     virtual const ::egxml::Build&
     Build () = 0;
 
     virtual bool
-    Run_next () = 0;
+    Run_next ();
 
     virtual const ::egxml::Run&
     Run () = 0;
@@ -1088,4 +1133,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_SSKEL_HXX

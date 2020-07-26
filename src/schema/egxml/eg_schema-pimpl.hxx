@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX
 
 #include <xsde/cxx/pre.hxx>
 
@@ -30,7 +30,7 @@
 
 #ifndef XSDE_OMIT_PAGGR
 #  define XSDE_OMIT_PAGGR
-#  define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
+#  define W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
 #endif
 
 #include "eg_schema-pskel.hxx"
@@ -104,6 +104,14 @@ namespace egxml
 
     virtual void
     pre ();
+
+    // Elements.
+    //
+    virtual void
+    CompilerFlags (const ::std::string&);
+
+    virtual void
+    LinkerFlags (const ::std::string&);
 
     virtual ::egxml::Host*
     post_Host ();
@@ -447,7 +455,7 @@ namespace egxml
   };
 }
 
-#ifdef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
+#ifdef W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX_CLEAR_OMIT_PAGGR
 #  undef XSDE_OMIT_PAGGR
 #endif
 
@@ -493,8 +501,6 @@ namespace egxml
     }
 
     public:
-    ::egxml::Files_pimpl Files_p_;
-    ::egxml::EG_pimpl EG_p_;
     ::egxml::Package_pimpl Package_p_;
     ::egxml::Directories_pimpl Directories_p_;
     ::egxml::Host_pimpl Host_p_;
@@ -504,8 +510,10 @@ namespace egxml
     ::egxml::Defaults_pimpl Defaults_p_;
     ::egxml::Fibers_pimpl Fibers_p_;
     ::egxml::Stack_pimpl Stack_p_;
+    ::egxml::Files_pimpl Files_p_;
     ::xml_schema::unsigned_int_pimpl unsigned_int_p_;
     ::xml_schema::string_pimpl string_p_;
+    ::egxml::EG_pimpl EG_p_;
   };
 }
 
@@ -518,4 +526,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PIMPL_HXX

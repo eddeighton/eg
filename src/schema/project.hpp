@@ -85,8 +85,8 @@ public:
     
     const egxml::Project& getProject() const { return m_project; }
     
-    const std::string& getCompilerFlags()   const;
-    const std::string& getLinkerFlags()     const;
+    const std::string getCompilerFlags()   const;
+    const std::string getLinkerFlags()     const;
     
     std::vector< boost::filesystem::path > getEGSourceCode() const;
     std::vector< boost::filesystem::path > getHostSystemIncludes() const;

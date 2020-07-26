@@ -39,10 +39,10 @@ namespace eg
         virtual std::uint64_t head() = 0;
         virtual bool updateHead() = 0;
         
-        virtual void write( const char* pszType, std::size_t szTypeSize, std::size_t timestamp, 
+        virtual void write( const char* pszType, std::size_t szTypeSize, std::uint32_t timestamp, 
                 const void* pValue, std::size_t szValueSize ) = 0;
                 
-        virtual bool read( std::uint64_t& iterator, const char*& pszType, std::size_t& timestamp, 
+        virtual bool read( std::uint64_t& iterator, const char*& pszType, std::uint32_t& timestamp, 
                 const void*& pValue, std::size_t& szValueSize ) = 0;
                 
         static EventLogServer* create( const char* pszFilePath );
@@ -56,7 +56,7 @@ namespace eg
         
         virtual std::uint64_t head() = 0;
                 
-        virtual bool read( std::uint64_t& iterator, const char*& pszType, std::size_t& timestamp, 
+        virtual bool read( std::uint64_t& iterator, const char*& pszType, std::uint32_t& timestamp, 
                 const void*& pValue, std::size_t& szValueSize ) = 0;
         
         static EventLogClient* create( const char* pszPID, const char* pszFilePath );

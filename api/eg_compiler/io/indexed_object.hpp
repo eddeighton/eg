@@ -42,13 +42,13 @@ namespace eg
     public:
         using Array = std::vector< IndexedObject* >;
 
-        using Type = std::size_t;
+        using Type = std::int32_t;
         static const Type NO_TYPE = (Type)-1;
     
-        using Index = std::size_t;
+        using Index = std::int32_t;
         static const Index NO_INDEX = (Index)-1;
         
-        using FileID = std::size_t;
+        using FileID = std::int32_t;
         static const FileID NO_FILE         = (FileID)-1;
         static const FileID MASTER_FILE     = (FileID)0U;
         static const FileID ANALYSIS_FILE   = (FileID)1U;

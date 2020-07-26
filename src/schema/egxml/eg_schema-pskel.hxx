@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PSKEL_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PSKEL_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PSKEL_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PSKEL_HXX
 
 #include <xsde/cxx/version.hxx>
 
@@ -444,8 +444,40 @@ namespace egxml
     // virtual void
     // pre ();
 
+    // Elements.
+    //
+    virtual void
+    CompilerFlags (const ::std::string&);
+
+    virtual void
+    LinkerFlags (const ::std::string&);
+
     virtual ::egxml::Host*
     post_Host () = 0;
+
+    // Parser construction API.
+    //
+    void
+    parsers (::xml_schema::string_pskel& /* Name */,
+             ::xml_schema::string_pskel& /* Repository */,
+             ::xml_schema::string_pskel& /* License */,
+             ::xml_schema::string_pskel& /* Description */,
+             ::egxml::Directories_pskel& /* Directories */,
+             ::egxml::Files_pskel& /* Files */,
+             ::xml_schema::string_pskel& /* Command */,
+             ::xml_schema::string_pskel& /* CompilerFlags */,
+             ::xml_schema::string_pskel& /* LinkerFlags */);
+
+    // Individual element parsers.
+    //
+    void
+    CompilerFlags_parser (::xml_schema::string_pskel&);
+
+    void
+    LinkerFlags_parser (::xml_schema::string_pskel&);
+
+    virtual void
+    _reset ();
 
     // Constructor.
     //
@@ -459,6 +491,55 @@ namespace egxml
     protected:
     Host_pskel* Host_impl_;
     Host_pskel (Host_pskel*, void*);
+
+    protected:
+    virtual bool
+    _start_element_impl (const ::xsde::cxx::ro_string&,
+                         const ::xsde::cxx::ro_string&);
+
+    virtual bool
+    _end_element_impl (const ::xsde::cxx::ro_string&,
+                       const ::xsde::cxx::ro_string&);
+
+    protected:
+    ::xml_schema::string_pskel* CompilerFlags_parser_;
+    ::xml_schema::string_pskel* LinkerFlags_parser_;
+
+    public:
+    struct v_state_descr_
+    {
+      void (::egxml::Host_pskel::*func) (
+        unsigned long&,
+        unsigned long&,
+        const ::xsde::cxx::ro_string&,
+        const ::xsde::cxx::ro_string&,
+        bool);
+      unsigned long state;
+      unsigned long count;
+    };
+
+    struct v_state_
+    {
+      v_state_descr_ data[2UL];
+      unsigned long size;
+    };
+
+    protected:
+    v_state_ v_state_first_;
+    ::xsde::cxx::stack v_state_stack_;
+
+    virtual void
+    _pre_e_validate ();
+
+    virtual void
+    _post_e_validate ();
+
+    void
+    sequence_0 (unsigned long&,
+                unsigned long&,
+                const ::xsde::cxx::ro_string&,
+                const ::xsde::cxx::ro_string&,
+                bool);
   };
 
   class Build_pskel: public ::xsde::cxx::parser::validating::complex_content
@@ -1407,4 +1488,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_PSKEL_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_PSKEL_HXX

@@ -28,6 +28,7 @@
 #include <map>
 #include <unordered_map>
 #include <optional>
+#include <stdexcept>
 
 #ifndef ERR
 #define ERR( msg )
@@ -372,10 +373,8 @@ namespace
                     m_listTwo.end(), 
                     m_listThree.end(),
                     m_paused.end() 
-                );
-                            
-            ActiveActionMap::_Pairib insertResult =
-                m_actions.insert( std::make_pair( ref, pAction ) );
+                );          
+            auto insertResult = m_actions.insert( std::make_pair( ref, pAction ) );
             if( !insertResult.second )
             {
                 ERR( "Could not allocation action" );
@@ -438,8 +437,7 @@ namespace
                 );
                             
              
-            ActiveActionMap::_Pairib insertResult =
-                m_actions.insert( std::make_pair( ref, pAction ) );
+            auto insertResult = m_actions.insert( std::make_pair( ref, pAction ) );
             if( insertResult.second )
             {
                 active_insert( insertResult.first );

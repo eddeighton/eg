@@ -18,8 +18,8 @@
 //
 //
 
-#ifndef W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_HXX
-#define W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_HXX
+#ifndef W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_HXX
+#define W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_HXX
 
 #include <xsde/cxx/version.hxx>
 
@@ -316,7 +316,45 @@ namespace egxml
 
     ~Host ();
 
+    // CompilerFlags
+    //
+    bool
+    CompilerFlags_present () const;
+
+    void
+    CompilerFlags_present (bool);
+
+    const ::std::string&
+    CompilerFlags () const;
+
+    ::std::string&
+    CompilerFlags ();
+
+    void
+    CompilerFlags (const ::std::string&);
+
+    // LinkerFlags
+    //
+    bool
+    LinkerFlags_present () const;
+
+    void
+    LinkerFlags_present (bool);
+
+    const ::std::string&
+    LinkerFlags () const;
+
+    ::std::string&
+    LinkerFlags ();
+
+    void
+    LinkerFlags (const ::std::string&);
+
     private:
+    ::std::string CompilerFlags_;
+    unsigned char CompilerFlags_present_;
+    ::std::string LinkerFlags_;
+    unsigned char LinkerFlags_present_;
   };
 
   // Build (fixed-length)
@@ -846,4 +884,4 @@ namespace egxml
 
 #include <xsde/cxx/post.hxx>
 
-#endif // W__WORKSPACE_EG_SRC_SCHEMA_EG_SCHEMA_HXX
+#endif // W__ROOT_EG_SRC_SRC_SCHEMA_EG_SCHEMA_HXX
