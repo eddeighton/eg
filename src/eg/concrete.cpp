@@ -173,7 +173,7 @@ namespace concrete
         const interface::Context* pContext = getContext();
         VERIFY_RTE( pContext );
         os << strIndent << pContext->getContextType() << 
-            "(" << getIndex() << ") " << pContext->getIdentifier() << "\n";
+            "(" << getIndex() << ") " << pContext->getIdentifier() << "[ " << getTotalDomainSize() << " ]\n";
         
         if( !m_children.empty() )
         {

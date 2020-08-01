@@ -80,8 +80,11 @@ namespace eg
                 concrete::Inheritance_Node* pInheritanceNode,
                 ActionOverrideMap& actionInstances, 
                 DimensionOverrideMap& dimensionInstances, 
-                const std::vector< const interface::Object* >& objects );
-        void constructInstance( concrete::Action* pInstance, const std::vector< const interface::Object* >& objects );
+                const std::vector< const interface::Object* >& objects, 
+                std::set< const interface::Object* >& constructedObjects );
+        void constructInstance( concrete::Action* pInstance, 
+                const std::vector< const interface::Object* >& objects, 
+                std::set< const interface::Object* >& constructedObjects );
         void constructAllocator( concrete::Action* pInstance, concrete::Action* pObject, std::vector< concrete::Allocator* >& allocators  );
 		
         using TranslationUnitMap = std::map< TranslationUnit::CoordinatorHostnameDefinitionFile, TranslationUnit::ActionSet >;

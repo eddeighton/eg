@@ -1640,6 +1640,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 								pNestedRoot->m_rootType = eProjectName;
 								break;
 							default:
+                                THROW_RTE( "TODO" );
 								pNestedRoot->m_rootType = eSubFolder;
 								break;
 						}

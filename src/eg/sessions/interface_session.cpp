@@ -152,13 +152,13 @@ namespace eg
             if( pParent->m_strName.empty() )
             {
                 std::ostringstream os;
-                os << pAction->getContext()->getIdentifier() << "_" << pAction->getIndex();
+                os << pAction->getContext()->getIdentifier();// << "_" << pAction->getIndex();
                 pAction->m_strName = os.str();
             }
             else
             {
                 std::ostringstream os;
-                os << pParent->m_strName << '_' << pAction->getContext()->getIdentifier() << "_" << pAction->getIndex();
+                os << pParent->m_strName << '_' << pAction->getContext()->getIdentifier();// << "_" << pAction->getIndex();
                 pAction->m_strName = os.str();
             }
         }
@@ -169,32 +169,57 @@ namespace eg
             concrete::Inheritance_Node* pInheritanceNode,
             ActionOverrideMap& actionInstances, 
             DimensionOverrideMap& dimensionInstances, 
-            const std::vector< const interface::Object* >& objects )
+            const std::vector< const interface::Object* >& objects, 
+            std::set< const interface::Object* >& constructedObjects )
     {
         //get all the member actions and dimensions for the concrete Action we are processing
         std::vector< const interface::Context* > actions;
         std::vector< const interface::Dimension* > dimensions;
         collateChildren( pInheritanceNode->m_pContext, actions, dimensions );
         
-        //if this is the root then add ALL objects
-        if( pInstance->getParent() && !pInstance->getParent()->getParent() )
+        //if this is the component root then add ALL objects
+        //if( pInstance->getParent() && !pInstance->getParent()->getParent() )
+            
+        
+        if( const interface::Root* pRoot = 
+                dynamic_cast< const interface::Root* >( pInstance->getContext() ) )
         {
-            //std::copy( objects.begin(), objects.end(), std::back_inserter( actions ) );
-            for( const interface::Object* pChildAction : objects )
+            if( ( pRoot->getRootType() == eFileRoot ) || ( pRoot->getRootType() == eProjectName ) )
             {
-                //create the child instance node 
-                concrete::Action* pChildInstance = construct< concrete::Action >();
-                pInstance->m_children.push_back( pChildInstance );
-                pChildInstance->m_pElement = pChildAction;
-                pChildInstance->m_pParent = pInstance;
-                calculateInstanceActionName( pChildInstance );
-                
-                m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pChildAction, pChildInstance ) );
-                
-                //record it in the inheritance node
-                pInheritanceNode->m_actions.push_back( pChildInstance );
-                
-                actionInstances.insert( std::make_pair( pChildAction, pChildInstance ) );
+                //std::copy( objects.begin(), objects.end(), std::back_inserter( actions ) );
+                for( const interface::Object* pObject : objects )
+                {
+                    bool bFoundParentRoot = false;
+                    for( const interface::Context* pIter = pObject; pIter; 
+                            pIter = dynamic_cast< const interface::Context* >( pIter->getParent() ) )
+                    {
+                        if( pIter == pRoot )
+                        {
+                            bFoundParentRoot = true;
+                            break;
+                        }
+                    }
+                    
+                    if( bFoundParentRoot )
+                    {
+                        VERIFY_RTE( !constructedObjects.count( pObject ) );
+                        constructedObjects.insert( pObject );
+                        
+                        //create the child instance node 
+                        concrete::Action* pChildInstance = construct< concrete::Action >();
+                        pInstance->m_children.push_back( pChildInstance );
+                        pChildInstance->m_pElement = pObject;
+                        pChildInstance->m_pParent = pInstance;
+                        calculateInstanceActionName( pChildInstance );
+                        
+                        m_pDerivationAnalysis->m_instanceMap.insert( std::make_pair( pObject, pChildInstance ) );
+                        
+                        //record it in the inheritance node
+                        pInheritanceNode->m_actions.push_back( pChildInstance );
+                        
+                        actionInstances.insert( std::make_pair( pObject, pChildInstance ) );
+                    }
+                }
             }
         }
         
@@ -254,24 +279,26 @@ namespace eg
         //recurse over the inheritance node tree for the type to inherit and override their members into the concrete type
         for( concrete::Inheritance_Node* pChildInheritance : pInheritanceNode->m_children )
         {
-            collateOverrides( pInstance, pChildInheritance, actionInstances, dimensionInstances, objects );
+            collateOverrides( pInstance, pChildInheritance, actionInstances, dimensionInstances, objects, constructedObjects );
         }
     }
     
-    void InterfaceSession::constructInstance( concrete::Action* pInstance, const std::vector< const interface::Object* >& objects )
+    void InterfaceSession::constructInstance( concrete::Action* pInstance, 
+            const std::vector< const interface::Object* >& objects, 
+            std::set< const interface::Object* >& constructedObjects )
     {
         constructInheritanceTree( pInstance );
         
         ActionOverrideMap      actionInstances;
         DimensionOverrideMap   dimensionInstances;
         
-        collateOverrides( pInstance, pInstance->m_inheritance, actionInstances, dimensionInstances, objects );
+        collateOverrides( pInstance, pInstance->m_inheritance, actionInstances, dimensionInstances, objects, constructedObjects );
         
         for( concrete::Element* pChild : pInstance->m_children )
         {
             if( concrete::Action* pAction = dynamic_cast< concrete::Action* >( pChild ) )
             {
-                constructInstance( pAction, objects );
+                constructInstance( pAction, objects, constructedObjects );
             }
         }
     }
@@ -383,7 +410,10 @@ namespace eg
             }
         }
         
-        constructInstance( pRoot, objects );
+        std::set< const interface::Object* > constructedObjects;
+        constructInstance( pRoot, objects, constructedObjects );
+        
+        VERIFY_RTE( objects.size() == constructedObjects.size() );
         
         //construct the allocators
         {

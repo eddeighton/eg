@@ -71,7 +71,7 @@ namespace eg
             pIterLast = pIter;
         }
         VERIFY_RTE( pIterLast );
-        os << "_" << pIterLast->getIndex();
+        //os << "_" << pIterLast->getIndex();
         return os.str();
     }
 
@@ -87,7 +87,7 @@ namespace eg
             pIterLast = pIter;
         }
         VERIFY_RTE( pIterLast );
-        os << "_" << pIterLast->getIndex();
+        //os << "_" << pIterLast->getIndex();
         return os.str();
     }
      

@@ -1,0 +1,26 @@
+
+action Base
+{
+    action Thing
+    {
+        LOG( "Hello from base thing" );
+    }
+}
+
+action Derived : Base
+{
+    action Thing[ 3 ]
+    {
+        LOG( "Hello from overridden thing" );
+    }
+}
+
+Base b1 = Base();
+b1.Thing();
+LOG( "Base Thing Size: " << eg::count( b1.Thing.Raw() ) );
+
+Base b2 = Derived();
+b2.Thing();
+LOG( "Derived Thing Size: " << eg::count( b2.Thing.Raw() ) );
+
+co_yield eg::sleep();
