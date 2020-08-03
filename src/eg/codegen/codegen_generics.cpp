@@ -312,7 +312,7 @@ namespace eg
             os << "            switch( state )\n";
             os << "            {\n";
             os << "                case eg::action_stopped :\n";
-            os << "                    if( getStopCycle< " << osTypeVoid.str() << " >( data.type, data.instance ) == clock::cycle() )\n";
+            os << "                    if( getStopCycle< " << osTypeVoid.str() << " >( data.type, data.instance ) == clock::cycle( data.type ) )\n";
             os << "                        return ::eg::Stopped;\n";
             os << "                    else\n";
             os << "                        return ::eg::Invalid;\n";

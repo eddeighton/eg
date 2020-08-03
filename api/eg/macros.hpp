@@ -36,7 +36,7 @@
         std::ostringstream _os_log_;\
         _os_log_ << __msg;\
         std::string __str = _os_log_.str();\
-        events::put( "log", clock::cycle(), __str.data(), __str.size() + 1 );\
+        events::put( "log", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
         )
         
 #define ERR( __msg )\
@@ -44,7 +44,7 @@
         std::ostringstream _os_err;\
         _os_err << __FILE__ << ":" << __LINE__ << " " << __msg << "\n"; \
         std::string __str = _os_err.str();\
-        events::put( "error", clock::cycle(), __str.data(), __str.size() + 1 );\
+        events::put( "error", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
         )
         
 #define TEST( __expr )\
@@ -52,11 +52,11 @@
         std::string __str = #__expr;\
         if( !( __expr ) )\
         {\
-            events::put( "fail", clock::cycle(), __str.data(), __str.size() + 1 );\
+            events::put( "fail", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
         }\
         else\
         {\
-            events::put( "pass", clock::cycle(), __str.data(), __str.size() + 1 );\
+            events::put( "pass", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
         }\
     )
         
@@ -67,11 +67,11 @@
         std::string __str = _os_test_.str();\
         if( !( __expr ) )\
         {\
-            events::put( "fail", clock::cycle(), __str.data(), __str.size() + 1 );\
+            events::put( "fail", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
         }\
         else\
         {\
-            events::put( "pass", clock::cycle(), __str.data(), __str.size() + 1 );\
+            events::put( "pass", clock::cycle( 0 ), __str.data(), __str.size() + 1 );\
         }\
     )
     

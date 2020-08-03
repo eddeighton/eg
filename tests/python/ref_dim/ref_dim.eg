@@ -12,7 +12,7 @@ TEST( !aRef() );
 while( !aRef() )
 {
     eg::sleep();
-    if( clock::cycle() > 5 )
+    if( clock::cycle( 0 ) > 5 )
         break;
 }
     

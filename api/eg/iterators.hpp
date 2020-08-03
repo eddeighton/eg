@@ -68,7 +68,7 @@ inline bool isActionActive( eg::TypeID type, eg::Instance instance )
         case eg::action_running : return true;
         case eg::action_paused  : return true;
         case eg::action_stopped :
-            if( getStopCycle< ReferenceType >( type, instance ) == clock::cycle() )
+            if( getStopCycle< ReferenceType >( type, instance ) == clock::cycle( type ) )
                 return true;
             else
                 return false;

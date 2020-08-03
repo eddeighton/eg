@@ -19,7 +19,7 @@ action B
         {
             dim int x4;
             
-            object C
+            object E
             {
                 dim int x6;
             }

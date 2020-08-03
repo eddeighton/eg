@@ -396,7 +396,7 @@ namespace eg
                 dynamic_cast< const concrete::NothingAllocator* >( pAllocator ) )
             {
                 os << generator.getIndent() << getStaticType( pStaticType ) << " ref = eg::reference{ " << generator.getVarExpr( ins.getInstance() ) << 
-                    ", " << ins.getConcreteType()->getIndex() << ", clock::cycle() };\n";
+                    ", " << ins.getConcreteType()->getIndex() << ", clock::cycle( " << ins.getConcreteType()->getIndex() << " ) };\n";
                 os << generator.getIndent() << "::eg::Scheduler::signal_ref( ref );\n";
                 os << generator.getIndent() << "return ref;\n";
             }
@@ -425,7 +425,7 @@ namespace eg
             VERIFY_RTE( dynamic_cast< const concrete::NothingAllocator* >( pAllocator ) );
             //directly invoke the function
             os << generator.getIndent() << getStaticType( pStaticType ) << " ref = eg::reference{ " << generator.getVarExpr( ins.getInstance() ) << 
-                ", " << ins.getConcreteType()->getIndex() << ", clock::cycle() };\n";
+                ", " << ins.getConcreteType()->getIndex() << ", clock::cycle( " << ins.getConcreteType()->getIndex() << " ) };\n";
             os << generator.getIndent() << "return ref( args... );\n";
         }
         else
@@ -588,7 +588,7 @@ namespace eg
         else
         {
             os << generator.getIndent() << getStaticType( pReturnType->getContext() ) << " ref = eg::reference{ " << generator.getVarExpr( ins.getInstance() ) << 
-                ", " << ins.getConcreteType()->getIndex() << ", clock::cycle() };\n";
+                ", " << ins.getConcreteType()->getIndex() << ", clock::cycle( " << ins.getConcreteType()->getIndex() << " ) };\n";
             os << generator.getIndent() << "return ref;\n";
         }         
     }

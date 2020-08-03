@@ -26,22 +26,22 @@ switch( state() )
 	}
 	case 2:
 	{
-		std::cout << "Wait all completed: " << clock::cycle() << std::endl;
+		std::cout << "Wait all completed: " << clock::cycle( 0 ) << std::endl;
 		return eg::wait_any( { A( 100 ), A( 200 ) } );
 	}
 	case 3:
 	{
-		std::cout << "Wait any completed: " << clock::cycle() << std::endl;
+		std::cout << "Wait any completed: " << clock::cycle( 0 ) << std::endl;
 		return eg::sleep_all( { A( 100 ), A( 200 ) } );
 	}
 	case 4:
 	{
-		std::cout << "Sleep all completed: " << clock::cycle() << std::endl;
+		std::cout << "Sleep all completed: " << clock::cycle( 0 ) << std::endl;
 		return eg::sleep_any( { A( 100 ), A( 200 ) } );
 	}
 	case 5:
 	{
-		std::cout << "Sleep any completed: " << clock::cycle() << std::endl;
+		std::cout << "Sleep any completed: " << clock::cycle( 0 ) << std::endl;
 	}
 }
 

@@ -64,7 +64,7 @@ theClock;
 
 }
 
-eg::TimeStamp clock::cycle()
+eg::TimeStamp clock::cycle( eg::TypeID type )
 {
     return theClock.cycle();
 }

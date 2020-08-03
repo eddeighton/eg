@@ -53,7 +53,7 @@ namespace eg
         virtual eg::TimeStamp   getTimestamp( eg::TypeID type, eg::Instance instance ) = 0;
         virtual eg::ActionState getState( eg::TypeID type, eg::Instance instance ) = 0;
         virtual eg::TimeStamp   getStopCycle( eg::TypeID type, eg::Instance instance ) = 0;
-        virtual eg::TimeStamp   getClockCycle() = 0;
+        virtual eg::TimeStamp   getClockCycle( eg::TypeID type ) = 0;
     };
     
     struct EGRT_EXPORT EGRangeDescription

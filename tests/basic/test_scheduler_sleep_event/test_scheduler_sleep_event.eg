@@ -2,11 +2,11 @@
 
 action A
 {
-    LOG( "sleeping1:" << clock::cycle() );
+    LOG( "sleeping1:" << clock::cycle( 0 ) );
     co_yield eg::sleep();
-    LOG( "sleeping2:" << clock::cycle() );
+    LOG( "sleeping2:" << clock::cycle( 0 ) );
     co_yield eg::sleep();
-    LOG( "done:" << clock::cycle() );
+    LOG( "done:" << clock::cycle( 0 ) );
     co_yield eg::sleep();
 }
 

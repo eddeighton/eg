@@ -22,7 +22,6 @@
 #include "common.hpp"
 #include "coroutine.hpp"
 #include "scheduler.hpp"
-#include "clock.hpp"
 
 #include <list>
 #include <map>

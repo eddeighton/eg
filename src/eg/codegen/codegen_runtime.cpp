@@ -154,9 +154,9 @@ namespace eg
             os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _parent_id )\n";
             os << "{\n";
             os << "    if( ( " << *printerFactory.read( pStateData, "_parent_id" ) << " == " << getActionState( action_stopped ) << 
-                " ) && ( " << *printerFactory.read( pCycleData, "_parent_id" ) << " < clock::cycle() ) )\n";
+                " ) && ( " << *printerFactory.read( pCycleData, "_parent_id" ) << " < clock::cycle( " << pAction->getIndex() << " ) ) )\n";
             os << "    {\n";
-            os << "        const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
+            os << "        const " << EG_INSTANCE << " startCycle = clock::cycle( " << pAction->getIndex() << " );\n";
             os << "        " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.write( pReferenceData, "_parent_id" ) << ";\n";
             os << "        reference.data.timestamp = startCycle;\n";
             os << "        reference.data.type = " << pAction->getIndex() << ";\n";
@@ -170,7 +170,7 @@ namespace eg
             
             std::ostringstream osError;
             osError << "Error attempting to start type: " << pAction->getName();
-            os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "    events::put( \"error\", clock::cycle( 0 ), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
             os << "    " << getStaticType( pAction->getContext() ) << " nullInstance;\n";
             os << "    return nullInstance;\n";
             os << "}\n";
@@ -195,10 +195,10 @@ namespace eg
             os << "    {\n";
             os << "        const " << EG_INSTANCE << " freeIndex = " << *printerFactory.read( pAllocatorData, "_parent_id" ) << ".nextFree();\n";
             os << "        const " << EG_INSTANCE << " newInstance = " << "_parent_id * " << pAction->getLocalDomainSize() << " + freeIndex;\n";
-            os << "        if( " << *printerFactory.read( pCycleData, "newInstance" ) << " < clock::cycle() )\n";
+            os << "        if( " << *printerFactory.read( pCycleData, "newInstance" ) << " < clock::cycle( " << pAction->getIndex() << " ) )\n";
             os << "        {\n";
             os << "            " << *printerFactory.write( pAllocatorData, "_parent_id" ) << ".allocate( freeIndex );\n";
-            os << "            const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
+            os << "            const " << EG_INSTANCE << " startCycle = clock::cycle( " << pAction->getIndex() << " );\n";
             os << "            " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.write( pReferenceData, "newInstance" ) << ";\n";
             os << "            reference.data.timestamp = startCycle;\n";
             os << "            reference.data.type = " << pAction->getIndex() << ";\n";
@@ -213,7 +213,7 @@ namespace eg
             
             std::ostringstream osError;
             osError << "Error attempting to start type: " << pAction->getName();
-            os << "    events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "    events::put( \"error\", clock::cycle( 0 ), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
             os << "    " << getStaticType( pAction->getContext() ) << " nullInstance;\n";
             os << "    return nullInstance;\n";
             os << "}\n";
@@ -233,7 +233,7 @@ namespace eg
 				
         os << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter()\n";
         os << "{\n";
-        os << "    const " << EG_INSTANCE << " startCycle = clock::cycle();\n";
+        os << "    const " << EG_INSTANCE << " startCycle = clock::cycle( " << pAction->getIndex() << " );\n";
         os << "    " << getStaticType( pAction->getContext() ) << "& reference = " << *printerFactory.write( pReferenceData, "0" ) << ";\n";
         os << "    reference.data.timestamp = startCycle;\n";
         os << "    " << *printerFactory.write( pStateData, "0" ) << " = " << getActionState( action_running ) << ";\n";
@@ -381,8 +381,8 @@ namespace eg
         os << "     if( " << *printerFactory.read( pStateData, "_gid" ) << " != " << getActionState( action_stopped ) << " )\n";
         os << "     {\n";
         os << "         " << *printerFactory.write( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-        os << "         " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle();\n";
-        os << "         events::put( \"stop\", clock::cycle(), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+        os << "         " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle( " << pAction->getIndex() << " );\n";
+        os << "         events::put( \"stop\", clock::cycle( " << pAction->getIndex() << " ), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
         //stop the subtree
         generateStopperLinkBreaks( os, printerFactory, layout, linkAnalysis, pAction );
         generateSubTreeStop( os, printerFactory, layout, pAction );
@@ -417,8 +417,8 @@ namespace eg
             os << "    {\n";
             os << "        ::eg::Scheduler::stopperStopped( " << *printerFactory.read( pReferenceData, "_gid" ) << ".data );\n";
             os << "        " << *printerFactory.write( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-            os << "        " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle();\n";
-            os << "        events::put( \"stop\", clock::cycle(), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            os << "        " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle( " << pAction->getIndex() << " );\n";
+            os << "        events::put( \"stop\", clock::cycle( " << pAction->getIndex() << " ), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             //stop the subtree
             generateStopperLinkBreaks( os, printerFactory, layout, linkAnalysis, pAction );
@@ -429,7 +429,7 @@ namespace eg
             os << "    {\n";
             std::ostringstream osError;
             osError << "Error attempting to stop type: " << pAction->getName();
-            os << "        events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "        events::put( \"error\", clock::cycle( 0 ), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
             os << "    }\n";
             os << "}\n";
             os << "\n";
@@ -451,8 +451,8 @@ namespace eg
             os << "        const " << EG_INSTANCE << " freeIndex = " << "_gid - _parentIndex * " << pAction->getLocalDomainSize() << ";\n";
             os << "        " << *printerFactory.write( pAllocatorData, "_parentIndex" ) << ".free( freeIndex );\n";
             os << "        " << *printerFactory.write( pStateData, "_gid" ) << " = " << getActionState( action_stopped ) << ";\n";
-            os << "        " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle();\n";
-            os << "        events::put( \"stop\", clock::cycle(), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
+            os << "        " << *printerFactory.write( pCycleData, "_gid" ) << " = clock::cycle( " << pAction->getIndex() << " );\n";
+            os << "        events::put( \"stop\", clock::cycle( 0 ), &" << *printerFactory.read( pReferenceData, "_gid" ) << ", sizeof( " << EG_REFERENCE_TYPE << " ) );\n";
             
             //stop the subtree
             generateStopperLinkBreaks( os, printerFactory, layout, linkAnalysis, pAction );
@@ -463,7 +463,7 @@ namespace eg
             os << "    {\n";
             std::ostringstream osError;
             osError << "Error attempting to stop type: " << pAction->getName();
-            os << "        events::put( \"error\", clock::cycle(), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
+            os << "        events::put( \"error\", clock::cycle( 0 ), \"" << osError.str() << "\", " << osError.str().size() + 1 << ");\n";
             os << "    }\n";
             os << "}\n";
             os << "\n";

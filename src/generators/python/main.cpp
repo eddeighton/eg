@@ -424,7 +424,7 @@ public:
             if( !m_pRange->raw() )
             {
                 if( ( ::getState( m_pRange->getType( m_subRange ), m_position ) != action_stopped ) || 
-                    ( ::getStopCycle( m_pRange->getType( m_subRange ), m_position ) == clock::cycle() ) )
+                    ( ::getStopCycle( m_pRange->getType( m_subRange ), m_position ) == clock::cycle( TODO ) ) )
                     break;
             }
             else

@@ -2,7 +2,7 @@
 action A
 {
     eg::sleep();
-    //std::cout << "A finishing: " << clock::cycle() << std::endl;
+    //std::cout << "A finishing: " << clock::cycle( 0 ) << std::endl;
 }
 
 A a = A.Start();

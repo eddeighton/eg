@@ -24,7 +24,7 @@
 
 struct clock
 {
-    static eg::TimeStamp cycle();
+    static eg::TimeStamp cycle( eg::TypeID type );
     static float ct();
     static float dt();
     static void next(); //for use by host
