@@ -76,9 +76,6 @@ namespace eg
             case concrete::Dimension_Generated::eActionStopCycle    :
                 os << EG_TIME_STAMP;
                 break;
-            case concrete::Dimension_Generated::eActionState        :
-                os << EG_ACTION_STATE;
-                break;
             case concrete::Dimension_Generated::eActionReference    :
                 {
                     const concrete::Action* pDimensionAction = pDimension->getAction();
@@ -86,6 +83,9 @@ namespace eg
                     const interface::Context* pAction = pDimensionAction->getContext();
                     os << getStaticType( pAction );
                 }
+                break;
+            case concrete::Dimension_Generated::eActionState        :
+                os << EG_ACTION_STATE;
                 break;
             case concrete::Dimension_Generated::eActionAllocator:
                 {
@@ -134,11 +134,6 @@ namespace eg
                     os << strIndent << printer << " = " << EG_INVALID_TIMESTAMP << ";\n";
                 }
                 break;
-            case concrete::Dimension_Generated::eActionState       :
-                {
-                    os << strIndent << printer << " = " << getActionState( action_stopped ) << ";\n";
-                }
-                break;
             case concrete::Dimension_Generated::eActionReference       :
                 {
                     const concrete::Action* pDimensionAction = pDimension->getAction();
@@ -146,6 +141,11 @@ namespace eg
                     const interface::Context* pAction = pDimensionAction->getContext();
                     os << strIndent << printer << " = " << getStaticType( pAction ) << 
                         "( " << EG_REFERENCE_TYPE << " { i, " << pDimensionAction->getIndex() << ", 1 } );\n";
+                }
+                break;
+            case concrete::Dimension_Generated::eActionState       :
+                {
+                    os << strIndent << printer << " = " << getActionState( action_stopped ) << ";\n";
                 }
                 break;
             case concrete::Dimension_Generated::eActionAllocator   : 

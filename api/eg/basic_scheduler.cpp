@@ -30,6 +30,7 @@
 #include <stdexcept>
 
 #ifndef ERR
+#define LOG( msg )
 #define ERR( msg )
 #endif
 
@@ -413,6 +414,10 @@ namespace
                 
                 delete pAction;
             }
+            else
+            {
+                ERR( "Scheduler::stopperStopped with no active action for type: " << ref.type << " instance: " << ref.instance << " timestamp: " << ref.timestamp );
+            }
         }
         
         void signal( const eg::reference& ref )
@@ -440,10 +445,11 @@ namespace
             if( insertResult.second )
             {
                 active_insert( insertResult.first );
+                LOG( "Scheduler::call type: " << ref.type << " instance: " << ref.instance << " timestamp: " << ref.timestamp );
             }
             else
             {
-                ERR( "Could not call action" );
+                ERR( "Scheduler::call failed type: " << ref.type << " instance: " << ref.instance << " timestamp: " << ref.timestamp );
                 delete pAction;
             }
         }

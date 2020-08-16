@@ -41,15 +41,17 @@ void constructRuntimeDimensions( InterfaceSession& session, Action* pContext )
     pContext->m_pStopCycle->m_pContext         = pContext;
     pContext->m_children.push_back( pContext->m_pStopCycle );
     
-    pContext->m_pState                         = session.construct< concrete::Dimension_Generated >();
-    pContext->m_pState->m_type                 = concrete::Dimension_Generated::eActionState;
-    pContext->m_pState->m_pContext             = pContext;
-    pContext->m_children.push_back( pContext->m_pState );
-    
+    //NOTE - MUST always ensure the reference is constructed BEFORE the state as this ensures the
+    //order of serialisation over the network.
     pContext->m_pReference                     = session.construct< concrete::Dimension_Generated >();
     pContext->m_pReference->m_type             = concrete::Dimension_Generated::eActionReference;
     pContext->m_pReference->m_pContext         = pContext;
     pContext->m_children.push_back( pContext->m_pReference );
+    
+    pContext->m_pState                         = session.construct< concrete::Dimension_Generated >();
+    pContext->m_pState->m_type                 = concrete::Dimension_Generated::eActionState;
+    pContext->m_pState->m_pContext             = pContext;
+    pContext->m_children.push_back( pContext->m_pState );
     
     if( dynamic_cast< const interface::Object* >( pContext->getContext() ) )
     {

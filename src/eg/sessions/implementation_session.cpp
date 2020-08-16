@@ -132,16 +132,16 @@ namespace eg
                                     pDataMember->m_name = strBaseVariable + "_cycle";
                                 }
                                 break;
-                            case concrete::Dimension_Generated::eActionState    :
-                                {
-                                    pDataMember = construct< DataMember >();
-                                    pDataMember->m_name = strBaseVariable + "_state";
-                                }
-                                break;
                             case concrete::Dimension_Generated::eActionReference    :
                                 {
                                     pDataMember = construct< DataMember >();
                                     pDataMember->m_name = strBaseVariable + "_reference";
+                                }
+                                break;
+                            case concrete::Dimension_Generated::eActionState    :
+                                {
+                                    pDataMember = construct< DataMember >();
+                                    pDataMember->m_name = strBaseVariable + "_state";
                                 }
                                 break;
                             case concrete::Dimension_Generated::eActionAllocator    :

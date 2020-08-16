@@ -202,8 +202,8 @@ namespace concrete
         enum DimensionType
         {
             eActionStopCycle,
-            eActionState,
             eActionReference,
+            eActionState,
             eActionAllocator,
 			eLinkReference,
 			eLinkReferenceCount
