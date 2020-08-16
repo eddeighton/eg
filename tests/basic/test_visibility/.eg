@@ -1,0 +1,25 @@
+<EG>
+  <Project>
+    <Name>test_visibility</Name>
+    <Host>${ROOT}/basic</Host>
+    <Build>
+      <Name>release</Name>
+      <CompilerFlags>-Ofast -Xclang -flto</CompilerFlags>
+      <LinkerFlags></LinkerFlags>
+    </Build>
+    <Build>
+      <Name>quick</Name>
+      <CompilerFlags></CompilerFlags>
+      <LinkerFlags></LinkerFlags>
+    </Build>
+    <Build>
+      <Name>debug</Name>
+      <CompilerFlags>-g -DDEBUG</CompilerFlags>
+      <LinkerFlags></LinkerFlags>
+    </Build>
+    <Run>
+      <Name>default</Name>
+      <Command>${PROJECT}/program.exe</Command>
+    </Run>
+  </Project>
+</EG>

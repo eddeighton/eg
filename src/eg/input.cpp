@@ -95,7 +95,15 @@ namespace input
         storer.storeObjectVector( m_inheritance );
     }
     
+    void HasVisibility::load( Loader& loader )
+    {
+        loader.load( m_visibility );
+    }
     
+    void HasVisibility::store( Storer& storer ) const
+    {
+        storer.store( m_visibility );
+    }
     
     void printDeclaration( std::ostream& os, 
         std::string& strIndent, 
@@ -309,6 +317,35 @@ namespace input
         os << strIndent << "export " << m_pReturnType->getStr() << " " << 
             m_strIdentifier << "( " << m_pParameters->getStr() << " )//" << strAnnotation << "\n";
         os << "{ " << m_pBody->getStr() << " }\n";
+    }
+    
+    
+    Visibility::Visibility( const IndexedObject& object )
+        :   Element( object )
+    {
+    }
+
+    void Visibility::load( Loader& loader )
+    {
+        HasVisibility::load( loader );
+    }
+
+    void Visibility::store( Storer& storer ) const
+    {
+        HasVisibility::store( storer );
+    }
+    
+    void Visibility::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
+    {
+        switch( m_visibility )
+        {
+            case eVisPublic             : 
+            case eVisPrivate            : 
+                os << strIndent << g_VisibilityTypeStrings[ m_visibility ] << strAnnotation << "\n";
+                break;
+            default:
+                THROW_RTE( "Unknown visibility type" );
+        }
     }
     
     Context::Context( const IndexedObject& object )

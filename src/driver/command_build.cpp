@@ -353,7 +353,10 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
         {
             LogEntry log( std::cout, "Generating operations: " + strTUName, bBenchCommands );
             std::ostringstream osOperations;
+            eg::generateIncludeGuard( osOperations, "OPERATIONS" );
             eg::generateOperationSource( osOperations, interfaceSession.getTreeRoot(), *pTranslationUnit );
+            osOperations << "\n" << eg::pszLine << eg::pszLine;
+            osOperations << "#endif\n";
             boost::filesystem::updateFileIfChanged( project.getOperationsHeader( strTUName ), osOperations.str() );
         }
             

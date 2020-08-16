@@ -44,6 +44,7 @@ namespace eg
             case eInputInclude               : pObject = new input::Include                 ( object );  break;
             case eInputUsing                 : pObject = new input::Using                   ( object );  break;
             case eInputExport                : pObject = new input::Export                  ( object );  break;
+            case eInputVisibility            : pObject = new input::Visibility              ( object );  break;
             case eInputContext               : pObject = new input::Context                 ( object );  break;
             case eInputRoot                  : pObject = new input::Root                    ( object );  break;
                                                                                            

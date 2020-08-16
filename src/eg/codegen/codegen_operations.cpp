@@ -64,6 +64,9 @@ namespace eg
         void push ( const input::Export*   pElement, const interface::Element* pNode )
         {
         }
+        void push ( const input::Visibility*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
             push( (input::Context*) pElement, pNode );
@@ -142,6 +145,9 @@ namespace eg
         void pop ( const input::Export*   pElement, const interface::Element* pNode )
         {
         }
+        void pop ( const input::Visibility*   pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
@@ -177,6 +183,9 @@ namespace eg
         void push ( const input::Export*   pElement, const interface::Element* pNode )
         {
         }
+        void push ( const input::Visibility*   pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
             push( (input::Context*) pElement, pNode );
@@ -186,6 +195,8 @@ namespace eg
             const interface::Context* pContext = dynamic_cast< const interface::Context* >( pNode );
             VERIFY_RTE( pContext );
 
+            bool bVisibilityGuard = false;
+            
             if( ( m_translationUnit.isAction( pContext ) ) && pContext->getDefinitionFile() )
             {
                 //calculate the path to the root type
@@ -200,6 +211,17 @@ namespace eg
                 }
                 else if( const interface::Function* pContext = dynamic_cast< const interface::Function* >( pNode ) )
                 {
+                    if( pContext->getVisibility() == eg::eVisPrivate )
+                    {
+                        const std::string strDefine = 
+                            m_translationUnit.getCoordinatorHostnameDefinitionFile().getHostDefine();
+                        if( !strDefine.empty() )
+                        {
+                            os << "#ifdef " << strDefine << "\n";
+                            bVisibilityGuard = true;
+                        }
+                    }
+                    
                     //generate type comment
                     {
                         os << "\n//";
@@ -252,6 +274,16 @@ namespace eg
                 }
                 else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pNode ) )
                 {
+                    {
+                        const std::string strDefine = 
+                            m_translationUnit.getCoordinatorHostnameDefinitionFile().getHostDefine();
+                        if( !strDefine.empty() )
+                        {
+                            os << "#ifdef " << strDefine << "\n";
+                            bVisibilityGuard = true;
+                        }
+                    }
+                    
                     //generate type comment
                     {
                         os << "\n//";
@@ -305,6 +337,16 @@ namespace eg
                 }
                 else if( const interface::Object* pContext = dynamic_cast< const interface::Object* >( pNode ) )
                 {
+                    {
+                        const std::string strDefine = 
+                            m_translationUnit.getCoordinatorHostnameDefinitionFile().getHostDefine();
+                        if( !strDefine.empty() )
+                        {
+                            os << "#ifdef " << strDefine << "\n";
+                            bVisibilityGuard = true;
+                        }
+                    }
+                    
                     //generate type comment
                     {
                         os << "\n//";
@@ -364,6 +406,11 @@ namespace eg
                     THROW_RTE( "Unknown abstract type" );
                 }
             }
+            
+            if( bVisibilityGuard )
+            {
+                os << "#endif\n";
+            }
         }
         void pop ( const input::Opaque*    pElement, const interface::Element* pNode )
         {
@@ -380,6 +427,9 @@ namespace eg
         void pop ( const input::Export*   pElement, const interface::Element* pNode )
         {
         }
+        void pop ( const input::Visibility*   pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
@@ -390,8 +440,6 @@ namespace eg
 
     void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const eg::TranslationUnit& translationUnit )
     {
-        generateIncludeGuard( os, "OPERATIONS" );
-
         //generate exports first
         {
             ExportSourceVisitor visitor( os, translationUnit );
@@ -403,9 +451,6 @@ namespace eg
             OperationsSourceVisitor visitor( os, translationUnit );
             pRoot->pushpop( visitor );
         }
-
-        os << "\n" << pszLine << pszLine;
-        os << "#endif\n";
     }
 
 

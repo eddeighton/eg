@@ -87,6 +87,16 @@ namespace eg
 			{
                 return pHostName ? ( pHostName->getIdentifier() == strHostName ) : false;
 			}
+            
+            std::string getHostDefine() const
+            {
+                std::ostringstream os;
+                if( pCoordinator && pHostName )
+                {
+                    os << pCoordinator->getIdentifier() << '_' << pHostName->getIdentifier();
+                }
+                return os.str(); 
+            }
 		};
 		
 		const CoordinatorHostnameDefinitionFile& getCoordinatorHostnameDefinitionFile() const

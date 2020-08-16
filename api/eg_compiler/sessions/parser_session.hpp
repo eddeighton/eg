@@ -107,7 +107,7 @@ namespace eg
 	
         using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
         void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, 
-			std::optional< boost::filesystem::path > , bool bInIncludeTree );
+			std::optional< boost::filesystem::path > , bool bInIncludeTree, VisibilityType visibility );
     };
     
     class IncrementalParserSession : public ParserSession

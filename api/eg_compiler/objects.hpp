@@ -77,7 +77,20 @@ namespace eg
 		type = TOTAL_ROOT_TYPES;
 		return is;
     }
-			
+    
+    enum VisibilityType : std::size_t
+    {
+        eVisPublic,
+        eVisPrivate,
+        TOTAL_VISIBILITY_TYPES
+    };
+	
+	static const char* g_VisibilityTypeStrings[ TOTAL_VISIBILITY_TYPES ] = 
+	{
+		"public",
+		"private"
+	};
+    
     enum ObjectType : std::size_t
     {
         eInputOpaque,
@@ -85,6 +98,7 @@ namespace eg
         eInputInclude,
         eInputUsing,
         eInputExport,
+        eInputVisibility,
         
         eInputContext,
         eInputRoot,
@@ -158,9 +172,9 @@ namespace eg
         }
 
         template< class T, class TElement, class TNestedElement >
-        static inline T* create( IndexedObject::FileID fileID, IndexedObject::Index index, TElement* pParent, TNestedElement* pElement )
+        static inline T* create( IndexedObject::FileID fileID, IndexedObject::Index index, TElement* pParent, TNestedElement* pElement, VisibilityType visibility )
         {
-            T* pNewObject = new T( IndexedObject( T::Type, fileID, index ), pParent, pElement );
+            T* pNewObject = new T( IndexedObject( T::Type, fileID, index ), pParent, pElement, visibility );
             pParent->m_children.push_back( pNewObject );
             return pNewObject;
         }

@@ -813,6 +813,29 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             }
         }
         
+        void parse_visibility( ParserSession& session, input::Visibility* pVisibility )
+        {
+            if( Tok.is( clang::tok::kw_public ) )
+            {
+                pVisibility->m_visibility = eg::eVisPublic;
+                ConsumeToken();
+            }
+            else if( Tok.is( clang::tok::kw_private ) )
+            {
+                pVisibility->m_visibility = eg::eVisPrivate;
+                ConsumeToken();
+            }
+            else
+            {
+                EG_PARSER_ERROR( "Expected public or private token" );
+            }
+            if( !TryConsumeToken( clang::tok::colon ) )
+            {
+                //Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
+                EG_PARSER_ERROR( "Expected colon" );
+            }
+        }
+        
         void parse_semicolon()
         {
             if( !TryConsumeToken( clang::tok::semi ) )
@@ -1373,6 +1396,13 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                     pContext->m_elements.push_back( pExport );
                     parse_export( session, pExport );
                 }
+                else if( Tok.is( clang::tok::kw_public ) || Tok.is( clang::tok::kw_private ) )
+                {
+                    //ConsumeToken();
+                    input::Visibility* pVisibility = session.construct< input::Visibility >();
+                    pContext->m_elements.push_back( pVisibility );
+                    parse_visibility( session, pVisibility );
+                }
                 else if( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) )
                 {
                     //leave the r_brace to be consumed by parent
@@ -1396,7 +1426,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                 clang::tok::kw_link, 
                                 clang::tok::kw_include,
                                 clang::tok::kw_using,
-                                clang::tok::kw_export
+                                clang::tok::kw_export,
+                                clang::tok::kw_public,
+                                clang::tok::kw_private
                              ) && 
                         !( ( BraceCount == braceStack.back() ) && Tok.is( clang::tok::r_brace ) )
                         )
@@ -1739,28 +1771,29 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         }while( !newIncludePaths.empty() );
 	}
     
-    interface::Element* addChild( ParserSession& session, interface::Element* pParent, input::Element* pElement )
+    interface::Element* addChild( ParserSession& session, interface::Element* pParent, input::Element* pElement, VisibilityType visibility )
     {
         interface::Element* pNewNode = nullptr;
         switch( pElement->getType() )
         {
-            case eInputOpaque:         pNewNode = session.construct< interface::Opaque >(    pParent, pElement ); break;
-            case eInputDimension:      pNewNode = session.construct< interface::Dimension >( pParent, pElement ); break;
-            case eInputInclude:        pNewNode = session.construct< interface::Include >(   pParent, pElement ); break;
-            case eInputUsing:          pNewNode = session.construct< interface::Using >(     pParent, pElement ); break;
-            case eInputExport:         pNewNode = session.construct< interface::Export >(    pParent, pElement ); break;
+            case eInputOpaque:         pNewNode = session.construct< interface::Opaque >(    pParent, pElement, visibility ); break;
+            case eInputDimension:      pNewNode = session.construct< interface::Dimension >( pParent, pElement, visibility ); break;
+            case eInputInclude:        pNewNode = session.construct< interface::Include >(   pParent, pElement, visibility ); break;
+            case eInputUsing:          pNewNode = session.construct< interface::Using >(     pParent, pElement, visibility ); break;
+            case eInputExport:         pNewNode = session.construct< interface::Export >(    pParent, pElement, visibility ); break;
+            case eInputVisibility:     THROW_RTE( "Invalid attempt to construct interface visibility" );
             case eInputContext:
             {
                 input::Context* pContext = dynamic_cast< input::Context* >( pElement );
                 VERIFY_RTE( pContext );
                 switch( pContext->m_contextType )
                 {
-                    case input::Context::eAbstract : pNewNode = session.construct< interface::Abstract > ( pParent, pElement ); break;
-                    case input::Context::eEvent    : pNewNode = session.construct< interface::Event >    ( pParent, pElement ); break;
-                    case input::Context::eFunction : pNewNode = session.construct< interface::Function > ( pParent, pElement ); break;
-                    case input::Context::eAction   : pNewNode = session.construct< interface::Action >   ( pParent, pElement ); break;
-                    case input::Context::eLink     : pNewNode = session.construct< interface::Link >     ( pParent, pElement ); break;
-                    case input::Context::eObject   : pNewNode = session.construct< interface::Object >   ( pParent, pElement ); break;
+                    case input::Context::eAbstract : pNewNode = session.construct< interface::Abstract > ( pParent, pElement, visibility ); break;
+                    case input::Context::eEvent    : pNewNode = session.construct< interface::Event >    ( pParent, pElement, visibility ); break;
+                    case input::Context::eFunction : pNewNode = session.construct< interface::Function > ( pParent, pElement, visibility ); break;
+                    case input::Context::eAction   : pNewNode = session.construct< interface::Action >   ( pParent, pElement, visibility ); break;
+                    case input::Context::eLink     : pNewNode = session.construct< interface::Link >     ( pParent, pElement, visibility ); break;
+                    case input::Context::eObject   : pNewNode = session.construct< interface::Object >   ( pParent, pElement, visibility ); break;
                     case input::Context::eUnknown  : 
                     default:
                     {
@@ -1770,7 +1803,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 break;
             }
             case eInputRoot:           
-                pNewNode = session.construct< interface::Root >(      pParent, pElement ); break;
+                pNewNode = session.construct< interface::Root >( pParent, pElement, visibility ); break;
             default:
                 THROW_RTE( "Unsupported type" );
                 break;
@@ -1782,7 +1815,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     void ParserSession::buildTree( const FileElementMap& fileMap, interface::Element* pParentNode, 
         input::Element* pElement,
 		std::optional< boost::filesystem::path > includeDefinitionFile, 
-		bool bInIncludeTree )
+		bool bInIncludeTree, 
+        VisibilityType visibility )
     {
         switch( pElement->getType() )
         {
@@ -1809,6 +1843,9 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                     //do nothing
                 }
                 break;
+            case eInputVisibility:
+                THROW_RTE( "unreachable" );
+                break;
             case eInputContext   :
             case eInputRoot      :
                 {
@@ -1829,24 +1866,24 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                 if( pInclude->getIdentifier().empty() )
                                 {
                                     //if the include has no identifier then insert the included root elements
-                                    buildTree( fileMap, pParentNode, pIncludedRoot, includeDefinitionFile, true );
+                                    buildTree( fileMap, pParentNode, pIncludedRoot, includeDefinitionFile, true, visibility );
                                 }
                                 else
                                 {
                                     //otherwise insert the root with the include identifier
-                                    interface::Element* pChild = addChild( *this, pParentNode, pIncludedRoot );
+                                    interface::Element* pChild = addChild( *this, pParentNode, pIncludedRoot, visibility );
                                     pChild->pIncludeIdentifier = pInclude;
-                                    buildTree( fileMap, pChild, pIncludedRoot, includeDefinitionFile, true );
+                                    buildTree( fileMap, pChild, pIncludedRoot, includeDefinitionFile, true, visibility );
                                 } 
                             }
                             else
                             {
-                                addChild( *this, pParentNode, pChildElement );
+                                addChild( *this, pParentNode, pChildElement, visibility );
                             }
                         }
                         else if( input::Context* pElementAction = dynamic_cast< input::Context* >( pChildElement ) )
                         {
-                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
+                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement, visibility );
                             if( bInIncludeTree )
                             {
                                 //if the action is defined then set the definition file to the include definition file
@@ -1857,7 +1894,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
 									else
 										( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile() );
                                 }
-								buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true );
+								buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true, visibility );
                             }
                             else
                             {
@@ -1865,23 +1902,27 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                 if( pElementAction->getDefinitionFile() )
                                 {
                                     ( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile().value() );
-                                    buildTree( fileMap, pChild, pChildElement, pElementAction->getDefinitionFile().value(), false );
+                                    buildTree( fileMap, pChild, pChildElement, pElementAction->getDefinitionFile().value(), false, visibility );
                                 }
                                 else
                                 {
-                                    buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree );
+                                    buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree, visibility );
                                 }
                             }
                         }
                         else if( input::Export* pElementExport = dynamic_cast< input::Export* >( pChildElement ) )
                         {
-                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
-                            buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree );
+                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement, visibility );
+                            buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree, visibility );
+                        }
+                        else if( input::Visibility* pVisibility = dynamic_cast< input::Visibility* >( pChildElement ) )
+                        {
+                            visibility = pVisibility->m_visibility;
                         }
                         else
                         {
-                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement );
-                            buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree );
+                            interface::Element* pChild = addChild( *this, pParentNode, pChildElement, visibility );
+                            buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree, visibility );
                         }
                     }
                 }
@@ -1921,10 +1962,10 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         }
         
         VERIFY_RTE( pInputMainRoot );
-        interface::Element* pInterfaceRoot = addChild( *this, pMasterRoot, pInputMainRoot );
+        interface::Element* pInterfaceRoot = addChild( *this, pMasterRoot, pInputMainRoot, eVisPublic );
         ( (interface::Context*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile() );
         
-        buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile(), false );
+        buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile(), false, eVisPublic );
                 
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();

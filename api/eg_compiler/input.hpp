@@ -162,6 +162,17 @@ namespace eg
             std::vector< Opaque* > m_inheritance;
         };
         
+        class HasVisibility
+        {
+        public:
+            VisibilityType getVisibility() const { return m_visibility; }
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+        
+            VisibilityType m_visibility = TOTAL_VISIBILITY_TYPES;
+        };
+        
         void printDeclaration( std::ostream& os, std::string& strIndent, 
             const std::string& strInputType, 
             const std::string& strIdentifier, 
@@ -282,7 +293,23 @@ namespace eg
             Opaque* m_pParameters;
             Opaque* m_pBody;
         };
-        
+
+        class Visibility : public Element, public HasVisibility
+        {
+            friend class ::eg::ObjectFactoryImpl;
+            friend class ::eg::Parser;
+            friend class ::eg::ParserSession;
+        public:
+            static const ObjectType Type = eInputVisibility;
+        protected:
+            Visibility( const IndexedObject& object );
+        public:
+            
+            virtual void load( Loader& loader );
+            virtual void store( Storer& storer ) const;
+            void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+            
+        };
         
         class Context : public Element, 
                             public HasIdentifier, 

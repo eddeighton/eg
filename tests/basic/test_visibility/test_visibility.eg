@@ -1,0 +1,30 @@
+
+include( <iostream> );
+
+object Test
+{
+    function testPublic() : void
+    {
+        std::cout << "PublicObject::testPublic" << std::endl;
+    }
+    
+private:
+    
+    function testPrivate() : void
+    {
+        std::cout << "PublicObject::testPrivate" << std::endl;
+    }
+   
+public:
+   
+    function testPublicAgain() : void
+    {
+        std::cout << "testPublicAgain::testPublic" << std::endl;
+    }
+    
+}
+
+Test t = Test();
+t.testPublic();
+t.testPrivate();
+t.testPublicAgain();

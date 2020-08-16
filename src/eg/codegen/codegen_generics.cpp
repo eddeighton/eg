@@ -83,6 +83,9 @@ namespace eg
         void push ( const input::Export*   pElement, const interface::Element* pNode )
         {
         }
+        void push ( const input::Visibility* pElement, const interface::Element* pNode )
+        {
+        }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
         {
             push( (input::Context*) pElement, pNode );
@@ -472,6 +475,9 @@ namespace eg
         void pop ( const input::Export*   pElement, const interface::Element* pNode )
         {
         }
+        void pop ( const input::Visibility* pElement, const interface::Element* pNode )
+        {
+        }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )
         {
         }
@@ -503,6 +509,9 @@ namespace eg
         {
         }
         void push ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
+        void push ( const input::Visibility*   pElement, const interface::Element* pNode )
         {
         }
         void push ( const input::Root*      pElement, const interface::Element* pNode )
@@ -607,6 +616,9 @@ namespace eg
         {
         }
         void pop ( const input::Export*   pElement, const interface::Element* pNode )
+        {
+        }
+        void pop ( const input::Visibility*   pElement, const interface::Element* pNode )
         {
         }
         void pop ( const input::Root*      pElement, const interface::Element* pNode )

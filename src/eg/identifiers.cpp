@@ -62,6 +62,7 @@ namespace eg
                 case eInputInclude:
                 case eInputUsing:
                 case eInputExport:
+                case eInputVisibility:
                 
                 case eInputContext:
                 case eInputRoot:

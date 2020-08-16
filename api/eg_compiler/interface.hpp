@@ -47,7 +47,8 @@ namespace interface
         friend class ::eg::ObjectFactoryImpl;
         friend class ::eg::ParserSession;
     protected:
-        Element( const IndexedObject& object, Element* pParent, input::Element* pElement );
+        Element( const IndexedObject& object, Element* pParent, 
+            input::Element* pElement, VisibilityType visibility );
     public:
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
@@ -93,6 +94,7 @@ namespace interface
                     case eInputInclude   : visitor( dynamic_cast< const input::Include* >(    m_pElement ) ); break;
                     case eInputUsing     : visitor( dynamic_cast< const input::Using* >(      m_pElement ) ); break;
                     case eInputExport    : visitor( dynamic_cast< const input::Export* >(     m_pElement ) ); break;
+                    case eInputVisibility: visitor( dynamic_cast< const input::Visibility* >( m_pElement ) ); break;
                     case eInputRoot      : visitor( dynamic_cast< const input::Root* >(       m_pElement ) ); break;
                     case eInputContext   : visitor( dynamic_cast< const input::Context* >(    m_pElement ) ); break;
                         break;
@@ -119,6 +121,7 @@ namespace interface
                     case eInputInclude   : visitor.push( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
                     case eInputUsing     : visitor.push( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
                     case eInputExport    : visitor.push( dynamic_cast< const input::Export* >(     m_pElement ), this ); break;
+                    case eInputVisibility: visitor.push( dynamic_cast< const input::Visibility* >( m_pElement ), this ); break;
                     case eInputRoot      : visitor.push( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
                     case eInputContext   : visitor.push( dynamic_cast< const input::Context* >(    m_pElement ), this ); break;
                         break;
@@ -140,6 +143,7 @@ namespace interface
                     case eInputInclude   : visitor.pop( dynamic_cast< const input::Include* >(    m_pElement ), this ); break;
                     case eInputUsing     : visitor.pop( dynamic_cast< const input::Using* >(      m_pElement ), this ); break;
                     case eInputExport    : visitor.pop( dynamic_cast< const input::Export* >(     m_pElement ), this ); break;
+                    case eInputVisibility: visitor.pop( dynamic_cast< const input::Visibility* >( m_pElement ), this ); break;
                     case eInputRoot      : visitor.pop( dynamic_cast< const input::Root* >(       m_pElement ), this ); break;
                     case eInputContext   : visitor.pop( dynamic_cast< const input::Context* >(    m_pElement ), this ); break;
                         break;
@@ -150,6 +154,7 @@ namespace interface
             }
         }
 
+        VisibilityType getVisibility() const { return m_visibility; }
         input::Element* getInputElement() const { return m_pElement; }
         Element* getParent() const { return m_pParent; }
         
@@ -160,6 +165,7 @@ namespace interface
     protected:
         input::Element* m_pElement;
         Element* m_pParent;
+        VisibilityType m_visibility;
         input::Include* pIncludeIdentifier;
         std::vector< Element* > m_children;
     };
@@ -175,7 +181,7 @@ namespace interface
         static const ObjectType Type = eAbstractOpaque;
     protected:
         Opaque( const IndexedObject& indexedObject );
-        Opaque( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Opaque( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
     public:
@@ -198,7 +204,7 @@ namespace interface
         static const ObjectType Type = eAbstractDimension;
     protected:
         Dimension( const IndexedObject& indexedObject );
-        Dimension( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Dimension( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         //virtual bool update( const Element* pElement );
@@ -225,7 +231,7 @@ namespace interface
         static const ObjectType Type = eAbstractUsing;
     protected:
         Using( const IndexedObject& indexedObject );
-        Using( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Using( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         //virtual bool update( const Element* pElement );
@@ -245,7 +251,7 @@ namespace interface
         static const ObjectType Type = eAbstractExport;
     protected:
         Export( const IndexedObject& indexedObject );
-        Export( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Export( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         //virtual bool update( const Element* pElement );
@@ -264,7 +270,7 @@ namespace interface
         static const ObjectType Type = eAbstractInclude;
     protected:
         Include( const IndexedObject& indexedObject );
-        Include( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Include( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         //virtual bool update( const Element* pElement );
@@ -306,7 +312,7 @@ namespace interface
         
     protected:
         Context( const IndexedObject& indexedObject );
-        Context( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Context( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
@@ -327,7 +333,7 @@ namespace interface
         static const ObjectType Type = eAbstractAbstract;
     protected:
         Abstract( const IndexedObject& indexedObject );
-        Abstract( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Abstract( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         virtual bool isAbstract() const;
@@ -342,7 +348,7 @@ namespace interface
         static const ObjectType Type = eAbstractEvent;
     protected:
         Event( const IndexedObject& indexedObject );
-        Event( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Event( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
@@ -361,7 +367,7 @@ namespace interface
         
     protected:
         Function( const IndexedObject& indexedObject );
-        Function( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Function( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
@@ -378,7 +384,7 @@ namespace interface
         static const ObjectType Type = eAbstractAction;
     protected:
         Action( const IndexedObject& indexedObject );
-        Action( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Action( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         //virtual bool update( const Element* pElement );
@@ -396,7 +402,7 @@ namespace interface
         static const ObjectType Type = eAbstractObject;
     protected:
         Object( const IndexedObject& indexedObject );
-        Object( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Object( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
@@ -411,7 +417,7 @@ namespace interface
         static const ObjectType Type = eAbstractLink;
     protected:
         Link( const IndexedObject& indexedObject );
-        Link( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Link( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
         
@@ -424,7 +430,7 @@ namespace interface
         static const ObjectType Type = eAbstractRoot;
     protected:
         Root( const IndexedObject& indexedObject );
-        Root( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement );
+        Root( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
     public:
