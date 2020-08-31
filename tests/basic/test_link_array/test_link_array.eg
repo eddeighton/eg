@@ -1,0 +1,32 @@
+
+object Ship[ 8 ]
+{
+    link RoomLink[ 8 ] : Room;
+}
+
+object Room[ 16 ]
+{
+    dim int x;
+}
+
+Ship s = Ship();
+
+for( int i = 0; i < 4; ++i )
+{
+    Room r = Room();
+    r.x( i + 1 );
+    Ship::RoomLink rl = s.RoomLink();
+    rl.base( r );
+}
+
+for( Ship::RoomLink r1 : s.RoomLink.Range() )
+{
+    if( Room r = r1 )
+    {
+        LOG( "RoomLink x: " << r.x() );
+    }
+    else
+    {
+        ERR( "Link failed" );
+    }
+}
