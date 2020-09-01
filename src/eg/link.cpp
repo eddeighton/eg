@@ -26,10 +26,13 @@ namespace eg
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
 	
-	LinkAnalysis::ActionSetPtrSet LinkAnalysis::calculateSets( const std::vector< interface::Context* >& contexts )
+    //calculateSets called in the interface_session linkAnalysis as the first step
+	LinkAnalysis::ContextSetPtrSet LinkAnalysis::calculateSets( const std::vector< interface::Context* >& contexts )
 	{
-		ActionSetPtrSet sets;
+		ContextSetPtrSet sets; //set of disjoint sets of contexts
 		
+        //for ALL contexts that are NOT links establish their membership in the ContextSetPtrSet
+        
 		for( interface::Context* pContext : contexts )
 		{
             if( !dynamic_cast< interface::Link* >( pContext ) )
@@ -41,52 +44,57 @@ namespace eg
         return sets;
 	}
 	
-	LinkAnalysis::ActionSetPtr LinkAnalysis::find( const ActionSetPtrSet& sets, interface::Context* pContext )
+	LinkAnalysis::ContextSetPtr LinkAnalysis::find( const ContextSetPtrSet& sets, interface::Context* pContext )
 	{
-		ActionSetPtr pActionSet;
-		for( ActionSetPtr pSet : sets )
+		ContextSetPtr pContextSet;
+		for( ContextSetPtr pSet : sets )
 		{
 			if( pSet->count( pContext ) )
 			{
-				pActionSet = pSet;
+				pContextSet = pSet;
 				break;
 			}
 		}
-		return pActionSet;
+		return pContextSet;
 	}
 	
-	void LinkAnalysis::addAction( ActionSetPtrSet& sets, interface::Context* pContext )
+    //Construct the set of disjoint sets of Context sets
+    //Each disjoint set combines contexts where:
+    //  Contexts are in a parent, child relation i.e. one context has the other as a base context
+    //The algorithm produces the transitive closure such that for any context that derives from a common 
+    //context it will occur within the SAME set as any other type that derives from that common context.
+	void LinkAnalysis::addAction( ContextSetPtrSet& sets, interface::Context* pContext )
 	{
 		VERIFY_RTE( !dynamic_cast< interface::Link* >( pContext ) );
 		
-		ActionSetPtr pActionSet = find( sets, pContext );
+		ContextSetPtr pContextSet = find( sets, pContext );
 		
 		for( interface::Context* pBase : pContext->getBaseContexts() )
 		{
-			if( ActionSetPtr pSet = find( sets, pBase ) )
+			if( ContextSetPtr pSet = find( sets, pBase ) )
 			{
-				if( pActionSet )
+				if( pContextSet )
 				{
 					//merge
-					pActionSet->insert( pSet->begin(), pSet->end() );
+					pContextSet->insert( pSet->begin(), pSet->end() );
 					sets.erase( pSet );
 				}
 				else
 				{
-					pActionSet = pSet;
+					pContextSet = pSet;
 				}
 			}
 		}
 		
 		
-		if( !pActionSet )
+		if( !pContextSet )
 		{
-			pActionSet = std::make_shared< ActionSet >();
-			sets.insert( pActionSet );
+			pContextSet = std::make_shared< ContextSet >();
+			sets.insert( pContextSet );
 		}
 		
-		pActionSet->insert( pContext );
-		pActionSet->insert( 
+		pContextSet->insert( pContext );
+		pContextSet->insert( 
 			pContext->getBaseContexts().begin(), 
 			pContext->getBaseContexts().end() );
 	}
@@ -104,25 +112,36 @@ namespace eg
         return pLink->getBaseContexts().front();
     }
 	
-	void LinkAnalysis::calculateGroups( const ActionSetPtrSet& sets,
+    //calculateSets called in the interface_session linkAnalysis as the second step
+	void LinkAnalysis::calculateGroups( const ContextSetPtrSet& sets,
             const std::vector< interface::Context* >& contexts, 
 			const DerivationAnalysis& derivationAnalysis, 
 			AppendingSession& session )
 	{
 		LinkGroupMap groupMap;
 		
+        //enumerate ALL links
 		for( interface::Context* pContext : contexts )
 		{
 			if( interface::Link* pLink = dynamic_cast< interface::Link* >( pContext ) )
 			{
 				interface::Context* pBase = LinkGroup::getLinkTarget( pLink );
 				
-				ActionSetPtr pSet = find( sets, pBase );
+				ContextSetPtr pSet = find( sets, pBase );
 				VERIFY_RTE( pSet );
 				
+                //Create an map fromentry containing the:
+                //    Link Group Name
+                //    The context set for the link target - which consitutes the set of all possible interface types that might be
+                //        valid types which the link can be set to ( note note the subset of valid concrete types )
+                //
+                //    to the link itself
 				groupMap.insert( std::make_pair( std::make_pair( pContext->getIdentifier(), pSet ), pLink ) );
 			}
 		}
+        
+        //so the result is that a link group is created for every unique std::make_pair( pContext->getIdentifier(), pSet ) combination.
+        //the context set will be the same when a link is to any context within that set.
 		
 		//collate results
 		LinkGroupMap::iterator 
@@ -131,11 +150,20 @@ namespace eg
 			
 		for( ; i!=iEnd; )
 		{
+            
 			LinkGroup* pGroup = session.construct< LinkGroup >();
 			
 			pGroup->m_name = i->first.first;
 			VERIFY_RTE( !pGroup->m_name.empty() );
-			ActionSetPtr pSet = i->first.second;
+			ContextSetPtr pSet = i->first.second;
+            
+            //interface targets
+            {
+				for( interface::Context* pContext : *pSet )
+                {
+                    pGroup->m_interfaceTargets.push_back( pContext );
+                }
+            }
 			
 			//get the links
 			{
@@ -215,6 +243,7 @@ namespace eg
 	{
 		loader.load( m_name );
 		loader.loadObjectVector( m_links );
+		loader.loadObjectVector( m_interfaceTargets );
 		loader.loadObjectVector( m_concreteTargets );
 		loader.loadObjectVector( m_concreteLinks );
         loader.loadObjectMap( m_dimensionMap );
@@ -224,6 +253,7 @@ namespace eg
 	{
 		storer.store( m_name );
 		storer.storeObjectVector( m_links );
+		storer.storeObjectVector( m_interfaceTargets );
 		storer.storeObjectVector( m_concreteTargets );
 		storer.storeObjectVector( m_concreteLinks );
         storer.storeObjectMap( m_dimensionMap );

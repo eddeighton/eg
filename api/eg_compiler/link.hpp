@@ -74,6 +74,7 @@ namespace eg
 		
 		const std::string& getLinkName() const { return m_name; }
 		const std::vector< interface::Link* >& getLinks() const { return m_links; }
+		const std::vector< interface::Context* >& getInterfaceTargets() const { return m_interfaceTargets; }
 		const std::vector< concrete::Action* >& getTargets() const { return m_concreteTargets; }
         const std::vector< concrete::Action* >& getConcreteLinks() const { return m_concreteLinks; }
         const LinkRefMap& getDimensionMap() const { return m_dimensionMap; }
@@ -84,6 +85,7 @@ namespace eg
 	private:
 		std::string m_name;
 		std::vector< interface::Link* > m_links;
+		std::vector< interface::Context* > m_interfaceTargets;
 		std::vector< concrete::Action* > m_concreteTargets;
 		std::vector< concrete::Action* > m_concreteLinks;
         LinkRefMap m_dimensionMap;
@@ -103,18 +105,18 @@ namespace eg
         }
         
     public:
-		using ActionSet = std::set< interface::Context*, CompareNodeIdentity< interface::Context > >;
-		using ActionSetPtr = std::shared_ptr< ActionSet >;
-		using ActionSetPtrSet = std::set< ActionSetPtr >;
+		using ContextSet = std::set< interface::Context*, CompareNodeIdentity< interface::Context > >;
+		using ContextSetPtr = std::shared_ptr< ContextSet >;
+		using ContextSetPtrSet = std::set< ContextSetPtr >;
 		
-		ActionSetPtrSet calculateSets( const std::vector< interface::Context* >& actions );
-		ActionSetPtr find( const ActionSetPtrSet& sets, interface::Context* pAction );
-		void addAction( ActionSetPtrSet& sets, interface::Context* pAction );
+		ContextSetPtrSet calculateSets( const std::vector< interface::Context* >& actions );
+		ContextSetPtr find( const ContextSetPtrSet& sets, interface::Context* pAction );
+		void addAction( ContextSetPtrSet& sets, interface::Context* pAction );
         
-		using LinkSet = std::pair< std::string, ActionSetPtr >;
+		using LinkSet = std::pair< std::string, ContextSetPtr >;
 		using LinkGroupMap = std::multimap< LinkSet, interface::Link* >;
 		
-		void calculateGroups( const ActionSetPtrSet& sets,
+		void calculateGroups( const ContextSetPtrSet& sets,
             const std::vector< interface::Context* >& actions, 
 			const DerivationAnalysis& derivationAnalysis, 
 			AppendingSession& session );

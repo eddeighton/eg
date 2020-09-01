@@ -445,11 +445,11 @@ namespace eg
     {
         //calculate the link groups
         {
-            std::vector< interface::Context* > actions = 
+            std::vector< interface::Context* > contexts = 
                 many< interface::Context >( getMaster() );
-            LinkAnalysis::ActionSetPtrSet linkSets;
-            linkSets = m_pLinkAnalysis->calculateSets( actions );
-            m_pLinkAnalysis->calculateGroups( linkSets, actions, *m_pDerivationAnalysis, *this );
+            LinkAnalysis::ContextSetPtrSet linkSets;
+            linkSets = m_pLinkAnalysis->calculateSets( contexts );
+            m_pLinkAnalysis->calculateGroups( linkSets, contexts, *m_pDerivationAnalysis, *this );
         }
         
         //generate link dimensions in target concrete types
