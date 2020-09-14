@@ -22,17 +22,17 @@ set( BASIC_HOST_SOURCES
 
 source_group( src FILES ${BASIC_HOST_SOURCES} )
 
-add_executable( basic_host 
+add_executable( cmdline_host 
 					${COMMON_INCLUDE_HEADERS}
 					${BASIC_HOST_SOURCES}
 				)
 		
-set_target_properties( basic_host PROPERTIES FOLDER generators )
+set_target_properties( cmdline_host PROPERTIES FOLDER generators )
 
-set_target_properties( basic_host PROPERTIES DEBUG_POSTFIX d )
+set_target_properties( cmdline_host PROPERTIES DEBUG_POSTFIX d )
 
-link_boost_usual( basic_host )
-link_common( basic_host )
-link_eg( basic_host )
+link_boost_usual( cmdline_host )
+link_common( cmdline_host )
+link_eg( cmdline_host )
 
-install( TARGETS basic_host DESTINATION bin)
+install( TARGETS cmdline_host DESTINATION bin)

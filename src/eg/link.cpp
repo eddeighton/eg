@@ -82,33 +82,34 @@ namespace eg
 				else
 				{
 					pContextSet = pSet;
+                    pContextSet->insert( pContext );
 				}
 			}
 		}
 		
-		
 		if( !pContextSet )
 		{
 			pContextSet = std::make_shared< ContextSet >();
+            
+            pContextSet->insert( pContext );
+            pContextSet->insert( 
+                pContext->getBaseContexts().begin(), 
+                pContext->getBaseContexts().end() );
+                
 			sets.insert( pContextSet );
 		}
-		
-		pContextSet->insert( pContext );
-		pContextSet->insert( 
-			pContext->getBaseContexts().begin(), 
-			pContext->getBaseContexts().end() );
 	}
     
     const interface::Context* LinkGroup::getLinkTarget( const interface::Link* pLink )
     {
         VERIFY_RTE_MSG( pLink->getBaseContexts().size() == 1U, 
-            "Link does not have singular link target type: " << pLink->getIdentifier() );
+            "Link does not have singular link target type: " << pLink->getFriendlyName() );
         return pLink->getBaseContexts().front();
     }
     interface::Context* LinkGroup::getLinkTarget( interface::Link* pLink )
     {
         VERIFY_RTE_MSG( pLink->getBaseContexts().size() == 1U, 
-            "Link does not have singular link target type: " << pLink->getIdentifier() );
+            "Link does not have singular link target type: " << pLink->getFriendlyName() );
         return pLink->getBaseContexts().front();
     }
 	
@@ -126,9 +127,10 @@ namespace eg
 			if( interface::Link* pLink = dynamic_cast< interface::Link* >( pContext ) )
 			{
 				interface::Context* pBase = LinkGroup::getLinkTarget( pLink );
+				VERIFY_RTE( pBase );
 				
 				ContextSetPtr pSet = find( sets, pBase );
-				VERIFY_RTE( pSet );
+				VERIFY_RTE_MSG( pSet, "Failed to locate context set for context: " << pBase->getFriendlyName() );
 				
                 //Create an map fromentry containing the:
                 //    Link Group Name

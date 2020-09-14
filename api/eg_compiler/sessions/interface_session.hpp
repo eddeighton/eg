@@ -55,7 +55,7 @@ namespace eg
         interface::Root* getTreeRoot() { return eg::root< eg::interface::Root >( getAppendingObjects() ); }
         
         const TranslationUnitAnalysis& getTranslationUnitAnalysis() const { return *m_pTranslationUnitAnalysis; }
-    private:
+    public:
         template< typename T >
         struct CompareNodeIdentity
         {
@@ -64,6 +64,7 @@ namespace eg
                 return pLeft->getIdentifier() < pRight->getIdentifier();
             }
         };
+    private:
         using ActionOverrideMap = 
             std::map< const interface::Context*, concrete::Action*, CompareNodeIdentity< const interface::Context > >;
         using DimensionOverrideMap = 

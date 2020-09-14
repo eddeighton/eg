@@ -84,103 +84,6 @@ namespace interface
         storer.storeObjectVector( m_children );
     }
     
-    bool CompareElements( const Element* pLeft, const Element* pRight )
-    {
-        if( pLeft->getType() != pRight->getType() )
-        {
-            return pLeft->getType() < pRight->getType();
-        }
-        else if( pLeft->getIdentifier() != pRight->getIdentifier() )
-        {
-            return pLeft->getIdentifier() < pRight->getIdentifier(); 
-        }
-        else
-        {
-            THROW_RTE( "Duplicate identifiers: " << pLeft->getIdentifier() );
-        }
-    }
-    /*
-    bool Element::update( const Element* pNewElement )
-    {
-        bool bModified = false;
-        
-        std::vector< Opaque* > opaques;
-        std::vector< Element* > children;
-        {
-            for( Element* pElement : m_children )
-            {
-                if( Opaque* pOpaque = dynamic_cast< Opaque* >( pElement ) )
-                {
-                    if( !pOpaque->isSemantic() )
-                    {
-                        opaques.push_back( pOpaque );
-                    }
-                }
-                else
-                {
-                    children.push_back( pElement );
-                }
-            }
-            std::sort( children.begin(), children.end(), CompareElements);
-        }
-        
-        std::vector< const Opaque* > newOpaques;
-        std::vector< const Element* > newChildren;
-        {
-            const std::vector< Element* >& allNewChildren = pNewElement->getChildren();
-            for( const Element* pElement : allNewChildren )
-            {
-                if( const Opaque* pOpaque = dynamic_cast< const Opaque* >( pElement ) )
-                {
-                    if( !pOpaque->isSemantic() )
-                    {
-                        newOpaques.push_back( pOpaque );
-                    }
-                }
-                else
-                {
-                    newChildren.push_back( pElement );
-                }
-            }
-            std::sort( newChildren.begin(), newChildren.end(), CompareElements );
-        }
-        
-        if( std::equal( children.begin(), children.end(), newChildren.begin(), newChildren.end(), 
-            []( Element* pOldElement, const Element* pNewElement )
-            {
-                if( ( pOldElement->getType() == pNewElement->getType() ) && 
-                    ( pOldElement->getIdentifier() == pNewElement->getIdentifier() ) )
-                {
-                    return !pOldElement->update( pNewElement );
-                }
-                else
-                {
-                    return false;
-                }
-            } ) )
-        {
-            //structure of the tree is equal so we merge the opaques
-            if( opaques.size() == 1U && newOpaques.size() == 1U ) 
-            {
-                Opaque* pOldOpaque = opaques[ 0U ];
-                const Opaque* pNewOpaque = newOpaques[ 0U ];
-                pOldOpaque->modify( pNewOpaque );
-            }
-            else
-            {
-                VERIFY_RTE_MSG( opaques.size() == 0U && newOpaques.size() == 0U,
-                    "Incorrect number of body elements found" );
-            }
-        }
-        else
-        {
-            bModified = true;
-        }
-            
-        
-        return bModified;
-    }*/
-    
     void Element::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
     {
         if( m_pElement )
@@ -267,6 +170,18 @@ namespace interface
         return os.str();
     }
     
+    std::vector< IndexedObject::Index > Element::getIndexPath() const
+    {
+        std::vector< IndexedObject::Index > indexPath;
+        
+        const std::vector< const Element* > path = getPath( this );
+        for( const Element* pElement : path )
+        {
+            indexPath.push_back( pElement->getIndex() );
+        }
+        
+        return indexPath;
+    }
     
     Opaque::Opaque( const IndexedObject& indexedObject )
         :   Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
@@ -400,18 +315,7 @@ namespace interface
         Element::store( storer );
         storer.store( m_canonicalType );
     }
-    /*bool Using::update( const Element* pElement )
-    {
-        if( const Using* pNewUsing = dynamic_cast< const Using* >( pElement ) )
-        {
-            //require the opaque is equal
-            if( m_pUsing->equal( *pNewUsing->m_pUsing ) )
-            {
-                return Element::update( pElement );
-            }
-        }
-        return true;
-    }*/
+    
     const std::string& Using::getType() const
     {
         return m_pUsing->getType()->getStr();
@@ -442,18 +346,7 @@ namespace interface
     {
         Element::store( storer );
     }
-    /*bool Export::update( const Element* pElement )
-    {
-        if( const Export* pNewExport = dynamic_cast< const Export* >( pElement ) )
-        {
-            //require the opaque is equal
-            if( m_pExport->equal( *pNewExport->m_pExport ) )
-            {
-                return Element::update( pElement );
-            }
-        }
-        return true;
-    }*/
+    
     const std::string& Export::getReturnType() const
     {
         return m_pExport->getReturnType()->getStr();
@@ -492,18 +385,6 @@ namespace interface
     {
         Element::store( storer );
     }
-    /*bool Include::update( const Element* pElement )
-    {
-        if( const Include* pNewInclude = dynamic_cast< const Include* >( pElement ) )
-        {
-            //require the opaque is equal
-            if( m_pInclude->equal( *pNewInclude->m_pInclude ) )
-            {
-                return Element::update( pElement );
-            }
-        }
-        return true;
-    }*/
     
     
     ////////////////////////////////////////////////////////////////////////
@@ -876,19 +757,6 @@ namespace interface
         }
     }
     
-    /*bool Action::update( const Element* pElement )
-    {
-        if( const Action* pNewAction = dynamic_cast< const Action* >( pElement ) )
-        {
-            //require the opaque is equal
-            if( m_pContext->equal( *pNewAction->m_pContext ) )
-            {
-                return Element::update( pElement );
-            }
-        }
-        return true;
-    }*/
-    
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
     Abstract::Abstract( const IndexedObject& indexedObject )
@@ -1064,25 +932,6 @@ namespace interface
         Object::store( storer );
         storer.store( m_rootType );
     }
-    /*bool Root::update( const Element* pElement )
-    {
-        if( const Root* pNewRoot = dynamic_cast< const Root* >( pElement ) )
-        {
-            //require the opaque is equal
-            if( ( m_pRoot == nullptr ) || ( pNewRoot->m_pRoot == nullptr ) )
-            {
-                if( ( m_pRoot == nullptr ) && ( pNewRoot->m_pRoot == nullptr ) )
-                {
-                    return Element::update( pElement );
-                }
-            }
-            else if( m_pRoot->equal( *pNewRoot->m_pRoot ) )
-            {
-                return Element::update( pElement );
-            }
-        }
-        return true;
-    }*/
     
 	bool Root::isExecutable() const
 	{

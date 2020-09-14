@@ -140,9 +140,9 @@ namespace eg
     }
     
     using ActionOverrideMap = 
-        std::map< interface::Context*, concrete::Action*, CompareNodeIdentity< interface::Context > >;
+        std::map< interface::Context*, concrete::Action*, InterfaceSession::CompareNodeIdentity< interface::Context > >;
     using DimensionOverrideMap = 
-        std::map< interface::Dimension*, concrete::Dimension*, CompareNodeIdentity< interface::Dimension > >;
+        std::map< interface::Dimension*, concrete::Dimension*, InterfaceSession::CompareNodeIdentity< interface::Dimension > >;
         
     void InterfaceSession::calculateInstanceActionName( concrete::Action* pAction )
     {

@@ -162,6 +162,7 @@ namespace interface
         const std::string& getIdentifier() const;
         const std::vector< Element* >& getChildren() const { return m_children; }
         std::string getFriendlyName() const;
+        std::vector< IndexedObject::Index > getIndexPath() const;
     protected:
         input::Element* m_pElement;
         Element* m_pParent;

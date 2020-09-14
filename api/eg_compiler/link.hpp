@@ -38,17 +38,6 @@
 
 namespace eg
 {
-    
-    template< typename T >
-    struct CompareNodeIdentity
-    {
-        bool operator()( const T* pLeft, const T* pRight ) const
-        {
-            return pLeft->getIdentifier() < pRight->getIdentifier();
-        }
-    };
-	
-	
 	class LinkGroup : public IndexedObject
 	{
         friend class ObjectFactoryImpl;
@@ -105,7 +94,16 @@ namespace eg
         }
         
     public:
-		using ContextSet = std::set< interface::Context*, CompareNodeIdentity< interface::Context > >;
+        template< typename T >
+        struct CompareNodePath
+        {
+            inline bool operator()( const T* pLeft, const T* pRight ) const
+            {
+                return pLeft->getIndex() < pRight->getIndex();
+            }
+        };
+        
+		using ContextSet = std::set< interface::Context*, CompareNodePath< interface::Context > >;
 		using ContextSetPtr = std::shared_ptr< ContextSet >;
 		using ContextSetPtrSet = std::set< ContextSetPtr >;
 		
