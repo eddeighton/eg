@@ -38,13 +38,117 @@
 
 namespace eg
 {
+    std::string getDimensionAccessorFunctionName( const concrete::Dimension* pDimension )
+    {
+        std::ostringstream os;
+        
+        if( const concrete::Dimension_Generated* pGeneratedDimension = 
+            dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) )
+        {
+            const concrete::Element* pParent = pGeneratedDimension->getParent();
+            VERIFY_RTE( pParent );
+            const interface::Element* pInterfaceElement = pParent->getAbstractElement();
+            VERIFY_RTE( pInterfaceElement );
+            
+            os << generateName( 'd', concrete::getPath( pParent ) );
+            
+            switch( pGeneratedDimension->getDimensionType() )
+            {
+                case concrete::Dimension_Generated::eActionStopCycle    : os << "_StopCycle";       break;
+                case concrete::Dimension_Generated::eActionReference    : os << "_Ref";             break;
+                case concrete::Dimension_Generated::eActionState        : os << "_State";           break;
+                //case concrete::Dimension_Generated::eActionAllocator    : os << "_Alloc";           break;
+                case concrete::Dimension_Generated::eLinkReferenceCount : os << "_Link_Count";      break;
+                case concrete::Dimension_Generated::eLinkReference      : 
+                    {
+                        const LinkGroup* pLinkGroup = pGeneratedDimension->getLinkGroup();
+                        VERIFY_RTE( pLinkGroup );
+                        os << "_Link_" << pLinkGroup->getLinkName(); 
+                    }          
+                    break;
+                default:
+                    THROW_RTE( "Unknown generated dimension type" );
+            }
+        }
+        else if( const concrete::Dimension_User* pUserDimension = 
+            dynamic_cast< const concrete::Dimension_User* >( pDimension ) )
+        {
+            //must be link base dimension
+            VERIFY_RTE( pUserDimension->getLinkGroup() );
+            
+            os << generateName( 'd', concrete::getPath( pUserDimension ) );
+        }
+        else
+        {
+            THROW_RTE( "Unknown dimension type" );
+        }
+        
+        
+        return os.str();
+    }
+    
+    void generateAccessorFunctionForwardDecls( std::ostream& os, const InterfaceSession& program )
+    {
+        const interface::Root*      pRoot               = program.getTreeRoot();
+        const LinkAnalysis&         linkAnalysis        = program.getLinkAnalysis();
+        const DerivationAnalysis&   derivationAnalysis  = program.getDerivationAnalysis();
+        const IndexedObject::Array& objects             = program.getObjects( eg::IndexedObject::MASTER_FILE );
+        
+        std::vector< const concrete::Dimension* > dimensions = 
+            many_cst< concrete::Dimension >( objects );
+        for( const concrete::Dimension* pDimension : dimensions )
+        {
+            if( const concrete::Dimension_Generated* pGeneratedDimension = 
+                dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) )
+            {
+                switch( pGeneratedDimension->getDimensionType() )
+                {
+                    case concrete::Dimension_Generated::eActionStopCycle    : 
+                    case concrete::Dimension_Generated::eActionState        : 
+                    case concrete::Dimension_Generated::eLinkReferenceCount :
+                        {
+                            os << "extern ";
+                            generateDimensionType( os, pGeneratedDimension );
+                            os << " " << getDimensionAccessorFunctionName( pDimension ) << "( " << EG_INSTANCE << " gid );\n";
+                        }
+                        break;
+                    case concrete::Dimension_Generated::eActionReference    : 
+                    case concrete::Dimension_Generated::eLinkReference      : 
+                        {
+                            os << "extern const ";
+                            generateDimensionType( os, pGeneratedDimension );
+                            os << "& " << getDimensionAccessorFunctionName( pDimension ) << "( " << EG_INSTANCE << " gid );\n";
+                        }
+                        break;
+                    case concrete::Dimension_Generated::eActionAllocator    : break;
+                    default:
+                        THROW_RTE( "Unknown generated dimension type" );
+                }
+            
+            }
+            else if( const concrete::Dimension_User* pUserDimension = 
+                dynamic_cast< const concrete::Dimension_User* >( pDimension ) )
+            {
+                if( pUserDimension->getLinkGroup() )
+                {
+                    os << "extern const ";
+                    generateDimensionType( os, pUserDimension );
+                    os << "& " << getDimensionAccessorFunctionName( pDimension ) << "( " << EG_INSTANCE << " gid );\n";
+                }
+            }
+            else
+            {
+                THROW_RTE( "Unknown dimension type" );
+            }
+                
+        }  
+    }
+        
     struct SpecialMemberFunctionVisitor
     {
         std::ostream& os;
         const std::vector< const concrete::Action* >& instances;
         const std::vector< const concrete::Inheritance_Node* >& iNodes;
-        PrinterFactory& printerFactory;
-        const Layout& layout;
         const LinkAnalysis& linkAnalysis;
         const DerivationAnalysis& derivationAnalysis;
         std::string strIndent;
@@ -52,15 +156,11 @@ namespace eg
         SpecialMemberFunctionVisitor( std::ostream& os,
             const std::vector< const concrete::Action* >& instances,
             const std::vector< const concrete::Inheritance_Node* >& iNodes,
-            PrinterFactory& _printerFactory,
-            const Layout& layout,
             const LinkAnalysis& linkAnalysis,
             const DerivationAnalysis& derivationAnalysis )
         :   os( os ),
             instances( instances ),
             iNodes( iNodes ),
-            printerFactory( _printerFactory ),
-            layout( layout ),
             linkAnalysis( linkAnalysis ),
             derivationAnalysis( derivationAnalysis )
         {
@@ -92,8 +192,15 @@ namespace eg
         }
         
         
+    
+        std::string read( const concrete::Dimension* pDimension, const char* pszInstance )
+        {
+            std::ostringstream os;
+            os << getDimensionAccessorFunctionName( pDimension ) << "( " << pszInstance << " )";
+            return os.str();
+        }
+        
         void generateConversion( std::ostream& os, 
-            const Layout& layout, 
             const DerivationAnalysis::Compatibility& compatibility, 
             const std::string& strVoidType, 
             const LinkGroup* pLinkGroup )
@@ -111,16 +218,15 @@ namespace eg
                 
                 {
                     const concrete::Dimension_User* pInterfaceDimension = pCompatible->getLinkBaseDimension();
-                    const DataMember* pReference = layout.getDataMember( pInterfaceDimension );
                     
-            os << "         switch( " << *printerFactory.read( pReference, "from.data.instance" ) << ".data.type )\n";
+            os << "         switch( " << read( pInterfaceDimension, "from.data.instance" ) << ".data.type )\n";
             os << "         {\n";
                         
                     for( const concrete::Action* pCompatible : compatibility.dynamicCompatibleTypes )
                     {
             os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
                     }       
-            os << "                 data = " << *printerFactory.read( pReference, "from.data.instance" ) << ".data;\n";
+            os << "                 data = " << read( pInterfaceDimension, "from.data.instance" ) << ".data;\n";
             os << "                 break;\n";
             os << "             default:\n";
             os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
@@ -142,9 +248,8 @@ namespace eg
                 pLinkGroup->getDimensionMap().find( pCompatible );
             VERIFY_RTE( iFind != pLinkGroup->getDimensionMap().end() );
             const concrete::Dimension_Generated* pBackRef = iFind->second;
-            const DataMember* pReference = layout.getDataMember( pBackRef );
             
-                    os << "         switch( " << *printerFactory.read( pReference, "from.data.instance" ) << ".type )\n";
+                    os << "         switch( " << read( pBackRef, "from.data.instance" ) << ".type )\n";
                     os << "         {\n";
                                 
                 
@@ -152,7 +257,7 @@ namespace eg
             {
                     os << "             case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
             }       
-                    os << "                 data = " << *printerFactory.read( pReference, "from.data.instance" ) << ";\n";
+                    os << "                 data = " << read( pBackRef, "from.data.instance" ) << ";\n";
                     os << "                 break;\n";
                     os << "             default:\n";
                     os << "                data.timestamp = " << EG_INVALID_TIMESTAMP << ";\n";
@@ -261,6 +366,7 @@ namespace eg
             const interface::Context* pNodeAction = dynamic_cast< const interface::Context* >( pNode );
             const DerivationAnalysis::Compatibility& compatibility = 
                 derivationAnalysis.getCompatibility( pNodeAction );
+                
             const LinkGroup* pLinkGroup = nullptr;
             if( const interface::Link* pLink = dynamic_cast< const interface::Link* >( pNodeAction ) )
                 pLinkGroup = linkAnalysis.getLinkGroup( pLink );
@@ -285,13 +391,12 @@ namespace eg
             os << "};\n";
             }
             
-
             //conversion constructor
             os << osTemplateArgLists.str();
             os << "template< typename TFrom >\n";
             os << "inline " << osTypeName.str() << "::" << strActionInterfaceType << "( const TFrom& from )\n";
             os << "{\n";
-            generateConversion( os, layout, compatibility, osTypeVoid.str(), pLinkGroup );
+            generateConversion( os, compatibility, osTypeVoid.str(), pLinkGroup );
             os << "}\n";
 
             //assignment operator
@@ -299,7 +404,7 @@ namespace eg
             os << "template< typename TFrom >\n";
             os << "inline " << osTypeNameAsType.str() << "& " << osTypeName.str() << "::operator=( const TFrom& from )\n";
             os << "{\n";
-            generateConversion( os, layout, compatibility, osTypeVoid.str(), pLinkGroup );
+            generateConversion( os, compatibility, osTypeVoid.str(), pLinkGroup );
             os << "  return *this;\n";
             os << "}\n";
             
@@ -357,9 +462,8 @@ namespace eg
                     {
                         if( pCompatible->getReference() )
                         {
-                            const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         return " << *printerFactory.read( pReference, "instance" ) << ".data.timestamp;\n";
+            os << "         return " << read( pCompatible->getReference(), "instance" ) << ".data.timestamp;\n";
                         }
                     }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
@@ -370,8 +474,7 @@ namespace eg
                     const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
                     if( pCompatible->getReference() )
                     {
-                        const DataMember* pReference = layout.getDataMember( pCompatible->getReference() );
-            os << "    return " << *printerFactory.read( pReference, "instance" ) << ".data.timestamp;\n";
+            os << "    return " << read( pCompatible->getReference(), "instance" ) << ".data.timestamp;\n";
                     }
                     else
                     {
@@ -396,9 +499,8 @@ namespace eg
                     {
                         if( pCompatible->getStopCycle() )
                         {
-                            const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         return " << *printerFactory.read( pReference, "instance" ) << ";\n";
+            os << "         return " << read( pCompatible->getStopCycle(), "instance" ) << ";\n";
                         }
                     }
             os << "      default: return " << EG_INVALID_TIMESTAMP << ";\n";
@@ -409,8 +511,7 @@ namespace eg
                     const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
                     if( pCompatible->getStopCycle() )
                     {
-                        const DataMember* pReference = layout.getDataMember( pCompatible->getStopCycle() );
-            os << "    return " << *printerFactory.read( pReference, "instance" ) << ";\n";
+            os << "    return " << read( pCompatible->getStopCycle(), "instance" ) << ";\n";
                     }
                     else
                     {
@@ -435,9 +536,8 @@ namespace eg
                     {
                         if( pCompatible->getState() )
                         {
-                            const DataMember* pState = layout.getDataMember( pCompatible->getState() );
             os << "      case " << pCompatible->getIndex() << ": //" << pCompatible->getFriendlyName() << "\n";
-            os << "         return " << *printerFactory.read( pState, "instance" ) << ";\n";
+            os << "         return " << read( pCompatible->getState(), "instance" ) << ";\n";
                         }
                     }
             os << "      default: return " << EG_INVALID_STATE << ";\n";
@@ -448,8 +548,7 @@ namespace eg
                     const concrete::Action* pCompatible = *compatibility.dynamicCompatibleTypes.begin();
                     if( pCompatible->getState() )
                     {
-                        const DataMember* pState = layout.getDataMember( pCompatible->getState() );
-            os << "    return " << *printerFactory.read( pState, "instance" ) << ";\n";
+            os << "    return " << read( pCompatible->getState(), "instance" ) << ";\n";
                     }
                     else
                     {
@@ -629,14 +728,12 @@ namespace eg
         }
     };
 
-    void generateMemberFunctions( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program )
+    void generateMemberFunctions( std::ostream& os, const InterfaceSession& program )
     {
-        const Layout& layout = program.getLayout();
-        const interface::Root* pRoot = program.getTreeRoot();
-        const LinkAnalysis& linkAnalysis = program.getLinkAnalysis();
-        const DerivationAnalysis& derivationAnalysis = program.getDerivationAnalysis();
-        
-        const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
+        const interface::Root*      pRoot               = program.getTreeRoot();
+        const LinkAnalysis&         linkAnalysis        = program.getLinkAnalysis();
+        const DerivationAnalysis&   derivationAnalysis  = program.getDerivationAnalysis();
+        const IndexedObject::Array& objects             = program.getObjects( eg::IndexedObject::MASTER_FILE );
         
         std::vector< const concrete::Action* > actions = 
             many_cst< concrete::Action >( objects );
@@ -644,7 +741,7 @@ namespace eg
         std::vector< const concrete::Inheritance_Node* > iNodes = 
             many_cst< const concrete::Inheritance_Node >( objects );
             
-        SpecialMemberFunctionVisitor visitor( os, actions, iNodes, printerFactory, layout, linkAnalysis, derivationAnalysis );
+        SpecialMemberFunctionVisitor visitor( os, actions, iNodes, linkAnalysis, derivationAnalysis );
         pRoot->pushpop( visitor );
     }
 
@@ -784,9 +881,6 @@ namespace eg
             }
         }
 
-        {
-            generateMemberFunctions( os, printerFactory, program );
-        }
         {
             InvokeVisitor visitor( os, translationUnit );
             pRoot->pushpop( visitor );

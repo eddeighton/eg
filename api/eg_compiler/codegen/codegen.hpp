@@ -26,6 +26,7 @@
 #include "eg_compiler/codegen/dataAccessPrinter.hpp"
 
 #include "eg_compiler/interface.hpp"
+#include "eg_compiler/sessions/interface_session.hpp"
 #include "eg_compiler/sessions/implementation_session.hpp"
 #include "eg_compiler/instruction.hpp"
 
@@ -96,9 +97,14 @@ namespace eg
     
     void generateBufferStructures( std::ostream& os, const ReadSession& program );
 
+    std::string getDimensionAccessorFunctionName( const concrete::Dimension* pDimension );
+    void generateAccessorFunctionForwardDecls( std::ostream& os, const InterfaceSession& program );
+     
+    void generateGenericsHeader( std::ostream& os, 
+        const InterfaceSession& program );
+        
     void generateMemberFunctions( std::ostream& os, 
-        PrinterFactory& printerFactory, 
-        const ReadSession& program );
+        const InterfaceSession& program );
         
     void generateGenerics(std::ostream& os, 
         PrinterFactory& printerFactory,
@@ -106,6 +112,7 @@ namespace eg
         const TranslationUnit& translationUnit );
         
     class InstructionCodeGeneratorFactory;
+        
     void generateImplementationSource( std::ostream& os, 
         InstructionCodeGeneratorFactory& instructionCodeGenFactory,
         PrinterFactory& printerFactory,
@@ -113,10 +120,14 @@ namespace eg
         const TranslationUnit& translationUnit,
         const std::vector< std::string >& additionalIncludes );
         
+    void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const std::vector< const concrete::Action* >& actions );
+    void generateAccessorFunctionImpls( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program );
     void generateActionInstanceFunctions( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program );
             
     class DataMember;
 
+    void generateDimensionType( std::ostream& os, const concrete::Dimension_User* pDimension );
+    void generateDimensionType( std::ostream& os, const concrete::Dimension_Generated* pDimension );
     void generateDataMemberType( std::ostream& os, const DataMember* pDataMember );
     
     void generateAllocation( std::ostream& os, const DataMember* pDataMember, const std::string& strIndex );
@@ -128,6 +139,40 @@ namespace eg
     class Layout;
 	void generateInstructions( std::ostream& os, InstructionCodeGeneratorFactory& factory, 
         PrinterFactory& printerFactory, const RootInstruction* pRootInstruction, const Layout& layout );
+        
+        
+        
+    inline std::string generateName( char prefix, const std::vector< const concrete::Element* >& path )
+    {
+        std::ostringstream os;
+        os << prefix;
+        const concrete::Element* pIterLast = nullptr;
+        for( const concrete::Element* pIter : path )
+        {
+            if( pIter->getParent() )
+                os << "_" << pIter->getAbstractElement()->getIdentifier();
+            pIterLast = pIter;
+        }
+        VERIFY_RTE( pIterLast );
+        //os << "_" << pIterLast->getIndex();
+        return os.str();
+    }
+
+    inline std::string generateName( char prefix, const concrete::Element* pElement, const concrete::Element* pFrom )
+    {
+        std::ostringstream os;
+        os << prefix;
+        std::vector< const concrete::Element* > path = concrete::getPath( pElement, pFrom );
+        const concrete::Element* pIterLast = nullptr;
+        for( const concrete::Element* pIter : path )
+        {
+            os << "_" << pIter->getAbstractElement()->getIdentifier();
+            pIterLast = pIter;
+        }
+        VERIFY_RTE( pIterLast );
+        //os << "_" << pIterLast->getIndex();
+        return os.str();
+    }
 
 }
 

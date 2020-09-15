@@ -54,7 +54,9 @@ namespace eg
         const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
         interface::Root* getTreeRoot() { return eg::root< eg::interface::Root >( getAppendingObjects() ); }
         
+        const DerivationAnalysis& getDerivationAnalysis() const { return *m_pDerivationAnalysis; }
         const TranslationUnitAnalysis& getTranslationUnitAnalysis() const { return *m_pTranslationUnitAnalysis; }
+        const LinkAnalysis& getLinkAnalysis() const { return *m_pLinkAnalysis; }
     public:
         template< typename T >
         struct CompareNodeIdentity

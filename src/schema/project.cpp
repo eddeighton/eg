@@ -743,6 +743,23 @@ boost::filesystem::path Project::getInterfacePCH() const
             getIntermediateFolder() / os.str() ) );
 }
 
+boost::filesystem::path Project::getGenericsHeader() const
+{
+    std::ostringstream os;
+    os << "generics.hpp";
+    return boost::filesystem::edsCannonicalise(
+        boost::filesystem::absolute( 
+            getIntermediateFolder() / os.str() ) );
+}
+
+boost::filesystem::path Project::getGenericsPCH() const
+{
+    std::ostringstream os;
+    os << "generics.pch";
+    return boost::filesystem::edsCannonicalise(
+        boost::filesystem::absolute( 
+            getIntermediateFolder() / os.str() ) );
+}
 
 boost::filesystem::path Project::getOperationsHeader( const std::string& strTUName ) const
 {

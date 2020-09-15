@@ -341,11 +341,61 @@ void build_parser_session( const Environment& environment, const Project& projec
     }
 }
 
-void build_operations( eg::InterfaceSession& interfaceSession, const Environment& environment, 
+void build_generics( eg::InterfaceSession& session, const Environment& environment, 
     const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
 {
+    //generate the generics code
+    {
+        LogEntry log( std::cout, "Generating generics", bBenchCommands );
+        std::ostringstream osImpl;
+        eg::generateGenericsHeader( osImpl, session );
+        boost::filesystem::updateFileIfChanged( project.getGenericsHeader(), osImpl.str() );
+    }
+    
+    if( fileTracker.isModified( project.getIncludePCH() ) ||
+        fileTracker.isModified( project.getInterfacePCH() ) ||
+        fileTracker.isModified( project.getGenericsHeader() ) )
+    {
+        LogEntry log( std::cout, "Compiling generics to pch", bBenchCommands );
+        
+        std::ostringstream osCmd;
+        environment.startCompilationCommand( osCmd );
+        osCmd << " " << project.getCompilerFlags() << " ";
+        
+        osCmd << "-Xclang -include-pch ";
+        osCmd << "-Xclang " << environment.printPath( project.getIncludePCH() ) << " ";
+        
+        osCmd << "-Xclang -include-pch ";
+        osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
+        
+        osCmd << "-Xclang -emit-pch -o " << environment.printPath( project.getGenericsPCH() ) << " ";
+        
+        osCmd << environment.printPath( project.getGenericsHeader() ) << " ";
+        
+        if( bLogCommands )
+        {
+            std::cout << "\n" << osCmd.str() << std::endl;
+        }
+        
+        {
+            const int iResult = boost::process::system( osCmd.str() );
+            if( iResult )
+            {
+                THROW_RTE( "Error invoking clang++ " << iResult );
+            }
+        }
+    }
+}
+
+void build_operations( eg::InterfaceSession& session, const Environment& environment, 
+    const Project& project, FileWriteTracker& fileTracker, bool bBenchCommands, bool bLogCommands )
+{
+    
+    //generate the generics header
+    build_generics( session, environment, project, fileTracker, bBenchCommands, bLogCommands );
+    
     //interface session MUST NOT store beyond this point - compiler will be loaded TU analysis sessions
-    const eg::TranslationUnitAnalysis& tuAnalysis = interfaceSession.getTranslationUnitAnalysis();
+    const eg::TranslationUnitAnalysis& tuAnalysis = session.getTranslationUnitAnalysis();
     for( const eg::TranslationUnit* pTranslationUnit : tuAnalysis.getTranslationUnits() )
     {
         const std::string& strTUName = pTranslationUnit->getName();
@@ -355,7 +405,7 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
             LogEntry log( std::cout, "Generating operations: " + strTUName, bBenchCommands );
             std::ostringstream osOperations;
             eg::generateIncludeGuard( osOperations, "OPERATIONS" );
-            eg::generateOperationSource( osOperations, interfaceSession.getTreeRoot(), *pTranslationUnit );
+            eg::generateOperationSource( osOperations, session.getTreeRoot(), *pTranslationUnit );
             osOperations << "\n" << eg::pszLine << eg::pszLine;
             osOperations << "#endif\n";
             boost::filesystem::updateFileIfChanged( project.getOperationsHeader( strTUName ), osOperations.str() );
@@ -380,6 +430,9 @@ void build_operations( eg::InterfaceSession& interfaceSession, const Environment
             
             osCmd << "-Xclang -include-pch ";
             osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
+            
+            osCmd << "-Xclang -include-pch ";
+            osCmd << "-Xclang " << environment.printPath( project.getGenericsPCH() ) << " ";
             
             osCmd << "-Xclang -emit-pch -o " << environment.printPath( project.getOperationsPCH( strTUName ) ) << " ";
             osCmd << "-Xclang -egdb=" << environment.printPath( project.getInterfaceDBFileName() ) << " ";
@@ -458,7 +511,7 @@ void generate_objects( const eg::TranslationUnitAnalysis& translationUnits, cons
         {
             std::ostringstream osImpl;
             osImpl << "#include \"structures.hpp\"\n";
-            //eg::generate_dynamic_interface( osImpl, printerFactory, session );
+            eg::generateAccessorFunctionImpls( osImpl, printerFactory, session );
             eg::generateActionInstanceFunctions( osImpl, printerFactory, session );
             boost::filesystem::updateFileIfChanged( project.getRuntimeSource(), osImpl.str() );
         }
@@ -561,6 +614,9 @@ std::vector< boost::filesystem::path >
             osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
             
             osCmd << "-Xclang -include-pch ";
+            osCmd << "-Xclang " << environment.printPath( project.getGenericsPCH() ) << " ";
+            
+            osCmd << "-Xclang -include-pch ";
             osCmd << "-Xclang " << environment.printPath( project.getOperationsPCH( pTranslationUnit->getName() ) ) << " ";
                 
             osCmd << environment.printPath( project.getImplementationSource( pTranslationUnit->getName() ) ) << " ";
@@ -599,6 +655,9 @@ std::vector< boost::filesystem::path >
             
             osCmd << "-Xclang -include-pch ";
             osCmd << "-Xclang " << environment.printPath( project.getInterfacePCH() ) << " ";
+            
+            osCmd << "-Xclang -include-pch ";
+            osCmd << "-Xclang " << environment.printPath( project.getGenericsPCH() ) << " ";
         
             osCmd << "-I " << environment.printPath( environment.getEGLibraryInclude() ) << " ";
             osCmd << "-I " << environment.printPath( project.getIntermediateFolder() ) << " ";

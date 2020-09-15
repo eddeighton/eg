@@ -39,6 +39,7 @@ void constructRuntimeDimensions( InterfaceSession& session, Action* pContext )
     pContext->m_pStopCycle                     = session.construct< concrete::Dimension_Generated >();
     pContext->m_pStopCycle->m_type             = concrete::Dimension_Generated::eActionStopCycle;
     pContext->m_pStopCycle->m_pContext         = pContext;
+    pContext->m_pStopCycle->m_pParent          = pContext;
     pContext->m_children.push_back( pContext->m_pStopCycle );
     
     //NOTE - MUST always ensure the reference is constructed BEFORE the state as this ensures the
@@ -46,11 +47,13 @@ void constructRuntimeDimensions( InterfaceSession& session, Action* pContext )
     pContext->m_pReference                     = session.construct< concrete::Dimension_Generated >();
     pContext->m_pReference->m_type             = concrete::Dimension_Generated::eActionReference;
     pContext->m_pReference->m_pContext         = pContext;
+    pContext->m_pReference->m_pParent          = pContext;
     pContext->m_children.push_back( pContext->m_pReference );
     
     pContext->m_pState                         = session.construct< concrete::Dimension_Generated >();
     pContext->m_pState->m_type                 = concrete::Dimension_Generated::eActionState;
     pContext->m_pState->m_pContext             = pContext;
+    pContext->m_pState->m_pParent              = pContext;
     pContext->m_children.push_back( pContext->m_pState );
     
     if( dynamic_cast< const interface::Object* >( pContext->getContext() ) )
@@ -58,6 +61,7 @@ void constructRuntimeDimensions( InterfaceSession& session, Action* pContext )
         pContext->m_pLinkRefCount                  = session.construct< concrete::Dimension_Generated >();
         pContext->m_pLinkRefCount->m_type          = concrete::Dimension_Generated::eLinkReferenceCount;
         pContext->m_pLinkRefCount->m_pContext      = pContext;
+        pContext->m_pLinkRefCount->m_pParent       = pContext;
         pContext->m_children.push_back( pContext->m_pLinkRefCount );
     }
 }
@@ -94,6 +98,7 @@ void RangeAllocator::constructDimensions( InterfaceSession& session )
     m_pAllocatorData                 = session.construct< concrete::Dimension_Generated >();
     m_pAllocatorData->m_type         = concrete::Dimension_Generated::eActionAllocator;
     m_pAllocatorData->m_pContext     = m_pContext_Allocated;
+    m_pAllocatorData->m_pParent      = m_pContext_Allocated;
     m_pContext_Allocating->m_children.push_back( m_pAllocatorData );
 }
 

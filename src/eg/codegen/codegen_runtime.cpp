@@ -29,91 +29,71 @@
 
 namespace eg
 {
-    /*void generate_dynamic_interface( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& session )
+    
+    void generateAccessorFunctionImpls( std::ostream& os, PrinterFactory& printerFactory, const ReadSession& program )
     {
-        const interface::Root* pRoot = session.getTreeRoot();
+        const interface::Root*      pRoot               = program.getTreeRoot();
+        const Layout&               layout              = program.getLayout();
+        const LinkAnalysis&         linkAnalysis        = program.getLinkAnalysis();
+        const IndexedObject::Array& objects             = program.getObjects( eg::IndexedObject::MASTER_FILE );
         
-        const DerivationAnalysis& derivationAnalysis = session.getDerivationAnalysis();
-        const Layout& layout = session.getLayout();
-        const IndexedObject::Array& objects = session.getObjects( IndexedObject::MASTER_FILE );
-        std::vector< const concrete::Action* > actions = 
-            many_cst< concrete::Action >( objects );
-        
-        if( !actions.empty() )
+        std::vector< const concrete::Dimension* > dimensions = 
+            many_cst< concrete::Dimension >( objects );
+        for( const concrete::Dimension* pDimension : dimensions )
         {
-        os << "eg::TimeStamp getTimestamp( " << EG_TYPE_ID << " typeID, " << EG_INSTANCE << " instance )\n";
-        os << "{\n";
-        os << "    switch( typeID )\n";
-        os << "    {\n";
-        for( const concrete::Action* pAction : actions )
-        {
-            if( pAction->getParent() && pAction->getReference() )
+            if( const concrete::Dimension_Generated* pGeneratedDimension = 
+                dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) )
             {
-        os << "        case " << pAction->getIndex() << ": return " << 
-                *printerFactory.read( layout.getDataMember( pAction->getReference() ), "instance" ) << ".data.timestamp;\n";
-            }
-        }
-        os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
-        os << "    }\n";
-        os << "}\n";
-        
-        os << EG_ACTION_STATE << " getState( " << EG_TYPE_ID << " typeID, " << EG_INSTANCE << " instance )\n";
-        os << "{\n";
-        os << "    switch( typeID )\n";
-        os << "    {\n";
-        for( const concrete::Action* pAction : actions )
-        {
-            if( pAction->getParent() && pAction->getState() )
-            {
-        os << "        case " << pAction->getIndex() << ": return " << 
-            *printerFactory.read( layout.getDataMember( pAction->getState() ), "instance" ) << ";\n";
-            }
-        }
-        os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
-        os << "    }\n";
-        os << "}\n";
-        
-        os << EG_TIME_STAMP << " getStopCycle( " << EG_TYPE_ID << " typeID, " << EG_INSTANCE << " instance )\n";
-        os << "{\n";
-        os << "    switch( typeID )\n";
-        os << "    {\n";
-        for( const concrete::Action* pAction : actions )
-        {
-            if( pAction->getParent() && pAction->getStopCycle() )
-            {
-        os << "        case " << pAction->getIndex() << ": return " << 
-            *printerFactory.read( layout.getDataMember( pAction->getStopCycle() ), "instance" ) << ";\n";
-            }
-        }
-        os << "        default: throw std::runtime_error( \"Invalid action instance\" );\n";
-        os << "    }\n";
-        os << "}\n";
-        }
-        
-        const concrete::Action* pInstanceRoot = nullptr;
-        {
-            std::vector< const concrete::Action* > roots;
-            for( const concrete::Element* pChild : session.getInstanceRoot()->getChildren() )
-            {
-                if( const concrete::Action* pAction = 
-                    dynamic_cast< const concrete::Action* >( pChild ) )
+                switch( pGeneratedDimension->getDimensionType() )
                 {
-                    roots.push_back( pAction );
+                    case concrete::Dimension_Generated::eActionStopCycle    : 
+                    case concrete::Dimension_Generated::eActionState        : 
+                    case concrete::Dimension_Generated::eLinkReferenceCount : 
+                        {
+                            generateDimensionType( os, pGeneratedDimension );
+                            os << " " << getDimensionAccessorFunctionName( pDimension ) << "( " << EG_INSTANCE << " gid )\n";
+                            os << "{\n";
+                            os << "  return " << *printerFactory.read( layout.getDataMember( pDimension ), "gid" ) << ";\n";
+                            os << "}\n";
+                        }
+                        break;
+                    case concrete::Dimension_Generated::eActionReference    : 
+                    case concrete::Dimension_Generated::eLinkReference      : 
+                        {
+                            os << "const ";
+                            generateDimensionType( os, pGeneratedDimension );
+                            os << "& " << getDimensionAccessorFunctionName( pDimension ) << "( " << EG_INSTANCE << " gid )\n";
+                            os << "{\n";
+                            os << "  return " << *printerFactory.read( layout.getDataMember( pDimension ), "gid" ) << ";\n";
+                            os << "}\n";
+                        }
+                        break;
+                    case concrete::Dimension_Generated::eActionAllocator    : break;
+                    default:
+                        THROW_RTE( "Unknown generated dimension type" );
+                }
+            
+            }
+            else if( const concrete::Dimension_User* pUserDimension = 
+                dynamic_cast< const concrete::Dimension_User* >( pDimension ) )
+            {
+                if( pUserDimension->getLinkGroup() )
+                {
+                    os << "const ";
+                    generateDimensionType( os, pUserDimension );
+                    os << "& " << getDimensionAccessorFunctionName( pDimension ) << "( " << EG_INSTANCE << " gid )\n";
+                    os << "{\n";
+                    os << "  return " << *printerFactory.read( layout.getDataMember( pDimension ), "gid" ) << ";\n";
+                    os << "}\n";
                 }
             }
-            ASSERT( !roots.empty() );
-            ASSERT( roots.size() == 1U );
-            pInstanceRoot = roots.front();
-        }
-        os << getInterfaceType( input::Root::RootTypeName ) << "< void > get_root()\n";
-        os << "{\n";
-        os << "    return  " << getInterfaceType( input::Root::RootTypeName ) << "< void >( " << 
-            EG_REFERENCE_TYPE << "{ 0, " << pInstanceRoot->getIndex() << ", getTimestamp( " << pInstanceRoot->getIndex() << ", 0 ) } );\n";
-        os << "}\n";
-        os << "\n";
-        
-    }*/
-	
+            else
+            {
+                THROW_RTE( "Unknown dimension type" );
+            }   
+        }  
+    }
+    
     void generateActionInit( std::ostream& os, PrinterFactory& printerFactory, const Layout& layout, const concrete::Action* pAction, const char* pszInstance )
     {
         if( const interface::Link* pLink = dynamic_cast< const interface::Link* >( pAction->getContext() ) )
@@ -553,6 +533,41 @@ namespace eg
         
         
         os << "}\n";
+        os << "\n";
+    }
+    
+    void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const concrete::Action* pAction )
+    {
+        if( pAction->getContext()->isMainExecutable() )
+        {
+            os << "extern " << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter();\n";
+            os << "extern void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
+            if( dynamic_cast< const interface::Link* >( pAction->getContext() ) )
+                os << "extern void " << pAction->getName() << "_breaker( " << EG_INSTANCE << " _gid );\n";
+        }
+        else if( pAction->getContext()->isExecutable() )
+        {
+            os << "extern " << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
+            os << "extern void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
+            if( dynamic_cast< const interface::Link* >( pAction->getContext() ) )
+                os << "extern void " << pAction->getName() << "_breaker( " << EG_INSTANCE << " _gid );\n";
+        }
+    }
+    
+    void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const std::vector< const concrete::Action* >& actions )
+    {
+        os << "\n";
+        os << "//Starter / Stopper / Breaker forward declarations\n";
+        
+        for( const concrete::Action* pAction : actions )
+        {
+            if( pAction->getStopCycle() && pAction->getState() )
+            {
+                os << "\n";
+                generateActionInstanceFunctionsForwardDecls( os, pAction );
+            }
+        }
+        
         os << "\n";
     }
     

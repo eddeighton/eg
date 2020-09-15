@@ -404,13 +404,18 @@ namespace eg
         os << "};\n";
     }
     
-    
-    void generateActionInstanceFunctionsForwardDecls( std::ostream& os, const Layout& layout, const concrete::Action* pAction )
+    void generateGenericsHeader( std::ostream& os, const InterfaceSession& session )
     {
-        os << "extern " << getStaticType( pAction->getContext() ) << " " << pAction->getName() << "_starter( " << EG_INSTANCE << " _gid );\n";
-        os << "extern void " << pAction->getName() << "_stopper( " << EG_INSTANCE << " _gid );\n";
-        if( dynamic_cast< const interface::Link* >( pAction->getContext() ) )
-            os << "extern void " << pAction->getName() << "_breaker( " << EG_INSTANCE << " _gid );\n";
+        const interface::Root* pRoot = session.getTreeRoot();
+        const IndexedObject::Array& objects = session.getObjects( eg::IndexedObject::MASTER_FILE );
+        
+        std::vector< const concrete::Action* > actions = 
+            many_cst< concrete::Action >( objects );
+        generateActionInstanceFunctionsForwardDecls( os, actions );
+        
+        generateAccessorFunctionForwardDecls( os, session );
+        
+        generateMemberFunctions( os, session );
     }
     
     void generateImplementationSource( std::ostream& os, 
@@ -421,30 +426,15 @@ namespace eg
         const std::vector< std::string >& additionalIncludes )
     {
         const interface::Root* pRoot = program.getTreeRoot();
-        
         const DerivationAnalysis& derivationAnalysis = program.getDerivationAnalysis();
         const Layout& layout = program.getLayout();
-        
         const IndexedObject::Array& objects = program.getObjects( eg::IndexedObject::MASTER_FILE );
         
         for( const std::string& strInclude : additionalIncludes )
         {
             os << "#include \"" << strInclude << "\"\n";
         }
-                
-        os << "\n";
-        os << "//input::Action function forward declarations\n";
-        std::vector< const concrete::Action* > actions = 
-            many_cst< concrete::Action >( objects );
-        for( const concrete::Action* pAction : actions )
-        {
-            if( pAction->getParent() )
-            {
-                os << "\n";
-                generateActionInstanceFunctionsForwardDecls( os, layout, pAction );
-            }
-        }
-        os << "\n";
+        
         
         os << "\n\n//invocation implementations\n";
         
@@ -460,7 +450,7 @@ namespace eg
             "\"Critical error: Invocation system failed to match implementation\" );\n";
         os << "    }\n";
         os << "};\n";
-        
+                
         std::vector< const InvocationSolution* > invocations;
         program.getInvocations( translationUnit.getDatabaseFileID(), invocations );
         for( const InvocationSolution* pInvocation : invocations )

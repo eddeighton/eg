@@ -42,7 +42,7 @@
 namespace eg
 {
     
-    void generateDataMemberType( std::ostream& os, const concrete::Dimension_User* pDimension )
+    void generateDimensionType( std::ostream& os, const concrete::Dimension_User* pDimension )
     {
         const interface::Dimension* pNodeDimension = 
             dynamic_cast< const interface::Dimension* >( pDimension->getAbstractElement() );
@@ -69,7 +69,7 @@ namespace eg
         }
     }
     
-    void generateDataMemberType( std::ostream& os, const concrete::Dimension_Generated* pDimension )
+    void generateDimensionType( std::ostream& os, const concrete::Dimension_Generated* pDimension )
     {
         switch( pDimension->getDimensionType() )
         {
@@ -120,7 +120,7 @@ namespace eg
     {
         static const std::string strIndent = "        ";
         os << strIndent << "::eg::DimensionTraits< ";
-        generateDataMemberType( os, pDimension );
+        generateDimensionType( os, pDimension );
         os << " >::initialise( " << printer << " );\n";
     }
     
@@ -177,7 +177,7 @@ namespace eg
     {
         static const std::string strIndent = "        ";
         os << strIndent << "::eg::DimensionTraits< ";
-        generateDataMemberType( os, pDimension );
+        generateDimensionType( os, pDimension );
         os << " >::uninitialise( " << printer << " );\n";
     }
     
@@ -185,7 +185,7 @@ namespace eg
     {
         static const std::string strIndent = "        ";
         os << strIndent << "::eg::DimensionTraits< ";
-        generateDataMemberType( os, pDimension );
+        generateDimensionType( os, pDimension );
         os << " >::uninitialise( " << printer << " );\n";
     }
     
@@ -194,7 +194,7 @@ namespace eg
         static const std::string strIndent = "        ";
         
         os << strIndent << "::eg::DimensionTraits< ";
-        generateDataMemberType( os, pDimension );
+        generateDimensionType( os, pDimension );
         os << " >::encode( buffer, " << printer << " );";
 	}
 	void generateDecode( std::ostream& os, const concrete::Dimension_User* pDimension, Printer& printer )
@@ -202,7 +202,7 @@ namespace eg
         static const std::string strIndent = "        ";
         
         os << strIndent << "::eg::DimensionTraits< ";
-        generateDataMemberType( os, pDimension );
+        generateDimensionType( os, pDimension );
         os << " >::decode( buffer, " << printer << " );";
 	}
             
@@ -211,7 +211,7 @@ namespace eg
         static const std::string strIndent = "        ";
         
 		os << strIndent << "::eg::DimensionTraits< ";
-        generateDataMemberType( os, pDimension );
+        generateDimensionType( os, pDimension );
 		os << " >::encode( buffer, " << printer << " );";
 	}
 	void generateDecode( std::ostream& os, const concrete::Dimension_Generated* pDimension, Printer& printer )
@@ -219,7 +219,7 @@ namespace eg
         static const std::string strIndent = "        ";
         
 		os << strIndent << "::eg::DimensionTraits< ";
-        generateDataMemberType( os, pDimension );
+        generateDimensionType( os, pDimension );
 		os << " >::decode( buffer, " << printer << " );";
 	}
     
@@ -229,11 +229,11 @@ namespace eg
         switch( pDimension->getType() )
         {
             case eConcreteDimensionUser:
-                generateDataMemberType( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ) );
+                generateDimensionType( os, dynamic_cast< const concrete::Dimension_User* >( pDimension ) );
                 break;
     
             case eConcreteDimensionGenerated:
-                generateDataMemberType( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) );
+                generateDimensionType( os, dynamic_cast< const concrete::Dimension_Generated* >( pDimension ) );
                 break;
             default:
                 THROW_RTE( "Invalid dimension type" );

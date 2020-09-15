@@ -109,6 +109,8 @@ public:
     boost::filesystem::path getInterfaceHeader() const;
     boost::filesystem::path getInterfacePCH() const;
     
+    boost::filesystem::path getGenericsHeader() const;
+    boost::filesystem::path getGenericsPCH() const;
     boost::filesystem::path getOperationsHeader( const std::string& strTUName ) const;
     boost::filesystem::path getTUDBName( const std::string& strTUName ) const;
     boost::filesystem::path getOperationsPCH( const std::string& strTUName ) const;

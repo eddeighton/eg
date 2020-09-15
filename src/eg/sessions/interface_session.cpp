@@ -461,6 +461,7 @@ namespace eg
                 concrete::Dimension_Generated* pLinkDimension = construct< concrete::Dimension_Generated >();
                 pLinkDimension->m_type        = concrete::Dimension_Generated::eLinkReference;
                 pLinkDimension->m_pLinkGroup  = pLinkGroup;
+                pLinkDimension->m_pParent     = pTarget;
                 pTarget->m_links.insert( std::make_pair( pLinkGroup->getLinkName(), pLinkDimension ) );
                 pTarget->m_children.push_back( pLinkDimension );
                 pLinkGroup->m_dimensionMap.insert( std::make_pair( pTarget, pLinkDimension ) );

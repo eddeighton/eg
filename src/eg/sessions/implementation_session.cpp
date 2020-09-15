@@ -19,6 +19,7 @@
 
 
 #include "eg_compiler/sessions/implementation_session.hpp"
+#include "eg_compiler/codegen/codegen.hpp"
 
 namespace eg
 {
@@ -58,39 +59,6 @@ namespace eg
     {
         invocations = many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
     }
-        
-    std::string generateName( char prefix, const std::vector< const concrete::Element* >& path )
-    {
-        std::ostringstream os;
-        os << prefix;
-        const concrete::Element* pIterLast = nullptr;
-        for( const concrete::Element* pIter : path )
-        {
-            if( pIter->getParent() )
-                os << "_" << pIter->getAbstractElement()->getIdentifier();
-            pIterLast = pIter;
-        }
-        VERIFY_RTE( pIterLast );
-        //os << "_" << pIterLast->getIndex();
-        return os.str();
-    }
-
-    std::string generateName( char prefix, const concrete::Element* pElement, const concrete::Element* pFrom )
-    {
-        std::ostringstream os;
-        os << prefix;
-        std::vector< const concrete::Element* > path = concrete::getPath( pElement, pFrom );
-        const concrete::Element* pIterLast = nullptr;
-        for( const concrete::Element* pIter : path )
-        {
-            os << "_" << pIter->getAbstractElement()->getIdentifier();
-            pIterLast = pIter;
-        }
-        VERIFY_RTE( pIterLast );
-        //os << "_" << pIterLast->getIndex();
-        return os.str();
-    }
-     
         
     void ImplementationSession::recurseInstances( std::vector< Buffer* >& buffers, 
             Layout::DimensionMap& dimensionMap, std::size_t szSize, const concrete::Action* pAction )
