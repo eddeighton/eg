@@ -11,7 +11,7 @@ include( ${EG_ROOT_DIR}/cmake/schema/schema_include.cmake )
 include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 
 #get clang
-include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
+#include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 
 #get indicators
 include( ${EG_ROOT_DIR}/cmake/indicators_include.cmake )
@@ -46,7 +46,7 @@ link_boost( eg timer )
 link_boost( eg filesystem )
 link_boost( eg iostreams )
 link_boost( eg serialization )
-link_clang( eg )
+#link_clang( eg )
 link_indicators( eg )
 link_common( eg )
 link_eg( eg )

@@ -54,24 +54,11 @@ namespace eg
         class Root;
     }
 	
-	class ParserDiagnosticSystem
-	{
-	public:
-		ParserDiagnosticSystem( const boost::filesystem::path& currentPath, std::ostream& os );
-		
-		class Pimpl;
-		std::shared_ptr< Pimpl > m_pImpl;
-	};
-	
-	
-	
-	
-	
-        
     class ParserSession : public CreatingSession
     {
     public:
-        ParserSession();
+        ParserSession( const boost::filesystem::path& parserDLLPath, 
+            const boost::filesystem::path& currentPath, std::ostream& os );
 		
 		struct SourceCodeTree
 		{
@@ -83,11 +70,9 @@ namespace eg
 			FileMap files;
 		};
 		
-        void parse( const SourceCodeTree& egSourceCodeFiles, 
-			ParserDiagnosticSystem& diagnosticSystem );
+        void parse( const SourceCodeTree& egSourceCodeFiles );
         
-        void parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles, 
-			ParserDiagnosticSystem& diagnosticSystem );
+        void parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles );
 			
         void buildAbstractTree();
         
@@ -102,18 +87,26 @@ namespace eg
 			const SourceCodeTree::ProjectNameFolder& projectNameFolder,
 			std::map< boost::filesystem::path, input::Root* >& rootTree );
 			
-		void handleInputIncludes( std::set< boost::filesystem::path >& includePaths, 
-			ParserDiagnosticSystem& diagnosticSystem );
+		void handleInputIncludes( std::set< boost::filesystem::path >& includePaths );
 	
         using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
         void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, 
 			std::optional< boost::filesystem::path > , bool bInIncludeTree, VisibilityType visibility );
+            
+            
+        void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
+                    ParserSession& session, input::Root* pRoot );
+    private:
+        const boost::filesystem::path m_parserDllPath;
+        const boost::filesystem::path m_currentPath;
+        std::ostream& m_errorOS;
     };
     
     class IncrementalParserSession : public ParserSession
     {
     public:
-        IncrementalParserSession( const boost::filesystem::path& treePath );
+        IncrementalParserSession( const boost::filesystem::path& parserDLLPath, 
+            const boost::filesystem::path& currentPath, std::ostream& os, const boost::filesystem::path& treePath );
                 
         bool update( const ParserSession& parse );
     };

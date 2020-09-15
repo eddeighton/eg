@@ -5,7 +5,7 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
 
 #get clang
-include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
+#include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 
 #get common
 include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
@@ -128,7 +128,7 @@ set_target_properties( eglib PROPERTIES DEBUG_POSTFIX d )
 link_boost( eglib filesystem )
 link_boost( eglib iostreams )
 link_boost( eglib serialization )
-link_clang( eglib )
+#link_clang( eglib )
 link_common( eglib )
 
 install( FILES ${EG_LIBRARY} DESTINATION include/eg )

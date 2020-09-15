@@ -60,6 +60,7 @@ public:
     void startDriverCommand( std::ostream& os ) const;
     const boost::filesystem::path& getEGLibraryInclude() const;
     const boost::filesystem::path& getClangPluginDll() const;
+    const boost::filesystem::path& getParserDll() const;
     
     std::string expand( const std::string& strPath ) const;
     

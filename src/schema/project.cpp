@@ -270,6 +270,20 @@ const boost::filesystem::path& Environment::getClangPluginDll() const
     return EG_CLANG_PLUGIN;
 }
 
+const boost::filesystem::path& Environment::getParserDll() const
+{
+    static boost::filesystem::path PARSER_PLUGIN;
+    if( PARSER_PLUGIN.empty() )
+    {
+#ifdef _DEBUG
+        PARSER_PLUGIN = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg_parserd.dll";
+#else
+        PARSER_PLUGIN = boost::filesystem::path( get( ENV_KEY_EG_INSTALLATION ) ) / "bin/eg_parser.dll";
+#endif
+    }
+    return PARSER_PLUGIN;
+}
+
 const boost::filesystem::path& Environment::getEGLibraryInclude() const
 {
     static boost::filesystem::path EG_LIBRARY;

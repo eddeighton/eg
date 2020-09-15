@@ -26,20 +26,8 @@
 #include "eg_compiler/sessions/implementation_session.hpp"
 #include "eg_compiler/codegen/codegen.hpp"
 
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
-
-#include "clang/Basic/FileSystemOptions.h"
-#include "clang/Basic/FileManager.h"
-#include "clang/Basic/DiagnosticIDs.h"
-#include "clang/Basic/DiagnosticOptions.h"
-#include "clang/Basic/Diagnostic.h"
-
-#pragma warning( pop ) 
-
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
-
 
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -59,31 +47,12 @@
 #include <bitset>
 
 
-class EGDiagConsumer : public clang::DiagnosticConsumer 
-{
-    virtual void anchor()
-    {
-    }
-
-    void HandleDiagnostic( clang::DiagnosticsEngine::Level DiagLevel,
-                        const clang::Diagnostic &Info) override 
-    {
-        llvm::SmallString< 100 > msg;
-        Info.FormatDiagnostic( msg );
-        std::string str = msg.str();
-        std::cout << str << std::endl;
-    }
-};
-
 extern void command_create( bool bHelp, const std::vector< std::string >& args );
 extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
 extern void command_run( bool bHelp, const std::string& strRunCommand, const std::vector< std::string >& args );
 extern void command_log( bool bHelp, const std::vector< std::string >& args );
 extern void command_clean( bool bHelp, const std::vector< std::string >& args );
 extern void command_info( bool bHelp, const std::vector< std::string >& args );
-
-//extern void command_cmake( bool bHelp, const std::vector< std::string >& args );
-//extern void command_debug( bool bHelp, const std::vector< std::string >& args );
 
 enum MainCommand
 {

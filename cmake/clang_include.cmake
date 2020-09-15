@@ -19,17 +19,17 @@ set(LLVM_LINK_COMPONENTS support)
 
 function( link_clang targetname )
 
-	target_compile_definitions( ${targetname} PUBLIC ${LLVM_DEFINITIONS} )
-	target_compile_definitions( ${targetname} PUBLIC ${CLANG_DEFINITIONS} )
+	target_compile_definitions( ${targetname} PRIVATE ${LLVM_DEFINITIONS} )
+	target_compile_definitions( ${targetname} PRIVATE ${CLANG_DEFINITIONS} )
 	
-	target_include_directories( ${targetname} PUBLIC ${LLVM_INCLUDE_DIRS} )
-	target_include_directories( ${targetname} PUBLIC ${CLANG_INCLUDE_DIRS} )
+	target_include_directories( ${targetname} PRIVATE ${LLVM_INCLUDE_DIRS} )
+	target_include_directories( ${targetname} PRIVATE ${CLANG_INCLUDE_DIRS} )
 	
-	target_link_directories( ${targetname} PUBLIC ${LLVM_LIB_DIR} )
-	target_link_directories( ${targetname} PUBLIC ${CLANG_LIB_DIR} )
+	target_link_directories( ${targetname} PRIVATE ${LLVM_LIB_DIR} )
+	target_link_directories( ${targetname} PRIVATE ${CLANG_LIB_DIR} )
 
-    target_link_libraries( ${targetname} PUBLIC ${llvm_libs} )
-	target_link_libraries( ${targetname} PUBLIC clangTooling clangEG )
+    target_link_libraries( ${targetname} PRIVATE ${llvm_libs} )
+	target_link_libraries( ${targetname} PRIVATE clangTooling clangEG )
 	
 endfunction( link_clang )
 

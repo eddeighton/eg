@@ -132,8 +132,6 @@ void build_parser_session( const Environment& environment, const Project& projec
 	
     const std::vector< boost::filesystem::path > egSourceCode = project.getEGSourceCode();
     
-	eg::ParserDiagnosticSystem diagnosticSystem( boost::filesystem::current_path().string(), std::cout );
-	
     std::unique_ptr< eg::ParserSession > pParserSession;
     
     bool bParserDBChanged = true;
@@ -147,11 +145,14 @@ void build_parser_session( const Environment& environment, const Project& projec
         {
             //actually load the interface database here NOT the parser database
             pOldParserSession = 
-                std::make_unique< eg::IncrementalParserSession >( project.getInterfaceDBFileName() );
+                std::make_unique< eg::IncrementalParserSession >( 
+                    environment.getParserDll(), boost::filesystem::current_path().string(), 
+                    std::cout, project.getInterfaceDBFileName() );
         }
         
-        pParserSession = std::make_unique< eg::ParserSession >();
-        pParserSession->parse( egSourceCode, diagnosticSystem );
+        pParserSession = std::make_unique< eg::ParserSession >( 
+            environment.getParserDll(), boost::filesystem::current_path().string(), std::cout );
+        pParserSession->parse( egSourceCode );
         
         //build the eg master tree
         pParserSession->buildAbstractTree();
