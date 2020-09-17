@@ -101,11 +101,11 @@ namespace eg
 		
 		const CoordinatorHostnameDefinitionFile& getCoordinatorHostnameDefinitionFile() const
 		{
-			return m_coordinatorHostnameDefinitionFile;
+			return m_chd;
 		}
 		
     protected:
-		CoordinatorHostnameDefinitionFile m_coordinatorHostnameDefinitionFile;
+		CoordinatorHostnameDefinitionFile m_chd;
         std::string m_strName;
         IndexedObject::FileID m_databaseFileID;
         ActionSet m_actions;
@@ -132,7 +132,8 @@ namespace eg
 			}
         }
         
-        
+        const CoordinatorHostnameDefinitionFile& getCHD() const { return m_chd; }
+        std::optional< boost::filesystem::path > getDefinitionFile() const { return m_chd.definitionFile; }
         const std::string& getName() const { return m_strName; }
         IndexedObject::FileID getDatabaseFileID() const { return m_databaseFileID; }
         const ActionSet& getActions() const { return m_actions; }
@@ -172,6 +173,7 @@ namespace eg
         ActionTUMap m_actionTUMap;
     public:
 		const TranslationUnit* getActionTU( const interface::Context* pAction ) const;
+		const TranslationUnit* getTU( const boost::filesystem::path& sourceFile ) const;
 		
         const TranslationUnits& getTranslationUnits() const { return m_translationUnits; }
     public:

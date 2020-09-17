@@ -34,19 +34,6 @@
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
-/*
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
-
-#include "clang/Basic/FileSystemOptions.h"
-#include "clang/Basic/FileManager.h"
-#include "clang/Basic/DiagnosticIDs.h"
-#include "clang/Basic/DiagnosticOptions.h"
-#include "clang/Basic/Diagnostic.h"
-
-#pragma warning( pop ) 
-*/
-
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/timer/timer.hpp>

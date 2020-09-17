@@ -544,12 +544,9 @@ namespace eg
                 iEnd = translationUnitMap.end(); i!=iEnd; ++i )
         {
             TranslationUnit* pTranslationUnit   = construct< TranslationUnit >();
-            pTranslationUnit->m_coordinatorHostnameDefinitionFile   = i->first;
-            pTranslationUnit->m_actions                             = i->second;
-            pTranslationUnit->m_strName                             = 
-                TranslationUnit::TUNameFromEGSource( 
-                    rootFolder,
-                    pTranslationUnit->m_coordinatorHostnameDefinitionFile );
+            pTranslationUnit->m_chd             = i->first;
+            pTranslationUnit->m_actions         = i->second;
+            pTranslationUnit->m_strName         = TranslationUnit::TUNameFromEGSource( rootFolder, pTranslationUnit->m_chd );
                     
             //std::cout << "intermediate: " << rootFolder.string() << 
             //  " definition file: " << ( i->first.definitionFile ? i->first.definitionFile.value() : "none" ) << 

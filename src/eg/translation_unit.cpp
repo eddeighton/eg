@@ -27,9 +27,9 @@ namespace eg
     /////////////////////////////////////////////////////////////////////////////////////
     void TranslationUnit::load( Loader& loader )
     {
-        m_coordinatorHostnameDefinitionFile.pCoordinator = loader.loadObjectRef< interface::Root >();
-        m_coordinatorHostnameDefinitionFile.pHostName = loader.loadObjectRef< interface::Root >();
-        loader.loadOptional( m_coordinatorHostnameDefinitionFile.definitionFile );
+        m_chd.pCoordinator = loader.loadObjectRef< interface::Root >();
+        m_chd.pHostName = loader.loadObjectRef< interface::Root >();
+        loader.loadOptional( m_chd.definitionFile );
         loader.load( m_strName );
         loader.load( m_databaseFileID );
         loader.loadObjectSet( m_actions );
@@ -37,9 +37,9 @@ namespace eg
     
     void TranslationUnit::store( Storer& storer ) const
     {
-        storer.storeObjectRef( m_coordinatorHostnameDefinitionFile.pCoordinator );
-        storer.storeObjectRef( m_coordinatorHostnameDefinitionFile.pHostName );
-        storer.storeOptional( m_coordinatorHostnameDefinitionFile.definitionFile );
+        storer.storeObjectRef( m_chd.pCoordinator );
+        storer.storeObjectRef( m_chd.pHostName );
+        storer.storeOptional( m_chd.definitionFile );
         storer.store( m_strName );
         storer.store( m_databaseFileID );
         storer.storeObjectSet( m_actions );
@@ -64,5 +64,21 @@ namespace eg
 			return iFind->second;
 		return nullptr;
 	}
+    
+    const TranslationUnit* TranslationUnitAnalysis::getTU( const boost::filesystem::path& sourceFile ) const
+    {
+        for( const TranslationUnit* pTranslationUnit : m_translationUnits )
+        {
+            std::optional< boost::filesystem::path > optFile = pTranslationUnit->getDefinitionFile();
+            if( optFile )
+            {
+                if( optFile.value() == sourceFile )
+                {
+                    return pTranslationUnit;
+                }
+            }
+        }
+        return nullptr;
+    }
 
 } //namespace eg
