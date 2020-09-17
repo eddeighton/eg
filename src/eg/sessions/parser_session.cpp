@@ -20,29 +20,29 @@
 
 
 #include "eg_compiler/sessions/parser_session.hpp"
+#include "parser/parser.hpp"
 
 #include "eg_compiler/eg.hpp"
 #include "eg_compiler/input.hpp"
 #include "eg_compiler/interface.hpp"
 #include "eg_compiler/identifiers.hpp"
 
-#include "parser/parser.hpp"
-
 #include <boost/dll/import.hpp>
 #include <boost/algorithm/string.hpp>
 
 namespace eg
 {
-	
-
-    ParserSession::ParserSession( const boost::filesystem::path& parserDLLPath, 
-                const boost::filesystem::path& currentPath, std::ostream& os )
+    ParserSession::ParserSession( EG_PARSER_CALLBACK* pParserCallback,
+                const boost::filesystem::path& parserDLLPath, 
+                const boost::filesystem::path& currentPath, 
+                std::ostream& os )
         :   CreatingSession( IndexedFile::FileIDtoPathMap{}, IndexedObject::MASTER_FILE ),
+            m_pParserCallback( pParserCallback ),
             m_parserDllPath( parserDLLPath ),
             m_currentPath( currentPath ),
             m_errorOS( os )
     {
-        
+        VERIFY_RTE( m_pParserCallback );
     }
     
     void ParserSession::parseEGSourceFile( const boost::filesystem::path& egSourceFile,
@@ -59,7 +59,7 @@ namespace eg
         
         VERIFY_RTE_MSG( pParserInterface, "Failed to locate eg parser at: " << m_parserDllPath.string() );
             
-        pParserInterface->parseEGSourceFile( egSourceFile, m_currentPath, m_errorOS, session, pRoot );
+        pParserInterface->parseEGSourceFile( m_pParserCallback, egSourceFile, m_currentPath, m_errorOS, session, pRoot );
     }
 	
 	input::Root* ParserSession::getMegaRoot( 
@@ -409,7 +409,7 @@ namespace eg
         pIdentifiers->populate( getMaster() );
     }
     
-    
+    /*
     IncrementalParserSession::IncrementalParserSession( const boost::filesystem::path& parserDLLPath, 
                 const boost::filesystem::path& currentPath, std::ostream& os, const boost::filesystem::path& treePath )
         :   ParserSession( parserDLLPath, currentPath, os )
@@ -430,6 +430,6 @@ namespace eg
     {
         interface::Root* pOldRoot = eg::root< eg::interface::Root >( getMaster() );
         return true;//pOldRoot->update( parse.getTreeRoot() );
-    }
+    }*/
     
 } //namespace eg

@@ -53,12 +53,16 @@ namespace eg
         class Element;
         class Root;
     }
+    
+    class EG_PARSER_CALLBACK;
 	
     class ParserSession : public CreatingSession
     {
     public:
-        ParserSession( const boost::filesystem::path& parserDLLPath, 
-            const boost::filesystem::path& currentPath, std::ostream& os );
+        ParserSession(  EG_PARSER_CALLBACK* pParserCallback,
+                        const boost::filesystem::path& parserDLLPath, 
+                        const boost::filesystem::path& currentPath, 
+                        std::ostream& os );
 		
 		struct SourceCodeTree
 		{
@@ -97,11 +101,12 @@ namespace eg
         void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
                     ParserSession& session, input::Root* pRoot );
     private:
+        EG_PARSER_CALLBACK* m_pParserCallback;
         const boost::filesystem::path m_parserDllPath;
         const boost::filesystem::path m_currentPath;
         std::ostream& m_errorOS;
     };
-    
+    /*
     class IncrementalParserSession : public ParserSession
     {
     public:
@@ -109,7 +114,7 @@ namespace eg
             const boost::filesystem::path& currentPath, std::ostream& os, const boost::filesystem::path& treePath );
                 
         bool update( const ParserSession& parse );
-    };
+    };*/
 
 }
 

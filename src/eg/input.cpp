@@ -73,15 +73,13 @@ namespace input
         storer.storeObjectRef( m_pParams );
     }
     
-    void HasBody::load( Loader& loader )
+    void HasDefinition::load( Loader& loader )
     {
-        m_pBody = loader.loadObjectRef< Opaque >();
         loader.loadOptional( m_definitionFile );
     }
     
-    void HasBody::store( Storer& storer ) const
+    void HasDefinition::store( Storer& storer ) const
     {
-        storer.storeObjectRef( m_pBody );
         storer.storeOptional( m_definitionFile );
     }
     
@@ -152,7 +150,6 @@ namespace input
     {
 
     }
-
     
     Opaque::Opaque( const IndexedObject& object )
         :   Element( object ),
@@ -286,8 +283,7 @@ namespace input
     Export::Export( const IndexedObject& object )
         :   Element( object ),
             m_pReturnType( nullptr ),
-            m_pParameters( nullptr ),
-            m_pBody( nullptr )
+            m_pParameters( nullptr )
     {
 
     }
@@ -297,7 +293,6 @@ namespace input
         HasIdentifier::load( loader );
         m_pReturnType = loader.loadObjectRef< Opaque >();
         m_pParameters = loader.loadObjectRef< Opaque >();
-        m_pBody = loader.loadObjectRef< Opaque >();
     }
 
     void Export::store( Storer& storer ) const
@@ -305,18 +300,15 @@ namespace input
         HasIdentifier::store( storer );
         storer.storeObjectRef( m_pReturnType );
         storer.storeObjectRef( m_pParameters );
-        storer.storeObjectRef( m_pBody );
     }
     
     void Export::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
         VERIFY_RTE( m_pReturnType );
         VERIFY_RTE( m_pParameters );
-        VERIFY_RTE( m_pBody );
         
         os << strIndent << "export " << m_pReturnType->getStr() << " " << 
             m_strIdentifier << "( " << m_pParameters->getStr() << " )//" << strAnnotation << "\n";
-        os << "{ " << m_pBody->getStr() << " }\n";
     }
     
     
@@ -359,7 +351,7 @@ namespace input
         HasIdentifier::load( loader );
         HasChildren::load( loader );
         HasDomain::load( loader );
-        HasBody::load( loader );
+        HasDefinition::load( loader );
         HasParameters::load( loader );
         HasInheritance::load( loader );
         
@@ -372,7 +364,7 @@ namespace input
         HasIdentifier::store( storer );
         HasChildren::store( storer );
         HasDomain::store( storer );
-        HasBody::store( storer );
+        HasDefinition::store( storer );
         HasParameters::store( storer );
         HasInheritance::store( storer );
         

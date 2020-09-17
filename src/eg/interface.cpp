@@ -355,10 +355,6 @@ namespace interface
     {
         return m_pExport->getParameters()->getStr();
     }
-    const std::string& Export::getBody() const
-    {
-        return m_pExport->getBody()->getStr();
-    }
     
     Include::Include( const IndexedObject& indexedObject )
         :   Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )

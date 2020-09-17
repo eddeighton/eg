@@ -38,7 +38,7 @@
 
 namespace eg
 {
-	
+
 class ParserDiagnosticSystem
 {
 public:
@@ -261,13 +261,16 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         };
         AngleBracketTracker AngleBrackets;
 
+        EG_PARSER_CALLBACK* m_pCallback;
     public:
-        Parser( clang::Preprocessor& PP, 
+        Parser( EG_PARSER_CALLBACK* pCallback,
+                clang::Preprocessor& PP, 
                 clang::SourceManager& sourceManager,
                 clang::LangOptions& languageOptions,
                 clang::HeaderSearch& headerSearch,
                 llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > Diags )
-            :   PP( PP ),
+            :   m_pCallback( pCallback ),
+                PP( PP ),
                 sm( sourceManager ),
                 languageOptions( languageOptions ),
                 headerSearch( headerSearch ),
@@ -941,7 +944,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             }
         }
         
-        void parse_body( ParserSession& session, input::Opaque*& pBody )
+        void parse_body( ParserSession& session, std::string& strBody )
         {
             if( Tok.is( clang::tok::l_brace ) )
             {
@@ -960,8 +963,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                     ConsumeAnyToken();
                 }
                 
-                pBody = session.construct< input::Opaque >();
-                if( !getSourceText( startLoc, endLoc, pBody->m_str ) )
+                if( !getSourceText( startLoc, endLoc, strBody ) )
                 {
                     EG_PARSER_ERROR( "Error parsing body" );
                 }
@@ -1144,12 +1146,15 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
             parse_comment();
             
             //now get the body
-            parse_body( session, pExport->m_pBody );
+            std::string strBody;
+            parse_body( session, strBody );
             
-            if( !pExport->m_pBody )
+            if( strBody.empty() )
             {
                 EG_PARSER_ERROR( "Expected body for export" );
             }
+            
+            m_pCallback->exportBody( pExport, strBody.c_str() );
         }
         
         input::Context* constructContext( ParserSession& session, input::Context* pParentAction )
@@ -1440,15 +1445,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                         
                         if( !strBodyPart.empty() && bActionDefinition )
                         {
-                            if( !pContext->m_pBody )
-                            {
-                                pContext->m_pBody = session.construct< input::Opaque >();
-                                pContext->m_elements.push_back( pContext->m_pBody );
-                            }
-                            
-                            std::ostringstream os;
-                            os << pContext->m_pBody->m_str << "\n" << strBodyPart;
-                            pContext->m_pBody->m_str = os.str();
+                            m_pCallback->contextBody( pContext, strBodyPart.c_str() );
                         }
                     }
                 }
@@ -1579,7 +1576,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     };
     
 
-    void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
+    void parseEGSourceFile( EG_PARSER_CALLBACK* pCallback,
+                const boost::filesystem::path& egSourceFile,
 				ParserDiagnosticSystem& diagnosticSystem,
                 ParserSession& session, input::Root* pRoot )
     {
@@ -1597,7 +1595,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         
         Stuff stuff( pFileManager, pDiagnosticsEngine, egSourceFile );
 
-        Parser parser( *stuff.pPreprocessor, 
+        Parser parser( pCallback,
+            *stuff.pPreprocessor, 
             *stuff.pSourceManager, 
             stuff.languageOptions, 
             *stuff.pHeaderSearch,
@@ -1609,13 +1608,14 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
     
     struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
     {
-        virtual void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
+        virtual void parseEGSourceFile( EG_PARSER_CALLBACK* pCallback,
+                    const boost::filesystem::path& egSourceFile,
                     const boost::filesystem::path& cwdPath, std::ostream& osError,
                     ParserSession& session, input::Root* pRoot )
         {
+            VERIFY_RTE_MSG( pCallback, "Invalid parser callback" );
             ParserDiagnosticSystem pds( cwdPath, osError );
-            
-            ::eg::parseEGSourceFile( egSourceFile, pds, session, pRoot );
+            ::eg::parseEGSourceFile( pCallback, egSourceFile, pds, session, pRoot );
         }
     };
     

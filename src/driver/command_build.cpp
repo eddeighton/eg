@@ -31,6 +31,8 @@
 #include "eg_compiler/codegen/codegen.hpp"
 #include "eg_compiler/codegen/instructionCodeGenerator.hpp"
 
+#include "parser/parser.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
@@ -112,11 +114,36 @@ private:
     FileTimeMap m_fileTimes;
 };
 
+struct ParserCallbackImpl : eg::EG_PARSER_CALLBACK, eg::FunctionBodyGenerator
+{
+    using FunctionMap = std::map< eg::IndexedObject::Index, std::ostringstream >;
+    FunctionMap m_contextMap, m_exportMap;
+    
+    //eg::EG_PARSER_CALLBACK
+    virtual void contextBody( const eg::input::Context* pContext, const char* pszBodyText )
+    {
+        m_contextMap[ pContext->getIndex() ] << pszBodyText;
+    }
+    virtual void exportBody( const eg::input::Export* pExport, const char* pszBodyText )
+    {
+        m_exportMap[ pExport->getIndex() ] << pszBodyText;
+    }
+    
+    //eg::FunctionBodyGenerator
+    virtual void printFunctionBody( const eg::input::Context* pContext, std::ostream& os )
+    {
+        os << m_contextMap[ pContext->getIndex() ].str();
+    }
+    virtual void printExportBody( const eg::input::Export* pExport, std::ostream& os )
+    {
+        os << m_exportMap[ pExport->getIndex() ].str();
+    }
+};
+ParserCallbackImpl m_functionBodyHandler;
 
 void build_parser_session( const Environment& environment, const Project& project, FileWriteTracker& fileTracker, 
     bool bBenchCommands, bool bLogCommands, bool bNoReUsePCH )
 {
-	
     const std::vector< boost::filesystem::path > egSourceCode = project.getEGSourceCode();
     
     std::unique_ptr< eg::ParserSession > pParserSession;
@@ -124,41 +151,17 @@ void build_parser_session( const Environment& environment, const Project& projec
     bool bParserDBChanged = true;
     {
         LogEntry log( std::cout, "Parsing EG source code", bBenchCommands );
-        
-        //is there an old parser database
-        
-        std::unique_ptr< eg::IncrementalParserSession > pOldParserSession;
-        if( boost::filesystem::exists( project.getParserDBFileName() ) )
-        {
-            //actually load the interface database here NOT the parser database
-            pOldParserSession = 
-                std::make_unique< eg::IncrementalParserSession >( 
-                    environment.getParserDll(), boost::filesystem::current_path().string(), 
-                    std::cout, project.getInterfaceDBFileName() );
-        }
-        
-        pParserSession = std::make_unique< eg::ParserSession >( 
+                
+        pParserSession = std::make_unique< eg::ParserSession >( &m_functionBodyHandler,
             environment.getParserDll(), boost::filesystem::current_path().string(), std::cout );
+            
         pParserSession->parse( egSourceCode );
         
         //build the eg master tree
         pParserSession->buildAbstractTree();
-        if( pOldParserSession && !pOldParserSession->update( *pParserSession ) )
-        {
-            std::cout << "Reusing old parser database" << std::endl;
-            
-            //rewrite the interface database where only the opaques have changed
-            pOldParserSession->store( project.getInterfaceDBFileName() );
-            
-            pParserSession.reset( pOldParserSession.get() );
-            pOldParserSession.release();
-            bParserDBChanged = false;
-        }
-        else
-        {
-            //save the tree 
-            pParserSession->store( project.getParserDBFileName() );
-        }
+        
+        //save the tree 
+        pParserSession->store( project.getParserDBFileName() );
     }
     
     bool bReUsePCH = false;
@@ -392,7 +395,7 @@ void build_operations( eg::InterfaceSession& session, const Environment& environ
             LogEntry log( std::cout, "Generating operations: " + strTUName, bBenchCommands );
             std::ostringstream osOperations;
             eg::generateIncludeGuard( osOperations, "OPERATIONS" );
-            eg::generateOperationSource( osOperations, session.getTreeRoot(), *pTranslationUnit );
+            eg::generateOperationSource( osOperations, session.getTreeRoot(), *pTranslationUnit, m_functionBodyHandler );
             osOperations << "\n" << eg::pszLine << eg::pszLine;
             osOperations << "#endif\n";
             boost::filesystem::updateFileIfChanged( project.getOperationsHeader( strTUName ), osOperations.str() );
@@ -782,6 +785,7 @@ void link_program( const Environment& environment, const Project& project,
     }
     
 }
+
 
 
 void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args )

@@ -259,7 +259,6 @@ namespace interface
     public:
         const std::string& getReturnType() const;
         const std::string& getParameters() const;
-        const std::string& getBody() const;
     private:
         input::Export* m_pExport = nullptr;
     };

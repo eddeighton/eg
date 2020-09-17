@@ -16,11 +16,22 @@
 //EG Database Interface
 namespace eg
 {
-    struct EG_PARSER_INTERFACE
+    namespace input
     {
-        virtual ~EG_PARSER_INTERFACE(){};
-        
-        virtual void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
+        class Context;
+        class Export;
+    }
+    
+    struct EG_PARSER_CALLBACK
+    {
+        virtual void contextBody( const eg::input::Context* pContext, const char* pszBodyText ) = 0;
+        virtual void exportBody( const eg::input::Export* pExport, const char* pszBodyText ) = 0;
+    };
+    
+    struct EGDB_EXPORT EG_PARSER_INTERFACE
+    {
+        virtual void parseEGSourceFile( EG_PARSER_CALLBACK* pCallback,
+                    const boost::filesystem::path& egSourceFile,
                     const boost::filesystem::path& cwdPath, std::ostream& osError,
                     ParserSession& session, input::Root* pRoot ) = 0;
     };

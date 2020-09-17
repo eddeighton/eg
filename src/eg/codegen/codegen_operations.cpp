@@ -41,11 +41,15 @@ namespace eg
     {
         std::ostream& os;
         const eg::TranslationUnit& m_translationUnit;
+        FunctionBodyGenerator& m_functionBodyGenerator;
         std::string strIndent;
 
-        ExportSourceVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit )
+        ExportSourceVisitor( std::ostream& os, 
+                    const eg::TranslationUnit& translationUnit,
+                    FunctionBodyGenerator& functionBodyGenerator  )
             :   os( os ),
-                m_translationUnit( translationUnit )
+                m_translationUnit( translationUnit ),
+                m_functionBodyGenerator( functionBodyGenerator )
         {
         }
 
@@ -126,7 +130,8 @@ namespace eg
 
                 //generate the function body
                 os << strIndent << "{\n";
-                os << strIndent << "  " << pExport->getBody() << "\n";
+                m_functionBodyGenerator.printExportBody( 
+                    dynamic_cast< const input::Export* >( pExport->getInputElement() ), os );
                 os << strIndent << "}\n";
             }
         }
@@ -160,11 +165,15 @@ namespace eg
     {
         std::ostream& os;
         const eg::TranslationUnit& m_translationUnit;
+        FunctionBodyGenerator& m_functionBodyGenerator;
         std::string strIndent;
 
-        OperationsSourceVisitor( std::ostream& os, const eg::TranslationUnit& translationUnit )
+        OperationsSourceVisitor( std::ostream& os, 
+                    const eg::TranslationUnit& translationUnit, 
+                    FunctionBodyGenerator& functionBodyGenerator )
             :   os( os ),
-                m_translationUnit( translationUnit )
+                m_translationUnit( translationUnit ),
+                m_functionBodyGenerator( functionBodyGenerator )
         {
         }
 
@@ -258,18 +267,7 @@ namespace eg
                     
                     //generate the function body
                     os << strIndent << "{\n";
-                    strIndent.push_back( ' ' );
-                    strIndent.push_back( ' ' );
-                    for( const interface::Element* pChild : pNode->getChildren() )
-                    {
-                        if( const input::Opaque* pOpaque =
-                                dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
-                        {
-                            os << strIndent << pOpaque->getStr() << "\n";
-                        }
-                    }
-                    strIndent.pop_back();
-                    strIndent.pop_back();
+                    m_functionBodyGenerator.printFunctionBody( pElement, os );
                     os << strIndent << "}\n";
                 }
                 else if( const interface::Action* pContext = dynamic_cast< const interface::Action* >( pNode ) )
@@ -317,22 +315,8 @@ namespace eg
                     
                     //generate the function body
                     os << strIndent << "{\n";
-                    strIndent.push_back( ' ' );
-                    strIndent.push_back( ' ' );
-
-                    for( const interface::Element* pChild : pNode->getChildren() )
-                    {
-                        if( const input::Opaque* pOpaque =
-                                dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
-                        {
-                            os << strIndent << pOpaque->getStr() << "\n";
-                        }
-                    }
-                    
-                    os << strIndent << "co_return eg::done();\n";
-
-                    strIndent.pop_back();
-                    strIndent.pop_back();
+                    m_functionBodyGenerator.printFunctionBody( pElement, os );
+                    os << strIndent << "\n  co_return eg::done();\n";
                     os << strIndent << "}\n";
                 }
                 else if( const interface::Object* pContext = dynamic_cast< const interface::Object* >( pNode ) )
@@ -380,22 +364,8 @@ namespace eg
                     
                     //generate the function body
                     os << strIndent << "{\n";
-                    strIndent.push_back( ' ' );
-                    strIndent.push_back( ' ' );
-
-                    for( const interface::Element* pChild : pNode->getChildren() )
-                    {
-                        if( const input::Opaque* pOpaque =
-                                dynamic_cast< const input::Opaque* >( pChild->getInputElement() ) )
-                        {
-                            os << strIndent << pOpaque->getStr() << "\n";
-                        }
-                    }
-                    
-                    os << strIndent << "co_return eg::done();\n";
-
-                    strIndent.pop_back();
-                    strIndent.pop_back();
+                    m_functionBodyGenerator.printFunctionBody( pElement, os );
+                    os << strIndent << "\n  co_return eg::done();\n";
                     os << strIndent << "}\n";
                 }
                 else if( const interface::Link* pContext = dynamic_cast< const interface::Link* >( pNode ) )
@@ -438,17 +408,20 @@ namespace eg
         }
     };
 
-    void generateOperationSource( std::ostream& os, const interface::Root* pRoot, const eg::TranslationUnit& translationUnit )
+    void generateOperationSource( std::ostream& os, 
+        const interface::Root* pRoot, 
+        const eg::TranslationUnit& translationUnit,
+        FunctionBodyGenerator& functionBodyGenerator  )
     {
         //generate exports first
         {
-            ExportSourceVisitor visitor( os, translationUnit );
+            ExportSourceVisitor visitor( os, translationUnit, functionBodyGenerator );
             pRoot->pushpop( visitor );
         }
 
         //generate operations
         {
-            OperationsSourceVisitor visitor( os, translationUnit );
+            OperationsSourceVisitor visitor( os, translationUnit, functionBodyGenerator );
             pRoot->pushpop( visitor );
         }
     }

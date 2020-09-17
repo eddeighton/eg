@@ -136,17 +136,15 @@ namespace eg
             Opaque* m_pParams = nullptr;
         };
         
-        class HasBody
+        class HasDefinition
         {
         public:
-            const Opaque* getBody() const { return m_pBody; }
             std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
             
         protected:
             void load( Loader& loader );
             void store( Storer& storer ) const;
             
-            Opaque* m_pBody = nullptr;
             std::optional< boost::filesystem::path > m_definitionFile;
         };
         
@@ -276,22 +274,14 @@ namespace eg
         public:
             const Opaque* getReturnType() const { return m_pReturnType; }
             const Opaque* getParameters() const { return m_pParameters; }
-            const Opaque* getBody() const { return m_pBody; }
             
             virtual void load( Loader& loader );
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
-            /*bool equal( const Export& cmp ) const
-            {
-                return Opaque::equalNullablePtrs( m_pReturnType, cmp.m_pReturnType ) &&
-                        Opaque::equalNullablePtrs( m_pParameters, cmp.m_pParameters ) &&
-                        Opaque::equalNullablePtrs( m_pBody, cmp.m_pBody ) ;
-            }*/
         private:
             Opaque* m_pReturnType;
             Opaque* m_pParameters;
-            Opaque* m_pBody;
         };
 
         class Visibility : public Element, public HasVisibility
@@ -315,7 +305,7 @@ namespace eg
                             public HasIdentifier, 
                             public HasChildren, 
                             public HasDomain, 
-                            public HasBody, 
+                            public HasDefinition, 
                             public HasParameters, 
                             public HasInheritance
         {

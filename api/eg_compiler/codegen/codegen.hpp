@@ -90,10 +90,22 @@ namespace eg
         const interface::Root* pRoot, 
         const Identifiers* pIdentifiers );
 
+    namespace Input
+    {
+        class Context;
+        class Export;
+    }
+        
     class TranslationUnit;
+    struct FunctionBodyGenerator
+    {
+        virtual void printFunctionBody( const input::Context* pContext, std::ostream& os ) = 0;
+        virtual void printExportBody( const input::Export* pContext, std::ostream& os ) = 0;
+    };
     void generateOperationSource( std::ostream& os, 
         const interface::Root* pRoot, 
-        const TranslationUnit& translationUnit );
+        const TranslationUnit& translationUnit,
+        FunctionBodyGenerator& functionBodyGenerator );
     
     void generateBufferStructures( std::ostream& os, const ReadSession& program );
 

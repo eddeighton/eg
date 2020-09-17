@@ -20,6 +20,11 @@ A a1 = A();
 TEST( eg::count( A.Range() ) == 1 );
 TEST( eg::count( B.Range() ) == 0 );
 
+int aVariable1 = 123;
+int aVariable2 = 123;
+int aVariable3 = 123;
+int aVariable4 = 123;
+
 
 A a2 = A();
 
