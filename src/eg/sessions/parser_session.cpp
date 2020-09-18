@@ -409,27 +409,5 @@ namespace eg
         pIdentifiers->populate( getMaster() );
     }
     
-    /*
-    IncrementalParserSession::IncrementalParserSession( const boost::filesystem::path& parserDLLPath, 
-                const boost::filesystem::path& currentPath, std::ostream& os, const boost::filesystem::path& treePath )
-        :   ParserSession( parserDLLPath, currentPath, os )
-    {
-        VERIFY_RTE( m_fileID == IndexedObject::MASTER_FILE );
-        ObjectFactoryImpl objectFactory;
-        IndexedFile::load( objectFactory, m_fileMap, treePath, m_fileID );
-        
-        IndexedFile* pRootFile = m_fileMap[ m_fileID ];
-        VERIFY_RTE( pRootFile );
-        
-        m_newObjects.swap( pRootFile->getObjects() );
-        delete pRootFile;
-        m_fileMap.clear();
-    }
-
-    bool IncrementalParserSession::update( const ParserSession& parse )
-    {
-        interface::Root* pOldRoot = eg::root< eg::interface::Root >( getMaster() );
-        return true;//pOldRoot->update( parse.getTreeRoot() );
-    }*/
     
 } //namespace eg

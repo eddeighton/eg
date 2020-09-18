@@ -98,7 +98,14 @@ namespace eg
             std::multimap< std::string, const interface::Element* >::iterator 
                 iUpper = forwardDeclMap.upper_bound( i->first );
                 
-            std::set< const interface::Element* > elements;
+            struct CompareID
+            {
+                bool operator()( const interface::Element* pLeft, const interface::Element* pRight ) const
+                {
+                    return pLeft->getIndex() < pRight->getIndex();
+                }
+            };
+            std::set< const interface::Element*, CompareID > elements;
             const interface::Element* pFirst = nullptr;
             for( ; i!=iUpper; ++i )
             {

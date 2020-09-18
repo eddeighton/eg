@@ -106,15 +106,6 @@ namespace eg
         const boost::filesystem::path m_currentPath;
         std::ostream& m_errorOS;
     };
-    /*
-    class IncrementalParserSession : public ParserSession
-    {
-    public:
-        IncrementalParserSession( const boost::filesystem::path& parserDLLPath, 
-            const boost::filesystem::path& currentPath, std::ostream& os, const boost::filesystem::path& treePath );
-                
-        bool update( const ParserSession& parse );
-    };*/
 
 }
 
