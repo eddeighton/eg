@@ -37,7 +37,7 @@ struct DimensionTraits;
 template< std::size_t _Size >
 class Bitmask32Allocator
 {
-    friend class eg::DimensionTraits< eg::Bitmask32Allocator< _Size > >;
+    friend struct eg::DimensionTraits< eg::Bitmask32Allocator< _Size > >;
 public:
     static const std::size_t Size = _Size;
     
@@ -85,7 +85,7 @@ private:
 template< std::size_t _Size >
 class Bitmask64Allocator
 {
-    friend class eg::DimensionTraits< eg::Bitmask64Allocator< _Size > >;
+    friend struct eg::DimensionTraits< eg::Bitmask64Allocator< _Size > >;
 public:
     static const std::size_t Size = _Size;
     
@@ -144,7 +144,7 @@ private:
 template< std::size_t _Size >
 class RingAllocator
 {
-    friend class eg::DimensionTraits< eg::RingAllocator< _Size > >;
+    friend struct eg::DimensionTraits< eg::RingAllocator< _Size > >;
 public:
     static const std::size_t Size = _Size;
     
