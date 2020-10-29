@@ -40,6 +40,16 @@ namespace input
         storer.store( m_strIdentifier );
     }
     
+    void HasConst::load( Loader& loader )
+    {
+        loader.load( m_bIsConst );
+    }
+    
+    void HasConst::store( Storer& storer ) const
+    {
+        storer.store( m_bIsConst );
+    }
+    
     void HasChildren::load( Loader& loader )
     {
         loader.loadObjectVector( m_elements );
@@ -184,19 +194,24 @@ namespace input
     void Dimension::load( Loader& loader )
     {
         HasIdentifier::load( loader );
+        HasConst::load( loader );
         m_pType = loader.loadObjectRef< Opaque >();
     }
 
     void Dimension::store( Storer& storer ) const
     {
         HasIdentifier::store( storer );
+        HasConst::store( storer );
         storer.storeObjectRef( m_pType );
     }
     
     void Dimension::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
         VERIFY_RTE( m_pType );
-        os << strIndent << "dim " << m_pType->getStr() << " " << m_strIdentifier << ";//" << strAnnotation << "\n";
+        os << strIndent;
+        if( m_bIsConst )
+            os << "const ";
+        os << "dim " << m_pType->getStr() << " " << m_strIdentifier << ";//" << strAnnotation << "\n";
     }
     
     Include::Include( const IndexedObject& object )

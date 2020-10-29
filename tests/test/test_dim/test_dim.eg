@@ -1,0 +1,23 @@
+
+
+
+int localx;
+dim int x;
+const int localconstx = 0;
+const dim int xConst;
+std::vector< int > localxvector;
+dim std::vector< int > xvector;
+const std::vector< int > localxvectorconst;
+const dim std::vector< int > xvectorconst;
+
+action nested[ 4 ]
+{
+    int localx;
+    dim int x;
+    const int localconstx = 0;
+    const dim int xConst;
+    std::vector< int > localxvector;
+    dim std::vector< int > xvector;
+    const std::vector< int > localxvectorconst;
+    const dim std::vector< int > xvectorconst;
+}

@@ -208,8 +208,8 @@ namespace interface
         Dimension( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        //virtual bool update( const Element* pElement );
     public:
+        bool isConst() const;
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
         std::size_t getSize() const { VERIFY_RTE_MSG( m_size != SIZE_NOT_SET, "Size not calculated for: " << getType() ); return m_size; }
@@ -235,7 +235,6 @@ namespace interface
         Using( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        //virtual bool update( const Element* pElement );
     public:
         const std::string& getType() const;
         const std::string& getCanonicalType() const { return m_canonicalType; }
@@ -255,7 +254,6 @@ namespace interface
         Export( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        //virtual bool update( const Element* pElement );
     public:
         const std::string& getReturnType() const;
         const std::string& getParameters() const;
@@ -273,7 +271,6 @@ namespace interface
         Include( const IndexedObject& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
-        //virtual bool update( const Element* pElement );
     public:
     
     private:
@@ -434,8 +431,6 @@ namespace interface
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;
     public:
-        //virtual bool update( const Element* pElement );
-        
 		RootType getRootType() const { return m_rootType; }
 		
 		virtual bool isExecutable() const;

@@ -1011,7 +1011,6 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         
         
         //begin of actual parsing routines for eg grammar
-
         void parse_dimension( ParserSession& session, input::Dimension* pDimension )
         {
             //dim type identifier;
@@ -1365,10 +1364,18 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                             break;
                     }
                 }
-                else if( Tok.is( clang::tok::kw_dim ) )
+                else if(  ( Tok.is( clang::tok::kw_const ) && NextToken().is( clang::tok::kw_dim ) ) || 
+                            Tok.is( clang::tok::kw_dim ) )
                 {
+                    bool bIsConst = false;
+                    if( Tok.is( clang::tok::kw_const ) )
+                    {
+                        bIsConst = true;
+                        ConsumeToken();
+                    }
                     ConsumeToken();
                     input::Dimension* pDimension = session.construct< input::Dimension >();
+                    pDimension->m_bIsConst = bIsConst;
                     pContext->m_elements.push_back( pDimension );
                     parse_dimension( session, pDimension );
                 }
@@ -1412,21 +1419,25 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                     ConsumeAnyToken();
                     
                     while( !isEofOrEom() && 
-                            !Tok.isOneOf
-                            ( 
-                                clang::tok::kw_action, 
-                                clang::tok::kw_object, 
-                                clang::tok::kw_function,
-                                clang::tok::kw_event, 
-                                clang::tok::kw_abstract, 
-                                clang::tok::kw_dim, 
-                                clang::tok::kw_link, 
-                                clang::tok::kw_include,
-                                clang::tok::kw_using,
-                                clang::tok::kw_export,
-                                clang::tok::kw_public,
-                                clang::tok::kw_private
-                             ) && 
+                            (
+                                !( Tok.is( clang::tok::kw_const ) && NextToken().is( clang::tok::kw_dim ) ) &&
+                                !Tok.isOneOf
+                                ( 
+                                    clang::tok::kw_action, 
+                                    clang::tok::kw_object, 
+                                    clang::tok::kw_function,
+                                    clang::tok::kw_event, 
+                                    clang::tok::kw_abstract, 
+                                    clang::tok::kw_dim, 
+                                    clang::tok::kw_link, 
+                                    clang::tok::kw_include,
+                                    clang::tok::kw_using,
+                                    clang::tok::kw_export,
+                                    clang::tok::kw_public,
+                                    clang::tok::kw_private
+                                 ) 
+                             )
+                             && 
                         !( ( BraceCount == braceStack.back() ) && Tok.is( clang::tok::r_brace ) )
                         )
                     {

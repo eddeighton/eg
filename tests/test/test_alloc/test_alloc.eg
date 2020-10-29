@@ -1,56 +1,45 @@
 
 
-action A[ 4 ]( int iValue )
+action A[ 5 ]
 {
     dim int i;
-	TEST( i() == 0 ); //default initialisation
-    i( iValue );
 }
 
-//A a = A( 123 ); //sync call to A - A has stopped once it returns.
-//a.i() //reads i on reference
-
-dim int iState;
 dim A a;
 
-iState( iState() + 1 );
-
-switch( iState() )
+//create first A
 {
-	case 1:
-	{
-		a( A( 1 ) );
-		return eg::wait();
-	}
-		
-	case 2:
-	{
-		TEST( a.i() == 1 );
-		a( A( 2 ) );
-		return eg::wait();
-	}
-
-	case 3:
-	{
-		TEST( a.i() == 2 );
-		a( A( 3 ) );
-		return eg::wait();
-	}
-	
-	case 4:
-	{
-		TEST( a.i() == 3 );
-		a( A( 4 ) );
-		return eg::wait();
-	}
-
-	case 5:
-	{
-		TEST( a.i() == 4 );
-	}
-
+    A temp = A().i( 123 );
+    TEST( temp.i() == 123 );
+    a( temp );
 }
+
+{
+    TEST( a.i() == 123 );
+    a( A().i( 124 ) );
+    co_yield eg::wait();
+}
+
+{
+    TEST( a.i() == 124 );
+    a( A().i( 125 ) );
+    co_yield eg::wait();
+}
+
+{
+    TEST( a.i() == 125 );
+    a( A().i( 126 ) );
+    co_yield eg::wait();
+}
+
+{
+    TEST( a.i() == 126 );
+    a( A().i( 127 ) );
+    co_yield eg::wait();
+}
+
+TEST( a.i() == 127 );
 
 //attempting to allocate onces more within cycle should fail
 
-TEST( !A( 5 ) );
+TEST( !( A() == eg::Running ) );

@@ -98,6 +98,18 @@ namespace eg
             std::string m_strIdentifier;
         };
         
+        class HasConst
+        {
+        public:
+            bool isConst() const { return m_bIsConst; }
+            
+        protected:
+            void load( Loader& loader );
+            void store( Storer& storer ) const;
+            
+            bool m_bIsConst;
+        };
+        
         class HasChildren
         {
         public:
@@ -184,7 +196,7 @@ namespace eg
         //input tree
 
 
-        class Dimension : public Element, public HasIdentifier
+        class Dimension : public Element, public HasIdentifier, public HasConst
         {
             friend class ::eg::ObjectFactoryImpl;
             friend class ::eg::Parser;
@@ -200,11 +212,6 @@ namespace eg
             virtual void store( Storer& storer ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
             
-            /*bool equal( const Dimension& cmp ) const
-            {
-                return Opaque::equalNullablePtrs( m_pType, cmp.m_pType );
-            }*/
-                
         private:
             Opaque* m_pType;
         };

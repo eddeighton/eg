@@ -244,19 +244,10 @@ namespace interface
         storer.store( m_simple );
     }
     
-    /*bool Dimension::update( const Element* pElement )
+    bool Dimension::isConst() const
     {
-        if( const Dimension* pNewDimension = dynamic_cast< const Dimension* >( pElement ) )
-        {
-            //require the opaque is equal
-            if( m_pDimension->equal( *pNewDimension->m_pDimension ) )
-            {
-                return Element::update( pElement );
-            }
-        }
-        return true;
-    }*/
-    
+        return m_pDimension->isConst();
+    }
     const std::string& Dimension::getType() const
     {
         return m_pDimension->getType()->getStr();
