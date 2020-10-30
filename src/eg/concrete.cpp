@@ -172,8 +172,15 @@ namespace concrete
     {
         const interface::Context* pContext = getContext();
         VERIFY_RTE( pContext );
+        
         os << strIndent << pContext->getContextType() << 
-            "(" << getIndex() << ") " << pContext->getIdentifier() << "[ " << getTotalDomainSize() << " ]\n";
+            "(" << getIndex() << ") " << pContext->getIdentifier() << "[ " << getTotalDomainSize() << " ]";
+            
+        if( const interface::Root* pIsRoot = dynamic_cast< const interface::Root* >( getContext() ) )
+        {
+            os << " " << pIsRoot->getRootType();
+        }
+        os << "\n";
         
         if( !m_children.empty() )
         {
