@@ -1160,6 +1160,7 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
         {
             input::Context* pNewAction = session.construct< input::Context >();
             pParentAction->m_elements.push_back( pNewAction );
+            pNewAction->m_sourceFile = pParentAction->m_sourceFile;
             return pNewAction;
         }
 

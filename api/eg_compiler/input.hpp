@@ -107,7 +107,7 @@ namespace eg
             void load( Loader& loader );
             void store( Storer& storer ) const;
             
-            bool m_bIsConst;
+            bool m_bIsConst = false;
         };
         
         class HasChildren
@@ -151,12 +151,14 @@ namespace eg
         class HasDefinition
         {
         public:
+            std::optional< boost::filesystem::path > getSourceFile() const { return m_sourceFile; }
             std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
             
         protected:
             void load( Loader& loader );
             void store( Storer& storer ) const;
             
+            std::optional< boost::filesystem::path > m_sourceFile;
             std::optional< boost::filesystem::path > m_definitionFile;
         };
         
@@ -331,17 +333,8 @@ namespace eg
             Context* findContext( const std::string& strIdentifier ) const;
             void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
-            //bool equal( const Context& cmp ) const
-            //{
-            //    return  Opaque::equalNullablePtrs( m_pSize, cmp.m_pSize ) &&
-            //            Opaque::equalNullablePtrs( m_pParams, cmp.m_pParams ) && 
-            //            m_definitionFile == cmp.m_definitionFile &&
-            //            std::equal( m_inheritance.begin(), m_inheritance.end(),
-            //                cmp.m_inheritance.begin(), cmp.m_inheritance.end(),
-            //                []( const Opaque* pLeft, const Opaque* pRight ) { return pLeft->getStr() == pRight->getStr(); } );
-            //}
             const char* getContextType() const;
-
+            
             enum ContextType
             {
                 eUnknown,

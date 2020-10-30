@@ -85,11 +85,13 @@ namespace input
     
     void HasDefinition::load( Loader& loader )
     {
+        loader.loadOptional( m_sourceFile );
         loader.loadOptional( m_definitionFile );
     }
     
     void HasDefinition::store( Storer& storer ) const
     {
+        storer.storeOptional( m_sourceFile );
         storer.storeOptional( m_definitionFile );
     }
     

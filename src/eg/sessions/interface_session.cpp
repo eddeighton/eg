@@ -547,6 +547,9 @@ namespace eg
             pTranslationUnit->m_chd             = i->first;
             pTranslationUnit->m_actions         = i->second;
             pTranslationUnit->m_strName         = TranslationUnit::TUNameFromEGSource( rootFolder, pTranslationUnit->m_chd );
+            
+            //Useful logging of translation units to check which actions are in which translation units and which have no definition file
+            //pTranslationUnit->print( std::cout );
                     
             //std::cout << "intermediate: " << rootFolder.string() << 
             //  " definition file: " << ( i->first.definitionFile ? i->first.definitionFile.value() : "none" ) << 

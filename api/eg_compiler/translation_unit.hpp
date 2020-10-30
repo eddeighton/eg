@@ -145,6 +145,8 @@ namespace eg
         //using Invocations = std::vector< const InvocationSolution* >;
         //Invocations invocations;
         
+        void print( std::ostream& os ) const;
+        
     public:
         virtual void load( Loader& loader );
         virtual void store( Storer& storer ) const;

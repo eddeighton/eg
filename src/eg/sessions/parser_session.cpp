@@ -59,7 +59,11 @@ namespace eg
         
         VERIFY_RTE_MSG( pParserInterface, "Failed to locate eg parser at: " << m_parserDllPath.string() );
             
+        //record the source file parsed for this root
+        pRoot->m_sourceFile = egSourceFile;
+        
         pParserInterface->parseEGSourceFile( m_pParserCallback, egSourceFile, m_currentPath, m_errorOS, session, pRoot );
+        
     }
 	
 	input::Root* ParserSession::getMegaRoot( 
@@ -297,7 +301,9 @@ namespace eg
                             {
                                 FileElementMap::const_iterator iFind = 
                                     fileMap.find( pInclude->getIncludeFilePath() );
-                                VERIFY_RTE( iFind != fileMap.end() );
+                                VERIFY_RTE_MSG( iFind != fileMap.end(), "Failed to find include file: " << 
+                                    pInclude->getIncludeFilePath().string() << 
+                                    " NOTE: you may have put include .eg file in root folder" );
                                 input::Root* pIncludedRoot = iFind->second;
                                 
                                 if( pInclude->getIdentifier().empty() )
@@ -321,15 +327,21 @@ namespace eg
                         else if( input::Context* pElementAction = dynamic_cast< input::Context* >( pChildElement ) )
                         {
                             interface::Element* pChild = addChild( *this, pParentNode, pChildElement, visibility );
+                            
                             if( bInIncludeTree )
                             {
                                 //if the action is defined then set the definition file to the include definition file
-                                if( pElementAction->getDefinitionFile() )
+                                if( includeDefinitionFile )
                                 {
-									if( includeDefinitionFile )
-										( (interface::Context*)pChild )->setDefinitionFile( includeDefinitionFile );
-									else
-										( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile() );
+                                    ( (interface::Context*)pChild )->setDefinitionFile( includeDefinitionFile );
+                                }
+                                else
+                                {
+                                    THROW_RTE( "Include file problem" );
+                                    //if( pElementAction->getDefinitionFile() )
+                                    //{
+                                    //    ( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile() );
+                                    //} 
                                 }
 								buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true, visibility );
                             }
@@ -339,12 +351,8 @@ namespace eg
                                 if( pElementAction->getDefinitionFile() )
                                 {
                                     ( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile().value() );
-                                    buildTree( fileMap, pChild, pChildElement, pElementAction->getDefinitionFile().value(), false, visibility );
                                 }
-                                else
-                                {
-                                    buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, bInIncludeTree, visibility );
-                                }
+                                buildTree( fileMap, pChild, pChildElement, pElementAction->getSourceFile(), false, visibility );
                             }
                         }
                         else if( input::Export* pElementExport = dynamic_cast< input::Export* >( pChildElement ) )
@@ -402,7 +410,7 @@ namespace eg
         interface::Element* pInterfaceRoot = addChild( *this, pMasterRoot, pInputMainRoot, eVisPublic );
         ( (interface::Context*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile() );
         
-        buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getDefinitionFile(), false, eVisPublic );
+        buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getSourceFile(), false, eVisPublic );
                 
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();

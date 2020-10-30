@@ -44,6 +44,21 @@ namespace eg
         storer.store( m_databaseFileID );
         storer.storeObjectSet( m_actions );
     }
+    
+    void TranslationUnit::print( std::ostream& os ) const
+    {
+        os << "Translation Unit: " << m_strName << " : " << m_databaseFileID << " : " << m_chd.getHostDefine();
+        if( m_chd.definitionFile )
+        {
+            os << " " << m_chd.definitionFile.value();
+        }
+        os << "\n";
+        
+        for( const interface::Context* pContext : m_actions )
+        {
+            os << pContext->getFriendlyName() << "\n";
+        }
+    }
     /////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////
     void TranslationUnitAnalysis::load( Loader& loader )
@@ -67,12 +82,17 @@ namespace eg
     
     const TranslationUnit* TranslationUnitAnalysis::getTU( const boost::filesystem::path& sourceFile ) const
     {
+        const boost::filesystem::path pathCannon =
+            boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( sourceFile ) );
+                            
         for( const TranslationUnit* pTranslationUnit : m_translationUnits )
         {
             std::optional< boost::filesystem::path > optFile = pTranslationUnit->getDefinitionFile();
             if( optFile )
             {
-                if( optFile.value() == sourceFile )
+                if( boost::filesystem::edsCannonicalise(
+                        boost::filesystem::absolute( optFile.value() ) ) == pathCannon )
                 {
                     return pTranslationUnit;
                 }

@@ -29,8 +29,6 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
-#include "indicators/progress_bar.hpp"
-
 #include <boost/program_options.hpp>
 #include <boost/optional.hpp>
 
@@ -62,30 +60,6 @@ void command_clean( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        /*
-        indicators::ProgressBar bar;
-        {
-            // Configure the bar
-            bar.set_bar_width( 50 );
-            bar.start_bar_with("[");
-            bar.fill_bar_progress_with("=");
-            bar.lead_bar_progress_with(">");
-            bar.fill_bar_remainder_with(" ");
-            bar.end_bar_with("]");
-            bar.set_postfix_text("Cleaning up");
-            bar.set_foreground_color( indicators::Color::GREEN ); 
-        }
-        
-        int iProgress = 0;
-        while (true) 
-        {
-            bar.set_progress( iProgress += 10 );
-            if (bar.is_completed())
-                break;
-            using namespace std::literals;
-            std::this_thread::sleep_for( 100ms );
-        }*/
-        
         const boost::filesystem::path projectDirectory = 
             boost::filesystem::edsCannonicalise(
                 boost::filesystem::absolute( strDirectory ) );

@@ -29,6 +29,8 @@
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
+#include "log.hpp"
+
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -67,7 +69,7 @@ enum MainCommand
     TOTAL_MAIN_COMMANDS
 };
 
-int main( int argc, const char* argv[] )
+int main_wrapper( int argc, const char* argv[] )
 {
     boost::timer::cpu_timer timer;
     
@@ -137,7 +139,7 @@ int main( int argc, const char* argv[] )
             
             if( cmds.count() > 1 )
             {
-                std::cout << "Invalid command combination. Type '--help' for options\n";
+                SPDLOG_ERROR( "Invalid command combination. Type '--help' for options\n" );
                 return 1;
             }
             
@@ -169,7 +171,7 @@ int main( int argc, const char* argv[] )
             
             if( bGeneralWait )
             {
-                std::cout << "Waiting for input..." << std::endl;
+                SPDLOG_INFO( "Waiting for input..." );
                 char c;
                 std::cin >> c;
             }
@@ -226,11 +228,13 @@ int main( int argc, const char* argv[] )
                 default:
                     if( vm.count( "help" ) )
                     {
-                        std::cout << visibleOptions << "\n";
+                        std::ostringstream os;
+                        os << visibleOptions;
+                        SPDLOG_INFO( os.str() );
                     }
                     else
                     {
-                        std::cout << "Invalid command. Type '--help' for options\n";
+                        SPDLOG_ERROR( "Invalid command. Type '--help' for options\n" );
                         return 1;
                     }
             }
@@ -238,21 +242,30 @@ int main( int argc, const char* argv[] )
         }
         catch( boost::program_options::error& e )
         {
-            std::cout << "Invalid input. " << e.what() << "\nType '--help' for options" << std::endl;
+            SPDLOG_ERROR( "Invalid input. {}. Type '--help' for options", e.what() );
             return 1;
         }
         catch( const xml_schema::parser_exception& e )
         {
-            std::cout << e.what() << ": " << e.line () << ":" << e.column ()
-             << ": " << e.text() << std::endl;
+            SPDLOG_ERROR( "{} : {} : {} : {}", e.what(), e.line(), e.column(), e.text() );
             return 1;
         }
         catch( std::exception& e )
         {
-            std::cout << "Error: " << e.what() << std::endl;
+            SPDLOG_ERROR( "Error: {}", e.what() );
             return 1;
         }
     }
-
+    
     return 0;
+}
+
+
+int main( int argc, const char* argv[] )
+{
+    auto logThreadPool = eg::configureLog( boost::filesystem::current_path(), "build" );
+    
+    main_wrapper( argc, argv );
+    
+    spdlog::drop_all(); 
 }
