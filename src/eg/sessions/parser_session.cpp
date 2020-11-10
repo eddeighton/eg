@@ -333,15 +333,16 @@ namespace eg
                                 //if the action is defined then set the definition file to the include definition file
                                 if( includeDefinitionFile )
                                 {
-                                    ( (interface::Context*)pChild )->setDefinitionFile( includeDefinitionFile );
+                                    //if the action has no definition of an operation then DO NOT set the definition file
+                                    //this is ESSENTIAL for actions or objects to be treated as objects i.e. with lifetimes irrespective of execution of code
+                                    if( pElementAction->getDefinitionFile() )
+                                    {
+                                        ( (interface::Context*)pChild )->setDefinitionFile( includeDefinitionFile );
+                                    }
                                 }
                                 else
                                 {
                                     THROW_RTE( "Include file problem" );
-                                    //if( pElementAction->getDefinitionFile() )
-                                    //{
-                                    //    ( (interface::Context*)pChild )->setDefinitionFile( pElementAction->getDefinitionFile() );
-                                    //} 
                                 }
 								buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true, visibility );
                             }

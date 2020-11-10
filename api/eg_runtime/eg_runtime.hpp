@@ -94,6 +94,7 @@ namespace eg
     {
     public:
         virtual ~EGRuntime();
+        virtual void printType( TypeID typeID, std::ostream& os ) = 0;
         virtual void getIdentities( std::vector< const char* >& identities ) = 0;
         virtual TypeID getTypeID( const char* pszIdentity ) = 0;
         virtual void invoke( const reference& context, const std::vector< TypeID >& typePath, bool bHasParameters ) = 0;

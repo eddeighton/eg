@@ -196,6 +196,37 @@ namespace eg
             }
         }
         
+        virtual void printType( TypeID typeID, std::ostream& os )
+        {
+            const eg::IndexedObject::Array& objects =
+                m_pDatabase->getObjects( IndexedObject::MASTER_FILE );
+                
+            if( ( typeID > 0U ) && ( typeID < objects.size() ) )
+            {
+                const eg::IndexedObject* pObject = objects[ typeID ];
+                if( const eg::concrete::Action* pAction = dynamic_cast< const eg::concrete::Action* >( pObject ) )
+                {
+                    const std::vector< const eg::interface::Element* > path = 
+                        eg::interface::getPath( pAction->getContext() );
+                    bool bFirst = true;
+                    for( const eg::interface::Element* pElement : path )
+                    {
+                        if( bFirst ) bFirst = false;
+                        else os << '.';
+                        os << pElement->getIdentifier();
+                    }
+                }
+                else
+                {
+                    os << "invalid";
+                }
+            }
+            else
+            {
+                os << "null";
+            }
+            
+        }
         virtual TypeID getTypeID( const char* pszIdentity )
         {
             const Identifiers& identifiers = m_pDatabase->getIdentifiers();
