@@ -156,9 +156,6 @@ namespace eg
             call_ref( staticRef.data, pStopper, std::bind( &T::operator(), staticRef, args... ) );
         }
         
-        //object lifetime
-        static void zeroRefCount( const reference& ref, eg::Instance* pRefCount );
-        
         //stopper callback
         static void stopperStopped( const reference& ref );
         

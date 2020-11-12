@@ -382,14 +382,6 @@ namespace
             }
         }
         
-        void released( const eg::reference& ref, eg::Instance* pRefCount )
-        {
-            if( *pRefCount == 0 )
-            {
-                stop( ref );
-            }
-        }
-        
         void stopperStopped( const eg::reference& ref )
         {
             ActiveActionMap::iterator iFind = m_actions.find( ref );
@@ -677,11 +669,6 @@ namespace eg
         theScheduler.unpause( ref );
     }
     
-    void Scheduler::zeroRefCount( const reference& ref, eg::Instance* pRefCount )
-    {
-        theScheduler.released( ref, pRefCount );
-    }
-        
     void Scheduler::stopperStopped( const reference& ref )
     {
         theScheduler.stopperStopped( ref );

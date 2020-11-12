@@ -328,14 +328,6 @@ namespace eg
             os << "                     ::eg::Scheduler::stop_ref( backRef );\n";
                 
        // TODO - should stopping a link target trigger referenced count based stop  
-       // os << "           " << *printerFactory.write( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
-       // os << "           if( " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
-       // os << "           {\n";
-       // os << "             ::eg::Scheduler::zeroRefCount( " << *printerFactory.read( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
-       //                         "&" << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
-       // os << "           }\n";
-            
-            
             
             os << "                }\n";
             os << "                break;\n";
@@ -518,8 +510,7 @@ namespace eg
         os << "           " << *printerFactory.write( pLinkRefCountDataMember, osDomain.str().c_str() ) << " = " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " - 1;\n";
         os << "           if( " << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " == 0 )\n";
         os << "           {\n";
-        os << "             ::eg::Scheduler::zeroRefCount( " << *printerFactory.read( pReferenceData, osDomain.str().c_str() ) << ".data, " <<
-                                "&" << *printerFactory.read( pLinkRefCountDataMember, osDomain.str().c_str() ) << " );\n";
+        os << "               " << pObject->getName() << "_stopper( " << *printerFactory.read( pReferenceData, osDomain.str().c_str() ) << ".data.instance );\n";
         os << "           }\n";
         os << "           break;\n";
                     }
