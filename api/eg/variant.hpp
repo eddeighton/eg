@@ -160,7 +160,7 @@ struct [[clang::eg_type( eg::id_Variant )]] __eg_variant
     }
     
     template< typename TypePath, typename Operation, typename... Args >
-    typename eg::result_type< __eg_variant< Ts... >, TypePath, Operation >::Type invoke( Args... args );
+    typename eg::result_type< __eg_variant< Ts... >, TypePath, Operation >::Type invoke( Args... args ) const;
     
     eg::reference data;
 }; 
