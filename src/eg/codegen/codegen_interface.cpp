@@ -448,7 +448,7 @@ namespace eg
         }
         void pop ( const input::Using* pElement, const interface::Element* pNode )
         {
-            os << strIndent << "using " << pElement->getIdentifier() << " = " << pElement->getType()->getStr() << ";\n";
+            //os << strIndent << "using " << pElement->getIdentifier() << " = " << pElement->getType()->getStr() << ";\n";
         }
         void pop ( const input::Export* pElement, const interface::Element* pNode )
         {
