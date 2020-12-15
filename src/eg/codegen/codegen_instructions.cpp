@@ -560,7 +560,7 @@ namespace eg
     }
     void InstructionCodeGenerator::generate( const GetActionOperation& ins )
     {
-        VERIFY_RTE( ins.getConcreteType()->getReference() );
+        VERIFY_RTE_MSG( ins.getConcreteType()->getReference(), "Get could not resolve reference.  Did you mean to access the component root?  If so use the project name." );
         os << generator.getIndent() << "return " <<
             *generator.read( ins.getConcreteType()->getReference(), generator.getVarExpr( ins.getInstance() ) ) << ";\n";
     }
