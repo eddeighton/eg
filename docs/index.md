@@ -1,19 +1,19 @@
 ---
-title: eg documentation
+title: EG documentation
 layout: default
 ---
 
 # {{ page.title }}
 
-Welcome to the eg programming language documentation.
+Welcome to the EG programming language documentation.
 
-eg is a C++ extension language designed for creative programming and experimental gameplay development.
+EG is a C++ extension language designed for creative programming and experimental gameplay development.
 
-The eg language extends C++ by adding the ability to write .eg files.  Generally an eg program requires a host C++ program.  The current version supports a "basic" host and "cinder" host.  In the future it is hoped to support many hosts including all popular game engines.
+The EG language extends C++ by adding the ability to write .eg files.  Generally an eg program requires a host C++ program.  The current version supports a "basic" host and "cinder" host.  In the future it is hoped to support many hosts including all popular game engines.
 
 A simple command line tool eg.exe is provided which facilitates creating, building and running eg projects.  An eg project must have a .eg file in its folder which tells the eg driver what host and packages to build.  Hosts and packages can load the eg program database and perform arbitrary code generation reflecting on the eg action tree.
 
-When writing an eg source file you may no longer define C++ structures, classes or functions.  Instead you can only define actions.  Actions are the core concept of doing anything in eg.  One might say eg is an action oriented language.
+When writing an EG source file you may no longer define C++ structures, classes or functions.  Instead you can only define actions.  Actions are the core concept of doing anything in EG.  One might say eg is an action oriented language.
 
 # Actions
 
@@ -27,7 +27,7 @@ Actions do not have return values.  Instead an actions dimensions are able to be
 
 To define or declare an action use the `action` keyword i.e.
 
-    ```c++
+    ```c
     action foobar; //can just declare one
     
     action foo::bar; //can declare to any depth
@@ -48,8 +48,7 @@ To define or declare an action use the `action` keyword i.e.
     
     //actions may also have a parameter list
     action bar( std::shared_ptr< Thing > pParameter ); 
-    ```
-    
+    ```c
     
 ## The Action Tree
 
