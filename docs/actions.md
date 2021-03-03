@@ -16,28 +16,28 @@ Actions do not have return values.  Instead an actions dimensions are able to be
 
 To define or declare an action use the `action` keyword i.e.
 
-    {% highlight c linenos=table %}
-    action foobar; //can just declare one
-    
-    action foo::bar; //can declare to any depth
-    
-    action foo
+{% highlight c linenos=table %}
+action foobar; //can just declare one
+
+action foo::bar; //can declare to any depth
+
+action foo
+{
+    action bar
     {
-        action bar
-        {
-            //still just a declaration because no actual code is defined
-        }
+        //still just a declaration because no actual code is defined
     }
-    
-    //in square brackets the allocation size for the action may be defined with any compile time integer expression
-    //actions use a lock free ring buffer to allocate within their bound.  The default allocation is one.  
-    //Every time the action is invoked the allocator will allocate from the allocation.  
-    //If there is no free space and error is generated to the event log and a null reference is returned.
-    action foo[ 12 * 3 + 456 ];
-    
-    //actions may also have a parameter list
-    action bar( std::shared_ptr< Thing > pParameter ); 
-    {% endhighlight %}
+}
+
+//in square brackets the allocation size for the action may be defined with any compile time integer expression
+//actions use a lock free ring buffer to allocate within their bound.  The default allocation is one.  
+//Every time the action is invoked the allocator will allocate from the allocation.  
+//If there is no free space and error is generated to the event log and a null reference is returned.
+action foo[ 12 * 3 + 456 ];
+
+//actions may also have a parameter list
+action bar( std::shared_ptr< Thing > pParameter ); 
+{% endhighlight %}
     
 ## The Action Tree
 
@@ -45,50 +45,51 @@ So actions are basically like functions combined with classes.
 
 The first interesting thing about eg is that actions are recursive.  Actions are defined in a tree i.e.
 
-    ```c++
+```c
 
-    //the root is actually an action itself
-    std::cout << "Can put code into the root in any .eg file" << std::endl;
-    
-    action A
+//the root is actually an action itself
+std::cout << "Can put code into the root in any .eg file" << std::endl;
+
+action A
+{
+    action B
     {
-        action B
+        action C
         {
-            action C
-            {
-                //actions all the way down...
-            }
+            //actions all the way down...
         }
     }
-    ```
+}
+```
     
 Actions can also inherit other actions with multiple inheritance. 
 
 
-    ```c++
-    abstract A //abstract is the same as action except the action only exists when inherited
+```c
+abstract A //abstract is the same as action except the action only exists when inherited
+{
+    //abstract cannot have code but can have nested structure
+    action Nested
     {
-        //abstract cannot have code but can have nested structure
-        action Nested
-        {
-            x(); //read x even though it does not exist here
-        }
+        x(); //read x even though it does not exist here
     }
-    
-    action B : A
+}
+
+action B : A
+{
+    Nested n = Nested();
+    dim int x; //x is read by Nested
+}
+
+action C : B
+{
+    action Nested
     {
-        Nested n = Nested();
-        dim int x; //x is read by Nested
+        //override Nested from the A::Nested
     }
-    
-    action C : B
-    {
-        action Nested
-        {
-            //override Nested from the A::Nested
-        }
-    }
-    ```
+}
+```
+
 Generally in eg all symbols are effectively virtual and override to the most deriving thing.  This is zero cost because everything is compile time polymorphism.
     
 All .eg source files are merged into a single tree.

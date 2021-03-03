@@ -1,7 +1,6 @@
 ---
-layout: page
+layout: default
 title: EG documentation
-order: 0
 ---
 
 # {{ page.title }}
