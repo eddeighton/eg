@@ -27,7 +27,7 @@ Actions do not have return values.  Instead an actions dimensions are able to be
 
 To define or declare an action use the `action` keyword i.e.
 
-    {% highlight c %}
+    {% highlight c linenos=table %}
     action foobar; //can just declare one
     
     action foo::bar; //can declare to any depth
