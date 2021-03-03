@@ -27,7 +27,7 @@ Actions do not have return values.  Instead an actions dimensions are able to be
 
 To define or declare an action use the `action` keyword i.e.
 
-    ```c
+    {% highlight c %}
     action foobar; //can just declare one
     
     action foo::bar; //can declare to any depth
@@ -48,7 +48,7 @@ To define or declare an action use the `action` keyword i.e.
     
     //actions may also have a parameter list
     action bar( std::shared_ptr< Thing > pParameter ); 
-    ```c
+    {% endhighlight %}
     
 ## The Action Tree
 
