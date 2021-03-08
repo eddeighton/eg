@@ -129,9 +129,6 @@ TEST( UnitTestParser, Empty )
     std::ostringstream osError;
     UnitTest::File::Section::Vector sections;
     const bool bResult = parseFileSections( strEmpty, sections, osError );
-    
-    std::cout << osError.str() << std::endl;
-    
     ASSERT_TRUE( bResult );
     ASSERT_EQ( sections.size(), 0U );
 }
@@ -153,9 +150,6 @@ TEST( UnitTestParser, NoSection )
     std::ostringstream osError;
     UnitTest::File::Section::Vector sections;
     const bool bResult = parseFileSections( strNoSection, sections, osError );
-    
-    std::cout << osError.str() << std::endl;
-    
     ASSERT_TRUE( bResult );
     ASSERT_EQ( sections.size(), 0U );
 }
@@ -183,11 +177,51 @@ TEST( UnitTestParser, SingleSection )
 
     std::ostringstream osError;
     UnitTest::File::Section::Vector sections;
-    const bool bResult = parseFileSections( strSingleSection, sections, osError );
-    
-    std::cout << osError.str() << std::endl;
-    
+    const bool bResult = parseFileSections( strSingleSection, sections, osError );    
     ASSERT_TRUE( bResult );
     ASSERT_EQ( sections.size(), 1U );
 }
 
+
+
+TEST( UnitTestParser, MultiSections )
+{
+    const std::string strSingleSection = 
+    R"(
+        stuff...
+        /*a.b.c.d
+            
+            Title
+            =====
+            
+            Markdown stuff...
+        */
+        action Actual
+        {
+            function code() : void
+            {
+                std::cout << "hello world" << std::endl;
+            }
+        }
+        /*a.b.c.e
+            
+            Title
+            =====
+            
+            Markdown stuff...
+        */
+        action SecondThing
+        {
+            function code() : void
+            {
+                std::cout << "hello world" << std::endl;
+            }
+        }
+    )";
+
+    std::ostringstream osError;
+    UnitTest::File::Section::Vector sections;
+    const bool bResult = parseFileSections( strSingleSection, sections, osError );    
+    ASSERT_TRUE( bResult );
+    ASSERT_EQ( sections.size(), 2U );
+}
