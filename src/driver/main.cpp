@@ -55,6 +55,7 @@ extern void command_run( bool bHelp, const std::string& strRunCommand, const std
 extern void command_log( bool bHelp, const std::vector< std::string >& args );
 extern void command_clean( bool bHelp, const std::vector< std::string >& args );
 extern void command_info( bool bHelp, const std::vector< std::string >& args );
+extern void command_doc( bool bHelp, const std::vector< std::string >& args );
 
 enum MainCommand
 {
@@ -64,8 +65,7 @@ enum MainCommand
     eCmd_Log,
     eCmd_Clean,
     eCmd_Info,
-    //eCmd_CMake,
-    //eCmd_Debug,
+    eCmd_Doc,
     TOTAL_MAIN_COMMANDS
 };
 
@@ -94,8 +94,7 @@ int main_wrapper( int argc, const char* argv[] )
             bool bCmdLog    = false;
             bool bCmdClean  = false;
             bool bCmdInfo   = false;
-            //bool bCmdCMake  = false;
-            //bool bCmdDebug  = false;
+            bool bCmdDoc    = false;
             
             po::options_description genericOptions(" General");
             {
@@ -128,6 +127,9 @@ int main_wrapper( int argc, const char* argv[] )
                         
                     ("info",   po::bool_switch( &bCmdInfo ),
                         "Report info about an eg project" )
+                        
+                    ("doc",    po::bool_switch( &bCmdDoc ),
+                        "Generate sphinx rst documentation" )
                         
                     //("cmake",   po::bool_switch( &bCmdCMake ),
                     //    "Generate a cmake build for an eg project" )
@@ -206,6 +208,11 @@ int main_wrapper( int argc, const char* argv[] )
                 cmds.set( eCmd_Info );
                 cmd = eCmd_Info;
             }
+            if( bCmdDoc )
+            {
+                cmds.set( eCmd_Doc );
+                cmd = eCmd_Doc;
+            }
             //if( bCmdCMake )                 cmds.set( eCmd_Create );
             //if( bCmdDebug )                 cmds.set( eCmd_Create );
             
@@ -221,9 +228,8 @@ int main_wrapper( int argc, const char* argv[] )
                 case eCmd_Run             : command_run(    bShowHelp, strRunCommand, commandArguments );    break;
                 case eCmd_Log             : command_log(    bShowHelp, commandArguments );                   break;
                 case eCmd_Clean           : command_clean(  bShowHelp, commandArguments );                   break;
-                //case eCmd_CMake           : command_cmake(  bShowHelp, commandArguments );                   break;
-                //case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
                 case eCmd_Info            : command_info(   bShowHelp, commandArguments );                   break;
+                case eCmd_Doc             : command_doc(    bShowHelp, commandArguments );                   break;
                 case TOTAL_MAIN_COMMANDS  :
                 default:
                     if( vm.count( "help" ) )

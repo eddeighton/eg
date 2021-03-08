@@ -1,0 +1,41 @@
+
+/*context.allocation.singular.basic
+By default contexts are singular meaning that a single instance exists relative to the parent of the context.
+Functions are allocated on the stack and thus have no allocation in the EG logical address space.  All other contexts are allocated within the EG logical address space either as a singular instance beneath their parent or using the specified domain size.  In the following example the SingularObject is an object that exists beneath the root ( which is always singular ) and is itself a singular object.  The example illustrates how when then object is allocated a second time how the system returns a null reference and generates an error in the event log however the system defensively will allow usage of the invalid reference where internally it actually still points to a valid object.
+*/
+object SingularObject
+{
+    //objects do not contain executable code themselves
+    //like normal object orientated languages they instead
+    //should contain executable contexts
+    
+    function foobar() : void
+    {
+        //functions act like normal member functions
+        LOG( "Foobar invoked. x is: " << x() );
+    }
+
+    dim int x;
+}
+
+//create a singular object and capture a reference to it
+SingularObject s = SingularObject();
+s.x( 123 );
+s.foobar();
+
+TEST_MSG( s, "The reference to the singular object can be implicitly converted to bool" );
+TEST( s.x() == 123 );
+
+SingularObject s2 = SingularObject();
+
+TEST_MSG( !s2, "Attempting to allocate another object will return null" );
+TEST_MSG( s != s2, "The reference in the case is the same address but the reference itself is not valid and thus not equal" );
+
+//When allocation errors occur no exception is thrown but the error log will contain an error message
+
+//invoking a function call on the invalid reference will actually work preventing a crash
+//it will use the zero based address within the bounded memory model preventing any segmentation fault.
+s2.foobar();
+TEST( s2.x() == 123 );
+
+

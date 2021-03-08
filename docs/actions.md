@@ -1,12 +1,12 @@
 ---
 layout: page
-title: Dimensions
-order: 1
+title: Actions
+order: 2
 ---
 
 # Actions
 
-Generally an action is just like a C++ lambda except that its existence is addressable to the rest of the program.  If an action is active it may be enumerated, paused, stopped, read, written, waited on etc by any other action in the program.  
+An action is just like a C++ lambda except that its existence is addressable to the rest of the program.  If an action is active it may be enumerated, paused, stopped, read, written, waited on etc by any other action in the program.  
 
 An eg program can be thought of as a simulation constituting a sequence of cycles.  Each cycle represents a point in time.  Every active action in the program must come to rest before the eg program will advance time to the next cycle.  This is achieved by either an action terminating or going to sleep by calling eg::sleep;
 
@@ -16,7 +16,7 @@ Actions do not have return values.  Instead an actions dimensions are able to be
 
 To define or declare an action use the `action` keyword i.e.
 
-{% highlight c linenos=table %}
+{% highlight ruby %}
 action foobar; //can just declare one
 
 action foo::bar; //can declare to any depth

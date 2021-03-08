@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Dimensions
-order: 2
+order: 3
 ---
 
 # Dimensions

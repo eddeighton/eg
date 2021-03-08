@@ -22,7 +22,9 @@ include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
 #get driver source
 set( SCHEMA_SRC
     ${EG_ROOT_DIR}/src/schema/environment_string.hpp
-    ${EG_ROOT_DIR}/src/schema/environment_string.cpp )
+    ${EG_ROOT_DIR}/src/schema/environment_string.cpp 
+    ${EG_ROOT_DIR}/src/driver/unittest_parser.hpp 
+    ${EG_ROOT_DIR}/src/driver/unittest_parser.cpp  )
 
 set( EG_UNITTEST_DIR ${EG_ROOT_DIR}/tests/unittests )
 
@@ -50,6 +52,7 @@ target_compile_options( eg_tests PUBLIC /await )
 link_boost( eg_tests filesystem )
 link_boost( eg_tests iostreams )
 link_boost( eg_tests serialization )
+link_boost( eg_tests program_options )
 link_clang( eg_tests )
 link_common( eg_tests )
 link_eg( eg_tests )
