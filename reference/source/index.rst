@@ -7,7 +7,7 @@ Welcome to the EG Language reference documentation.
 ===================================================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
    
    context/allocation/singular.rst
    context/allocation/many.rst
