@@ -6,6 +6,7 @@ This project is currently under initial development and not suitable for product
 EG is a c++ extension language aimed at creative programming.
 
 Help manual: https://eddeighton.github.io/eg/
+
 Reference manual: https://the-eg-programming-language.readthedocs.io/en/latest/index.html
 
 For discussion visit https://www.reddit.com/r/egprogramming/
