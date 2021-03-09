@@ -11,9 +11,7 @@
 #include <boost/spirit/include/phoenix_fusion.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
-#include <iostream>
-
-std::ostream& operator<<( std::ostream& os, const Identifier& identifier )
+std::ostream& operator<<( std::ostream& os, const doc::Identifier& identifier )
 {
     bool bFirst = true;
     for( const std::string& str : identifier )
@@ -27,40 +25,44 @@ std::ostream& operator<<( std::ostream& os, const Identifier& identifier )
     return os;
 }
 
-void print( const UnitTest& unitTest )
+BOOST_FUSION_ADAPT_STRUCT
+(
+    doc::UnitTest::File::Section,
+    (doc::Identifier, m_identifier)
+    (std::string, m_strMarkdown)
+    (std::string, m_code)
+)
+    
+namespace doc
 {
-    std::cout << "Unit Test: " << unitTest.m_directory.string() << "\n";
+    
+void print( std::ostream& os, const UnitTest& unitTest, bool bShowMarkDown, bool bShowCode )
+{
+    os << "Unit Test: " << unitTest.m_directory.string() << "\n";
     for( const UnitTest::File& file : unitTest.m_files )
     {
-        std::cout << "  File: " << file.m_filePath.string() << "\n";
+        os << "  File: " << file.m_filePath.string() << "\n";
         for( const UnitTest::File::Section& section : file.m_sections )
         {
-            std::cout << "    Section: " << section.m_identifier << "\n";
-            std::cout << "    Markdown:\n" << section.m_strMarkdown << "\n";
-            std::cout << "    Code:\n" << section.m_code << "\n";
+            os << "    Section: " << section.m_identifier << "\n";
+            if( bShowMarkDown )
+                os << "    Markdown:\n" << section.m_strMarkdown << "\n";
+            if( bShowCode )
+                os << "    Code:\n" << section.m_code << "\n";
         }
     }
 }
 
-
-void print( const UnitTest::Vector& unitTests )
+void print( std::ostream& os, const UnitTest::Vector& unitTests, bool bShowMarkDown, bool bShowCode )
 {
     for( const UnitTest& unitTest : unitTests )
     {
-        print( unitTest );
+        print( os, unitTest, bShowMarkDown, bShowCode );
     }
 }
 
-BOOST_FUSION_ADAPT_STRUCT
-(
-    UnitTest::File::Section,
-    (::Identifier, m_identifier)
-    (std::string, m_strMarkdown)
-    (std::string, m_code)
-)
-
 template< typename Iterator >
-class IdentifierGrammar : public boost::spirit::qi::grammar< Iterator, ::Identifier() >
+class IdentifierGrammar : public boost::spirit::qi::grammar< Iterator, doc::Identifier() >
 {
 public:
     IdentifierGrammar() : IdentifierGrammar::base_type( m_main_rule, "identifier" )
@@ -84,7 +86,7 @@ public:
 private:
     boost::spirit::qi::rule< Iterator, std::string() > m_identifier_grammar;
 public:
-    boost::spirit::qi::rule< Iterator, ::Identifier() > m_main_rule;
+    boost::spirit::qi::rule< Iterator, doc::Identifier() > m_main_rule;
 };
 
 bool parseIdentifier( const std::string& strContents, Identifier& identifier, std::ostream& osError )
@@ -197,4 +199,6 @@ bool parseFileSections( const std::string& strContents, UnitTest::File::Section:
         );
         
     return parseResult.bParseSucceeded;
+}
+
 }

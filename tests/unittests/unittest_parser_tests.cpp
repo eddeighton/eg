@@ -12,8 +12,8 @@ using namespace std::string_literals;
 TEST( IdentifierParser, Identifier_Empty )
 {
     std::ostringstream osError;
-    Identifier identifier;
-    const bool bResult = parseIdentifier( "", identifier, osError );
+    doc::Identifier identifier;
+    const bool bResult = doc::parseIdentifier( "", identifier, osError );
     ASSERT_TRUE( !bResult );
 }
 
@@ -30,8 +30,8 @@ TEST( IdentifierParser, Identifier_SingleValid )
     for( const std::string& str : validStrings )
     {
         std::ostringstream osError;
-        Identifier identifier;
-        const bool bResult = parseIdentifier( str, identifier, osError );
+        doc::Identifier identifier;
+        const bool bResult = doc::parseIdentifier( str, identifier, osError );
         ASSERT_TRUE( bResult );
         ASSERT_EQ( identifier.size(), 1U );
         ASSERT_EQ( identifier.back(), str );
@@ -57,26 +57,26 @@ TEST( IdentifierParser, Identifier_SingleInValid )
     for( const std::string& str : validStrings )
     {
         std::ostringstream osError;
-        Identifier identifier;
-        const bool bResult = parseIdentifier( str, identifier, osError );
+        doc::Identifier identifier;
+        const bool bResult = doc::parseIdentifier( str, identifier, osError );
         ASSERT_FALSE( bResult ) << str << " : " << identifier;
     }
 }
 
 TEST( IdentifierParser, Identifier_Multi_Valid )
 {
-    std::vector< std::pair< std::string, Identifier > > validStrings = 
+    std::vector< std::pair< std::string, doc::Identifier > > validStrings = 
     {
-        {"a.a"s,            Identifier{ "a"s, "a"s } },
-        {"a.b.c.d.e"s,      Identifier{ "a"s, "b"s, "c"s, "d"s, "e"s } },
-        {"a_.b_.c_.d_.e_"s, Identifier{ "a_"s, "b_"s, "c_"s, "d_"s, "e_"s } }
+        {"a.a"s,            doc::Identifier{ "a"s, "a"s } },
+        {"a.b.c.d.e"s,      doc::Identifier{ "a"s, "b"s, "c"s, "d"s, "e"s } },
+        {"a_.b_.c_.d_.e_"s, doc::Identifier{ "a_"s, "b_"s, "c_"s, "d_"s, "e_"s } }
     };
     
-    for( const std::pair< std::string, Identifier >& p : validStrings )
+    for( const std::pair< std::string, doc::Identifier >& p : validStrings )
     {
         std::ostringstream osError;
-        Identifier identifier;
-        const bool bResult = parseIdentifier( p.first, identifier, osError );
+        doc::Identifier identifier;
+        const bool bResult = doc::parseIdentifier( p.first, identifier, osError );
         ASSERT_TRUE( bResult );
         ASSERT_EQ( identifier, p.second );
     }
@@ -96,24 +96,24 @@ TEST( IdentifierParser, Identifier_Multi_InValid )
     for( const std::string& str : validStrings )
     {
         std::ostringstream osError;
-        Identifier identifier;
-        const bool bResult = parseIdentifier( str, identifier, osError );
+        doc::Identifier identifier;
+        const bool bResult = doc::parseIdentifier( str, identifier, osError );
         ASSERT_FALSE( bResult ) << str;
     }
 }
 
 TEST( SectionParser, Section_Valid )
 {
-    const std::vector< std::pair< std::string, UnitTest::File::Section > > sections = 
+    const std::vector< std::pair< std::string, doc::UnitTest::File::Section > > sections = 
     {
-        { "/*a.b.c HelloWorld*/foobar"s, UnitTest::File::Section{ Identifier{ "a"s, "b"s, "c"s }, " HelloWorld"s, "foobar"s } }
+        { "/*a.b.c HelloWorld*/foobar"s, doc::UnitTest::File::Section{ doc::Identifier{ "a"s, "b"s, "c"s }, " HelloWorld"s, "foobar"s } }
     };
     
-    for( const std::pair< std::string, UnitTest::File::Section >& p : sections )
+    for( const std::pair< std::string, doc::UnitTest::File::Section >& p : sections )
     {
-        UnitTest::File::Section section;
+        doc::UnitTest::File::Section section;
         std::ostringstream osError;
-        const bool bResult = parseSection( p.first, section, osError );
+        const bool bResult = doc::parseSection( p.first, section, osError );
         ASSERT_TRUE( bResult );
         ASSERT_EQ( section.m_identifier, p.second.m_identifier );
         ASSERT_EQ( section.m_strMarkdown, p.second.m_strMarkdown );
@@ -127,8 +127,8 @@ TEST( UnitTestParser, Empty )
     R"()";
     
     std::ostringstream osError;
-    UnitTest::File::Section::Vector sections;
-    const bool bResult = parseFileSections( strEmpty, sections, osError );
+    doc::UnitTest::File::Section::Vector sections;
+    const bool bResult = doc::parseFileSections( strEmpty, sections, osError );
     ASSERT_TRUE( bResult );
     ASSERT_EQ( sections.size(), 0U );
 }
@@ -148,8 +148,8 @@ TEST( UnitTestParser, NoSection )
     )";
     
     std::ostringstream osError;
-    UnitTest::File::Section::Vector sections;
-    const bool bResult = parseFileSections( strNoSection, sections, osError );
+    doc::UnitTest::File::Section::Vector sections;
+    const bool bResult = doc::parseFileSections( strNoSection, sections, osError );
     ASSERT_TRUE( bResult );
     ASSERT_EQ( sections.size(), 0U );
 }
@@ -176,8 +176,8 @@ TEST( UnitTestParser, SingleSection )
     )";
 
     std::ostringstream osError;
-    UnitTest::File::Section::Vector sections;
-    const bool bResult = parseFileSections( strSingleSection, sections, osError );    
+    doc::UnitTest::File::Section::Vector sections;
+    const bool bResult = doc::parseFileSections( strSingleSection, sections, osError );    
     ASSERT_TRUE( bResult );
     ASSERT_EQ( sections.size(), 1U );
 }
@@ -220,8 +220,8 @@ TEST( UnitTestParser, MultiSections )
     )";
 
     std::ostringstream osError;
-    UnitTest::File::Section::Vector sections;
-    const bool bResult = parseFileSections( strSingleSection, sections, osError );    
+    doc::UnitTest::File::Section::Vector sections;
+    const bool bResult = doc::parseFileSections( strSingleSection, sections, osError );    
     ASSERT_TRUE( bResult );
     ASSERT_EQ( sections.size(), 2U );
 }

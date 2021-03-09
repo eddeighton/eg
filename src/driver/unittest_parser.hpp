@@ -8,39 +8,42 @@
 #include <vector>
 #include <ostream>
 
-using Identifier = std::vector< std::string >;
-
-std::ostream& operator<<( std::ostream& os, const Identifier& identifier );
-
-struct UnitTest
+namespace doc
 {
-    using Vector = std::vector< UnitTest >;
-    
-    struct File
+    using Identifier = std::vector< std::string >;
+
+    struct UnitTest
     {
-        struct Section
-        {
-            using Vector = std::vector< Section >;
-            
-            Identifier m_identifier;
-            std::string m_strMarkdown;
-            std::string m_code;
-        };
+        using Vector = std::vector< UnitTest >;
         
-        boost::filesystem::path m_filePath;
-        std::vector< Section > m_sections;
+        struct File
+        {
+            struct Section
+            {
+                using Vector = std::vector< Section >;
+                
+                Identifier m_identifier;
+                std::string m_strMarkdown;
+                std::string m_code;
+            };
+            
+            boost::filesystem::path m_filePath;
+            std::vector< Section > m_sections;
+        };
+
+        boost::filesystem::path m_directory;
+        std::vector< File > m_files;
     };
 
-    boost::filesystem::path m_directory;
-    std::vector< File > m_files;
-};
+    void print( std::ostream& os, const UnitTest& unitTest, bool bShowMarkDown, bool bShowCode );
+    void print( std::ostream& os, const UnitTest::Vector& unitTests, bool bShowMarkDown, bool bShowCode );
 
-void print( const UnitTest& unitTest );
-void print( const UnitTest::Vector& unitTests );
+    bool parseIdentifier( const std::string& strContents, Identifier& identifier, std::ostream& osError );
+    bool parseSection( const std::string& strContents, UnitTest::File::Section& section, std::ostream& osError );
+    bool parseFileSections( const std::string& strContents, UnitTest::File::Section::Vector& sections, std::ostream& osError );
 
+}
 
-bool parseIdentifier( const std::string& strContents, Identifier& identifier, std::ostream& osError );
-bool parseSection( const std::string& strContents, UnitTest::File::Section& section, std::ostream& osError );
-bool parseFileSections( const std::string& strContents, UnitTest::File::Section::Vector& sections, std::ostream& osError );
-
+std::ostream& operator<<( std::ostream& os, const doc::Identifier& identifier );
+    
 #endif //UNITTEST_PARSER_8_MARCH_2021

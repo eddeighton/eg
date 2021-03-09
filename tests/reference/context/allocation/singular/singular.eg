@@ -38,4 +38,18 @@ TEST_MSG( s != s2, "The reference in the case is the same address but the refere
 s2.foobar();
 TEST( s2.x() == 123 );
 
+/*context.allocation.singular.advanced
+This section contains more advanced stuff....
 
+SubTitle
+^^^^^^^^
+Always note how something is something
+
+*/
+
+//more code and stuff
+function SingularObject::foobar2()
+{
+    //functions act like normal member functions
+    LOG( "Foobar invoked. x is: " << x() );
+}

@@ -37,9 +37,9 @@
 #include <string>
 #include <vector>
 
-UnitTest parseEGProject( const boost::filesystem::path& projectDirectory )
+doc::UnitTest parseEGProject( const boost::filesystem::path& projectDirectory )
 {
-    UnitTest unitTest{ projectDirectory };
+    doc::UnitTest unitTest{ projectDirectory };
     
     const boost::filesystem::path projectFile = 
         projectDirectory / Environment::EG_FILE_EXTENSION;
@@ -60,13 +60,13 @@ UnitTest parseEGProject( const boost::filesystem::path& projectDirectory )
     std::cout << "Found project: " << projectDirectory.string() << std::endl;
     for( const boost::filesystem::path& egSourceCodeFile : project.getEGSourceCode() )
     {
-        UnitTest::File file{ egSourceCodeFile };
+        doc::UnitTest::File file{ egSourceCodeFile };
         
         std::string strFileContents;
         boost::filesystem::loadAsciiFile( egSourceCodeFile, strFileContents );
         
         std::ostringstream osError;
-        if( !parseFileSections( strFileContents, file.m_sections, osError ) )
+        if( !doc::parseFileSections( strFileContents, file.m_sections, osError ) )
         {
             THROW_RTE( osError.str() );
         }
@@ -79,7 +79,7 @@ UnitTest parseEGProject( const boost::filesystem::path& projectDirectory )
     return unitTest;
 }
 
-void recurseFolders( const boost::filesystem::path& folder, UnitTest::Vector& unitTests )
+void recurseFolders( const boost::filesystem::path& folder, doc::UnitTest::Vector& unitTests )
 {
     bool bContainsEGFile = false;
     for( boost::filesystem::directory_iterator iter( folder );
@@ -121,14 +121,18 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
 {
     std::string strDirectory;
     std::string strStructureFilePath;
+    bool bShowMarkDown = false;
+    bool bShowCode = false;
     
     {
         namespace po = boost::program_options;
         po::options_description commandOptions(" Read Project Log");
         {
             commandOptions.add_options()
-                ("dir",         po::value< std::string >( &strDirectory ),         "Project directory")
-                ("structure",   po::value< std::string >( &strStructureFilePath ), "Structure file path" )
+                ("dir",         po::value< std::string >( &strDirectory ),          "Project directory")
+                ("structure",   po::value< std::string >( &strStructureFilePath ),  "Structure file path" )
+                ("markdown",    po::bool_switch( &bShowMarkDown ),                  "Show Markdown" )
+                ("code",        po::bool_switch( &bShowCode ),                      "Show Code" )
             ;
         }
         
@@ -160,9 +164,9 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
     }
     
     
-    UnitTest::Vector unitTests;
+    doc::UnitTest::Vector unitTests;
     
     recurseFolders( rootDirectory, unitTests );
     
-    print( unitTests );
+    doc::print( std::cout, unitTests, bShowMarkDown, bShowCode );
 }
