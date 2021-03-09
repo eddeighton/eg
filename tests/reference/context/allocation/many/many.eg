@@ -1,0 +1,22 @@
+
+
+
+
+/*context.allocation.many.basic
+In order to define a non-singular allocation one must explicitly define a size for the type.  This size is always relative to the contexts parent so for every instance of the parent there will be that many instances of the type.
+*/
+
+//define a parent with a domain size of three.  The context is relative to the root which is always singular.  So this means the total domain size is also three.
+action parent[ 3 ]
+{
+
+    //by defining a child of domain size four every parent will have four children.  Therefore there would be a total of twelve children in the complete domain.
+    action child[ 4 ]
+    {
+    
+    }
+
+}
+
+
+LOG( "If the size is not specified it defaults to one which makes the context singular" );

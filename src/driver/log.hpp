@@ -20,33 +20,57 @@ namespace eg
     {
         spdlog::drop( strLogName );
         
-        auto console_sink = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
+        if( logFolderPath.empty() )
         {
-            console_sink->set_level( spdlog::level::info );
-            console_sink->set_pattern( "%l [%^%l%$] %v");
+            auto console_sink = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
+            {
+                console_sink->set_level( spdlog::level::info );
+                console_sink->set_pattern( "%l [%^%l%$] %v");
+            }
+            
+            auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
+            auto logger = std::shared_ptr< spdlog::async_logger >( 
+                new spdlog::async_logger( strLogName, { console_sink }, 
+                    threadPool, spdlog::async_overflow_policy::block ) );
+            {
+                logger->set_level( spdlog::level::trace );
+            }
+            
+            //spdlog::flush_every( std::chrono::seconds( 1 ) );
+            spdlog::set_default_logger( logger );
+            
+            return threadPool;
         }
-        
-        std::ostringstream osLogFileName;
-        osLogFileName << strLogName << "_" << Common::getProcessID() << ".log";
-        
-        const boost::filesystem::path logFilePath = logFolderPath / osLogFileName.str();
-        
-        auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( logFilePath.string(), 23, 59 );
+        else
         {
-            file_sink->set_level( spdlog::level::trace );
+            auto console_sink = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
+            {
+                console_sink->set_level( spdlog::level::info );
+                console_sink->set_pattern( "%l [%^%l%$] %v");
+            }
+            
+            std::ostringstream osLogFileName;
+            osLogFileName << strLogName << "_" << Common::getProcessID() << ".log";
+            
+            const boost::filesystem::path logFilePath = logFolderPath / osLogFileName.str();
+            
+            auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( logFilePath.string(), 23, 59 );
+            {
+                file_sink->set_level( spdlog::level::trace );
+            }
+            auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
+            auto logger = std::shared_ptr< spdlog::async_logger >( 
+                new spdlog::async_logger( strLogName, {console_sink, file_sink}, 
+                    threadPool, spdlog::async_overflow_policy::block ) );
+            {
+                logger->set_level( spdlog::level::trace );
+            }
+            
+            spdlog::flush_every( std::chrono::seconds( 1 ) );
+            spdlog::set_default_logger( logger );
+            
+            return threadPool;
         }
-        auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
-        auto logger = std::shared_ptr< spdlog::async_logger >( 
-            new spdlog::async_logger( strLogName, {console_sink, file_sink}, 
-                threadPool, spdlog::async_overflow_policy::block ) );
-        {
-            logger->set_level( spdlog::level::trace );
-        }
-        
-        spdlog::flush_every( std::chrono::seconds( 1 ) );
-        spdlog::set_default_logger( logger );
-        
-        return threadPool;
     }
 
 }

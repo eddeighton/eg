@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "unittest_parser.hpp"
+#include "log.hpp"
 
 #include "eg_compiler/sessions/implementation_session.hpp"
 
@@ -57,7 +58,7 @@ doc::UnitTest parseEGProject( const boost::filesystem::path& projectDirectory )
     
     eg::ReadSession session( project.getAnalysisFileName() );
 
-    std::cout << "Found project: " << projectDirectory.string() << std::endl;
+    SPDLOG_INFO( "Found project: {}", projectDirectory.string() );
     for( const boost::filesystem::path& egSourceCodeFile : project.getEGSourceCode() )
     {
         doc::UnitTest::File file{ egSourceCodeFile };
@@ -145,7 +146,9 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
         
         if( bHelp )
         {
-            std::cout << commandOptions << "\n";
+            std::ostringstream os;
+            os << commandOptions;
+            SPDLOG_INFO( "{}", os.str() );
             return;
         }
     }
@@ -168,5 +171,8 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
     
     recurseFolders( rootDirectory, unitTests );
     
-    doc::print( std::cout, unitTests, bShowMarkDown, bShowCode );
+    std::ostringstream os;
+    doc::print( os, unitTests, bShowMarkDown, bShowCode );
+    SPDLOG_INFO( "\n{}", os.str() );
+    
 }

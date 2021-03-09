@@ -269,7 +269,8 @@ int main_wrapper( int argc, const char* argv[] )
 
 int main( int argc, const char* argv[] )
 {
-    auto logThreadPool = eg::configureLog( boost::filesystem::current_path(), "build" );
+    //auto logThreadPool = eg::configureLog( boost::filesystem::current_path(), "build" );
+    auto logThreadPool = eg::configureLog( "", "build" );
     
     main_wrapper( argc, argv );
     
