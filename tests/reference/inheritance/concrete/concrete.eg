@@ -7,15 +7,26 @@ A context can inherit from any other context.  Inheritance means the deriving co
 action A
 {
     dim int x;
+    
+    function test() : int 
+    {
+        return 1;
+    }
 }
 
 action B : A
 {
     dim int y;
+    
+    function test() : int 
+    {
+        return 2;
+    }
 }
 
 /*basic.domains
-A context will inherit the underlying domain size of the derived type but can override it*/
+A context will inherit the underlying domain size of the derived type but can override it
+*/
 
 action C[ 4 ]
 {
@@ -23,7 +34,7 @@ action C[ 4 ]
     
     function test() : int 
     {
-        return 1;
+        return 3;
     }
 }
 
@@ -32,7 +43,7 @@ action D : C
     //has domain size of four
     function test() : int 
     {
-        return 2;
+        return 4;
     }
 };
 
@@ -41,16 +52,17 @@ action E[ 5 ] : C
     //has domain size of five
     function test() : int 
     {
-        return 3;
+        return 5;
     }
 };
 
 /*basic.polymorphism
-One can define a tree of contexts that derive from the same underlying types and then polymorphically refer to them*/
+One can define a tree of contexts that derive from the same underlying types and then polymorphically refer to them
+*/
 
-std::vector< C > listOfC = { C(), D(), E() };
+std::vector< Var< A, C > > listOfC = { A(), B(), C(), D(), E() };
 
-for( C c : listOfC )
+for( Var< A, C > c : listOfC )
 {
     LOG( "Test returned: " << c.test() );
 }
