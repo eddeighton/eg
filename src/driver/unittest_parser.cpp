@@ -1,6 +1,14 @@
 
 #include "unittest_parser.hpp"
 
+#include "eg_compiler/sessions/implementation_session.hpp"
+
+#include "schema/project.hpp"
+
+#include "egxml/eg_schema.hxx"
+#include "egxml/eg_schema-pimpl.hxx"
+#include "egxml/eg_schema-simpl.hxx"
+
 #include "common/grammar.hpp"
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -32,13 +40,121 @@ BOOST_FUSION_ADAPT_STRUCT
     (std::string, m_strMarkdown)
     (std::string, m_code)
 )
-    
+
+BOOST_FUSION_ADAPT_STRUCT
+(
+    doc::Folder,
+    (std::string, strOrder)
+    (std::string, strName)
+)  
+
 namespace doc
 {
     
+template< typename Iterator >
+class FolderGrammar : public boost::spirit::qi::grammar< Iterator, Folder() >
+{
+public:
+    FolderGrammar() : FolderGrammar::base_type( m_main_rule, "folder" )
+    {
+        using namespace boost::spirit;
+        using namespace boost::spirit::qi;
+        using namespace boost::phoenix;
+
+        using boost::phoenix::insert;
+        using boost::phoenix::end;
+        using boost::phoenix::begin;
+
+        m_identifier_grammar = lexeme[ char_( "a-zA-Z0-9" )[ push_back( _val, qi::_1 ) ] >> 
+                        *(char_( "a-zA-Z0-9" )[ push_back( _val, qi::_1 ) ] ) ];
+
+        m_main_rule =
+            m_identifier_grammar[ at_c< 0 >( _val ) = boost::spirit::qi::_1 ] >> 
+            char_( '_' ) >> 
+            m_identifier_grammar[ at_c< 1 >( _val ) = boost::spirit::qi::_1 ];
+    }
+
+private:
+    boost::spirit::qi::rule< Iterator, std::string() > m_identifier_grammar;
+public:
+    boost::spirit::qi::rule< Iterator, Folder() > m_main_rule;
+};
+
+bool parseFolder( const std::string& strContents, Folder& folder, std::ostream& osError )
+{
+    boost::spirit_ext::ParseResult parseResult( strContents.begin(), strContents.end() );
+    
+    boost::spirit_ext::invoke_parser_noskip
+        < 
+            FolderGrammar< boost::spirit_ext::LinePosIterator >, 
+            Folder
+        >
+        ( 
+            parseResult, 
+            folder, 
+            osError 
+        );
+        
+    return parseResult.fullParse();
+}
+    
+UnitTest::UnitTest( const boost::filesystem::path& rootPath, const boost::filesystem::path& projectDirectory )
+    :   m_directory( boost::filesystem::relative( projectDirectory, rootPath ) )
+{
+    const boost::filesystem::path projectFile = 
+        projectDirectory / Environment::EG_FILE_EXTENSION;
+    
+    if( !boost::filesystem::exists( projectFile ) )
+    {
+        THROW_RTE( "Could not locate " << Environment::EG_FILE_EXTENSION << " file in directory: " << projectDirectory.generic_string() );
+    }
+    
+    {
+        std::ostringstream osError;
+        for( const auto& str : m_directory )
+        {
+            Folder folder;
+            const bool bResult = parseFolder( str.string(), folder, osError );
+            if( !bResult )
+            {
+                THROW_RTE( "Invalid folder name for: " << projectDirectory.string() << " " << osError.str() );
+            }
+            m_ordering.push_back( folder.strOrder );
+            m_headings.push_back( folder.strName );
+        }
+    }
+    
+    XMLManager::XMLDocPtr pDocument = XMLManager::load( projectFile );
+    
+    Environment environment( projectDirectory );
+    
+    Project project( projectDirectory, environment, pDocument->Project() );
+    
+    eg::ReadSession session( project.getAnalysisFileName() );
+
+    //SPDLOG_INFO( "Found project: {}", projectDirectory.string() );
+    for( const boost::filesystem::path& egSourceCodeFile : project.getEGSourceCode() )
+    {
+        doc::UnitTest::File file{ egSourceCodeFile };
+        
+        std::string strFileContents;
+        boost::filesystem::loadAsciiFile( egSourceCodeFile, strFileContents );
+        
+        std::ostringstream osError;
+        if( !doc::parseFileSections( strFileContents, file.m_sections, osError ) )
+        {
+            THROW_RTE( osError.str() );
+        }
+        else
+        {
+            m_files.push_back( file );
+        }
+    }
+}
+        
 void print( std::ostream& os, const UnitTest& unitTest, bool bShowMarkDown, bool bShowCode )
 {
-    os << "Unit Test: " << unitTest.m_directory.string() << "\n";
+    os << "Unit Test: " << unitTest.m_headings << "\n";
     for( const UnitTest::File& file : unitTest.m_files )
     {
         os << "  File: " << file.m_filePath.string() << "\n";
@@ -62,7 +178,7 @@ void print( std::ostream& os, const UnitTest::Vector& unitTests, bool bShowMarkD
 }
 
 template< typename Iterator >
-class IdentifierGrammar : public boost::spirit::qi::grammar< Iterator, doc::Identifier() >
+class IdentifierGrammar : public boost::spirit::qi::grammar< Iterator, Identifier() >
 {
 public:
     IdentifierGrammar() : IdentifierGrammar::base_type( m_main_rule, "identifier" )
@@ -86,7 +202,7 @@ public:
 private:
     boost::spirit::qi::rule< Iterator, std::string() > m_identifier_grammar;
 public:
-    boost::spirit::qi::rule< Iterator, doc::Identifier() > m_main_rule;
+    boost::spirit::qi::rule< Iterator, Identifier() > m_main_rule;
 };
 
 bool parseIdentifier( const std::string& strContents, Identifier& identifier, std::ostream& osError )

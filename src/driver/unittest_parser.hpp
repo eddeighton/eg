@@ -7,14 +7,25 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <utility>
 
 namespace doc
 {
     using Identifier = std::vector< std::string >;
+    
+    struct Folder
+    {
+        std::string strOrder, strName;
+    };
 
     struct UnitTest
     {
         using Vector = std::vector< UnitTest >;
+        using Ptr = UnitTest*;
+        using PtrVector = std::vector< Ptr >;
+        using PtrVectorVector = std::vector< PtrVector >;
+        
+        UnitTest( const boost::filesystem::path& rootPath, const boost::filesystem::path& testPath );
         
         struct File
         {
@@ -32,12 +43,14 @@ namespace doc
         };
 
         boost::filesystem::path m_directory;
+        Identifier m_ordering, m_headings;
         std::vector< File > m_files;
     };
 
     void print( std::ostream& os, const UnitTest& unitTest, bool bShowMarkDown, bool bShowCode );
     void print( std::ostream& os, const UnitTest::Vector& unitTests, bool bShowMarkDown, bool bShowCode );
 
+    bool parseFolder( const std::string& strContents, Folder& identifier, std::ostream& osError );
     bool parseIdentifier( const std::string& strContents, Identifier& identifier, std::ostream& osError );
     bool parseSection( const std::string& strContents, UnitTest::File::Section& section, std::ostream& osError );
     bool parseFileSections( const std::string& strContents, UnitTest::File::Section::Vector& sections, std::ostream& osError );

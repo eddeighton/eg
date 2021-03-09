@@ -1,11 +1,6 @@
 
 cmake_minimum_required( VERSION 3.1...3.16 )
 
-#get xsde
-include( ${EG_ROOT_DIR}/cmake/xsde_include.cmake )
-
-#get eg schema
-include( ${EG_ROOT_DIR}/cmake/schema/schema_include.cmake )
 
 #get boost
 include( ${EG_ROOT_DIR}/cmake/boost_include.cmake )
@@ -16,8 +11,14 @@ include( ${EG_ROOT_DIR}/cmake/spdlog_include.cmake )
 #get clang
 #include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 
+#get xsde
+include( ${EG_ROOT_DIR}/cmake/xsde_include.cmake )
+
 #get common
 include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
+
+#get eg schema
+include( ${EG_ROOT_DIR}/cmake/schema/schema_include.cmake )
 
 #get eg
 include( ${EG_ROOT_DIR}/cmake/eg/eg_include.cmake )
@@ -39,15 +40,15 @@ set_target_properties( eg PROPERTIES FOLDER eg )
 
 set_target_properties( eg PROPERTIES DEBUG_POSTFIX d )
 
-link_xsde( eg )
-link_schemalib( eg )
 link_boost( eg program_options )
 link_boost( eg timer )
 link_boost( eg filesystem )
 link_boost( eg iostreams )
 link_boost( eg serialization )
 link_spdlog( eg )
+link_xsde( eg )
 link_common( eg )
+link_schemalib( eg )
 link_eg( eg )
 
 install( TARGETS eg DESTINATION bin)

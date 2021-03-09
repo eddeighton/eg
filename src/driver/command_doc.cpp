@@ -20,13 +20,7 @@
 #include "unittest_parser.hpp"
 #include "log.hpp"
 
-#include "eg_compiler/sessions/implementation_session.hpp"
-
 #include "schema/project.hpp"
-
-#include "egxml/eg_schema.hxx"
-#include "egxml/eg_schema-pimpl.hxx"
-#include "egxml/eg_schema-simpl.hxx"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -37,49 +31,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-doc::UnitTest parseEGProject( const boost::filesystem::path& rootDirectory, const boost::filesystem::path& projectDirectory )
-{
-    //record relative path
-    doc::UnitTest unitTest{ boost::filesystem::relative( projectDirectory, rootDirectory ) };
-    
-    const boost::filesystem::path projectFile = 
-        projectDirectory / Environment::EG_FILE_EXTENSION;
-    
-    if( !boost::filesystem::exists( projectFile ) )
-    {
-        THROW_RTE( "Could not locate " << Environment::EG_FILE_EXTENSION << " file in directory: " << projectDirectory.generic_string() );
-    }
-    
-    XMLManager::XMLDocPtr pDocument = XMLManager::load( projectFile );
-    
-    Environment environment( projectDirectory );
-    
-    Project project( projectDirectory, environment, pDocument->Project() );
-    
-    eg::ReadSession session( project.getAnalysisFileName() );
-
-    SPDLOG_INFO( "Found project: {}", projectDirectory.string() );
-    for( const boost::filesystem::path& egSourceCodeFile : project.getEGSourceCode() )
-    {
-        doc::UnitTest::File file{ egSourceCodeFile };
-        
-        std::string strFileContents;
-        boost::filesystem::loadAsciiFile( egSourceCodeFile, strFileContents );
-        
-        std::ostringstream osError;
-        if( !doc::parseFileSections( strFileContents, file.m_sections, osError ) )
-        {
-            THROW_RTE( osError.str() );
-        }
-        else
-        {
-            unitTest.m_files.push_back( file );
-        }
-    }
-    
-    return unitTest;
-}
 
 void recurseFolders( const boost::filesystem::path& rootDirectory, const boost::filesystem::path& folder, doc::UnitTest::Vector& unitTests )
 {
@@ -103,7 +54,7 @@ void recurseFolders( const boost::filesystem::path& rootDirectory, const boost::
     
     if( bContainsEGFile )
     {
-        unitTests.push_back( parseEGProject( rootDirectory, folder ) );
+        unitTests.push_back( doc::UnitTest( rootDirectory, folder ) );
     }
     else
     {
@@ -121,7 +72,11 @@ void recurseFolders( const boost::filesystem::path& rootDirectory, const boost::
 
 void orderUnitTests( doc::UnitTest::Vector& unitTests )
 {
-    //TODO
+    std::sort( unitTests.begin(), unitTests.end(),
+        []( const doc::UnitTest& left, const doc::UnitTest& right )
+        {
+            return left.m_ordering < right.m_ordering;
+        } );
 }
 
 void heading( std::ostream& os, const std::string& str, int depth )
@@ -147,7 +102,7 @@ void heading( std::ostream& os, const std::string& str, int depth )
     os << '\n';
 }
 
-void generate( const boost::filesystem::path& targetPath, const doc::UnitTest& unitTest )
+void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::PtrVector& group )
 {
     boost::filesystem::ensureFoldersExist( targetPath );
     std::unique_ptr< boost::filesystem::ofstream > pFileStream =
@@ -155,41 +110,50 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest& u
     
     doc::Identifier headerStack;
     
-    for( const doc::UnitTest::File& file : unitTest.m_files )
+    heading( *pFileStream, group.front()->m_headings.front(), 0 );
+        
+    for( const doc::UnitTest::Ptr& pUnitTest : group )
     {
-        for( const doc::UnitTest::File::Section& section : file.m_sections )
+        
+        
+        
+        
+        for( const doc::UnitTest::File& file : pUnitTest->m_files )
         {
-            std::size_t iDepth = 0U;
-            doc::Identifier::const_iterator iStack    = headerStack.begin();
-            doc::Identifier::const_iterator iHeader   = section.m_identifier.begin();
-            
-            for( ; ( iStack != headerStack.end() ) && ( iHeader != section.m_identifier.end() ); ++iStack, ++iHeader )
+            for( const doc::UnitTest::File::Section& section : file.m_sections )
             {
-                if( *iStack == *iHeader )
+                std::size_t iDepth = 0U;
+                doc::Identifier::const_iterator iStack    = headerStack.begin();
+                doc::Identifier::const_iterator iHeader   = section.m_identifier.begin();
+                
+                for( ; ( iStack != headerStack.end() ) && ( iHeader != section.m_identifier.end() ); ++iStack, ++iHeader )
                 {
-                    ++iDepth;
+                    if( *iStack == *iHeader )
+                    {
+                        ++iDepth;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                
+                if( iHeader == section.m_identifier.end() )
+                {
+                    heading( *pFileStream, section.m_identifier.back(), section.m_identifier.size() );
                 }
                 else
                 {
-                    break;
+                    iHeader = section.m_identifier.begin() + iDepth;
+                    for( ; iHeader != section.m_identifier.end(); ++iHeader, ++iDepth )
+                    {
+                        heading( *pFileStream, *iHeader, iDepth + 1U );
+                    }
                 }
+                headerStack = section.m_identifier;
+                
+                *pFileStream << section.m_strMarkdown << "\n";
             }
-            
-            if( iHeader == section.m_identifier.end() )
-            {
-                heading( *pFileStream, section.m_identifier.back(), section.m_identifier.size() - 1U );
-            }
-            else
-            {
-                iHeader = section.m_identifier.begin() + iDepth;
-                for( ; iHeader != section.m_identifier.end(); ++iHeader, ++iDepth )
-                {
-                    heading( *pFileStream, *iHeader, iDepth );
-                }
-            }
-            headerStack = section.m_identifier;
-            
-            *pFileStream << section.m_strMarkdown << "\n";
         }
     }
     
@@ -239,13 +203,9 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
         boost::filesystem::edsCannonicalise(
             boost::filesystem::absolute( strTargetDirectory ) );
     {
-        if( !boost::filesystem::exists( targetDirectory ) )
+        if( boost::filesystem::exists( targetDirectory ) )
         {
-            THROW_RTE( "Target directory does not exist: " << targetDirectory.generic_string() );
-        }
-        else if( !boost::filesystem::is_directory( targetDirectory ) )
-        {
-            THROW_RTE( "Target path is not a directory: " << targetDirectory.generic_string() );
+            boost::filesystem::remove_all( targetDirectory );
         }
     }
     
@@ -270,21 +230,45 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
     
     orderUnitTests( unitTests );
     
+    doc::UnitTest::PtrVectorVector unitTestGroups;
+    {
+        std::string strLast;
+        for( doc::UnitTest::Vector::iterator 
+                i = unitTests.begin(),
+                iEnd = unitTests.end(); i!=iEnd; ++i )
+        {
+            if( strLast == i->m_ordering.front() )
+            {
+                unitTestGroups.back().push_back( &*i );
+            }
+            else
+            {
+                unitTestGroups.push_back( doc::UnitTest::PtrVector{} );
+                unitTestGroups.back().push_back( &*i );
+                strLast = i->m_ordering.front();
+            }
+        }
+    }
+    
     std::ostringstream os;
     doc::print( os, unitTests, bShowMarkDown, bShowCode );
     SPDLOG_INFO( "\n{}", os.str() );
  
     std::vector< boost::filesystem::path > toc;
-    for( const doc::UnitTest& unitTest : unitTests )
+    
+    for( const doc::UnitTest::PtrVector& group : unitTestGroups )
     {
         using namespace std::string_literals;
         boost::filesystem::path rstPath = 
-            targetDirectory / unitTest.m_directory;
+            targetDirectory / group.front()->m_headings.front();
         rstPath.replace_extension( ".rst" );
-        
-        generate( rstPath, unitTest );
+        VERIFY_RTE( std::find( toc.begin(), toc.end(), rstPath ) == toc.end() );
         toc.push_back( rstPath );
+        
+        boost::filesystem::ensureFoldersExist( rstPath );
+        generate( rstPath, group );
     }
+    
     
     //generate the TOC
     

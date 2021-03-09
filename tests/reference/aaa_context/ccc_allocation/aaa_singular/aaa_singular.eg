@@ -1,0 +1,25 @@
+
+
+/*singular.simple
+objects do not contain executable code themselves
+
+*/
+
+/*singular.advanced
+objects do not contain executable code themselves
+
+*/
+
+
+/*nonsingular.advanced
+objects do not contain executable code themselves
+
+*/
+
+
+action Test
+{
+    dim int x;
+}
+
+LOG( "testing" );

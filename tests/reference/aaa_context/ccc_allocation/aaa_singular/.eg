@@ -1,6 +1,6 @@
 <EG>
   <Project>
-    <Name>singular</Name>
+    <Name>aaa_singular</Name>
     <Host>${ROOT}/basic</Host>
     <Build>
       <Name>release</Name>

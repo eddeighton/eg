@@ -855,6 +855,10 @@ namespace clang
                     {
                         AbstractMutator::setSize( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
                     }
+                    else
+                    {
+                        THROW_RTE( "Error attempting to record dimension size" );
+                    }
                     
                     //determine if the type is simple
                     if( std::optional< std::size_t > sizeOpt = getConstant( pASTContext, pSema, dimensionResult.pContext, dimensionResult.loc, ::eg::EG_TRAITS_SIMPLE ) )

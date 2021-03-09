@@ -10,8 +10,14 @@ include( ${EG_ROOT_DIR}/cmake/clang_include.cmake )
 #get gtest
 include( ${EG_ROOT_DIR}/cmake/gtest_include.cmake )
 
+#get xsde
+include( ${EG_ROOT_DIR}/cmake/xsde_include.cmake )
+
 #get common
 include( ${EG_ROOT_DIR}/cmake/common_include.cmake )
+
+#get eg schema
+include( ${EG_ROOT_DIR}/cmake/schema/schema_include.cmake )
 
 #get the unit test utils
 #include( ${MODULE_DIR}/test_utils/cmake/test_utils_include.cmake )
@@ -54,7 +60,9 @@ link_boost( eg_tests iostreams )
 link_boost( eg_tests serialization )
 link_boost( eg_tests program_options )
 link_clang( eg_tests )
+link_xsde( eg_tests )
 link_common( eg_tests )
+link_schemalib( eg_tests )
 link_eg( eg_tests )
 link_gtest( eg_tests )
 link_gtest_main( eg_tests )

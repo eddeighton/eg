@@ -9,10 +9,9 @@ Welcome to the EG Language reference documentation.
 .. toctree::
    :maxdepth: 2
    
-   context/allocation/singular.rst
-   context/allocation/many.rst
-   inheritance/concrete.rst
-   license
+   generated/context.rst
+   generated/inheritance.rst
+   license.rst
 
 
 

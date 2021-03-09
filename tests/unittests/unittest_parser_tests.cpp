@@ -9,6 +9,48 @@
 
 using namespace std::string_literals;
 
+TEST( FolderParser, Folder_Valid )
+{
+    std::vector< std::pair< std::string, doc::Folder > > validStrings = 
+    {
+        { "a_b"s, { "a"s, "b"s } },
+        { "1_2"s, { "1"s, "2"s } },
+        { "abc123_def456"s, { "abc123"s, "def456"s } }
+    };
+    
+    for( const std::pair< std::string, doc::Folder >& p : validStrings )
+    {
+        std::ostringstream osError;
+        doc::Folder folder;
+        const bool bResult = doc::parseFolder( p.first, folder, osError );
+        ASSERT_TRUE( bResult );
+        ASSERT_EQ( folder.strOrder,     p.second.strOrder );
+        ASSERT_EQ( folder.strName,      p.second.strName );
+    }
+}
+
+TEST( FolderParser, Folder_InValid )
+{
+    std::vector< std::string > validStrings = 
+    {
+        { ""s },
+        { "a"s },
+        { "_b"s },
+        { "_b_"s },
+        { "_2"s },
+        { "abc123"s },
+        { "___"s }
+    };
+    
+    for( const std::string& p : validStrings )
+    {
+        std::ostringstream osError;
+        doc::Folder folder;
+        const bool bResult = doc::parseFolder( p, folder, osError );
+        ASSERT_FALSE( bResult );
+    }
+}
+
 TEST( IdentifierParser, Identifier_Empty )
 {
     std::ostringstream osError;
