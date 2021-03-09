@@ -1,25 +1,69 @@
 
 
-/*singular.simple
+/*simple
 objects do not contain executable code themselves
+
++------------------------+------------+----------+----------+
+| Header row, column 1   | Header 2   | Header 3 | Header 4 |
+| (header rows optional) |            |          |          |
++========================+============+==========+==========+
+| body row 1, column 1   | column 2   | column 3 | column 4 |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
+| body row 2             | ...        | ...      |          |
++------------------------+------------+----------+----------+
 
 */
 
-/*singular.advanced
-objects do not contain executable code themselves
-
-*/
-
-
-/*nonsingular.advanced
-objects do not contain executable code themselves
-
-*/
-
-
-action Test
+object SingularObject
 {
-    dim int x;
+    //by default any context WITHOUT a size specification will be singular.
+    //Being singular means the context can be automatically derived through when resolving names and dynamic contexts.
+};
+
+
+/*advanced.issueone
+objects do not contain executable code themselves
+
+*/
+
+action SingularObject::Nested
+{
+    action DeeperNesting
+    {
+        action EvenDeeper
+        {
+            //Singular all the way down
+            dim int x;
+        }
+    }
 }
 
-LOG( "testing" );
+//because everything here is singular it is possible to directly address x from the root i.e.
+int i = x();
+
+//which translates as
+int iReally = SingularObject.Nested.DeeperNesting.EvenDeeper.x();

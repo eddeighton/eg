@@ -7,7 +7,7 @@ Welcome to the EG Language reference documentation.
 ===================================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    
    generated/context.rst
    generated/inheritance.rst

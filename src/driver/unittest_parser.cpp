@@ -132,7 +132,6 @@ UnitTest::UnitTest( const boost::filesystem::path& rootPath, const boost::filesy
     
     eg::ReadSession session( project.getAnalysisFileName() );
 
-    //SPDLOG_INFO( "Found project: {}", projectDirectory.string() );
     for( const boost::filesystem::path& egSourceCodeFile : project.getEGSourceCode() )
     {
         doc::UnitTest::File file{ egSourceCodeFile };

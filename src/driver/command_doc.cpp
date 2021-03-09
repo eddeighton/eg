@@ -102,6 +102,39 @@ void heading( std::ostream& os, const std::string& str, int depth )
     os << '\n';
 }
 
+void generateHeaders( std::ostream& os, const doc::Identifier& header, doc::Identifier& headerStack )
+{
+    doc::Identifier::const_iterator iStack    = headerStack.begin();
+    doc::Identifier::const_iterator iHeader   = header.begin();
+    
+    std::size_t iHeaderDepth = 0U;
+    for( ; ( iStack != headerStack.end() ) && ( iHeader != header.end() ); ++iStack, ++iHeader )
+    {
+        if( *iStack == *iHeader )
+        {
+            ++iHeaderDepth;
+        }
+        else
+        {
+            break;
+        }
+    }
+    
+    if( iHeader == header.end() )
+    {
+        heading( os, header.back(), header.size() - 1U );
+    }
+    else
+    {
+        iHeader = header.begin() + iHeaderDepth;
+        for( ; iHeader != header.end(); ++iHeader, ++iHeaderDepth )
+        {
+            heading( os, *iHeader, iHeaderDepth );
+        }
+    }
+    headerStack = header;
+}
+
 void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::PtrVector& group )
 {
     boost::filesystem::ensureFoldersExist( targetPath );
@@ -109,54 +142,58 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::P
         boost::filesystem::createNewFileStream( targetPath );
     
     doc::Identifier headerStack;
-    
-    heading( *pFileStream, group.front()->m_headings.front(), 0 );
-        
     for( const doc::UnitTest::Ptr& pUnitTest : group )
     {
-        
-        
-        
+        generateHeaders( *pFileStream, pUnitTest->m_headings, headerStack );
         
         for( const doc::UnitTest::File& file : pUnitTest->m_files )
         {
             for( const doc::UnitTest::File::Section& section : file.m_sections )
             {
-                std::size_t iDepth = 0U;
-                doc::Identifier::const_iterator iStack    = headerStack.begin();
-                doc::Identifier::const_iterator iHeader   = section.m_identifier.begin();
+                doc::Identifier header = pUnitTest->m_headings;
+                std::copy( section.m_identifier.begin(), section.m_identifier.end(),
+                    std::back_inserter( header ) );
                 
-                for( ; ( iStack != headerStack.end() ) && ( iHeader != section.m_identifier.end() ); ++iStack, ++iHeader )
-                {
-                    if( *iStack == *iHeader )
-                    {
-                        ++iDepth;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                
-                if( iHeader == section.m_identifier.end() )
-                {
-                    heading( *pFileStream, section.m_identifier.back(), section.m_identifier.size() );
-                }
-                else
-                {
-                    iHeader = section.m_identifier.begin() + iDepth;
-                    for( ; iHeader != section.m_identifier.end(); ++iHeader, ++iDepth )
-                    {
-                        heading( *pFileStream, *iHeader, iDepth + 1U );
-                    }
-                }
-                headerStack = section.m_identifier;
+                generateHeaders( *pFileStream, header, headerStack );
                 
                 *pFileStream << section.m_strMarkdown << "\n";
+                
+                if( !section.m_code.empty() )
+                {
+                    bool bGeneratedHeader = false;
+                    
+                    std::vector< std::string > lines;
+                    boost::split( lines, section.m_code, []( char c ){ return c == '\n'; } );
+                    
+                    for( const std::string& str : lines )
+                    {
+                        bool bOnlyWhiteSpace = true;
+                        for( char c : str )
+                        {
+                            if( !std::isspace( c ) )
+                            {
+                                bOnlyWhiteSpace = false;
+                                break;
+                            }
+                        }
+                        if( !bOnlyWhiteSpace )
+                        {
+                            if( !bGeneratedHeader )
+                            {
+                                *pFileStream << "\nexample::\n\n";
+                                bGeneratedHeader = true;
+                            }
+                            *pFileStream << "    " << str << '\n';
+                        }
+                    }
+                    if( bGeneratedHeader )
+                    {
+                        *pFileStream << "\n";
+                    }
+                }
             }
         }
     }
-    
 }
 
 void command_doc( bool bHelp, const std::vector< std::string >& args )
