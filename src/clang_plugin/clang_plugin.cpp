@@ -324,7 +324,32 @@ namespace eg
         std::optional< clang::QualType > buildActionReturnType( const InvocationSolution::Context& returnTypes, 
             clang::DeclContext* pDeclContext, clang::SourceLocation loc )
         {
-            if( returnTypes.size() == 1U )
+            bool bIsFunctionReturnType = false;
+            {
+                std::set< std::string > functionReturnTypes;
+                bool bNonFunction = false;
+                for( const interface::Element* pReturnType : returnTypes )
+                {
+                    if( const interface::Function* pFunctionCall = 
+                        dynamic_cast< const interface::Function* >( pReturnType ) )
+                    {
+                        functionReturnTypes.insert( pFunctionCall->getReturnType() );
+                    }
+                    else
+                    {
+                        bNonFunction = true;
+                    }
+                }
+                if( !functionReturnTypes.empty() )
+                {
+                    if( bNonFunction || ( functionReturnTypes.size() != 1U ) )
+                        return std::optional< clang::QualType >();
+                    //return the function return type
+                    bIsFunctionReturnType = true;
+                }
+            }
+                
+            if( ( returnTypes.size() == 1U ) || bIsFunctionReturnType )
             {
                 const interface::Element* pTarget = returnTypes.front();
                 clang::DeclContext* pDeclContextIter = pDeclContext;
@@ -336,10 +361,6 @@ namespace eg
                         if( const interface::Function* pFunctionCall = 
                             dynamic_cast< const interface::Function* >( pElementElement ) )
                         {
-                            //clang::getType( g_pASTContext, g_pSema, 
-                            //    getInterfaceType( pElementElement->getIdentifier() ), "void", 
-                            //    pDeclContextIter, loc, true );
-                                
                             clang::DeclLocType result = getNestedDeclContext( g_pASTContext, g_pSema, 
                                 pDeclContextIter, loc, ::eg::getInterfaceType( pElementElement->getIdentifier() ), true );
                             if( result.pContext )

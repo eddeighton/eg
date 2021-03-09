@@ -74,16 +74,33 @@ namespace eg
             case id_Imp_Params  :
                 if( !invocation.isReturnTypeDimensions() )
                 {
-                    if( returnTypes.size() == 1U )
+                    //if return types are functions then get the function return type
+                    std::set< std::string > functionReturnTypes;
+                    bool bNonFunction = false;
+                    for( const interface::Element* pReturnType : returnTypes )
                     {
                         if( const interface::Function* pFunctionCall = 
-                            dynamic_cast< const interface::Function* >( returnTypes.front() ) )
+                            dynamic_cast< const interface::Function* >( pReturnType ) )
                         {
-                            os << pFunctionCall->getReturnType();
-                            break;
+                            functionReturnTypes.insert( pFunctionCall->getReturnType() );
+                        }
+                        else
+                        {
+                            bNonFunction = true;
                         }
                     }
-                    printActionType( os, returnTypes );
+                    
+                    if( !functionReturnTypes.empty() )
+                    {
+                        VERIFY_RTE_MSG( !bNonFunction, "Inconsistent invocation return types" );
+                        VERIFY_RTE_MSG( functionReturnTypes.size() == 1U, "Inconsistent invocation return types" );
+                        
+                        os << *functionReturnTypes.begin();
+                    }
+                    else
+                    {
+                        printActionType( os, returnTypes );
+                    }
                 }
                 else if( invocation.getOperation() == id_Imp_NoParams )
                 {

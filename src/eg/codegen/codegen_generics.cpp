@@ -765,7 +765,7 @@ namespace eg
 
         //generate the invoke definitions
 
-        //generic one for variant
+        //generic one for where context is a variant of contexts
         os << "\n//generic variant invocation adaptor\n";
         os << "template< typename... Ts >\n";
         os << "template< typename TypePath, typename Operation, typename... Args >\n";
