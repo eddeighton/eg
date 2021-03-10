@@ -25,6 +25,29 @@ namespace doc
         using PtrVector = std::vector< Ptr >;
         using PtrVectorVector = std::vector< PtrVector >;
         
+        struct Event
+        {
+            using Vector = std::vector< Event >;
+            enum Type
+            {
+                eStart,
+                eStop,
+                eLog,
+                eError,
+                ePass,
+                eFail,
+                eOther,
+                TOTAL_EVENT_TYPES
+            };
+            
+            Type eventType;
+            std::size_t timestamp;
+            std::string strValue;
+            std::size_t instance;
+            std::size_t type;
+            
+        };
+        
         UnitTest( const boost::filesystem::path& rootPath, const boost::filesystem::path& testPath );
         
         struct File
@@ -45,6 +68,7 @@ namespace doc
         boost::filesystem::path m_directory;
         Identifier m_ordering, m_headings;
         std::vector< File > m_files;
+        Event::Vector m_events;
     };
 
     void print( std::ostream& os, const UnitTest& unitTest, bool bShowMarkDown, bool bShowCode );

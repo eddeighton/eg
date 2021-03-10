@@ -50,8 +50,86 @@ BOOST_FUSION_ADAPT_STRUCT
     (std::string, strName)
 )  
 
+
+
 namespace doc
 {
+    
+UnitTest::Event convertEvent( std::shared_ptr< eg::ReadSession > pDatabase, const IPC::Event::Event& event )
+{
+    UnitTest::Event result;
+    result.timestamp = event.getTimeStamp();
+    
+    if( 0 == strcmp( event.getType_c_str(), "start" ) )
+    {
+        result.eventType = UnitTest::Event::eStart;
+        
+        VERIFY_RTE( sizeof( eg::reference ) == event.getValueSize() );
+        const eg::reference* pRef = reinterpret_cast< const eg::reference* >( event.getValue() );
+        
+        if( pDatabase )
+        {
+            const eg::concrete::Action* pAction = pDatabase->getConcreteAction( pRef->type );
+            result.strValue    = pAction->getName();
+            result.instance    = pRef->instance;
+            result.timestamp   = pRef->timestamp;
+        }
+        else
+        {
+            result.type        = pRef->type;
+            result.instance    = pRef->instance;
+            result.timestamp   = pRef->timestamp;
+        }
+    }
+    else if( 0 == strcmp( event.getType_c_str(), "stop" ) )
+    {
+        result.eventType = UnitTest::Event::eStop;
+        
+        VERIFY_RTE( sizeof( eg::reference ) == event.getValueSize() );
+        const eg::reference* pRef = reinterpret_cast< const eg::reference* >( event.getValue() );
+        
+        if( pDatabase )
+        {
+            const eg::concrete::Action* pAction = pDatabase->getConcreteAction( pRef->type );
+            result.strValue    = pAction->getName();
+            result.instance    = pRef->instance;
+            result.timestamp   = pRef->timestamp;
+        }
+        else
+        {
+            result.type        = pRef->type;
+            result.instance    = pRef->instance;
+            result.timestamp   = pRef->timestamp;
+        }
+    }
+    else if( 0 == strcmp( event.getType_c_str(), "log" ) )
+    {
+        result.eventType = UnitTest::Event::eLog;
+        result.strValue = reinterpret_cast< const char* >( event.getValue() );
+    }
+    else if( 0 == strcmp( event.getType_c_str(), "error" ) )
+    {
+        result.eventType = UnitTest::Event::eError;
+        result.strValue = reinterpret_cast< const char* >( event.getValue() );
+    }
+    else if( 0 == strcmp( event.getType_c_str(), "pass" ) )
+    {
+        result.eventType = UnitTest::Event::ePass;
+        result.strValue = reinterpret_cast< const char* >( event.getValue() );
+    }
+    else if( 0 == strcmp( event.getType_c_str(), "fail" ) )
+    {
+        result.eventType = UnitTest::Event::eFail;
+        result.strValue = reinterpret_cast< const char* >( event.getValue() );
+    }
+    else
+    {
+        result.eventType = UnitTest::Event::eOther;
+        result.strValue = reinterpret_cast< const char* >( event.getValue() );
+    }
+    return result;
+}
+
     
 template< typename Iterator >
 class FolderGrammar : public boost::spirit::qi::grammar< Iterator, Folder() >
@@ -163,10 +241,9 @@ UnitTest::UnitTest( const boost::filesystem::path& rootPath, const boost::filesy
         while( eventLog.read( iter, event ) )
         {
             //generate event record with type info and stuff...
+            m_events.push_back( convertEvent( pDatabase, event ) );
         }
-    
     }
-    
 }
         
 void print( std::ostream& os, const UnitTest& unitTest, bool bShowMarkDown, bool bShowCode )

@@ -11,7 +11,7 @@ Basic
 Reading
 -------
 
-To read or write dimensions in eg one must use the invocation system.
+To read or write dimensions in EG one must use the invocation system.
 Reading is the simplest operation type where the context is invoked similar to invoking the C++ application operator.
 
 
@@ -24,7 +24,7 @@ example::
         dim int z; //basic integer dimension
     }
     Test test = Test(); //get a reference to a Test
-    //now read x
+    //now read x, y, z
     TEST( test.x() == 0 );
     TEST( test.y() == 0 );
     TEST( test.z() == 0 );
@@ -72,4 +72,48 @@ example::
     TEST( test2.x() == 1 );
     TEST( test2.y() == 2 );
     TEST( test2.z() == 3 );
+
+Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/ccc_invocation/aaa_data
+
+Program Output:
+
++---------+-----+---------------+--------+
+|Timestamp|Type |Value          |Instance|
++=========+=====+===============+========+
+|00000001 |START|root           |00000000|
++---------+-----+---------------+--------+
+|00000001 |START|root_Test      |00000000|
++---------+-----+---------------+--------+
+|00000001 |PASS |test.x() == 0  |        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.y() == 0  |        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.z() == 0  |        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.x() == 123|        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.y() == 0  |        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.z() == 0  |        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.x() == 234|        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.y() == 345|        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test.z() == 456|        |
++---------+-----+---------------+--------+
+|00000001 |START|root_Test      |00000001|
++---------+-----+---------------+--------+
+|00000001 |PASS |test2.x() == 1 |        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test2.y() == 2 |        |
++---------+-----+---------------+--------+
+|00000001 |PASS |test2.z() == 3 |        |
++---------+-----+---------------+--------+
+|00000001 |STOP |root           |00000000|
++---------+-----+---------------+--------+
+|00000001 |STOP |root_Test      |00000000|
++---------+-----+---------------+--------+
+|00000001 |STOP |root_Test      |00000001|
++---------+-----+---------------+--------+
 

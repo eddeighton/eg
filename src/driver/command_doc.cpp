@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 #include <string_view>
+#include <iomanip>
 
 void recurseFolders( const boost::filesystem::path& rootDirectory, const boost::filesystem::path& folder, doc::UnitTest::Vector& unitTests )
 {
@@ -159,6 +160,7 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::P
                 
                 *pFileStream << section.m_strMarkdown << "\n";
                 
+                //generate code example
                 if( !section.m_code.empty() )
                 {
                     bool bGeneratedHeader = false;
@@ -193,6 +195,187 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::P
                     }
                 }
             }
+        }
+                
+        //generate event log table
+        if( !pUnitTest->m_events.empty() )
+        {
+            std::ostream& os = *pFileStream;
+            
+            os << "Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/" << 
+                pUnitTest->m_directory.generic_string() << "\n\n";
+            
+            os << "Program Output:\n\n";
+            
+            struct Row
+            {
+                std::string strTimestamp, strEventType, strValue, strInstance;
+            };
+            using RowVector = std::vector< Row >;
+            RowVector rows;
+            
+            auto formatInt = []( std::size_t sz ) -> std::string
+            {
+                std::ostringstream os;
+                os << std::setw( 8 ) << std::setfill( '0' ) << sz;
+                return os.str();
+            };
+            
+            for( const doc::UnitTest::Event& event : pUnitTest->m_events )
+            {
+                Row row;
+                row.strTimestamp = formatInt( event.timestamp );
+                
+                switch( event.eventType )
+                {
+                    case doc::UnitTest::Event::eStart            :
+                        {
+                            row.strEventType = "START";
+                            if( !event.strValue.empty() )
+                                row.strValue = event.strValue;
+                            else
+                                row.strValue = formatInt( event.type );
+                            row.strInstance = formatInt( event.instance );
+                        }
+                        break;
+                    case doc::UnitTest::Event::eStop             :
+                        {
+                            row.strEventType = "STOP";
+                            if( !event.strValue.empty() )
+                                row.strValue = event.strValue;
+                            else
+                                row.strValue = formatInt( event.type );
+                            row.strInstance = formatInt( event.instance );
+                        }
+                        break;
+                    case doc::UnitTest::Event::eLog              :
+                        {
+                            row.strEventType = "LOG";
+                            row.strValue = event.strValue;
+                        }
+                        break;
+                    case doc::UnitTest::Event::eError            :
+                        {
+                            row.strEventType = "ERROR";
+                            row.strValue = event.strValue;
+                        }
+                        break;
+                    case doc::UnitTest::Event::ePass             :
+                        {
+                            row.strEventType = "PASS";
+                            row.strValue = event.strValue;
+                        }
+                        break;
+                    case doc::UnitTest::Event::eFail             :
+                        {
+                            row.strEventType = "FAIL";
+                            row.strValue = event.strValue;
+                        }
+                        break;
+                    case doc::UnitTest::Event::eOther            :
+                        {
+                            row.strEventType = "OTHER";
+                            row.strValue = event.strValue;
+                        }
+                        break;
+                    case doc::UnitTest::Event::TOTAL_EVENT_TYPES :
+                        THROW_RTE( "Unknown event type" );
+                }
+                rows.push_back( row );
+            }
+            
+            using namespace std::string_literals;
+            const Row header{ "Timestamp"s, "Type"s, "Value"s, "Instance"s };
+            
+            //determine column widths
+            std::size_t szTimeStampsWidth   = header.strTimestamp.size(),
+                        szEventTypesWidth   = header.strEventType.size(),
+                        szValuesWidth       = header.strValue.size(),
+                        szInstancesWidth    = header.strInstance.size();
+            for( const Row& row : rows )
+            {
+                szTimeStampsWidth   = std::max( row.strTimestamp.size(),    szTimeStampsWidth );
+                szEventTypesWidth   = std::max( row.strEventType.size(),    szEventTypesWidth );
+                szValuesWidth       = std::max( row.strValue.size(),        szValuesWidth );
+                szInstancesWidth    = std::max( row.strInstance.size(),     szInstancesWidth );
+            }
+                        
+            //generate the table
+            
+            auto drawLine = []( std::ostream& os, char c, std::size_t sz1, std::size_t sz2, std::size_t sz3, std::size_t sz4 ) -> void
+            {
+                os << '+';
+                for( std::size_t sz = 0U; sz != sz1; ++sz )
+                    os << c;
+                os << '+';
+                for( std::size_t sz = 0U; sz != sz2; ++sz )
+                    os << c;
+                os << '+';
+                for( std::size_t sz = 0U; sz != sz3; ++sz )
+                    os << c;
+                os << '+';
+                for( std::size_t sz = 0U; sz != sz4; ++sz )
+                    os << c;
+                os << '+';
+                os << '\n';
+            };
+            
+            auto drawRow = []( std::ostream& os, std::size_t sz1, std::size_t sz2, std::size_t sz3, std::size_t sz4, const Row& row ) -> void
+            {
+                os << '|';
+                os << row.strTimestamp;
+                for( std::size_t sz = row.strTimestamp.size(); sz < sz1; ++sz )
+                    os << ' ';
+                
+                os << '|';
+                os << row.strEventType;
+                for( std::size_t sz = row.strEventType.size(); sz < sz2; ++sz )
+                    os << ' ';
+                
+                os << '|';
+                os << row.strValue;
+                for( std::size_t sz = row.strValue.size(); sz < sz3; ++sz )
+                    os << ' ';
+                
+                os << '|';
+                os << row.strInstance;
+                for( std::size_t sz = row.strInstance.size(); sz < sz4; ++sz )
+                    os << ' ';
+                
+                os << '|';
+                os << '\n';
+            };
+            
+            drawLine( os, '-',  szTimeStampsWidth ,
+                                szEventTypesWidth ,
+                                szValuesWidth     ,
+                                szInstancesWidth  );
+            
+            drawRow( os,        szTimeStampsWidth ,
+                                szEventTypesWidth ,
+                                szValuesWidth     ,
+                                szInstancesWidth  ,
+                                header );
+                
+            drawLine( os, '=',  szTimeStampsWidth ,
+                                szEventTypesWidth ,
+                                szValuesWidth     ,
+                                szInstancesWidth  );
+                                
+            for( const Row& row : rows )
+            {
+                drawRow( os,        szTimeStampsWidth ,
+                                    szEventTypesWidth ,
+                                    szValuesWidth     ,
+                                    szInstancesWidth  ,
+                                    row );
+                    
+                drawLine( os, '-',  szTimeStampsWidth ,
+                                    szEventTypesWidth ,
+                                    szValuesWidth     ,
+                                    szInstancesWidth  );
+            }
+            os << "\n";
         }
     }
 }
