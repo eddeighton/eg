@@ -9,6 +9,8 @@
 #include "egxml/eg_schema-pimpl.hxx"
 #include "egxml/eg_schema-simpl.hxx"
 
+#include "eventlog/client.hpp"
+
 #include "common/grammar.hpp"
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -149,6 +151,22 @@ UnitTest::UnitTest( const boost::filesystem::path& rootPath, const boost::filesy
             m_files.push_back( file );
         }
     }
+    
+    {
+        std::shared_ptr< eg::ReadSession > pDatabase = 
+            std::make_shared< eg::ReadSession >( projectDirectory / "build/database.db" );
+        
+        IPC::Event::Log eventLog( projectDirectory / "log" );
+        
+        IPC::Event::Iterator iter = 0U;
+        IPC::Event::Event event;
+        while( eventLog.read( iter, event ) )
+        {
+            //generate event record with type info and stuff...
+        }
+    
+    }
+    
 }
         
 void print( std::ostream& os, const UnitTest& unitTest, bool bShowMarkDown, bool bShowCode )

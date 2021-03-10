@@ -31,6 +31,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <string_view>
 
 void recurseFolders( const boost::filesystem::path& rootDirectory, const boost::filesystem::path& folder, doc::UnitTest::Vector& unitTests )
 {
@@ -242,6 +243,18 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
     {
         if( boost::filesystem::exists( targetDirectory ) )
         {
+            //check the folder ONLY contains .rst files
+            boost::filesystem::recursive_directory_iterator iterEnd;
+            boost::filesystem::recursive_directory_iterator iter( targetDirectory );
+            for( ; iter != iterEnd; ++iter )
+            {
+                const boost::filesystem::path pathTemp = *iter;
+                if( boost::filesystem::is_regular_file( pathTemp ) )
+                {
+                    VERIFY_RTE_MSG( pathTemp.extension() == ".rst", "Target folder contains non-rst files: " << targetDirectory.string() );
+                }
+            }
+            
             boost::filesystem::remove_all( targetDirectory );
         }
     }
@@ -300,7 +313,8 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
             targetDirectory / group.front()->m_headings.front();
         rstPath.replace_extension( ".rst" );
         VERIFY_RTE( std::find( toc.begin(), toc.end(), rstPath ) == toc.end() );
-        toc.push_back( rstPath );
+        
+        toc.push_back( boost::filesystem::relative( rstPath, targetDirectory.parent_path() )  );
         
         boost::filesystem::ensureFoldersExist( rstPath );
         generate( rstPath, group );
@@ -308,6 +322,39 @@ void command_doc( bool bHelp, const std::vector< std::string >& args )
     
     
     //generate the TOC
+    const boost::filesystem::path indexTemplatePath = 
+        targetDirectory / "../templates/index_template.rst";
+    const boost::filesystem::path indexPath = 
+        targetDirectory / "../index.rst";
+    
+    {
+        std::string strTemplate;
+        boost::filesystem::loadAsciiFile( indexTemplatePath, strTemplate );
+        
+        static const std::string strKey = "<FILELIST_LOCATION>";
+        std::string::iterator iFind =
+            std::search( strTemplate.begin(), strTemplate.end(), strKey.begin(), strKey.end() );
+            
+        VERIFY_RTE_MSG( iFind != strTemplate.end(), 
+            "Failed to locate: " <<strKey << " in " << indexTemplatePath.string() );
+        const std::size_t szPosition = std::distance( strTemplate.begin(), iFind );
+        
+        //rewrite the table of contents
+        std::ostringstream osTOC;
+        for( const boost::filesystem::path& page : toc )
+        {
+            osTOC << "   " << page.generic_string() << "\n";
+        }
+        
+        const std::string_view firstPart( strTemplate.data(), szPosition );
+        const std::string_view lastPart( strTemplate.data() + szPosition + strKey.size(), 
+            strTemplate.size() - ( szPosition + strKey.size() ) );
+        
+        std::ostringstream osRender;
+        osRender << firstPart << osTOC.str() << lastPart;
+        
+        boost::filesystem::updateFileIfChanged( indexPath, osRender.str() );
+    }
     
 
 }

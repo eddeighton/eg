@@ -9,9 +9,7 @@ Welcome to the EG Language Reference Manual.
 .. toctree::
    :maxdepth: 3
    
-   generated/context.rst
-   generated/inheritance.rst
-
+<FILELIST_LOCATION>
    license.rst
 
 Indices and tables
@@ -19,4 +17,3 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
-

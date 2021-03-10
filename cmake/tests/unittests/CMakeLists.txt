@@ -53,6 +53,8 @@ add_executable( eg_tests
 set_target_properties( eg_tests PROPERTIES DEBUG_POSTFIX d )
 set_target_properties( eg_tests PROPERTIES FOLDER eg )
 
+target_link_libraries( eg_tests PRIVATE eventloglib )
+
 target_compile_options( eg_tests PUBLIC /await )
 
 link_boost( eg_tests filesystem )

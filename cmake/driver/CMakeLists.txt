@@ -40,6 +40,8 @@ set_target_properties( eg PROPERTIES FOLDER eg )
 
 set_target_properties( eg PROPERTIES DEBUG_POSTFIX d )
 
+target_link_libraries( eg PRIVATE eventloglib )
+
 link_boost( eg program_options )
 link_boost( eg timer )
 link_boost( eg filesystem )
