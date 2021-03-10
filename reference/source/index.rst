@@ -11,6 +11,7 @@ Welcome to the EG Language Reference Manual.
    
    generated/context.rst
    generated/inheritance.rst
+   generated/invocation.rst
 
    license.rst
 
