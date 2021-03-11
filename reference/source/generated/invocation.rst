@@ -5,7 +5,7 @@ Invocation
 Data
 ****
 
-`Data Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/ccc_Invocation/aaa_Data/Data.eg>`_
+`Data Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/ccc_invocation/aaa_data/Data.eg>`_
 
 =====
 Basic

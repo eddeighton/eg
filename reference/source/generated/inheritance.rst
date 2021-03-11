@@ -5,10 +5,10 @@ Inheritance
 Concrete
 ********
 
-`Concrete Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/bbb_Inheritance/aaa_Concrete/Concrete.eg>`_
+`Concrete Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/bbb_inheritance/aaa_concrete/Concrete.eg>`_
 
 =====
-basic
+Basic
 =====
 
 A context can inherit from any other context.  Inheritance means the deriving context inherits all features of the underlying type and can then override and extend them
@@ -34,13 +34,13 @@ example::
     }
 
 =========
-continued
+Continued
 =========
 
 A context will inherit the underlying domain size of the derived type but can override it
 
 ------
-detail
+Detail
 ------
 
 A context will inherit the underlying domain size of the derived type but can override it

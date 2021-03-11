@@ -2,12 +2,12 @@
 
 
 
-/*basic
+/*Basic
 In order to define a non-singular allocation one must explicitly define a size for the type.  This size is always relative to the contexts parent so for every instance of the parent there will be that many instances of the type.
 */
 
 
-/*intermediate
+/*Intermediate
 In order to define a non-singular allocation one must explicitly define a size for the type.  This size is always relative to the contexts parent so for every instance of the parent there will be that many instances of the type.
 */
 

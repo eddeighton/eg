@@ -8,10 +8,10 @@ Allocation
 Singular
 ========
 
-`Singular Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_Context/ccc_Allocation/aaa_Singular/Singular.eg>`_
+`Singular Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/aaa_singular/Singular.eg>`_
 
 ------
-simple
+Simple
 ------
 
 objects do not contain executable code themselves
@@ -36,11 +36,11 @@ example::
     };
 
 --------
-advanced
+Advanced
 --------
-^^^^^^^^
-issueone
-^^^^^^^^
+^^^^^^^^^^^
+Equivalence
+^^^^^^^^^^^
 
 objects do not contain executable code themselves
 
@@ -80,16 +80,16 @@ Program Output:
 Many
 ====
 
-`Many Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_Context/ccc_Allocation/bbb_Many/Many.eg>`_
+`Many Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/bbb_many/Many.eg>`_
 
 -----
-basic
+Basic
 -----
 
 In order to define a non-singular allocation one must explicitly define a size for the type.  This size is always relative to the contexts parent so for every instance of the parent there will be that many instances of the type.
 
 ------------
-intermediate
+Intermediate
 ------------
 
 In order to define a non-singular allocation one must explicitly define a size for the type.  This size is always relative to the contexts parent so for every instance of the parent there will be that many instances of the type.

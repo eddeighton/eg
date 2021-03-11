@@ -1,6 +1,6 @@
 
 
-/*simple
+/*Simple
 objects do not contain executable code themselves
 
 +------------------------+------------+----------+----------+
@@ -21,7 +21,7 @@ object SingularObject
 };
 
 
-/*advanced.issueone
+/*Advanced.Equivalence
 objects do not contain executable code themselves
 
 */

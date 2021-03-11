@@ -178,6 +178,16 @@ bool parseFolder( const std::string& strContents, Folder& folder, std::ostream& 
     return parseResult.fullParse();
 }
     
+std::string capitalise( const std::string& str )
+{
+    std::string strResult = str;
+    if( !strResult.empty() )
+    {
+        strResult[ 0 ] = std::toupper( strResult[ 0 ] );
+    }
+    return strResult;
+}
+    
 UnitTest::UnitTest( const boost::filesystem::path& rootPath, const boost::filesystem::path& projectDirectory )
     :   m_directory( boost::filesystem::relative( projectDirectory, rootPath ) )
 {
@@ -200,7 +210,7 @@ UnitTest::UnitTest( const boost::filesystem::path& rootPath, const boost::filesy
                 THROW_RTE( "Invalid folder name for: " << projectDirectory.string() << " " << osError.str() );
             }
             m_ordering.push_back( folder.strOrder );
-            m_headings.push_back( folder.strName );
+            m_headings.push_back( capitalise( folder.strName ) );
         }
     }
     
