@@ -42,4 +42,5 @@ action SingularObject::Nested
 int i = x();
 
 //which translates as
-int iReally = SingularObject.Nested.DeeperNesting.EvenDeeper.x();
+TEST( &x() == &SingularObject.Nested.DeeperNesting.EvenDeeper.x() ); //same address
+

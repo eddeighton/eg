@@ -58,3 +58,9 @@ action E[ 5 ] : C
         return 5;
     }
 };
+
+std::vector< Var< A, B, C, D, E > > actions = { A(), B(), C(), D(), E() };
+
+for( auto v : actions )
+    v.test();
+

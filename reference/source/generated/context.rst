@@ -59,21 +59,21 @@ example::
     //because everything here is singular it is possible to directly address x from the root i.e.
     int i = x();
     //which translates as
-    int iReally = SingularObject.Nested.DeeperNesting.EvenDeeper.x();
+    TEST( &x() == &SingularObject.Nested.DeeperNesting.EvenDeeper.x() ); //same address
 
 Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/aaa_singular
 
 Program Output:
 
-+---------+-----+-------+--------+
-|Timestamp|Type |Value  |Instance|
-+=========+=====+=======+========+
-|00000001 |START|root   |00000000|
-+---------+-----+-------+--------+
-|00000001 |LOG  |testing|        |
-+---------+-----+-------+--------+
-|00000001 |STOP |root   |00000000|
-+---------+-----+-------+--------+
++---------+-----+-----------------------------------------------------------+--------+
+|Timestamp|Type |Value                                                      |Instance|
++=========+=====+===========================================================+========+
+|00000001 |START|root                                                       |00000000|
++---------+-----+-----------------------------------------------------------+--------+
+|00000001 |PASS |&x() == &SingularObject.Nested.DeeperNesting.EvenDeeper.x()|        |
++---------+-----+-----------------------------------------------------------+--------+
+|00000001 |STOP |root                                                       |00000000|
++---------+-----+-----------------------------------------------------------+--------+
 
 ====
 many
