@@ -5,7 +5,7 @@ Inheritance
 Concrete
 ********
 
-`Concrete Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/bbb_inheritance/aaa_concrete/concrete.eg>`_
+`Concrete Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/bbb_inheritance/aaa_concrete>`_
 
 =====
 Basic

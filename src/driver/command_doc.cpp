@@ -159,7 +159,7 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::P
         generateHeaders( *pFileStream, pUnitTest->m_headings, headerStack );
         
         os << "\n`" << pUnitTest->m_headings.back() << " Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/" << 
-            pUnitTest->m_directory.generic_string() << "/" << lowerCase( pUnitTest->m_headings.back() ) << ".eg>`_\n\n";
+            pUnitTest->m_directory.generic_string() << ">`_\n\n";
         
         for( const doc::UnitTest::File& file : pUnitTest->m_files )
         {
