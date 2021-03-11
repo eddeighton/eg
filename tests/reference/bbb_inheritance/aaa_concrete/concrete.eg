@@ -8,9 +8,9 @@ action A
 {
     dim int x;
     
-    function test() : int 
+    function test() : void 
     {
-        return 1;
+        LOG( "A::test" );
     }
 }
 
@@ -18,9 +18,9 @@ action B : A
 {
     dim int y;
     
-    function test() : int 
+    function test() : void 
     {
-        return 2;
+        LOG( "B::test" );
     }
 }
 
@@ -35,27 +35,27 @@ action C[ 4 ]
 {
     dim int x;
     
-    function test() : int 
+    function test() : void 
     {
-        return 3;
+        LOG( "C::test" );
     }
 }
 
 action D : C
 {
     //has domain size of four
-    function test() : int 
+    function test() : void 
     {
-        return 4;
+        LOG( "D::test" );
     }
 };
 
 action E[ 5 ] : C
 {
     //has domain size of five
-    function test() : int 
+    function test() : void 
     {
-        return 5;
+        LOG( "E::test" );
     }
 };
 
