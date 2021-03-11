@@ -1,7 +1,6 @@
-
 ---
 layout: post
-title: Hello World
+title: Hello World.
 ---
 
 # Hello World
@@ -33,6 +32,7 @@ World w = World();
 //say hello
 auto a = w.SayHello();
 
+//wait for a to complete
 co_yield eg::wait( a );
 
 //say world
