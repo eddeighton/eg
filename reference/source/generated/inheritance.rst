@@ -1,9 +1,12 @@
 ###########
-inheritance
+Inheritance
 ###########
 ********
-concrete
+Concrete
 ********
+
+`Concrete Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/bbb_Inheritance/aaa_Concrete/Concrete.eg>`_
+
 =====
 basic
 =====
@@ -72,8 +75,6 @@ example::
     std::vector< Var< A, B, C, D, E > > actions = { A(), B(), C(), D(), E() };
     for( auto v : actions )
         v.test();
-
-Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/bbb_inheritance/aaa_concrete
 
 Program Output:
 

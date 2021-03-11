@@ -3,17 +3,35 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the EG Language Reference Manual.
-===================================================
+Welcome to the EG Language Documentation.
+=========================================
+
+
+Help Manual
+===========
 
 .. toctree::
+   :caption: Help Manual
+   :numbered:
+   :maxdepth: 2
+   
+   gettingStarted.rst
+   license.rst
+
+
+Reference Manual
+================
+
+.. toctree::
+   :caption: Reference Manual
+   :numbered:
    :maxdepth: 3
    
-   generated/context.rst
-   generated/inheritance.rst
-   generated/invocation.rst
+   generated/Context.rst
+   generated/Inheritance.rst
+   generated/Invocation.rst
 
-   license.rst
+
 
 Indices and tables
 ==================

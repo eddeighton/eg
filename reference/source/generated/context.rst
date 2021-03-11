@@ -1,12 +1,15 @@
 #######
-context
+Context
 #######
 **********
-allocation
+Allocation
 **********
 ========
-singular
+Singular
 ========
+
+`Singular Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_Context/ccc_Allocation/aaa_Singular/Singular.eg>`_
+
 ------
 simple
 ------
@@ -61,8 +64,6 @@ example::
     //which translates as
     TEST( &x() == &SingularObject.Nested.DeeperNesting.EvenDeeper.x() ); //same address
 
-Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/aaa_singular
-
 Program Output:
 
 +---------+-----+-----------------------------------------------------------+--------+
@@ -76,8 +77,11 @@ Program Output:
 +---------+-----+-----------------------------------------------------------+--------+
 
 ====
-many
+Many
 ====
+
+`Many Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_Context/ccc_Allocation/bbb_Many/Many.eg>`_
+
 -----
 basic
 -----
@@ -102,8 +106,6 @@ example::
         }
     }
     LOG( "If the size is not specified it defaults to one which makes the context singular" );
-
-Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/bbb_many
 
 Program Output:
 

@@ -1,9 +1,12 @@
 ##########
-invocation
+Invocation
 ##########
 ****
-data
+Data
 ****
+
+`Data Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/ccc_Invocation/aaa_Data/Data.eg>`_
+
 =====
 Basic
 =====
@@ -72,8 +75,6 @@ example::
     TEST( test2.x() == 1 );
     TEST( test2.y() == 2 );
     TEST( test2.z() == 3 );
-
-Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/ccc_invocation/aaa_data
 
 Program Output:
 

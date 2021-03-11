@@ -142,11 +142,16 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::P
     boost::filesystem::ensureFoldersExist( targetPath );
     std::unique_ptr< boost::filesystem::ofstream > pFileStream =
         boost::filesystem::createNewFileStream( targetPath );
+        
+    std::ostream& os = *pFileStream;
     
     doc::Identifier headerStack;
     for( const doc::UnitTest::Ptr& pUnitTest : group )
     {
         generateHeaders( *pFileStream, pUnitTest->m_headings, headerStack );
+        
+        os << "\n`" << pUnitTest->m_headings.back() << " Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/" << 
+            pUnitTest->m_directory.generic_string() << "/" << pUnitTest->m_headings.back() << ".eg>`_\n\n";
         
         for( const doc::UnitTest::File& file : pUnitTest->m_files )
         {
@@ -200,11 +205,6 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::P
         //generate event log table
         if( !pUnitTest->m_events.empty() )
         {
-            std::ostream& os = *pFileStream;
-            
-            os << "Full example program source code at: https://github.com/eddeighton/eg/tree/master/tests/reference/" << 
-                pUnitTest->m_directory.generic_string() << "\n\n";
-            
             os << "Program Output:\n\n";
             
             struct Row
