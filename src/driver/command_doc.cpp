@@ -137,6 +137,14 @@ void generateHeaders( std::ostream& os, const doc::Identifier& header, doc::Iden
     headerStack = header;
 }
 
+std::string lowerCase( const std::string& str )
+{
+    std::string strResult = str;
+    std::transform( strResult.begin(), strResult.end(), strResult.begin(), 
+        []( char c ) { return std::tolower( c ); } );
+    return strResult;
+}
+
 void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::PtrVector& group )
 {
     boost::filesystem::ensureFoldersExist( targetPath );
@@ -151,7 +159,7 @@ void generate( const boost::filesystem::path& targetPath, const doc::UnitTest::P
         generateHeaders( *pFileStream, pUnitTest->m_headings, headerStack );
         
         os << "\n`" << pUnitTest->m_headings.back() << " Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/" << 
-            pUnitTest->m_directory.generic_string() << "/" << pUnitTest->m_headings.back() << ".eg>`_\n\n";
+            pUnitTest->m_directory.generic_string() << "/" << lowerCase( pUnitTest->m_headings.back() ) << ".eg>`_\n\n";
         
         for( const doc::UnitTest::File& file : pUnitTest->m_files )
         {

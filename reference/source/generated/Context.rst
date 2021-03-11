@@ -8,7 +8,7 @@ Allocation
 Singular
 ========
 
-`Singular Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/aaa_singular/Singular.eg>`_
+`Singular Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/aaa_singular/singular.eg>`_
 
 ------
 Simple
@@ -80,7 +80,7 @@ Program Output:
 Many
 ====
 
-`Many Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/bbb_many/Many.eg>`_
+`Many Program Source Code <https://github.com/eddeighton/eg/tree/master/tests/reference/aaa_context/ccc_allocation/bbb_many/many.eg>`_
 
 -----
 Basic
