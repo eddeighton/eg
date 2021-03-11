@@ -1,9 +1,1 @@
 theme: jekyll-theme-modernist
-syntax-highlighting:
-  enabled : true
-  css: syntax.css
-syntax-highlighting:
-  enabled : true
-  css: style.css
-
-syntax_highlighter: rouge
